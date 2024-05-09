@@ -1,95 +1,201 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client"
+import {createContext, useContext, useState} from "react"
+import "./globals.css";
 
 export default function Home() {
+
+  const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false)
+  const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false)
+
+  const handleClickAddSecondRegisteredOwner = () => {
+    setAddSecondRegisteredOwner(true)
+  }
+
+  const handleClickAddThirdRegisteredOwner = () => {
+    setAddThirdRegisteredOwner(true)
+  }
+
+  const handleClickRemoveSecondRegisteredOwner = () => {
+    setAddSecondRegisteredOwner(false)
+  }
+  
+  const handleClickRemoveThirdRegisteredOwner = () => {
+    setAddThirdRegisteredOwner(false)
+  }
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <div>
+      <div className="centerContainer">
+        <input className="inputSearch" placeholder="Search..."></input>
+        <button className="buttonSearch" style={{marginLeft: "5px"}}>Search Customer</button>
+      </div> 
+
+      <div className="middleContainer">
+        <h3 className="title">
+          Registered Owner #1
+          <button 
+            style={{ marginLeft: "10px" }} 
+            onClick={handleClickAddSecondRegisteredOwner}
+          > 
+            Add Registered Owner
+          </button>
+        </h3>
+        
+        <label style={{marginLeft: "10px"}}>First Name</label>
+        <input className="inputData"></input>
+
+        <label style={{ marginLeft: "10px", marginTop: "10px" }}>Middle Name</label>
+        <input className="inputData"></input>
+
+        <label style={{ marginLeft: "10px", marginTop:"10px" }}>Last Name</label>
+        <input className="inputData"></input>
+
+        <label style={{ marginLeft: "10px", marginTop: "10px" }}>Driver License Number</label>
+        <input className="inputData"></input>
+        
+        {addSecondRegisteredOwner && (
+          <>
+            <h3 className="title">
+              Registered Owner #2
+              <button
+                style={{ marginLeft: "10px" }}
+                onClick={handleClickAddThirdRegisteredOwner}
+              >
+                Add Registered Owner
+              </button>
+              <button 
+                style={{ color: "red", marginLeft: "10px" }}
+                onClick={handleClickRemoveSecondRegisteredOwner}
+              >
+                Remove Registered Owner
+              </button>
+            </h3>
+
+            <label style={{marginBottom: "3px"}}>
+              <input
+                type="radio"
+                value="AND"
+                name="secondOwnershipType"
+              />
+              AND
+            </label>
+            
+            <label style={{ marginBottom: "5px" }}>
+              <input
+                type="radio"
+                value="OR"
+                name="secondOwnershipType"
+              />
+              OR
+            </label>
+
+            <label style={{ marginLeft: "10px" }}>First Name</label>
+            <input className="inputData"></input>
+
+            <label style={{ marginLeft: "10px", marginTop: "10px" }}>Middle Name</label>
+            <input className="inputData"></input>
+
+            <label style={{ marginLeft: "10px", marginTop: "10px" }}>Last Name</label>
+            <input className="inputData"></input>
+
+            <label style={{ marginLeft: "10px", marginTop: "10px" }}>Driver License Number</label>
+            <input className="inputData"></input>
+          </>
+        )}
+
+        {addThirdRegisteredOwner && (
+          <>
+            <h3 className="title">
+              Registered Owner #3
+              <button
+                style={{ marginLeft: "10px" }}
+              >
+                Add Registered Owner
+              </button>
+              <button
+                style={{ color: "red",marginLeft: "10px" }}
+                onClick={handleClickRemoveThirdRegisteredOwner}
+              >
+                Remove Registered Owner
+              </button>
+            </h3>
+
+            <label style={{ marginBottom: "3px" }}>
+              <input
+                type="radio"
+                value="AND"
+                name="thirdOwnershipType"
+              />
+              AND
+            </label>
+
+            <label style={{ marginBottom: "5px" }}>
+              <input
+                type="radio"
+                value="OR"
+                name="thirdOwnershipType"
+              />
+              OR
+            </label>
+
+            <label style={{ marginLeft: "10px" }}>First Name</label>
+            <input className="inputData"></input>
+
+            <label style={{ marginLeft: "10px", marginTop: "10px" }}>Middle Name</label>
+            <input className="inputData"></input>
+
+            <label style={{ marginLeft: "10px", marginTop: "10px" }}>Last Name</label>
+            <input className="inputData"></input>
+
+            <label style={{ marginLeft: "10px", marginTop: "10px" }}>Driver License Number</label>
+            <input className="inputData"></input>
+          </>
+        )}
+
+        <h3 className="title">
+          Residence Or Business Address
+        </h3>
+
+        <label style={{ marginLeft: "10px" }}>Mailing Address</label>
+        <input className="inputData"></input>
+
+        <label style={{ marginLeft: "10px", marginTop: "10px" }}>APT/SPACE/STE#</label>
+        <input className="inputData"></input>
+
+        <label style={{ marginLeft: "10px", marginTop: "10px" }}>City</label>
+        <input className="inputData"></input>
+
+        <label style={{ marginLeft: "10px", marginTop: "10px" }}>State</label>
+        <input className="inputData"></input>
+
+        <label style={{ marginLeft: "10px", marginTop: "10px" }}>Zip Code</label>
+        <input className="inputData"></input>
+
+        <h3 className="title">
+          Vehicle Information
+        </h3>
+
+        <label style={{ marginLeft: "10px" }}>VIN Number</label>
+        <input className="inputData"></input>
+
+        <label style={{ marginLeft: "10px", marginTop: "10px" }}>License Plate Number</label>
+        <input className="inputData"></input>
+
+        <label style={{ marginLeft: "10px", marginTop: "10px" }}>Make</label>
+        <input className="inputData"></input>
+
+        <label style={{ marginLeft: "10px", marginTop: "10px" }}>State</label>
+        <input className="inputData"></input>
+
+        <label style={{ marginLeft: "10px", marginTop: "10px" }}>Zip Code</label>
+        <input className="inputData"></input>
       </div>
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+
+
+      <div className="bottomContainer">
+        <button className="buttonNewCustomer">Save</button>
       </div>
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
