@@ -2,11 +2,14 @@
 import {createContext, useContext, useState} from "react"
 import "./globals.css";
 import { useAppContext } from "@/context";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   
-  const {formData, setFormData } = useAppContext()
+  const {formData, setFormData } = useAppContext()!
 
+  const router = useRouter()
+  
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false)
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false)
 
@@ -246,7 +249,7 @@ export default function Home() {
 
       <div className="bottomContainer">
         <button className="buttonNewCustomer" onClick={(e) => setFormData({ ...formData})}>Save</button>
-        <button className="buttonNewCustomer">Next</button>
+        <button className="buttonNewCustomer" onClick={() => router.push('/pdf')}>Next</button>
       </div>
 
     </div>

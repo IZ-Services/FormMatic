@@ -1,12 +1,55 @@
 "use client"
 import { createContext, useContext, useState } from "react";
 
-const AppContext = createContext({});
+interface FormData {
+    firstName1: string,
+    middleName1: string,
+    lastName1: string,
+    licenseNumber1: string,
+    and1: boolean,
+    or1: boolean,
+    firstName2: string,
+    middleName2: string,
+    lastName2: string,
+    licenseNumber2: string,
+    and2: boolean,
+    or2: boolean,
+    firstName3: string,
+    middleName3: string,
+    lastName3: string,
+    licenseNumber3: string,
+    residentualAddress: string,
+    residentualAptSpace: string,
+    residentualCity: string,
+    residentualState: string,
+    residentualZipCode: string,
+    mailingAddress: string,
+    mailingPoBox: string,
+    mailingCity: string,
+    mailingState: string,
+    mailingZipCode: string,
+    vehicleVinNumber: string,
+    vehicleLicensePlateNumber: string,
+    vehicleMake: string,
+    vehicleSaleMonth: string,
+    vehicleSaleDay: string,
+    vehicleSaleYear: string,
+    vehiclePurchasePrice: string,
+    gift: boolean,
+    trade: boolean,
+}
+
+type FormDataType = {
+  formData: FormData;
+  setFormData: (data: FormData) => void; 
+}
+
+const AppContext = createContext<FormDataType | null>(null);
 
 export function AppWrapper({ children } :  Readonly<{
   children: React.ReactNode;
 }>) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     firstName1: '',
     middleName1: '',
     lastName1: '',
