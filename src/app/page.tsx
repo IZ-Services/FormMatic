@@ -31,7 +31,7 @@ export default function Home() {
         <input className="inputSearch" placeholder="Search..."></input>
         <button className="buttonSearch" style={{marginLeft: "5px"}}>Search Customer</button>
       </div> 
-
+    
       <div className="middleContainer">
         <h3 className="title">
           Registered Owner #1
@@ -78,6 +78,7 @@ export default function Home() {
                 type="radio"
                 value="AND"
                 name="secondOwnershipType"
+                onClick={(e) => setFormData({ ...formData, and1: true})}
               />
               AND
             </label>
@@ -87,6 +88,7 @@ export default function Home() {
                 type="radio"
                 value="OR"
                 name="secondOwnershipType"
+                onClick={(e) => setFormData({ ...formData, or1: true})}
               />
               OR
             </label>
@@ -127,6 +129,7 @@ export default function Home() {
                 type="radio"
                 value="AND"
                 name="thirdOwnershipType"
+                onClick={(e) => setFormData({ ...formData, and2: true})}
               />
               AND
             </label>
@@ -136,6 +139,7 @@ export default function Home() {
                 type="radio"
                 value="OR"
                 name="thirdOwnershipType"
+                onClick={(e) => setFormData({ ...formData, or2: true})}
               />
               OR
             </label>
@@ -159,63 +163,63 @@ export default function Home() {
         </h3>
 
         <label style={{ marginLeft: "10px" }}>Residence/Business Address</label>
-        <input className="inputData" value={formData.mailingAddress} onChange={(e) => setFormData({ ...formData, mailingAddress: e.target.value })} />
+        <input className="inputData" value={formData.residentualAddress} onChange={(e) => setFormData({ ...formData, residentualAddress: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>APT/SPACE/STE#</label>
-        <input className="inputData" value={formData.aptSpace} onChange={(e) => setFormData({ ...formData, aptSpace: e.target.value })} />
+        <input className="inputData" value={formData.residentualAptSpace} onChange={(e) => setFormData({ ...formData, residentualAptSpace: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>City</label>
-        <input className="inputData"></input>
+        <input className="inputData" value={formData.residentualCity} onChange={(e) => setFormData({ ...formData, residentualCity: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>State</label>
-        <input className="inputData"></input>
+        <input className="inputData" value={formData.residentualState} onChange={(e) => setFormData({ ...formData, residentualState: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>Zip Code</label>
-        <input className="inputData"></input>
+        <input className="inputData" value={formData.residentualZipCode} onChange={(e) => setFormData({ ...formData, residentualZipCode: e.target.value })} />
 
         <h3 className="title">
           Mailing Address
         </h3>
 
         <label style={{ marginLeft: "10px" }}>Mailing   Address</label>
-        <input className="inputData"></input>
+        <input className="inputData" value={formData.mailingAddress} onChange={(e) => setFormData({ ...formData, mailingAddress: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>PO Box</label>
-        <input className="inputData"></input>
+        <input className="inputData" value={formData.mailingPoBox} onChange={(e) => setFormData({ ...formData, mailingPoBox: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>City</label>
-        <input className="inputData" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
+        <input className="inputData" value={formData.mailingCity} onChange={(e) => setFormData({ ...formData, mailingCity: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>State</label>
-        <input className="inputData" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} />
+        <input className="inputData" value={formData.mailingState} onChange={(e) => setFormData({ ...formData, mailingState: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>Zip Code</label>
-        <input className="inputData" value={formData.zipCode} onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })} />
+        <input className="inputData" value={formData.mailingZipCode} onChange={(e) => setFormData({ ...formData, mailingZipCode: e.target.value })} />
 
         <h3 className="title">
           Vehicle Information
         </h3>
 
         <label style={{ marginLeft: "10px" }}>VIN Number</label>
-        <input className="inputData" value={formData.vinNumber} onChange={(e) => setFormData({ ...formData, vinNumber: e.target.value })} />
+        <input className="inputData" value={formData.vehicleVinNumber} onChange={(e) => setFormData({ ...formData, vehicleVinNumber: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>License Plate Number</label>
-        <input className="inputData" value={formData.licensePlateNumber} onChange={(e) => setFormData({ ...formData, licensePlateNumber: e.target.value })} />
+        <input className="inputData" value={formData.vehicleLicensePlateNumber} onChange={(e) => setFormData({ ...formData, vehicleLicensePlateNumber: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>Make</label>
-        <input className="inputData" value={formData.make} onChange={(e) => setFormData({ ...formData, make: e.target.value })} />
+        <input className="inputData" value={formData.vehicleMake} onChange={(e) => setFormData({ ...formData, vehicleMake: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>Seller Date: Month</label>
-        <input className="smallInputData"></input>
+        <input className="smallInputData" value={formData.vehicleSaleMonth} onChange={(e) => setFormData({ ...formData, vehicleSaleMonth: e.target.value })} />
         
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>Seller Date: Day</label>
-        <input className="smallInputData" value={formData.vehicleState} onChange={(e) => setFormData({ ...formData, vehicleState: e.target.value })} />
+        <input className="smallInputData" value={formData.vehicleSaleDay} onChange={(e) => setFormData({ ...formData, vehicleSaleDay: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>Seller Date: Year</label>
-        <input className="smallInputData"></input>
+        <input className="smallInputData" value={formData.vehicleSaleYear} onChange={(e) => setFormData({ ...formData, vehicleSaleYear: e.target.value })} />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>Purchase Price</label>
-        <input className="inputData" value={formData.vehicleZipCode} onChange={(e) => setFormData({ ...formData, vehicleZipCode: e.target.value })} />
+        <input className="smallInputData" value={formData.vehiclePurchasePrice} onChange={(e) => setFormData({ ...formData, vehiclePurchasePrice: e.target.value })} />
       </div>
       
       <div style={{marginTop: "15px"}}>
@@ -224,6 +228,7 @@ export default function Home() {
             type="radio"
             value="Gift"
             name="GiftOrTrade"
+            onClick={(e) => setFormData({ ...formData, gift: true})}
           />
           GIFT
         </label>
@@ -233,13 +238,15 @@ export default function Home() {
             type="radio"
             value="Trade"
             name="GiftOrTrade"
+            onClick={(e) => setFormData({ ...formData, trade: true})}
           />
           TRADE
         </label>      
       </div>
 
       <div className="bottomContainer">
-        <button className="buttonNewCustomer">Save</button>
+        <button className="buttonNewCustomer" onClick={(e) => setFormData({ ...formData})}>Save</button>
+        <button className="buttonNewCustomer">Next</button>
       </div>
 
     </div>
