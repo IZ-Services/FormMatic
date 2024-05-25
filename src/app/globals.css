@@ -17,6 +17,7 @@
 }
 
 .buttonNewCustomer {
+    margin: 5px;
     background-color: limegreen;
     color: white;
     font-size: 16px;
