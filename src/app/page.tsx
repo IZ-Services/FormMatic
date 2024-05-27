@@ -3,9 +3,12 @@ import {createContext, useContext, useState} from "react"
 import "./globals.css";
 import { useAppContext } from "@/context";
 import { useRouter } from "next/navigation";
-
+import {POST} from "./api/post/route";
+import connect from "@/lib/mongoDB";
 export default function Home() {
-  
+
+  connect()
+
   const {formData, setFormData } = useAppContext()!
 
   const router = useRouter()
@@ -28,11 +31,28 @@ export default function Home() {
   const handleClickRemoveThirdRegisteredOwner = () => {
     setAddThirdRegisteredOwner(false)
   }
+const handleSearch = async () => {
+  const res = await fetch("/api/retrieveClient")
+  const client = await res.json()
+  console.log(client)
+}
+
+ const handleSave = async () => {
+    try {
+      const response = await POST(formData);
+      console.log(response)
+    } catch (error) {
+      console.error("Error saving data:", error);
+      alert("An error occurred while saving data");
+    }
+  };
+
+
   return (
     <div>
       <div className="centerContainer">
         <input className="inputSearch" placeholder="Search..."></input>
-        <button className="buttonSearch" style={{marginLeft: "5px"}}>Search Customer</button>
+        <button className="buttonSearch" style={{marginLeft: "5px"}} onClick={handleSearch}>Search Customer</button>
       </div> 
     
       <div className="middleContainer">
@@ -248,8 +268,8 @@ export default function Home() {
       </div>
 
       <div className="bottomContainer">
-        <button className="buttonNewCustomer" onClick={(e) => setFormData({ ...formData})}>Save</button>
-        <button className="buttonNewCustomer" onClick={() => router.push('/pdf')}>Next</button>
+        <button className="buttonNewCustomer" onClick={handleSave}>Save</button>
+        <button className="buttonNewCustomer" onClick={() => router.push('api/pdfLoader')}>Next</button>
       </div>
 
     </div>

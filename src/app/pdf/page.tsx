@@ -7,7 +7,7 @@ export default function DownloadPDF() {
   useEffect(() => {
     const fetchPdf = async () => {
       try {
-        const response = await fetch('/api'); 
+        const response = await fetch('/api/pdfLoader'); 
         const data = await response.json();
         setPdfData(data.pdfData);
       }
