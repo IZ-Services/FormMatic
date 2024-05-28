@@ -1,17 +1,96 @@
-import connect from "@/lib/mongoDB";
-import Client from "@/models/clientSchema";
-import { NextResponse } from "next/server";
 
-export async function POST(formData : any ) {
+import connectDB from "@/lib/mongoDB";
+import Client, { IClient } from "@/models/clientSchema";
+import { NextRequest, NextResponse } from "next/server";
+
+connectDB()
+export async function POST(request : NextRequest ){
   try {
+    const reqBody = await request.json()
+    const { 
+      firstName1, 
+      middleName1, 
+      lastName1, 
+      licenseNumber1, 
+      and1,
+      or1,
+      firstName2, 
+      middleName2, 
+      lastName2, 
+      licenseNumber2, 
+      and2,
+      or2,
+      firstName3, 
+      middleName3, 
+      lastName3, 
+      licenseNumber3, 
+      residentualAddress, 
+      residentualAptSpace, 
+      residentualCity, 
+      residentualState, 
+      residentualZipCode, 
+      mailingAddress, 
+      mailingPoBox, 
+      mailingCity, 
+      mailingState, 
+      mailingZipCode, 
+      vehicleVinNumber, 
+      vehicleLicensePlateNumber, 
+      vehicleMake, 
+      vehicleSaleMonth, 
+      vehicleSaleDay, 
+      vehicleSaleYear, 
+      vehiclePurchasePrice, 
+      gift,
+      trade,
+    } = reqBody
+    
+    const newClient = new Client({
+      firstName1, 
+      middleName1, 
+      lastName1, 
+      licenseNumber1, 
+      and1,
+      or1,
+      firstName2, 
+      middleName2, 
+      lastName2, 
+      licenseNumber2, 
+      and2,
+      or2,
+      firstName3, 
+      middleName3, 
+      lastName3, 
+      licenseNumber3, 
+      residentualAddress, 
+      residentualAptSpace, 
+      residentualCity, 
+      residentualState, 
+      residentualZipCode, 
+      mailingAddress, 
+      mailingPoBox, 
+      mailingCity, 
+      mailingState, 
+      mailingZipCode, 
+      vehicleVinNumber, 
+      vehicleLicensePlateNumber, 
+      vehicleMake, 
+      vehicleSaleMonth, 
+      vehicleSaleDay, 
+      vehicleSaleYear, 
+      vehiclePurchasePrice, 
+      gift,
+      trade
+    })
+    const savedClient = await newClient.save()
 
-    await connect();
-
-    const newClient = new Client(formData);
-    await newClient.save();
-
-    return NextResponse.json({ status: 'success', message: 'Client saved successfully' });
+    return NextResponse.json({
+        message: "User created successfully",
+        sucess: true,
+        savedClient
+    })
   } catch (error) {
-    return NextResponse.json({ status: 'error', message: 'Failed to save client', error });
+    console.error(error)
+    return NextResponse.json({ message: "error" }, { status: 500 });
   }
 }

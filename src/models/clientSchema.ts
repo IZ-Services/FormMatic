@@ -76,8 +76,6 @@ const clientSchema = new Schema({
     trade: {type: Boolean, required: false},
 });
 
-const Client = mongoose.models.Client || mongoose.model<IClient>("Client", clientSchema)
-
-// const Client = mongoose.model<IClient>("Client", clientSchema)
+const Client = mongoose.models?.Client || mongoose.model<IClient>("Client", clientSchema)
 
 export default Client

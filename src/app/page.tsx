@@ -3,18 +3,19 @@ import {createContext, useContext, useState} from "react"
 import "./globals.css";
 import { useAppContext } from "@/context";
 import { useRouter } from "next/navigation";
-import {POST} from "./api/post/route";
+import Client from "@/models/clientSchema";
 import connect from "@/lib/mongoDB";
-export default function Home() {
+import { POST } from "./api/post/route";
 
-  connect()
+export default function Home() {
 
   const {formData, setFormData } = useAppContext()!
 
   const router = useRouter()
-  
+
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false)
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false)
+  const [vinNumber, setVinNumber] = useState("");
 
   const handleClickAddSecondRegisteredOwner = () => {
     setAddSecondRegisteredOwner(true)
@@ -31,28 +32,49 @@ export default function Home() {
   const handleClickRemoveThirdRegisteredOwner = () => {
     setAddThirdRegisteredOwner(false)
   }
-const handleSearch = async () => {
-  const res = await fetch("/api/retrieveClient")
-  const client = await res.json()
-  console.log(client)
-}
-
- const handleSave = async () => {
+  const handleSearch = async () => {
     try {
-      const response = await POST(formData);
-      console.log(response)
+      const res = await fetch(`/api/retrieveClient?vehicleVinNumber=${vinNumber}`);
+      if (!res.ok) {
+        throw new Error("Failed to fetch clients");
+      }
+      const client = await res.json();
+      setFormData(client);
     } catch (error) {
-      console.error("Error saving data:", error);
-      alert("An error occurred while saving data");
+      console.error("Error fetching clients:", error);
+      alert("Vehicle Not Found");
     }
   };
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch('/api/post', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('User created successfully', data.savedClient);
+      } else {
+        console.error('Error creating user', data.message);
+      }
+    } catch (error) {
+      console.error('Error in handleSave:', error);
+    }
+  };
+
 
 
   return (
     <div>
       <div className="centerContainer">
-        <input className="inputSearch" placeholder="Search..."></input>
-        <button className="buttonSearch" style={{marginLeft: "5px"}} onClick={handleSearch}>Search Customer</button>
+        <input className="inputSearch" placeholder="Search VIN" value={vinNumber} onChange={(e) => setVinNumber(e.target.value)}/>
+        <button className="buttonSearch" style={{marginLeft: "5px"}} onClick={handleSearch}>Search Vehicle</button>
       </div> 
     
       <div className="middleContainer">
@@ -269,7 +291,7 @@ const handleSearch = async () => {
 
       <div className="bottomContainer">
         <button className="buttonNewCustomer" onClick={handleSave}>Save</button>
-        <button className="buttonNewCustomer" onClick={() => router.push('api/pdfLoader')}>Next</button>
+        <button className="buttonNewCustomer" onClick={() => router.push('pdf')}>Next</button>
       </div>
 
     </div>
