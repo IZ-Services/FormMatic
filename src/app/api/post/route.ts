@@ -1,10 +1,11 @@
 
 import connectDB from "@/lib/mongoDB";
-import Client, { IClient } from "@/models/clientSchema";
+import Client from "@/models/clientSchema";
 import { NextRequest, NextResponse } from "next/server";
 
-connectDB()
 export async function POST(request : NextRequest ){
+  connectDB()
+  
   try {
     const reqBody = await request.json()
     const { 
@@ -80,7 +81,8 @@ export async function POST(request : NextRequest ){
       vehicleSaleYear, 
       vehiclePurchasePrice, 
       gift,
-      trade
+      trade,
+      timeCreated: new Date()
     })
     const savedClient = await newClient.save()
 
@@ -90,7 +92,7 @@ export async function POST(request : NextRequest ){
         savedClient
     })
   } catch (error) {
-    console.error(error)
-    return NextResponse.json({ message: "error" }, { status: 500 });
+      console.error(error)
+      return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

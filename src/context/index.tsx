@@ -1,7 +1,9 @@
 "use client"
 import { createContext, useContext, useState } from "react";
+import { IClient } from "@/models/clientSchema";
 
 interface FormData {
+    _id?: string,
     firstName1: string,
     middleName1: string,
     lastName1: string,
@@ -39,17 +41,19 @@ interface FormData {
     trade: boolean,
 }
 
-type FormDataType = {
+interface AppContextType {
   formData: FormData;
-  setFormData: (data: FormData) => void; 
+  setFormData: (data: FormData) => void;
+  clients: IClient[];
+  setClients: (clients: IClient[]) => void;
 }
-
-const AppContext = createContext<FormDataType | null>(null);
+const AppContext = createContext<AppContextType | null>(null);
 
 export function AppWrapper({ children } :  Readonly<{
   children: React.ReactNode;
 }>) {
   const [formData, setFormData] = useState<FormData>({
+     _id: "",
     firstName1: '',
     middleName1: '',
     lastName1: '',
@@ -86,9 +90,10 @@ export function AppWrapper({ children } :  Readonly<{
     gift: false,
     trade: false,
   });
+const [clients, setClients] = useState<IClient[]>([]);
 
 	return(
-		<AppContext.Provider value={{ formData, setFormData }}>
+		<AppContext.Provider value={{ formData, setFormData, clients, setClients }}>
 			{children}
 		</AppContext.Provider>
 	)

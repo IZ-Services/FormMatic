@@ -1,22 +1,19 @@
 "use client"
-import {createContext, useContext, useState} from "react"
+import { useState} from "react"
 import "./globals.css";
 import { useAppContext } from "@/context";
 import { useRouter } from "next/navigation";
-import Client from "@/models/clientSchema";
-import connect from "@/lib/mongoDB";
-import { POST } from "./api/post/route";
+import { IClient } from "@/models/clientSchema";
 
 export default function Home() {
 
-  const {formData, setFormData } = useAppContext()!
-
+  const {formData, setFormData, setClients } = useAppContext()!
   const router = useRouter()
 
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false)
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false)
-  const [vinNumber, setVinNumber] = useState("");
-
+  const [searchFor, setSearchFor] = useState("");
+  
   const handleClickAddSecondRegisteredOwner = () => {
     setAddSecondRegisteredOwner(true)
   }
@@ -34,15 +31,14 @@ export default function Home() {
   }
   const handleSearch = async () => {
     try {
-      const res = await fetch(`/api/retrieveClient?vehicleVinNumber=${vinNumber}`);
-      if (!res.ok) {
-        throw new Error("Failed to fetch clients");
-      }
-      const client = await res.json();
-      setFormData(client);
+      const res = await fetch(`/api/get?searchFor=${searchFor}`);
+      const data = await res.json();
+      data.sort((a: IClient, b: IClient) => new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime());
+      router.push('/clients');
+      setClients(data); 
     } catch (error) {
       console.error("Error fetching clients:", error);
-      alert("Vehicle Not Found");
+      alert("The Item You Are Looking For Was Not Found");
     }
   };
 
@@ -55,17 +51,28 @@ export default function Home() {
         },
         body: JSON.stringify(formData),
       });
-
       const data = await response.json();
-
-      if (response.ok) {
-        console.log('User created successfully', data.savedClient);
-      } else {
-        console.error('Error creating user', data.message);
-      }
+      alert('Client Saved!')
     } catch (error) {
       console.error('Error in handleSave:', error);
     }
+  };
+
+    const handleUpdate = async () => {
+      try {
+        const response = await fetch(`/api/put?clientId=${formData._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+        const data = await response.json();
+        alert("Item Updated");
+      } catch (error) {
+        console.error("Error updating item:", error);
+        alert("Failed to update item");
+      }
   };
 
 
@@ -73,8 +80,8 @@ export default function Home() {
   return (
     <div>
       <div className="centerContainer">
-        <input className="inputSearch" placeholder="Search VIN" value={vinNumber} onChange={(e) => setVinNumber(e.target.value)}/>
-        <button className="buttonSearch" style={{marginLeft: "5px"}} onClick={handleSearch}>Search Vehicle</button>
+        <input className="inputSearch" placeholder="Search by First Name, Last Name, or VIN" value={searchFor} onChange={(e) => setSearchFor(e.target.value)}/>
+        <button className="buttonSearch" style={{marginLeft: "5px"}} onClick={handleSearch}>Search</button>
       </div> 
     
       <div className="middleContainer">
@@ -291,6 +298,7 @@ export default function Home() {
 
       <div className="bottomContainer">
         <button className="buttonNewCustomer" onClick={handleSave}>Save</button>
+        <button className="buttonNewCustomer" onClick={handleUpdate}>Update</button>
         <button className="buttonNewCustomer" onClick={() => router.push('pdf')}>Next</button>
       </div>
 

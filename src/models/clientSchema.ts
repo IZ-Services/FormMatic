@@ -1,6 +1,7 @@
 import mongoose, {Schema, Document } from "mongoose";
 
 export interface IClient extends Document {
+    _id: string;
     firstName1:string;
     middleName1:string;
     lastName1:string;
@@ -36,6 +37,7 @@ export interface IClient extends Document {
     vehiclePurchasePrice:string;
     gift: boolean;
     trade: boolean;
+    timeCreated: Date;
 }
 
 const clientSchema = new Schema({
@@ -74,6 +76,7 @@ const clientSchema = new Schema({
     vehiclePurchasePrice: {type: String, required: false},
     gift: {type: Boolean, required: false},
     trade: {type: Boolean, required: false},
+    timeCreated: { type: Date, default: Date.now }
 });
 
 const Client = mongoose.models?.Client || mongoose.model<IClient>("Client", clientSchema)
