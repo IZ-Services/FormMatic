@@ -112,3 +112,61 @@
     font-size: 20px;
     font-weight: bold;
 }
+
+.clients-container {
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+
+.client-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.client-table th,
+.client-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.client-table th {
+    background-color: #f2f2f2;
+    text-align: left;
+    text-align: center;
+}
+
+.editanddelete-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 2px;
+}
+
+.editanddelete-button:hover {
+    background-color: #0056b3;
+}
+
+.home-button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 10px;
+}
