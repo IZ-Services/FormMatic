@@ -2,8 +2,10 @@
 import { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import app from '../../../firebase-config'
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+    const router = useRouter();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -14,6 +16,7 @@ export default function LoginPage() {
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 const user = userCredential.user;
+                router.push('/')
             })
             .catch((error) => {
                 const errorCode = error.code;
@@ -42,7 +45,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                 ></input>
 
-                <button style={{ display: "block", width: "100%"}}>Log In</button>
+                <button style={{ display: "block", width: "100%"}} onClick={handleLogin}>Log In</button>
             </div>
         </main>
     );

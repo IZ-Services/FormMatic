@@ -1,4 +1,3 @@
-import dotenv from 'dotenv';
 import { initializeApp } from 'firebase/app';
 
 const firebaseConfig = {
