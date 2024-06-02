@@ -3,12 +3,32 @@ import { useSearchParams } from 'next/navigation';
 import { useRouter } from "next/navigation";
 import "../globals.css";
 import { useAppContext } from "@/context";
+import { useEffect } from 'react';
 
 export default function Clients() {
 	const router = useRouter()
-
-    const searchParams = useSearchParams();
   	const {clients, setFormData, setClients} = useAppContext()!
+
+  
+    useEffect(() => {
+        const data = localStorage.getItem('CLIENTS');
+        if (data) {
+        try {
+        const Clients = JSON.parse(data);
+            setClients(Clients);
+        } catch (error) {
+            console.error("Error parsing stored form data", error);
+        }
+        }
+    }, [setClients]);
+    
+    useEffect(() => {
+        try {
+        localStorage.setItem('CLIENTS', JSON.stringify(clients));
+        } catch (error) {
+        console.error('Error saving data to local storage:', error);
+        }
+    }, [clients]);
 
 	const handleEdit = async (clientId: string) => {
         try {

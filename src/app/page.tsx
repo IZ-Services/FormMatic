@@ -1,23 +1,44 @@
 "use client"
-import { useState} from "react"
+import { useEffect, useState} from "react"
 import "./globals.css";
 import { useAppContext } from "@/context";
 import { useRouter } from "next/navigation";
 import { IClient } from "@/models/clientSchema";
+import { json } from "stream/consumers";
 
 export default function Home() {
-
+  
   const {formData, setFormData, setClients } = useAppContext()!
   const router = useRouter()
-
+  
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false)
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false)
   const [searchFor, setSearchFor] = useState("");
   
+ useEffect(() => {
+    const data = localStorage.getItem('FORM_DATA');
+    if (data) {
+      try {
+       const formData = JSON.parse(data);
+        setFormData(formData);
+      } catch (error) {
+        console.error("Error parsing stored form data", error);
+      }
+    }
+  }, [setFormData]);
+  
+  useEffect(() => {
+    try {
+      localStorage.setItem('FORM_DATA', JSON.stringify(formData));
+    } catch (error) {
+      console.error('Error saving data to local storage:', error);
+    }
+  }, [formData]);
+  
   const handleClickAddSecondRegisteredOwner = () => {
     setAddSecondRegisteredOwner(true)
   }
-
+  
   const handleClickAddThirdRegisteredOwner = () => {
     setAddThirdRegisteredOwner(true)
   }
@@ -76,7 +97,6 @@ export default function Home() {
   };
 
 
-
   return (
     <div>
       <div className="centerContainer">
@@ -96,7 +116,7 @@ export default function Home() {
         </h3>
         
         <label style={{marginLeft: "10px"}}>First Name</label>
-        <input className="inputData" value={formData.firstName1} onChange={(e) => setFormData({ ...formData, firstName1: e.target.value })} />
+        <input className="inputData" value={formData.firstName1} onChange={(e) => setFormData({ ...formData, firstName1: e.target.value })}  />
 
         <label style={{ marginLeft: "10px", marginTop: "10px" }}>Middle Name</label>
         <input className="inputData" value={formData.middleName1} onChange={(e) => setFormData({ ...formData, middleName1: e.target.value })} />
