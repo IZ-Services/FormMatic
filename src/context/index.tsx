@@ -46,7 +46,10 @@ interface AppContextType {
   setFormData: (data: FormData) => void;
   clients: IClient[];
   setClients: (clients: IClient[]) => void;
+  pdfData: string | null; 
+  setPdfData: (data: string | null) => void; 
 }
+
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppWrapper({ children } :  Readonly<{
@@ -91,9 +94,10 @@ export function AppWrapper({ children } :  Readonly<{
     trade: false,
   });
 const [clients, setClients] = useState<IClient[]>([]);
+  const [pdfData, setPdfData] = useState<string | null>(null); 
 
 	return(
-		<AppContext.Provider value={{ formData, setFormData, clients, setClients }}>
+		<AppContext.Provider value={{ formData, setFormData, clients, setClients, pdfData, setPdfData }}>
 			{children}
 		</AppContext.Provider>
 	)
