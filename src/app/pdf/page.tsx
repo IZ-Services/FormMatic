@@ -1,23 +1,18 @@
-"use client";
-import { useState, useEffect } from 'react';
+"use client"
+import { useEffect } from 'react';
+import { useAppContext } from '@/context';
+import { useRouter } from 'next/navigation';
 
 export default function DownloadPDF() {
-  const [pdfData, setPdfData] = useState<string | null>(null);
+  const router = useRouter();
+  const { pdfData } = useAppContext()!;
 
   useEffect(() => {
-    const fetchPdf = async () => {
-      try {
-        const response = await fetch('/api/pdfLoader'); 
-        const data = await response.json();
-        setPdfData(data.pdfData);
-      }
-	   catch (error) {
-        console.error("Error fetching PDF:", error);
-      }
-    };
+    if (!pdfData) {
+      router.push('/');
+    }
+  }, [pdfData, router]);
 
-    fetchPdf();
-  }, []); 
   return (
     <div>
       {pdfData && (

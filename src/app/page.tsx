@@ -4,36 +4,15 @@ import "./globals.css";
 import { useAppContext } from "@/context";
 import { useRouter } from "next/navigation";
 import { IClient } from "@/models/clientSchema";
-import { json } from "stream/consumers";
 
 export default function Home() {
   
-  const {formData, setFormData, setClients } = useAppContext()!
+  const {formData, setFormData, setClients, setPdfData } = useAppContext()!
   const router = useRouter()
   
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false)
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false)
   const [searchFor, setSearchFor] = useState("");
-  
- useEffect(() => {
-    const data = localStorage.getItem('FORM_DATA');
-    if (data) {
-      try {
-       const formData = JSON.parse(data);
-        setFormData(formData);
-      } catch (error) {
-        console.error("Error parsing stored form data", error);
-      }
-    }
-  }, [setFormData]);
-  
-  useEffect(() => {
-    try {
-      localStorage.setItem('FORM_DATA', JSON.stringify(formData));
-    } catch (error) {
-      console.error('Error saving data to local storage:', error);
-    }
-  }, [formData]);
   
   const handleClickAddSecondRegisteredOwner = () => {
     setAddSecondRegisteredOwner(true)
@@ -55,8 +34,9 @@ export default function Home() {
       const res = await fetch(`/api/get?searchFor=${searchFor}`);
       const data = await res.json();
       data.sort((a: IClient, b: IClient) => new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime());
-      router.push('/clients');
+      console.log(data)
       setClients(data); 
+      router.push('/clients');
     } catch (error) {
       console.error("Error fetching clients:", error);
       alert("The Item You Are Looking For Was Not Found");
@@ -96,6 +76,24 @@ export default function Home() {
       }
   };
 
+    const handleNext = async() => {
+    try {
+      const response = await fetch('/api/pdfLoader', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+       body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      setPdfData(data.pdfData);
+
+      router.push('pdf');
+    } catch (error) {
+      console.error('Error navigating to the PDF page:', error);
+    }
+  };
 
   return (
     <div>
@@ -319,7 +317,7 @@ export default function Home() {
       <div className="bottomContainer">
         <button className="buttonNewCustomer" onClick={handleSave}>Save</button>
         <button className="buttonNewCustomer" onClick={handleUpdate}>Update</button>
-        <button className="buttonNewCustomer" onClick={() => router.push('pdf')}>Next</button>
+        <button className="buttonNewCustomer" onClick={handleNext}>Next</button>
       </div>
 
     </div>
