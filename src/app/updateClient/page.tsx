@@ -1,62 +1,51 @@
 "use client"
 import { useEffect, useState} from "react"
-import "./globals.css";
+import "../globals.css";
 import { useAppContext } from "@/context";
 import { useRouter } from "next/navigation";
 import { IClient } from "@/models/clientSchema";
 
-export default function Home() {
+export default function UpdateClient() {
   
-  const {formData, setFormData, setClients, setPdfData } = useAppContext()!
-  const router = useRouter()
-  
-  const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false)
-  const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false)
-  const [searchFor, setSearchFor] = useState("");
-  
-  const handleClickAddSecondRegisteredOwner = () => {
-    setAddSecondRegisteredOwner(true)
-  }
-  
-  const handleClickAddThirdRegisteredOwner = () => {
-    setAddThirdRegisteredOwner(true)
-  }
+	const {formData, setFormData, setClients, setPdfData } = useAppContext()!
+	const router = useRouter()
 
-  const handleClickRemoveSecondRegisteredOwner = () => {
-    setAddSecondRegisteredOwner(false)
-  }
-  
-  const handleClickRemoveThirdRegisteredOwner = () => {
-    setAddThirdRegisteredOwner(false)
-  }
-  const handleSearch = async () => {
-    try {
-      const res = await fetch(`/api/get?searchFor=${searchFor}`);
-      const data = await res.json();
-      data.sort((a: IClient, b: IClient) => new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime());
-      console.log(data)
-      setClients(data); 
-      router.push('/clients');
-    } catch (error) {
-      console.error("Error fetching clients:", error);
-      alert("The Item You Are Looking For Was Not Found");
-    }
-  };
+	const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false)
+	const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false)
+	const [searchFor, setSearchFor] = useState("");
 
-  const handleSave = async () => {
-    try {
-      const response = await fetch('/api/post', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
-      alert('Client Saved!')
-    } catch (error) {
-      console.error('Error in handleSave:', error);
-    }
+	const handleClickAddSecondRegisteredOwner = () => {
+		setAddSecondRegisteredOwner(true)
+	}
+
+	const handleClickAddThirdRegisteredOwner = () => {
+		setAddThirdRegisteredOwner(true)
+	}
+
+	const handleClickRemoveSecondRegisteredOwner = () => {
+		setAddSecondRegisteredOwner(false)
+	}
+  
+	const handleClickRemoveThirdRegisteredOwner = () => {
+		setAddThirdRegisteredOwner(false)
+	}
+
+
+    const handleUpdate = async () => {
+      try {
+        const response = await fetch(`/api/put?clientId=${formData._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+        const data = await response.json();
+        alert("Item Updated");
+      } catch (error) {
+        console.error("Error updating item:", error);
+        alert("Failed to update item");
+      }
   };
 
     const handleNext = async() => {
@@ -80,10 +69,7 @@ export default function Home() {
 
   return (
     <div>
-      <div className="centerContainer">
-        <input className="inputSearch" placeholder="Search by First Name, Last Name, or VIN" value={searchFor} onChange={(e) => setSearchFor(e.target.value)}/>
-        <button className="buttonSearch" style={{marginLeft: "5px"}} onClick={handleSearch}>Search</button>
-      </div> 
+      <h1>Update Client</h1>
     
       <div className="middleContainer">
         <h3 className="title">
@@ -298,9 +284,10 @@ export default function Home() {
       </div>
 
       <div className="bottomContainer">
-        <button className="buttonNewCustomer" onClick={handleSave}>Save</button>
+        <button className="buttonNewCustomer" onClick={handleUpdate}>Update</button>
         <button className="buttonNewCustomer" onClick={handleNext}>Next</button>
       </div>
+
     </div>
   );
 }
