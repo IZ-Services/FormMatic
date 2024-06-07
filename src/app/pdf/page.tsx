@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 export default function DownloadPDF() {
   const router = useRouter();
   const { pdfData } = useAppContext()!;
-
+ 
   useEffect(() => {
     if (!pdfData) {
-      router.push('/');
+      router.push('/forms');
     }
   }, [pdfData, router]);
 
