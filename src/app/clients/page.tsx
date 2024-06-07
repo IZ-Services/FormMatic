@@ -12,7 +12,7 @@ export default function Clients() {
             const clientToEdit = clients.find(client => client._id === clientId);
             if (clientToEdit) {
                 setFormData(clientToEdit);
-                router.push('/');
+                router.push('/updateClient');
             } else {
                 alert("Client not found.");
             }
