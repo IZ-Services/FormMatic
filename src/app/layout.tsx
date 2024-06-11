@@ -1,16 +1,8 @@
-<<<<<<< HEAD
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { AppWrapper } from '@/context'
-import Head from "next/head";
-=======
 import React from 'react';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AppWrapper } from '@/context';
->>>>>>> a2a13378f3cba27d452240065118afedf630e233
 
 const inter = Inter({ subsets: ['latin'] });
 
