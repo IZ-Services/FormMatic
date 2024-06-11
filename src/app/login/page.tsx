@@ -1,4 +1,5 @@
-"use client"
+'use client';
+import React from 'react';
 import { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import "../globals.css";
@@ -7,14 +8,14 @@ import { useRouter } from 'next/navigation';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/16/solid';
 
 export default function LoginPage() {
-    const router = useRouter();
+  const router = useRouter();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState(false);
 
-    const auth = getAuth(app);
+  const auth = getAuth(app);
 
     const handleLogin = () => {
         signInWithEmailAndPassword(auth, email, password)
