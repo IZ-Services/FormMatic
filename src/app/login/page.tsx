@@ -16,7 +16,7 @@ export default function LoginPage() {
   const handleLogin = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-         userCredential.user;
+        userCredential.user;
         router.push('/');
       })
       .catch((error) => {

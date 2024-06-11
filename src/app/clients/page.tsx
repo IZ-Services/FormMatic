@@ -29,7 +29,7 @@ export default function Clients() {
         method: 'DELETE',
       });
 
-       await response.json();
+      await response.json();
 
       setClients(clients.filter((client) => client._id !== clientId));
       alert('Client Deleted.');
