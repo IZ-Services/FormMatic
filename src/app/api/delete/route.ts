@@ -9,7 +9,7 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const clientId = searchParams.get('clientId');
 
-     await Client.findByIdAndDelete(clientId);
+    await Client.findByIdAndDelete(clientId);
 
     return NextResponse.json({ message: 'Client successfully deleted' }, { status: 200 });
   } catch (error) {
