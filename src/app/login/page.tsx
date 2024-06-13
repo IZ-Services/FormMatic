@@ -73,7 +73,7 @@ export default function LoginPage() {
           </button>
 
           <div className="forgot-password-container">
-            <a href="/forgot-password" className="forgot-password-link">
+            <a href="/forgotPassword" className="forgot-password-link">
               Forgot Password?
             </a>
           </div>
