@@ -24,7 +24,7 @@ export default function Sidebar() {
   ];
 
   const bottomLinks = [
-    { label: 'Account', icon: UserIcon, route: '/accountSettings' },
+    { label: 'Account', icon: UserIcon, route: '/account' },
     { label: 'Logout', icon: ArrowRightStartOnRectangleIcon, route: '/login' },
   ];
 
