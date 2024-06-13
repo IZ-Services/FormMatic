@@ -10,7 +10,7 @@ export default function DownloadPDF() {
 
   useEffect(() => {
     if (!pdfData) {
-      router.push('/forms');
+      router.push('/');
     }
   }, [pdfData, router]);
 

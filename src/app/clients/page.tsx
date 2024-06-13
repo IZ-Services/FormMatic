@@ -41,14 +41,6 @@ export default function Clients() {
   return (
     <div className="clients-container">
       <h1>Clients</h1>
-      <button
-        className="home-button"
-        onClick={() => {
-          router.push('/');
-        }}
-      >
-        Home
-      </button>
       <table className="client-table">
         <thead>
           <tr>

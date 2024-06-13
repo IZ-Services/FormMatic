@@ -1,3 +1,20 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+}
+
+main {
+  flex: 1;
+  height: 100vh;
+  margin-left: 16rem;
+  padding: 1rem;
+}
+
 .centerContainer {
   display: flex;
   flex-direction: row;
@@ -153,19 +170,85 @@
   background-color: #0056b3;
 }
 
-.home-button {
-  background-color: #4caf50; /* Green */
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 4px;
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin: 10px;
+.sidebar {
+  display: flex;
+  position: fixed;
+  height: 100vh;
+  flex-direction: column;
+  width: 16rem;
+  flex-shrink: 0;
+  border-right: 1px solid #bbb;
+}
+
+.sidebarWrapper {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebarHeading {
+  font-size: 3rem;
+  font-weight: 600;
+  color: darkgreen;
+  margin-bottom: 2rem;
+  margin-top: 1.25rem;
+  height: 2rem;
+  flex-shrink: 0;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.link {
+  display: flex;
+  margin: 0.25rem;
+  align-items: center;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-radius: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.linkActive {
+  display: flex;
+  margin: 0.25rem;
+  align-items: center;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-radius: 20px;
+  transition: background-color 0.3s ease;
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.linksContainer {
+  margin-top: 1.25rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.linkIcon {
+  margin-right: 0.75rem;
+  height: 1.5rem;
+  width: 1.5rem;
+  flex-shrink: 0;
+}
+
+.linkLabel {
+  flex: 1;
+  font-weight: 600;
+}
+
+.link:hover {
+  background-color: #f5f5f5;
+}
+
+.bottomLinksContainer {
+  margin-bottom: 0.5rem;
+  margin-top: 0.25rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
 }
