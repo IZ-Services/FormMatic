@@ -174,11 +174,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 150px;
+    margin-top: 4.375rem;
 }
 
 .login-CompanyName{
-    color: #000;  
+    color: #278f3c;  
     text-align: center;
     font-family: Arial;
     font-size: 100px;
@@ -194,11 +194,11 @@
     font-size: 24px;
     font-style: normal;
     font-weight: normal;
-    margin-bottom: 75px;
+    margin-bottom: 3.125rem;
 }
 
 .login-SignIn {
-    color: #278f3c;
+    color: black;
     text-align: center;
     font-size: 45px;
     font-style: normal;

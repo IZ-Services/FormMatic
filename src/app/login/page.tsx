@@ -3,7 +3,7 @@ import React from 'react';
 import { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import "../globals.css";
-import app from '../../../firebase-config'
+import app from '../../../firebase-config';
 import { useRouter } from 'next/navigation';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/16/solid';
 
@@ -20,19 +20,19 @@ export default function LoginPage() {
     const handleLogin = () => {
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
-                const user = userCredential.user;
-                router.push('/')
+                 userCredential.user;
+                router.push('/');
             })
             .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
+                error.code;
+                error.message;
                 setLoginError(true);
             });
-    }
+    };
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
-    }
+    };
 
     return (
         <main>

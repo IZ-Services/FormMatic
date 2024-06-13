@@ -1,11 +1,10 @@
 'use client';
-import React from 'react';
-import { useState } from 'react';
+import React, {useState} from 'react';
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
-import app from '../../../firebase-config'
+import app from '../../../firebase-config';
 import "../globals.css";
 
-export default function forgotPassword() {
+export default function ForgotPassword() {
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState({text: "", type: "success"});
 
