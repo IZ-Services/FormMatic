@@ -8,12 +8,12 @@ body {
   display: flex;
 }
 
-  main {
-    flex: 1;
-    height: 100vh;
-    margin-left: 16rem;
-    padding: 1rem;
-  }
+main {
+  flex: 1;
+  height: 100vh;
+  margin-left: 16rem;
+  padding: 1rem;
+}
 
 .centerContainer {
   display: flex;
@@ -454,4 +454,3 @@ body {
   color: #999;
   cursor: pointer;
 }
-
