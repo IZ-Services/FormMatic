@@ -75,7 +75,7 @@ export default function Home() {
       // const data = await response.json();
       // setPdfData(data.pdfData);
 
-      router.push('/forms');
+      router.push('/');
     } catch (error) {
       console.error('Error navigating to the PDF page:', error);
     }

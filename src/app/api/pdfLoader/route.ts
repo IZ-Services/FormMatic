@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
         case 'public/pdfs/REG343.pdf':
           base64Pdf = await modifyReg343Pdf(absolutePdfPath, formData);
           break;
-        case 'public/pdfs/REG488c.pdf':
+        case 'public/pdfs/REG488C.pdf':
           base64Pdf = await modifyReg488cPdf(absolutePdfPath, formData);
           break;
         case 'public/pdfs/REG4008.pdf':
