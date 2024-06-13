@@ -30,7 +30,7 @@ export default function PdfForms() {
     'REG4008/ DECLARATION OF GROSS VEHICLE WEIGHT (GVW)/COMBINED GROSS VEHICLE WEIGHT (CGW)',
     'REG4017/ PERMANENT TRAILER IDENTIFICATION (PTI) CERTIFICATION',
     'REG5045/ NONRESIDENT MILITARY (NRM) VEHICLE LICENSE FEE AND TRANSPORTATION IMPROVEMENT FEE EXEMPTION',
-    'REG5103/ APPLICATION FOR TEMPORARY SMOG EXEMPTION FOR A VEHICLE LOCATED OUT-OF-STATE'
+    'REG5103/ APPLICATION FOR TEMPORARY SMOG EXEMPTION FOR A VEHICLE LOCATED OUT-OF-STATE',
   ];
 
   const handleFormClick = async (formName: string) => {
@@ -76,7 +76,8 @@ export default function PdfForms() {
         url = 'https://www.dmv.ca.gov/portal/uploads/2020/06/reg156.pdf';
         break;
       case 'REG195/ APPLICATION FOR DISABLED PERSON PLACARD OR PLATES':
-        url = 'https://www.dmv.ca.gov/portal/file/application-for-disabled-person-placard-or-plates-reg-195-pdf/';
+        url =
+          'https://www.dmv.ca.gov/portal/file/application-for-disabled-person-placard-or-plates-reg-195-pdf/';
         break;
       case 'REG227/ APPLICATION FOR REPLACEMENT OR TRANSFER OF TITLE':
         url = 'https://www.dmv.ca.gov/portal/uploads/2021/11/REG-227-R9-2021-AS-WWW.pdf';
@@ -120,7 +121,7 @@ export default function PdfForms() {
   return (
     <div>
       <h1>Forms</h1>
-            <table>
+      <table>
         <thead>
           <tr>
             <th>ID</th>
@@ -135,8 +136,12 @@ export default function PdfForms() {
                 <td>{id}</td>
                 <td>{title}</td>
                 <td>
-                  <Link href={selectedUrl} target="_blank" onClick={() => handleFormClick(formName)}>
-                    <button >Preview</button>
+                  <Link
+                    href={selectedUrl}
+                    target="_blank"
+                    onClick={() => handleFormClick(formName)}
+                  >
+                    <button>Preview</button>
                   </Link>
                 </td>
               </tr>

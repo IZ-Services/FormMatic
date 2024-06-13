@@ -1,6 +1,7 @@
-html, body {
+html,
+body {
   margin: 0;
-  padding: 0; 
+  padding: 0;
 }
 
 .container {
@@ -9,7 +10,7 @@ html, body {
 
 main {
   flex: 1;
-  height: 100vh; 
+  height: 100vh;
   margin-left: 16rem;
   padding: 1rem;
 }
@@ -176,7 +177,7 @@ main {
   flex-direction: column;
   width: 16rem;
   flex-shrink: 0;
-  border-right: 1px solid #bbb
+  border-right: 1px solid #bbb;
 }
 
 .sidebarWrapper {
@@ -207,7 +208,6 @@ main {
   padding-bottom: 0.5rem;
   border-radius: 20px;
   transition: background-color 0.3s ease;
-
 }
 
 .linkActive {
@@ -224,13 +224,13 @@ main {
   font-weight: bold;
 }
 
-.linksContainer{
+.linksContainer {
   margin-top: 1.25rem;
   padding-left: 0.25rem;
   padding-right: 0.25rem;
 }
 
-.linkIcon{
+.linkIcon {
   margin-right: 0.75rem;
   height: 1.5rem;
   width: 1.5rem;
