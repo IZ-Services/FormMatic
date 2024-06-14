@@ -69,10 +69,8 @@ export default function Home() {
       //   },
       //  body: JSON.stringify(formData),
       // });
-
       // const data = await response.json();
       // setPdfData(data.pdfData);
-
     } catch (error) {
       console.error('Error navigating to the PDF page:', error);
     }
@@ -87,7 +85,12 @@ export default function Home() {
           value={searchFor}
           onChange={(e) => setSearchFor(e.target.value)}
         />
-        <Link href="/clients" className="buttonSearch" style={{ marginLeft: '5px' }} onClick={handleSearch}>
+        <Link
+          href="/clients"
+          className="buttonSearch"
+          style={{ marginLeft: '5px' }}
+          onClick={handleSearch}
+        >
           Search
         </Link>
       </div>
@@ -408,8 +411,8 @@ export default function Home() {
         <button className="buttonNewCustomer" onClick={handleSave}>
           Save
         </button>
-        <Link href="/pdf"  className="buttonNewCustomer" onClick={handleNext}>
-            Next
+        <Link href="/pdf" className="buttonNewCustomer" onClick={handleNext}>
+          Next
         </Link>
       </div>
     </div>

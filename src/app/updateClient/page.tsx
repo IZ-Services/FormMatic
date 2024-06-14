@@ -8,7 +8,6 @@ import Link from 'next/link';
 export default function UpdateClient() {
   const { formData, setFormData } = useAppContext()!;
 
-
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false);
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false);
 
@@ -54,7 +53,6 @@ export default function UpdateClient() {
       //   },
       //  body: JSON.stringify(formData),
       // });
-
       // const data = await response.json();
       // setPdfData(data.pdfData);
     } catch (error) {
@@ -383,7 +381,7 @@ export default function UpdateClient() {
           Update
         </button>
         <Link href="/pdf" className="buttonNewCustomer" onClick={handleNext}>
-            Next
+          Next
         </Link>
       </div>
     </div>

@@ -59,8 +59,12 @@ export default function Clients() {
               <td>{client.lastName1}</td>
               <td>{client.vehicleVinNumber}</td>
               <td>
-                  <Link href="/updateClient"  className="editanddelete-button" onClick={() => handleEdit(client._id)}>
-                    Edit
+                <Link
+                  href="/updateClient"
+                  className="editanddelete-button"
+                  onClick={() => handleEdit(client._id)}
+                >
+                  Edit
                 </Link>
                 <button className="editanddelete-button" onClick={() => handleDelete(client._id)}>
                   Delete

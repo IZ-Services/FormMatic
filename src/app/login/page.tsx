@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/16/solid';
 
 export default function LoginPage() {
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +66,7 @@ export default function LoginPage() {
           {loginError && <div className="error-message-login">Incorrect username or password.</div>}
 
           <Link href="/" className="loginButton" onClick={handleLogin}>
-              Log In
+            Log In
           </Link>
 
           <div className="forgot-password-container">

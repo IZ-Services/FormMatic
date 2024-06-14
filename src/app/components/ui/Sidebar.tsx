@@ -32,8 +32,6 @@ export default function Sidebar() {
     setActiveRoute(pathname);
   }, [pathname]);
 
-  
-
   return (
     <div className="sidebar">
       <div className="sidebarWrapper">

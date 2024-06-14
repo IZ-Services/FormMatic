@@ -23,13 +23,10 @@ export default function DownloadPDF() {
           width="100%"
           height="600px"
           data={`data:application/pdf;base64,${pdfData}`}
-       />
+        />
       ) : (
         <div>
-          PDF data not available.{' '}
-          <Link href="/">
-              Go back to Home
-          </Link>
+          PDF data not available. <Link href="/">Go back to Home</Link>
         </div>
       )}
     </div>
