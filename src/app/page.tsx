@@ -3,12 +3,11 @@ import React from 'react';
 import { useState } from 'react';
 import './globals.css';
 import { useAppContext } from '@/context';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { IClient } from '@/models/clientSchema';
 
 export default function Home() {
   const { formData, setFormData, setClients } = useAppContext()!;
-  const router = useRouter();
 
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false);
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false);
@@ -39,7 +38,6 @@ export default function Home() {
       );
       console.log(data);
       setClients(data);
-      router.push('/clients');
     } catch (error) {
       console.error('Error fetching clients:', error);
       alert('The Item You Are Looking For Was Not Found');
@@ -71,11 +69,8 @@ export default function Home() {
       //   },
       //  body: JSON.stringify(formData),
       // });
-
       // const data = await response.json();
       // setPdfData(data.pdfData);
-
-      router.push('/');
     } catch (error) {
       console.error('Error navigating to the PDF page:', error);
     }
@@ -90,9 +85,14 @@ export default function Home() {
           value={searchFor}
           onChange={(e) => setSearchFor(e.target.value)}
         />
-        <button className="buttonSearch" style={{ marginLeft: '5px' }} onClick={handleSearch}>
+        <Link
+          href="/clients"
+          className="buttonSearch"
+          style={{ marginLeft: '5px' }}
+          onClick={handleSearch}
+        >
           Search
-        </button>
+        </Link>
       </div>
 
       <div className="middleContainer">
@@ -411,9 +411,9 @@ export default function Home() {
         <button className="buttonNewCustomer" onClick={handleSave}>
           Save
         </button>
-        <button className="buttonNewCustomer" onClick={handleNext}>
+        <Link href="/pdf" className="buttonNewCustomer" onClick={handleNext}>
           Next
-        </button>
+        </Link>
       </div>
     </div>
   );

@@ -1,11 +1,10 @@
 'use client';
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import '../globals.css';
 import { useAppContext } from '@/context';
 
 export default function Clients() {
-  const router = useRouter();
   const { clients, setFormData, setClients } = useAppContext()!;
 
   const handleEdit = async (clientId: string) => {
@@ -13,7 +12,6 @@ export default function Clients() {
       const clientToEdit = clients.find((client) => client._id === clientId);
       if (clientToEdit) {
         setFormData(clientToEdit);
-        router.push('/updateClient');
       } else {
         alert('Client not found.');
       }
@@ -61,9 +59,13 @@ export default function Clients() {
               <td>{client.lastName1}</td>
               <td>{client.vehicleVinNumber}</td>
               <td>
-                <button className="editanddelete-button" onClick={() => handleEdit(client._id)}>
+                <Link
+                  href="/updateClient"
+                  className="editanddelete-button"
+                  onClick={() => handleEdit(client._id)}
+                >
                   Edit
-                </button>
+                </Link>
                 <button className="editanddelete-button" onClick={() => handleDelete(client._id)}>
                   Delete
                 </button>

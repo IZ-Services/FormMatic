@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { AppWrapper } from '@/context';
 import Sidebar from './components/ui/Sidebar';
+import { headers } from 'next/headers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,14 +18,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = headers();
+
+  const isAuthPage = headersList.get('x-auth-page') === 'true';
+
   return (
     <html lang="en">
       <body className={inter.className}>
         <AppWrapper>
-          <div className="container">
-            <Sidebar />
-            <main>{children}</main>
-          </div>
+          {isAuthPage ? (
+            <>{children}</>
+          ) : (
+            <div className="container">
+              <Sidebar />
+              <main>{children}</main>
+            </div>
+          )}
         </AppWrapper>
       </body>
     </html>

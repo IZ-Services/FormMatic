@@ -4,12 +4,10 @@ import { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import '../globals.css';
 import app from '../../../firebase-config';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/16/solid';
 
 export default function LoginPage() {
-  const router = useRouter();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +19,6 @@ export default function LoginPage() {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         userCredential.user;
-        router.push('/');
       })
       .catch((error) => {
         error.code;
@@ -35,7 +32,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main>
+    <div>
       <div className="center-container">
         <div>
           <h1 className="login-CompanyName">FormMatic</h1>
@@ -68,17 +65,17 @@ export default function LoginPage() {
 
           {loginError && <div className="error-message-login">Incorrect username or password.</div>}
 
-          <button className="loginButton" onClick={handleLogin}>
+          <Link href="/" className="loginButton" onClick={handleLogin}>
             Log In
-          </button>
+          </Link>
 
           <div className="forgot-password-container">
-            <a href="/forgot-password" className="forgot-password-link">
+            <Link href="/forgotPassword" className="forgot-password-link">
               Forgot Password?
-            </a>
+            </Link>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
