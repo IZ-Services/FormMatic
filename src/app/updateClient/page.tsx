@@ -3,11 +3,11 @@ import React from 'react';
 import { useState } from 'react';
 import '../globals.css';
 import { useAppContext } from '@/context';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function UpdateClient() {
   const { formData, setFormData } = useAppContext()!;
-  const router = useRouter();
+
 
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false);
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false);
@@ -57,8 +57,6 @@ export default function UpdateClient() {
 
       // const data = await response.json();
       // setPdfData(data.pdfData);
-
-      router.push('/');
     } catch (error) {
       console.error('Error navigating to the PDF page:', error);
     }
@@ -384,9 +382,9 @@ export default function UpdateClient() {
         <button className="buttonNewCustomer" onClick={handleUpdate}>
           Update
         </button>
-        <button className="buttonNewCustomer" onClick={handleNext}>
-          Next
-        </button>
+        <Link href="/pdf" className="buttonNewCustomer" onClick={handleNext}>
+            Next
+        </Link>
       </div>
     </div>
   );

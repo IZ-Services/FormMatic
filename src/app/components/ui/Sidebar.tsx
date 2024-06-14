@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   HomeIcon,
   UserIcon,
@@ -9,10 +9,10 @@ import {
   EnvelopeIcon,
 } from '@heroicons/react/24/outline';
 import '../../globals.css';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Sidebar() {
-  const router = useRouter();
   const pathname = usePathname();
   const [activeRoute, setActiveRoute] = useState(pathname);
 
@@ -28,10 +28,11 @@ export default function Sidebar() {
     { label: 'Logout', icon: ArrowRightStartOnRectangleIcon, route: '/login' },
   ];
 
-  const handleTabClick = (route: string) => {
-    router.push(route);
-    setActiveRoute(route);
-  };
+  useEffect(() => {
+    setActiveRoute(pathname);
+  }, [pathname]);
+
+  
 
   return (
     <div className="sidebar">
@@ -41,14 +42,15 @@ export default function Sidebar() {
           {links.map((link) => {
             const Icon = link.icon;
             return (
-              <a
+              <Link
                 key={link.label}
-                onClick={() => handleTabClick(link.route)}
+                href={link.route}
                 className={activeRoute === link.route ? 'linkActive' : 'link'}
+                onClick={() => setActiveRoute(link.route)}
               >
                 <Icon className="linkIcon" />
                 <span className="linkLabel">{link.label}</span>
-              </a>
+              </Link>
             );
           })}
         </div>
@@ -57,14 +59,15 @@ export default function Sidebar() {
         {bottomLinks.map((link) => {
           const Icon = link.icon;
           return (
-            <a
+            <Link
               key={link.label}
-              onClick={() => handleTabClick(link.route)}
-              className={`link ${activeRoute === link.route ? 'active' : ''}`}
+              href={link.route}
+              className={activeRoute === link.route ? 'linkActive' : 'link'}
+              onClick={() => setActiveRoute(link.route)}
             >
               <Icon className="linkIcon" />
               <span className="linkLabel">{link.label}</span>
-            </a>
+            </Link>
           );
         })}
       </div>
