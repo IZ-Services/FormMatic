@@ -49,7 +49,7 @@
 }
 
 .linkActive {
-  outline: 1px solid #1e6f2e; 
+  outline: 1px solid #1e6f2e;
   border-radius: 5px;
   display: flex;
   margin: 0.25rem;

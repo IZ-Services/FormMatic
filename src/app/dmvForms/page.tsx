@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import "./dmvForms.css";
+import './dmvForms.css';
 
 export default function PdfForms() {
   const [selectedUrl, setSelectedUrl] = useState('');
@@ -45,10 +45,9 @@ export default function PdfForms() {
     filterForms(e.target.value);
   };
 
-
   const filterForms = (input: string) => {
-    const filtered = formNames.filter(formName =>
-      formName.toLowerCase().includes(input.toLowerCase())
+    const filtered = formNames.filter((formName) =>
+      formName.toLowerCase().includes(input.toLowerCase()),
     );
     setFilteredForms(filtered);
   };
@@ -139,28 +138,28 @@ export default function PdfForms() {
   };
 
   return (
-    <div className='dmvForms'>
-      <h1 className='formTitle'>FORMS</h1>
-      <div className='formSearchContainer'>
+    <div className="dmvForms">
+      <h1 className="formTitle">FORMS</h1>
+      <div className="formSearchContainer">
         <input
-          className='formSearch'
-          placeholder='Search For Form'
+          className="formSearch"
+          placeholder="Search For Form"
           value={searchInput}
           onChange={handleSearchInputChange}
         />
-        <button className='formSearchButton' style={{ marginLeft: '5px' }}>
+        <button className="formSearchButton" style={{ marginLeft: '5px' }}>
           Search
         </button>
       </div>
       {filteredForms.length === 0 ? (
-        <p className='noFormsMessage'>No forms found matching your search.</p>
+        <p className="noFormsMessage">No forms found matching your search.</p>
       ) : (
-        <table className='formsTable'>
+        <table className="formsTable">
           <thead>
             <tr>
-              <th className='formHeadingID'>ID</th>
-              <th className='formHeadingTitle'>Title</th>
-              <th className='formHeadingTitle'></th>
+              <th className="formHeadingID">ID</th>
+              <th className="formHeadingTitle">Title</th>
+              <th className="formHeadingTitle"></th>
             </tr>
           </thead>
           <tbody>
@@ -170,16 +169,16 @@ export default function PdfForms() {
             {filteredForms.map((formName: string, index: number) => {
               const [id, title] = formName.split('/ ');
               return (
-                <tr className='formWrapper' key={index}>
+                <tr className="formWrapper" key={index}>
                   <td>{id}</td>
                   <td>{title}</td>
                   <td>
                     <Link
                       href={selectedUrl}
-                      target='_blank'
+                      target="_blank"
                       onClick={() => handleFormClick(formName)}
                     >
-                      <button className='previewButton'>Preview</button>
+                      <button className="previewButton">Preview</button>
                     </Link>
                   </td>
                 </tr>

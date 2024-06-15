@@ -90,7 +90,7 @@
 .loginButton {
   display: flex;
   justify-content: center;
-  align-items: center; 
+  align-items: center;
   color: #eeeeee;
   background-color: black;
   border-radius: 10px;
@@ -121,7 +121,6 @@
 .forgot-password-link:hover {
   color: blue;
 }
-
 
 @media (max-width: 600px) {
   .login-CompanyName {
