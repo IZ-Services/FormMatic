@@ -1,9 +1,12 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import "./dmvForms.css";
 
 export default function PdfForms() {
   const [selectedUrl, setSelectedUrl] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [filteredForms, setFilteredForms] = useState<string[]>([]);
 
   const formNames = [
     'ADM399/ APPLICATION FOR REFUND',
@@ -32,6 +35,23 @@ export default function PdfForms() {
     'REG5045/ NONRESIDENT MILITARY (NRM) VEHICLE LICENSE FEE AND TRANSPORTATION IMPROVEMENT FEE EXEMPTION',
     'REG5103/ APPLICATION FOR TEMPORARY SMOG EXEMPTION FOR A VEHICLE LOCATED OUT-OF-STATE',
   ];
+
+  useEffect(() => {
+    setFilteredForms(formNames);
+  }, []);
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.target.value);
+    filterForms(e.target.value);
+  };
+
+
+  const filterForms = (input: string) => {
+    const filtered = formNames.filter(formName =>
+      formName.toLowerCase().includes(input.toLowerCase())
+    );
+    setFilteredForms(filtered);
+  };
 
   const handleFormClick = async (formName: string) => {
     let url = '';
@@ -119,36 +139,55 @@ export default function PdfForms() {
   };
 
   return (
-    <div>
-      <h1>Forms</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Title</th>
-          </tr>
-        </thead>
-        <tbody>
-          {formNames.map((formName: string, index: number) => {
-            const [id, title] = formName.split('/ ');
-            return (
-              <tr key={index}>
-                <td>{id}</td>
-                <td>{title}</td>
-                <td>
-                  <Link
-                    href={selectedUrl}
-                    target="_blank"
-                    onClick={() => handleFormClick(formName)}
-                  >
-                    <button>Preview</button>
-                  </Link>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div className='dmvForms'>
+      <h1 className='formTitle'>FORMS</h1>
+      <div className='formSearchContainer'>
+        <input
+          className='formSearch'
+          placeholder='Search For Form'
+          value={searchInput}
+          onChange={handleSearchInputChange}
+        />
+        <button className='formSearchButton' style={{ marginLeft: '5px' }}>
+          Search
+        </button>
+      </div>
+      {filteredForms.length === 0 ? (
+        <p className='noFormsMessage'>No forms found matching your search.</p>
+      ) : (
+        <table className='formsTable'>
+          <thead>
+            <tr>
+              <th className='formHeadingID'>ID</th>
+              <th className='formHeadingTitle'>Title</th>
+              <th className='formHeadingTitle'></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="spacer-row">
+              <td colSpan={1}></td>
+            </tr>
+            {filteredForms.map((formName: string, index: number) => {
+              const [id, title] = formName.split('/ ');
+              return (
+                <tr className='formWrapper' key={index}>
+                  <td>{id}</td>
+                  <td>{title}</td>
+                  <td>
+                    <Link
+                      href={selectedUrl}
+                      target='_blank'
+                      onClick={() => handleFormClick(formName)}
+                    >
+                      <button className='previewButton'>Preview</button>
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

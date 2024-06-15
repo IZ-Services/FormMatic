@@ -1,0 +1,51 @@
+.clientWrapper{
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    font-family: Arial;
+    border: 1px solid black;
+    padding: 2rem;
+    margin: 2rem;
+    box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.5)
+}
+
+.clients-container {
+  height: 100vh;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.client-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.client-table th,
+.client-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.client-table th {
+  background-color: #f2f2f2;
+  text-align: left;
+  text-align: center;
+}
+
+.editanddelete-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 2px;
+}
+
+.editanddelete-button:hover {
+  background-color: #0056b3;
+}

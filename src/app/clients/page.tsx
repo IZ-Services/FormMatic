@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
-import '../globals.css';
+import './clients.css';
 import { useAppContext } from '@/context';
 
 export default function Clients() {
@@ -37,6 +37,7 @@ export default function Clients() {
   };
 
   return (
+    <div className='clientWrapper'>
     <div className="clients-container">
       <h1>Clients</h1>
       <table className="client-table">
@@ -74,6 +75,7 @@ export default function Clients() {
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   );
 }
