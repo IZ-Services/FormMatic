@@ -8,7 +8,7 @@ import {
   DocumentIcon,
   EnvelopeIcon,
 } from '@heroicons/react/24/outline';
-import '../../globals.css';
+import './sidebar.css';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 

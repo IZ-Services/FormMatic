@@ -1,0 +1,121 @@
+.dmvForms {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  font-family: Arial;
+  border: 1px solid black;
+  padding: 2rem;
+  margin: 2rem;
+  box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.5);
+}
+
+.formTitle {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 1rem;
+}
+
+.formSearchContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.formSearch {
+  outline: 1px solid #1e6f2e;
+  margin-right: 10px;
+  background-color: #f5f5f5;
+  width: 70%;
+  color: black;
+  font-size: 14px;
+  border: none;
+  border-radius: 2px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  padding-right: 25px;
+  padding-left: 25px;
+}
+
+.formSearchButton {
+  background-color: #f5f5f5;
+  outline: 1px solid #1e6f2e;
+  color: black;
+  font-size: 14px;
+  border: none;
+  border-radius: 2px;
+  padding: 15px;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.formSearchButton:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.noFormsMessage {
+  height: 100vh;
+  color: red;
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 15px;
+  text-align: center;
+}
+
+.formsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.formHeadingID {
+  color: #999;
+  font-weight: 400;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #999;
+  padding-bottom: 5px;
+}
+
+.formHeadingTitle {
+  text-align: left;
+  color: #999;
+  font-weight: 400;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #999;
+  padding-bottom: 5px;
+  padding-left: 13px;
+}
+
+.formsTable .spacer-row td {
+  padding-top: 20px;
+}
+
+.formWrapper td {
+  font-size: 13px;
+  padding: 18px;
+}
+
+.formWrapper:nth-child(even) {
+  background-color: rgba(0, 128, 0, 0.1);
+}
+
+.formWrapper:nth-child(odd) {
+  background-color: #fff;
+}
+
+.previewButton {
+  background-color: #278f3c;
+  font-family: Arial;
+  border-radius: 15px;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+}
+
+.previewButton:hover {
+  background-color: #1e6f2e;
+}

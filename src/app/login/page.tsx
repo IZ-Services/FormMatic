@@ -2,7 +2,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import '../globals.css';
+import './login.css';
 import app from '../../../firebase-config';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/16/solid';

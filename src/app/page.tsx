@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { useState } from 'react';
-import './globals.css';
+import './home.css';
 import { useAppContext } from '@/context';
 import Link from 'next/link';
 import { IClient } from '@/models/clientSchema';

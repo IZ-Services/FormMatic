@@ -1,0 +1,90 @@
+.sidebar {
+  display: flex;
+  position: fixed;
+  height: 100vh;
+  flex-direction: column;
+  width: 16rem;
+  flex-shrink: 0;
+  border-right: 1px solid #bbb;
+}
+
+.sidebarWrapper {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebarHeading {
+  color: #278f3c;
+  font-family: Arial;
+  font-size: 3rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  margin-top: 1.25rem;
+  height: 2rem;
+  flex-shrink: 0;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.linksContainer {
+  margin-top: 1.25rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.link {
+  border-radius: 5px;
+  display: flex;
+  margin: 0.25rem;
+  align-items: center;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  transition: background-color 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.linkActive {
+  outline: 1px solid #1e6f2e;
+  border-radius: 5px;
+  display: flex;
+  margin: 0.25rem;
+  align-items: center;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  transition: background-color 0.3s ease;
+  background-color: #f5f5f5;
+  font-weight: bold;
+  text-decoration: none;
+  color: inherit;
+}
+
+.link:hover {
+  background-color: #f5f5f5;
+}
+
+.linkIcon {
+  margin-right: 0.75rem;
+  height: 1.5rem;
+  width: 1.5rem;
+  flex-shrink: 0;
+}
+
+.linkLabel {
+  font-family: Arial;
+  flex: 1;
+  font-weight: 600;
+}
+
+.bottomLinksContainer {
+  margin-bottom: 0.5rem;
+  margin-top: 0.25rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
