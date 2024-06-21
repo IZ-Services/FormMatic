@@ -300,18 +300,6 @@ main {
   margin-bottom: 20px;
 }
 
-.passwordInput {
-  display: block;
-  color: #000;
-  width: 500px;
-  height: 40px;
-  border-radius: 10px;
-  font-size: 18px;
-  overflow: hidden;
-  padding: 0 30px 0 30px;
-  margin-bottom: 10px;
-}
-
 .loginButton {
   display: block;
   color: #eeeeee;
@@ -361,11 +349,6 @@ main {
   height: 20px;
   width: 20px;
   color: #333;
-}
-
-.input-container-forIcon {
-  position: relative;
-  width: 565px;
 }
 
 .error-message-login {
@@ -507,4 +490,21 @@ main {
   height: 20px;
   color: #333;
   cursor: pointer;
+}
+
+.input-container-forIcon {
+  position: relative;
+  width: 565px;
+}
+
+.passwordInput {
+  display: block;
+  color: #000;
+  width: 500px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 18px;
+  overflow: hidden;
+  padding: 0 30px 0 30px;
+  margin-bottom: 10px;
 }
