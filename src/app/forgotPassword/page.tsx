@@ -48,7 +48,7 @@ export default function ForgotPassword() {
           </p>
         )}
 
-        <button className="loginButton" onClick={handleSubmit}>
+        <button className="submitButton" onClick={handleSubmit}>
           Submit
         </button>
 

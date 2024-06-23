@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       vehiclePurchasePrice,
       gift,
       trade,
+      transactionType,
     } = reqBody;
 
     const newClient = new Client({
@@ -81,7 +82,8 @@ export async function POST(request: NextRequest) {
       vehiclePurchasePrice,
       gift,
       trade,
-      timeCreated: new Date(),
+      transactionType,
+      timeCreated: new Date().toISOString(),
     });
     const savedClient = await newClient.save();
 

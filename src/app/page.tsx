@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { IClient } from '@/models/clientSchema';
 
 export default function Home() {
-  const { formData, setFormData, setClients } = useAppContext()!;
+  const { formData, setFormData, setTransactions } = useAppContext()!;
 
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false);
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false);
@@ -37,7 +37,7 @@ export default function Home() {
           new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime(),
       );
       console.log(data);
-      setClients(data);
+      setTransactions(data);
     } catch (error) {
       console.error('Error fetching clients:', error);
       alert('The Item You Are Looking For Was Not Found');
@@ -77,7 +77,7 @@ export default function Home() {
   };
 
   return (
-    <div>
+    <>
       <div className="centerContainer">
         <input
           className="inputSearch"
@@ -86,7 +86,7 @@ export default function Home() {
           onChange={(e) => setSearchFor(e.target.value)}
         />
         <Link
-          href="/clients"
+          href="/transactions"
           className="buttonSearch"
           style={{ marginLeft: '5px' }}
           onClick={handleSearch}
@@ -94,7 +94,6 @@ export default function Home() {
           Search
         </Link>
       </div>
-
       <div className="middleContainer">
         <h3 className="title">
           Registered Owner #1
@@ -383,8 +382,14 @@ export default function Home() {
           value={formData.vehiclePurchasePrice}
           onChange={(e) => setFormData({ ...formData, vehiclePurchasePrice: e.target.value })}
         />
-      </div>
+        <label style={{ marginLeft: '10px', marginTop: '10px' }}>Transaction Type</label>
 
+        <input
+          className="smallInputData"
+          value={formData.transactionType}
+          onChange={(e) => setFormData({ ...formData, transactionType: e.target.value })}
+        />
+      </div>
       <div style={{ marginTop: '15px' }}>
         <label>
           <input
@@ -406,7 +411,6 @@ export default function Home() {
           TRADE
         </label>
       </div>
-
       <div className="bottomContainer">
         <button className="buttonNewCustomer" onClick={handleSave}>
           Save
@@ -415,6 +419,6 @@ export default function Home() {
           Next
         </Link>
       </div>
-    </div>
+    </>
   );
 }
