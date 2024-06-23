@@ -39,7 +39,7 @@ export default function DMVFroms() {
 
   useEffect(() => {
     setFilteredForms(formNames);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,43 +140,36 @@ export default function DMVFroms() {
   };
 
   return (
-    <section className="container"> 
+    <section className="container">
       <div className="formSearchContainer">
         <div className="search-input-wrapper">
-        <MagnifyingGlassIcon className="searchIcon" />
-        <input
-          className="formSearch"
-          placeholder="Search For Form"
-          value={searchInput}
-          onChange={handleInputChange}
-        />
+          <MagnifyingGlassIcon className="searchIcon" />
+          <input
+            className="formSearch"
+            placeholder="Search For Form"
+            value={searchInput}
+            onChange={handleInputChange}
+          />
         </div>
       </div>
-         <div className="cards">
-            {filteredForms.length === 0 ? (
-               <p className="noFormsMessage">No forms found matching your search.</p>
-            ) : (
-                filteredForms.map((formName: string, index: number) => {
-                    const [id, title] = formName.split('/ ');
-                    return (
-                      <div className='card' key={index}>
-                        <h3>{title}</h3>
-                        <p>{id}</p>
-                        <Link
-                          href={selectedUrl}
-                          target="_blank"
-                          onClick={() => handleFormClick(formName)}
-                        >
-                          <button className="previewButton">Preview</button>
-                        </Link>
-                      </div>
-                  
-                    );
-                  })
-              )}
-          
-          </div>
-        </section>
-
+      <div className="cards">
+        {filteredForms.length === 0 ? (
+          <p className="noFormsMessage">No forms found matching your search.</p>
+        ) : (
+          filteredForms.map((formName: string, index: number) => {
+            const [id, title] = formName.split('/ ');
+            return (
+              <div className="card" key={index}>
+                <h3>{title}</h3>
+                <p>{id}</p>
+                <Link href={selectedUrl} target="_blank" onClick={() => handleFormClick(formName)}>
+                  <button className="previewButton">Preview</button>
+                </Link>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </section>
   );
 }

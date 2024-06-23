@@ -106,7 +106,16 @@ export function AppWrapper({
 
   return (
     <AppContext.Provider
-      value={{ formData, setFormData, transactions, setTransactions, pdfData, setPdfData, pdfUrl, setPdfUrl }}
+      value={{
+        formData,
+        setFormData,
+        transactions,
+        setTransactions,
+        pdfData,
+        setPdfData,
+        pdfUrl,
+        setPdfUrl,
+      }}
     >
       {children}
     </AppContext.Provider>

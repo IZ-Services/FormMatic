@@ -5,17 +5,15 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   await connectDB();
   try {
-	const { searchParams } = new URL(request.url);
-	const transactionType = searchParams.get('transactionType');
+    const { searchParams } = new URL(request.url);
+    const transactionType = searchParams.get('transactionType');
 
-	if (!transactionType) {
+    if (!transactionType) {
       return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });
     }
 
     const clients = await Client.find({
-      $or: [
-        { transactionType: transactionType },
-      ],
+      $or: [{ transactionType: transactionType }],
     });
 
     if (clients.length === 0) {

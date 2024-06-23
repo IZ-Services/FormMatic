@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     let searchFor = searchParams.get('searchFor');
 
-
     if (!searchFor) {
       return;
     }

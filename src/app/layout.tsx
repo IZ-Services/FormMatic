@@ -29,7 +29,7 @@ export default function RootLayout({
           {isAuthPage ? (
             <>{children}</>
           ) : (
-            <div >
+            <div>
               <Header />
               <main>{children}</main>
             </div>

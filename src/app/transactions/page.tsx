@@ -3,16 +3,15 @@ import React, { useState, useEffect, useDeferredValue } from 'react';
 import Link from 'next/link';
 import './transactions.css';
 import { useAppContext } from '@/context';
-import { TrashIcon, PencilSquareIcon, MagnifyingGlassIcon   } from '@heroicons/react/24/outline';
+import { TrashIcon, PencilSquareIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { IClient } from '@/models/clientSchema';
 
 export default function Transactions() {
   const { transactions, setFormData, setTransactions } = useAppContext()!;
-  
-  const [searchFor, setSearchFor ] = useState('');
+
+  const [searchFor, setSearchFor] = useState('');
   const [, setSelectedDate] = useState('');
   const deferredSearchFor = useDeferredValue(searchFor);
-
 
   useEffect(() => {
     const fetchRecentTransactions = async () => {
@@ -51,7 +50,8 @@ export default function Transactions() {
             setTransactions([]);
           } else {
             data.sort(
-              (a: IClient, b: IClient) => new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime(),
+              (a: IClient, b: IClient) =>
+                new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime(),
             );
             setTransactions(data);
           }
@@ -60,12 +60,11 @@ export default function Transactions() {
         console.error('Error fetching clients:', error);
       }
     }, 300);
-    return () => clearTimeout(delayDebounceFn); 
+    return () => clearTimeout(delayDebounceFn);
   }, [deferredSearchFor, setTransactions]);
 
-
   const handleDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = e.target.value; 
+    const selectedDate = e.target.value;
     setSelectedDate(selectedDate);
 
     const startOfDay = new Date(selectedDate);
@@ -74,39 +73,44 @@ export default function Transactions() {
     const endOfDay = new Date(selectedDate);
     endOfDay.setUTCHours(23, 59, 59, 999);
 
-
     try {
       const res = await fetch(`/api/getByDate?date=${selectedDate}`);
       const data = await res.json();
-    
+
       if (data.error) {
-        setTransactions([]); 
+        setTransactions([]);
       } else {
         if (Array.isArray(data)) {
-          data.sort((a: IClient, b: IClient) => new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime());
+          data.sort(
+            (a: IClient, b: IClient) =>
+              new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime(),
+          );
           setTransactions(data);
         } else {
           setTransactions([]);
           console.error('Expected an array of transactions');
         }
       }
-    }  catch (error) {
+    } catch (error) {
       console.error('Error fetching transactions by date:', error);
     }
   };
 
-  const handleTransactionChange : React.ChangeEventHandler<HTMLSelectElement> = async (e) => {
+  const handleTransactionChange: React.ChangeEventHandler<HTMLSelectElement> = async (e) => {
     const transactionType = e.target.value;
 
     try {
-      const response = transactionType === "All" ? await fetch('/api/getRecent') : await fetch(`/api/getByTransaction?transactionType=${transactionType}`);
+      const response =
+        transactionType === 'All'
+          ? await fetch('/api/getRecent')
+          : await fetch(`/api/getByTransaction?transactionType=${transactionType}`);
       const data = await response.json();
 
       if (data.error) {
-        setTransactions([]); 
+        setTransactions([]);
       } else {
-     if (Array.isArray(data)) {
-          setTransactions(data); 
+        if (Array.isArray(data)) {
+          setTransactions(data);
         } else {
           setTransactions([]);
           console.error('Expected an array of transactions');
@@ -116,8 +120,6 @@ export default function Transactions() {
       console.error('Error updating transaction:', error);
     }
   };
-
-
 
   const handleEdit = async (clientId: string) => {
     try {
@@ -150,26 +152,21 @@ export default function Transactions() {
   return (
     <div className="container">
       <div className="transactionSearchContainer">
-        <input
-          type="date"
-          className="transactionDate"
-          onChange={handleDateChange}
-
-        />
+        <input type="date" className="transactionDate" onChange={handleDateChange} />
         <select className="transactionType" onChange={handleTransactionChange}>
-          <option  >All </option>
+          <option>All </option>
           <optgroup label="Simple Transfer">
             <option>Basic Simple Transfer</option>
             <option>Simple Transfer W/ Duplicates Plates/Stickers</option>
             <option>Simple Transfer W/ Gift</option>
             <option>Simple Transfer W/ Gift And Duplicates Plates/Stickers</option>
           </optgroup>
-          <optgroup label='Renewal'>   
-            <option >Basic Renewal</option>
-            <option >Renewal W/ Duplicates Plates/Stickers </option>
-            <option >Renewal W/ change of address </option>
-            <option >Out of State Renewal That Needs Smog </option>
-            <option >Renewal W/ Disabled Plates</option>
+          <optgroup label="Renewal">
+            <option>Basic Renewal</option>
+            <option>Renewal W/ Duplicates Plates/Stickers </option>
+            <option>Renewal W/ change of address </option>
+            <option>Out of State Renewal That Needs Smog </option>
+            <option>Renewal W/ Disabled Plates</option>
           </optgroup>
         </select>
         <div className="search-input-wrapper">
@@ -195,25 +192,25 @@ export default function Transactions() {
               <th className="transactionEdit"></th>
             </tr>
           </thead>
-          <tbody >
+          <tbody>
             {transactions.map((client) => {
               return (
-                <tr  className='transaction' key={client._id}>
+                <tr className="transaction" key={client._id}>
                   <td>{new Date(client.timeCreated).toLocaleString()}</td>
                   <td>{client.firstName1}</td>
                   <td>{client.lastName1}</td>
                   <td>{client.vehicleVinNumber}</td>
                   <td>{client.transactionType}</td>
-                  <td >
+                  <td>
                     <Link
                       href="/updateClient"
                       className="editanddelete-button"
                       onClick={() => handleEdit(client._id)}
                     >
-                      <PencilSquareIcon className='editIcon' />
+                      <PencilSquareIcon className="editIcon" />
                     </Link>
-                    <button className="editanddelete-button" >
-                     <TrashIcon className='trashIcon' onClick={() => handleDelete(client._id)}/>
+                    <button className="editanddelete-button">
+                      <TrashIcon className="trashIcon" onClick={() => handleDelete(client._id)} />
                     </button>
                   </td>
                 </tr>
@@ -222,6 +219,6 @@ export default function Transactions() {
           </tbody>
         </table>
       )}
-      </div>
+    </div>
   );
 }
