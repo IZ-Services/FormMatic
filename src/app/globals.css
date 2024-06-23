@@ -2,25 +2,7 @@ html,
 body {
   margin: 0;
   padding: 0;
+  background-color: #F8F8FF;
 }
 
-.container {
-  display: flex;
-}
 
-main {
-  flex: 1;
-  margin-left: 16rem;
-  padding: 1rem;
-  background-color: #f5f5f5;
-}
-
-@media (max-width: 735px) {
-  .sidebar {
-    display: none;
-  }
-
-  main {
-    margin-left: 0rem;
-  }
-}

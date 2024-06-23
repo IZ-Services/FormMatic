@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import './dmvForms.css';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
-export default function PdfForms() {
+export default function DMVFroms() {
   const [selectedUrl, setSelectedUrl] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [filteredForms, setFilteredForms] = useState<string[]>([]);
@@ -38,9 +39,10 @@ export default function PdfForms() {
 
   useEffect(() => {
     setFilteredForms(formNames);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
     filterForms(e.target.value);
   };
@@ -138,55 +140,43 @@ export default function PdfForms() {
   };
 
   return (
-    <div className="dmvForms">
-      <h1 className="formTitle">FORMS</h1>
+    <section className="container"> 
       <div className="formSearchContainer">
+        <div className="search-input-wrapper">
+        <MagnifyingGlassIcon className="searchIcon" />
         <input
           className="formSearch"
           placeholder="Search For Form"
           value={searchInput}
-          onChange={handleSearchInputChange}
+          onChange={handleInputChange}
         />
-        <button className="formSearchButton" style={{ marginLeft: '5px' }}>
-          Search
-        </button>
+        </div>
       </div>
-      {filteredForms.length === 0 ? (
-        <p className="noFormsMessage">No forms found matching your search.</p>
-      ) : (
-        <table className="formsTable">
-          <thead>
-            <tr>
-              <th className="formHeadingID">ID</th>
-              <th className="formHeadingTitle">Title</th>
-              <th className="formHeadingTitle"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="spacer-row">
-              <td colSpan={1}></td>
-            </tr>
-            {filteredForms.map((formName: string, index: number) => {
-              const [id, title] = formName.split('/ ');
-              return (
-                <tr className="formWrapper" key={index}>
-                  <td>{id}</td>
-                  <td>{title}</td>
-                  <td>
-                    <Link
-                      href={selectedUrl}
-                      target="_blank"
-                      onClick={() => handleFormClick(formName)}
-                    >
-                      <button className="previewButton">Preview</button>
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-    </div>
+         <div className="cards">
+            {filteredForms.length === 0 ? (
+               <p className="noFormsMessage">No forms found matching your search.</p>
+            ) : (
+                filteredForms.map((formName: string, index: number) => {
+                    const [id, title] = formName.split('/ ');
+                    return (
+                      <div className='card' key={index}>
+                        <h3>{title}</h3>
+                        <p>{id}</p>
+                        <Link
+                          href={selectedUrl}
+                          target="_blank"
+                          onClick={() => handleFormClick(formName)}
+                        >
+                          <button className="previewButton">Preview</button>
+                        </Link>
+                      </div>
+                  
+                    );
+                  })
+              )}
+          
+          </div>
+        </section>
+
   );
 }

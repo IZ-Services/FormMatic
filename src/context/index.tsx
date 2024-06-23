@@ -40,13 +40,14 @@ export interface FormData {
   vehiclePurchasePrice: string;
   gift: boolean;
   trade: boolean;
+  transactionType: string;
 }
 
 interface AppContextType {
   formData: FormData;
   setFormData: (data: FormData) => void;
-  clients: IClient[];
-  setClients: (clients: IClient[]) => void;
+  transactions: IClient[];
+  setTransactions: (clients: IClient[]) => void;
   pdfData: string | null;
   setPdfData: (data: string | null) => void;
   pdfUrl: string | null;
@@ -97,14 +98,15 @@ export function AppWrapper({
     vehiclePurchasePrice: '',
     gift: false,
     trade: false,
+    transactionType: '',
   });
-  const [clients, setClients] = useState<IClient[]>([]);
+  const [transactions, setTransactions] = useState<IClient[]>([]);
   const [pdfData, setPdfData] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   return (
     <AppContext.Provider
-      value={{ formData, setFormData, clients, setClients, pdfData, setPdfData, pdfUrl, setPdfUrl }}
+      value={{ formData, setFormData, transactions, setTransactions, pdfData, setPdfData, pdfUrl, setPdfUrl }}
     >
       {children}
     </AppContext.Provider>
