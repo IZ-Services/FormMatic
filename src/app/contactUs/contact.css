@@ -27,14 +27,12 @@ body {
 .content {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; 
+  justify-content: space-between;
   margin-top: 50px;
   flex: 1;
-  padding: 20px; 
-  padding-top: 0px; 
+  padding: 20px;
+  padding-top: 0px;
 }
-
-
 
 .contactMessage {
   color: #666;
@@ -42,7 +40,6 @@ body {
   margin-bottom: 40px;
   line-height: 2;
   text-align: center;
-  
 }
 
 .contactInfo {
@@ -54,20 +51,20 @@ body {
 }
 
 .outerContact {
-    display: flex;
-    flex-direction: row;
-    gap: 20px; 
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
 }
 
 .contactItem {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .icon {
-    width: 24px;
-    height: 24px;
-    margin-right: 8px;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
 }
 
 .contactText {
@@ -75,11 +72,9 @@ body {
   color: black;
 }
 
-
 @media (max-width: 800px) {
   .outerContact {
     display: flex;
     flex-direction: column;
-
   }
 }
