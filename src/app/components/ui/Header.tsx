@@ -13,7 +13,7 @@ export default function Header() {
     { label: 'Home', route: '/' },
     { label: 'Search Transactions', route: '/transactions' },
     { label: 'DMV Forms', route: '/dmvForms' },
-    { label: 'Contact Us', route: '/contact' },
+    { label: 'Contact Us', route: '/contactUs' },
     { label: 'Account', route: '/account' },
     { label: 'Logout', route: '/login' },
   ];
