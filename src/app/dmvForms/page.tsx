@@ -3,8 +3,14 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import './dmvForms.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { UserAuth } from "../../context/AuthContext";
+import { useRouter } from 'next/navigation';
+
 
 export default function DMVFroms() {
+  const {user} = UserAuth();
+  const router = useRouter();
+
   const [selectedUrl, setSelectedUrl] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [filteredForms, setFilteredForms] = useState<string[]>([]);
@@ -41,6 +47,12 @@ export default function DMVFroms() {
     setFilteredForms(formNames);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+    useEffect(() => {
+    if (!user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
