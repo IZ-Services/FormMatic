@@ -17,17 +17,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
-
   return (
     <html lang="en">
       <body className={inter.className}>
         <AuthContextProvider>
           <AppWrapper>
             <div>
-            <main>{children}</main>
+              <main>{children}</main>
             </div>
-        </AppWrapper>
+          </AppWrapper>
         </AuthContextProvider>
       </body>
     </html>

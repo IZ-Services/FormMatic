@@ -5,10 +5,8 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { UserAuth } from '../../../context/AuthContext';
 
-
 export default function Header() {
   const { logout } = UserAuth();
-
 
   const pathname = usePathname();
   const [activeRoute, setActiveRoute] = useState(pathname);
@@ -26,12 +24,12 @@ export default function Header() {
   useEffect(() => {
     setActiveRoute(pathname);
   }, [pathname]);
-  
-    const handleSignOut = async () =>{
-    try{
-        await logout(); 
-    }catch(error){
-      console.error("Error signing in: ", error);
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Error signing in: ', error);
     }
   };
 

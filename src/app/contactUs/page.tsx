@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import './contact.css';
 import { EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline';
-import { UserAuth } from "../../context/AuthContext";
+import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function Contact() {

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import './login.css';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/16/solid';
-import { UserAuth } from "../context/AuthContext";
+import { UserAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
@@ -16,17 +16,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState(false);
 
-
-  
-
   const handleSignIn = async () => {
-    try{
+    try {
       if (emailSignIn) {
         await emailSignIn(email, password);
-         router.push('/home'); 
+        router.push('/home');
       }
-    }catch(error){
-      console.error("Error signing in: ", error);
+    } catch (error) {
+      console.error('Error signing in: ', error);
       setLoginError(true);
     }
   };

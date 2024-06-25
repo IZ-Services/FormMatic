@@ -5,7 +5,7 @@ import './home.css';
 import { useAppContext } from '@/context';
 import Link from 'next/link';
 import { IClient } from '@/models/clientSchema';
-import { UserAuth } from "../../context/AuthContext";
+import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
@@ -86,7 +86,6 @@ export default function Home() {
       console.error('Error navigating to the PDF page:', error);
     }
   };
-
 
   return (
     <>

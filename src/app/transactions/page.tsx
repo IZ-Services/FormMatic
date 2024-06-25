@@ -5,12 +5,12 @@ import './transactions.css';
 import { useAppContext } from '@/context';
 import { TrashIcon, PencilSquareIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { IClient } from '@/models/clientSchema';
-import {UserAuth} from "../../context/AuthContext";
+import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function Transactions() {
   const { transactions, setFormData, setTransactions } = useAppContext()!;
-  const {user} = UserAuth();
+  const { user } = UserAuth();
 
   const router = useRouter();
 
@@ -159,7 +159,6 @@ export default function Transactions() {
       console.error('Error deleting client:', error);
     }
   };
-
 
   return (
     <div className="container">
