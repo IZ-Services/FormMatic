@@ -6,26 +6,33 @@ import app from '../../../firebase-config';
 
 export default function Account() {
   const auth = getAuth(app);
-  const user = auth.currentUser;
 
+  const [user, setUser] = useState(auth.currentUser);
   const [editPassword, setEditPassword] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [userEmail, setUserEmail] = useState<string>(user ? user.email ?? '' : '');
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
+  const [successfulAlertMessage, setSuccessfulAlertMessage] = useState<string>('');
 
   useEffect(() => {
-    if (user) {
-      setUserEmail(user.email ?? '');
-    }
-  }, [user]);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUser(user);
+        setUserEmail(user.email ?? '');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [auth]);
 
   const handleEditPasswordClick = () => {
     setEditPassword(!editPassword);
-    if (!editPassword) {
-      setPasswordVisible(false);
-    }
+    setPasswordVisible(false);
+    setErrorAlertMessage('');
+    setSuccessfulAlertMessage('');
   };
 
   const togglePasswordVisibility = () => {
@@ -34,20 +41,24 @@ export default function Account() {
 
   const handleSaveNewPassword = async () => {
     if (newPassword !== confirmPassword) {
-      alert("New passwords do not match.");
+      setErrorAlertMessage("New passwords do not match.");
+      setSuccessfulAlertMessage('');
       return;
     }
     const credential = EmailAuthProvider.credential(user!.email!, currentPassword);
     try {
       await reauthenticateWithCredential(user!, credential);
       await updatePassword(user!, newPassword);
-      alert("Password updated successfully!");
+      setSuccessfulAlertMessage("Password updated successfully!");
+      setErrorAlertMessage('');
       setEditPassword(false);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      alert((error as Error).message);
+      console.error("Password update error:", error);
+      setErrorAlertMessage('');
+      setSuccessfulAlertMessage('');
     }
   };
 
@@ -77,6 +88,12 @@ export default function Account() {
             </button>
           </div>
 
+          {successfulAlertMessage && (
+            <div className="alertMessage" style={{ marginTop: "20px", color: "gray" }}>
+              {successfulAlertMessage}
+            </div>
+          )}
+
           {editPassword && (
             <div style={{ marginTop: "50px" }}>
               <div className="input-container-forIcon">
@@ -85,6 +102,7 @@ export default function Account() {
                   type={passwordVisible ? "text" : "password"}
                   placeholder="Current Password"
                   value={currentPassword}
+                  autoComplete='off'
                   onChange={e => setCurrentPassword(e.target.value)}
                 />
                 <button className="toggle-password" onClick={togglePasswordVisibility}>
@@ -97,6 +115,7 @@ export default function Account() {
                 type={passwordVisible ? "text" : "password"}
                 placeholder="New Password"
                 value={newPassword}
+                autoComplete='new-password'
                 onChange={e => setNewPassword(e.target.value)}
                 style={{ marginTop: "10px" }}
               />
@@ -106,6 +125,7 @@ export default function Account() {
                 type={passwordVisible ? "text" : "password"}
                 placeholder="Confirm New Password"
                 value={confirmPassword}
+                autoComplete='new-password'
                 onChange={e => setConfirmPassword(e.target.value)}
                 style={{ marginTop: "10px" }}
               />
@@ -113,6 +133,12 @@ export default function Account() {
               <button className="loginButton" onClick={handleSaveNewPassword} style={{ marginTop: "20px" }}>
                 Save
               </button>
+
+              {errorAlertMessage && (
+                <div className="alertMessage" style={{ marginTop: "20px", color: "red"}}>
+                  {errorAlertMessage}
+                </div>
+              )}
             </div>
           )}
         </div>
