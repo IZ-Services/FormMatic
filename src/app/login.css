@@ -41,6 +41,7 @@ body {
   font-size: 45px;
   font-style: normal;
   font-weight: 400;
+  margin-bottom: 30px;
 }
 
 .usernameInput {
@@ -59,7 +60,7 @@ body {
 
 .input-container-forIcon {
   position: relative;
-  width: 565px;
+  width: 500px;
 }
 
 .passwordInput {
@@ -78,7 +79,7 @@ body {
 
 .toggle-password {
   position: absolute;
-  right: 50px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -162,7 +163,7 @@ body {
     margin-bottom: 10px;
   }
   .toggle-password {
-    margin-right: 50px;
+    margin-right: 100px;
   }
   .error-message-login {
     margin-left: 85px;
