@@ -1,3 +1,13 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+}
+
 .center-container {
   display: flex;
   justify-content: center;
@@ -68,7 +78,7 @@
 
 .toggle-password {
   position: absolute;
-  right: 10px;
+  right: 50px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -152,7 +162,7 @@
     margin-bottom: 10px;
   }
   .toggle-password {
-    margin-right: 80px;
+    margin-right: 50px;
   }
   .error-message-login {
     margin-left: 85px;

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
-import app from '../../../firebase-config';
+import { app } from '../firebase-config';
 import './forgotPassword.css';
 
 export default function ForgotPassword() {
@@ -53,7 +53,7 @@ export default function ForgotPassword() {
         </button>
 
         <div className="forgot-password-container">
-          <a href="/login" className="forgot-password-link">
+          <a href="/" className="forgot-password-link">
             Return to Sign In
           </a>
         </div>

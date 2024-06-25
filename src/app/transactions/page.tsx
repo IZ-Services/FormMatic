@@ -5,13 +5,24 @@ import './transactions.css';
 import { useAppContext } from '@/context';
 import { TrashIcon, PencilSquareIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { IClient } from '@/models/clientSchema';
+import { UserAuth } from '../../context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function Transactions() {
   const { transactions, setFormData, setTransactions } = useAppContext()!;
+  const { user } = UserAuth();
+
+  const router = useRouter();
 
   const [searchFor, setSearchFor] = useState('');
   const [, setSelectedDate] = useState('');
   const deferredSearchFor = useDeferredValue(searchFor);
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   useEffect(() => {
     const fetchRecentTransactions = async () => {
