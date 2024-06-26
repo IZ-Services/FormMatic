@@ -6,11 +6,9 @@ import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function Payment() {
-
   const { user } = UserAuth();
 
   const router = useRouter();
- 
 
   const [editCard, setEditCard] = useState(false);
   const [cardVisible, setCardVisible] = useState(false);
@@ -19,7 +17,6 @@ export default function Payment() {
   const [confirmCard, setConfirmCard] = useState('');
   const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
   const [successfulAlertMessage, setSuccessfulAlertMessage] = useState<string>('');
-
 
   useEffect(() => {
     if (!user) {
@@ -45,11 +42,9 @@ export default function Payment() {
       resetAlertMessages();
       return;
     }
-   
 
     resetAlertMessages();
   };
-
 
   const resetAlertMessages = () => {
     setTimeout(() => {
@@ -64,32 +59,26 @@ export default function Payment() {
         <h1 className="paymentTitle">Payment Settings</h1>
         <div className="paymentAlertContainer">
           {successfulAlertMessage && (
-              <div className="successfulPaymenttMessage">
-                  {successfulAlertMessage}
-                </div>
+            <div className="successfulPaymenttMessage">{successfulAlertMessage}</div>
           )}
-          {errorAlertMessage && (
-                  <div className="alertPaymentMessage">
-                    {errorAlertMessage}
-                  </div>
-          )}
+          {errorAlertMessage && <div className="alertPaymentMessage">{errorAlertMessage}</div>}
         </div>
         <div>
-          <input className="paymentUsernameInput" type="text" value={user?.email || ""} readOnly />
+          <input className="paymentUsernameInput" type="text" value={user?.email || ''} readOnly />
 
           <div className="paymentInputWithEditIcon">
             <input
               className="paymentPasswordInput"
               type="password"
               placeholder="Card Number"
-              value="********" 
+              value="********"
               readOnly
             />
-              <PencilSquareIcon className="editPaymentIcon" onClick={handleEditPasswordClick} />
+            <PencilSquareIcon className="editPaymentIcon" onClick={handleEditPasswordClick} />
           </div>
           {editCard && (
             <div style={{ marginTop: '50px' }}>
-              <div  className="paymentInputWithEyeIcon">
+              <div className="paymentInputWithEyeIcon">
                 <input
                   className="newCardInput"
                   type={cardVisible ? 'text' : 'password'}
@@ -98,12 +87,11 @@ export default function Payment() {
                   autoComplete="off"
                   onChange={(e) => setCurrentCard(e.target.value)}
                 />
-                  {cardVisible ? (
-                    <EyeIcon className="paymentEyeIcon" onClick={togglePasswordVisibility} />
-                  ) : (
-                    <EyeSlashIcon className="paymentEyeIcon" onClick={togglePasswordVisibility}/>
-                  )}
-
+                {cardVisible ? (
+                  <EyeIcon className="paymentEyeIcon" onClick={togglePasswordVisibility} />
+                ) : (
+                  <EyeSlashIcon className="paymentEyeIcon" onClick={togglePasswordVisibility} />
+                )}
               </div>
 
               <input

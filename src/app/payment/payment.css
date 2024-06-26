@@ -9,7 +9,7 @@ body {
   font-family: Arial, sans-serif;
 }
 
-.paymentContainer{
+.paymentContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -19,14 +19,13 @@ body {
   margin-top: 8rem;
 }
 
-.paymentTitle{
+.paymentTitle {
   font-weight: 400;
   text-align: center;
   margin-bottom: 30px;
-
 }
 
-.paymentUsernameInput{
+.paymentUsernameInput {
   height: 1.5rem;
   margin-bottom: 10px;
   border: 0;
@@ -44,7 +43,6 @@ body {
   position: relative;
 }
 
-
 .paymentPasswordInput {
   text-align: center;
   display: block;
@@ -60,7 +58,6 @@ body {
   margin-bottom: 10px;
   outline: none;
 }
-
 
 .editPaymentIcon {
   position: absolute;
@@ -93,11 +90,10 @@ body {
   outline: none;
 }
 
-
- .paymentInputWithEyeIcon{
-    width: 100%;
+.paymentInputWithEyeIcon {
+  width: 100%;
   position: relative;
- }
+}
 
 .paymentEyeIcon {
   position: absolute;
@@ -109,7 +105,6 @@ body {
   color: #333;
   cursor: pointer;
 }
-
 
 .paymentButtonContainer {
   display: flex;
@@ -131,7 +126,6 @@ body {
   justify-content: flex-end;
   align-items: end;
   text-align: end;
-  
 }
 
 .savePaymentButton:hover {
@@ -147,13 +141,12 @@ body {
   justify-content: center;
 }
 
-.alertPaymentMessage{
+.alertPaymentMessage {
   text-align: center;
   color: red;
 }
 
-.successfulPaymenttMessage{
-    text-align: center;
-    color: gray;
+.successfulPaymenttMessage {
+  text-align: center;
+  color: gray;
 }
-

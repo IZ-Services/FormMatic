@@ -9,7 +9,7 @@ body {
   font-family: Arial, sans-serif;
 }
 
-.accountContainer{
+.accountContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -19,14 +19,13 @@ body {
   margin-top: 8rem;
 }
 
-.login-SignIn{
+.login-SignIn {
   font-weight: 400;
   text-align: center;
   margin-bottom: 30px;
-
 }
 
-.accountUsernameInput{
+.accountUsernameInput {
   height: 1.5rem;
   margin-bottom: 10px;
   border: 0;
@@ -44,7 +43,6 @@ body {
   position: relative;
 }
 
-
 .accountPasswordInput {
   text-align: center;
   display: block;
@@ -60,7 +58,6 @@ body {
   margin-bottom: 10px;
   outline: none;
 }
-
 
 .editAccountIcon {
   position: absolute;
@@ -93,11 +90,10 @@ body {
   outline: none;
 }
 
-
- .inputWithEyeIcon{
-    width: 100%;
+.inputWithEyeIcon {
+  width: 100%;
   position: relative;
- }
+}
 
 .eyeIcon {
   position: absolute;
@@ -109,7 +105,6 @@ body {
   color: #333;
   cursor: pointer;
 }
-
 
 .saveButtonContainer {
   display: flex;
@@ -131,7 +126,6 @@ body {
   justify-content: flex-end;
   align-items: end;
   text-align: end;
-  
 }
 
 .saveButton:hover {
@@ -147,13 +141,12 @@ body {
   justify-content: center;
 }
 
-.alertMessage{
+.alertMessage {
   text-align: center;
   color: red;
 }
 
-.successfulAlertMessage{
-    text-align: center;
-    color: gray;
+.successfulAlertMessage {
+  text-align: center;
+  color: gray;
 }
-

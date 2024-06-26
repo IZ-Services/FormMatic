@@ -47,7 +47,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-        setTimeout(() => setLoading(false), 2000);
+      setTimeout(() => setLoading(false), 2000);
     });
     return () => unsubscribe();
   }, []);

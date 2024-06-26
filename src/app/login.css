@@ -97,16 +97,16 @@ body {
   color: #333;
 }
 .errorLogin {
-  min-height: 20px; 
+  min-height: 20px;
   color: red;
   text-align: center;
   font-size: 14px;
-  visibility: hidden; 
+  visibility: hidden;
   margin-bottom: 10px;
 }
 
 .errorLogin.visible {
-  visibility: visible; 
+  visibility: visible;
 }
 
 .loginButton {

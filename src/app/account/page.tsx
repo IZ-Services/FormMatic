@@ -1,21 +1,15 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { PencilSquareIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import {
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-  updatePassword,
-} from 'firebase/auth';
+import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
 import './account.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function Account() {
-
   const { user } = UserAuth();
 
   const router = useRouter();
- 
 
   const [editPassword, setEditPassword] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -24,7 +18,6 @@ export default function Account() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
   const [successfulAlertMessage, setSuccessfulAlertMessage] = useState<string>('');
-
 
   useEffect(() => {
     if (!user) {
@@ -50,7 +43,7 @@ export default function Account() {
       resetAlertMessages();
       return;
     }
-   
+
     const credential = EmailAuthProvider.credential(user!.email!, currentPassword);
     try {
       await reauthenticateWithCredential(user!, credential);
@@ -61,7 +54,7 @@ export default function Account() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (error : unknown) {
+    } catch (error: unknown) {
       if (error instanceof Error && 'code' in error) {
         const firebaseError = error as { code: string };
         if (firebaseError.code === 'auth/invalid-credential') {
@@ -79,7 +72,6 @@ export default function Account() {
     resetAlertMessages();
   };
 
-
   const resetAlertMessages = () => {
     setTimeout(() => {
       setErrorAlertMessage('');
@@ -93,32 +85,26 @@ export default function Account() {
         <h1 className="login-SignIn">Account Settings</h1>
         <div className="alertContainer">
           {successfulAlertMessage && (
-              <div className="successfulAlertMessage">
-                  {successfulAlertMessage}
-                </div>
+            <div className="successfulAlertMessage">{successfulAlertMessage}</div>
           )}
-          {errorAlertMessage && (
-                  <div className="alertMessage">
-                    {errorAlertMessage}
-                  </div>
-          )}
+          {errorAlertMessage && <div className="alertMessage">{errorAlertMessage}</div>}
         </div>
         <div>
-          <input className="accountUsernameInput" type="text" value={user?.email || ""} readOnly />
+          <input className="accountUsernameInput" type="text" value={user?.email || ''} readOnly />
 
           <div className="inputWithEditIcon">
             <input
               className="accountPasswordInput"
               type="password"
               placeholder="Password"
-              value="********" 
+              value="********"
               readOnly
             />
-              <PencilSquareIcon className="editAccountIcon" onClick={handleEditPasswordClick} />
+            <PencilSquareIcon className="editAccountIcon" onClick={handleEditPasswordClick} />
           </div>
           {editPassword && (
             <div style={{ marginTop: '50px' }}>
-              <div  className="inputWithEyeIcon">
+              <div className="inputWithEyeIcon">
                 <input
                   className="newPasswordInput"
                   type={passwordVisible ? 'text' : 'password'}
@@ -127,12 +113,11 @@ export default function Account() {
                   autoComplete="off"
                   onChange={(e) => setCurrentPassword(e.target.value)}
                 />
-                  {passwordVisible ? (
-                    <EyeIcon className="eyeIcon" onClick={togglePasswordVisibility} />
-                  ) : (
-                    <EyeSlashIcon className="eyeIcon" onClick={togglePasswordVisibility}/>
-                  )}
-
+                {passwordVisible ? (
+                  <EyeIcon className="eyeIcon" onClick={togglePasswordVisibility} />
+                ) : (
+                  <EyeSlashIcon className="eyeIcon" onClick={togglePasswordVisibility} />
+                )}
               </div>
 
               <input

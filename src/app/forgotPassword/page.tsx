@@ -17,7 +17,6 @@ export default function ForgotPassword() {
     }
   }, [message]);
 
-
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     const auth = getAuth(app);
@@ -50,12 +49,9 @@ export default function ForgotPassword() {
           onChange={(e) => setEmail(e.target.value)}
         ></input>
 
-       <div className={`errorForgot ${message.text ? 'visible' : ''}`}>
-          <p className={message.type === 'error' ? 'text-error' : 'text-success'}>
-            {message.text}
-          </p>
+        <div className={`errorForgot ${message.text ? 'visible' : ''}`}>
+          <p className={message.type === 'error' ? 'text-error' : 'text-success'}>{message.text}</p>
         </div>
-
 
         <button className="submitButton" onClick={handleSubmit}>
           Submit
