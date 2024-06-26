@@ -25,6 +25,9 @@ export default function LoginPage() {
     } catch (error) {
       console.error('Error signing in: ', error);
       setLoginError(true);
+      setTimeout(() => {
+        setLoginError(false);
+      }, 3000);
     }
   };
 
@@ -60,12 +63,13 @@ export default function LoginPage() {
               }}
             />
             <button onClick={togglePasswordVisibility} className="toggle-password">
-              {showPassword ? <EyeSlashIcon className="icon" /> : <EyeIcon className="icon" />}
+              {showPassword ? <EyeIcon className="icon" /> : <EyeSlashIcon className="icon" />}
             </button>
           </div>
 
-          {loginError && <div className="error-message-login">Incorrect username or password.</div>}
-
+          <div className={`errorLogin ${loginError ? 'visible' : ''}`}>
+            Incorrect username or password.
+          </div>
           <button className="loginButton" onClick={handleSignIn}>
             Log In
           </button>
@@ -80,5 +84,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-//this is a test comment

@@ -1,38 +1,29 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { PencilSquareIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import {
-  getAuth,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-  updatePassword,
-} from 'firebase/auth';
-import { app } from '../firebase-config';
+import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
 import './account.css';
+import { UserAuth } from '../../context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function Account() {
-  const auth = getAuth(app);
+  const { user } = UserAuth();
 
-  const [user, setUser] = useState(auth.currentUser);
+  const router = useRouter();
+
   const [editPassword, setEditPassword] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [userEmail, setUserEmail] = useState<string>('');
   const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
   const [successfulAlertMessage, setSuccessfulAlertMessage] = useState<string>('');
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUser(user);
-        setUserEmail(user.email ?? '');
-      }
-    });
-
-    return () => unsubscribe();
-  }, [auth]);
+    if (!user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   const handleEditPasswordClick = () => {
     setEditPassword(!editPassword);
@@ -49,8 +40,10 @@ export default function Account() {
     if (newPassword !== confirmPassword) {
       setErrorAlertMessage('New passwords do not match.');
       setSuccessfulAlertMessage('');
+      resetAlertMessages();
       return;
     }
+
     const credential = EmailAuthProvider.credential(user!.email!, currentPassword);
     try {
       await reauthenticateWithCredential(user!, credential);
@@ -61,93 +54,97 @@ export default function Account() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (error) {
-      console.error('Password update error:', error);
-      setErrorAlertMessage('');
+    } catch (error: unknown) {
+      if (error instanceof Error && 'code' in error) {
+        const firebaseError = error as { code: string };
+        if (firebaseError.code === 'auth/invalid-credential') {
+          setErrorAlertMessage('Incorrect current password.');
+        } else {
+          console.error('Password update error:', error);
+          setErrorAlertMessage('Failed to update password. Please try again.');
+        }
+      } else {
+        console.error('Unexpected error:', error);
+        setErrorAlertMessage('An unexpected error occurred. Please try again.');
+      }
       setSuccessfulAlertMessage('');
     }
+    resetAlertMessages();
+  };
+
+  const resetAlertMessages = () => {
+    setTimeout(() => {
+      setErrorAlertMessage('');
+      setSuccessfulAlertMessage('');
+    }, 3000);
   };
 
   return (
-    <div className="center-container">
+    <div className="accountContainer">
       <div>
-        <h1 className="login-SignIn">Account</h1>
+        <h1 className="login-SignIn">Account Settings</h1>
+        <div className="alertContainer">
+          {successfulAlertMessage && (
+            <div className="successfulAlertMessage">{successfulAlertMessage}</div>
+          )}
+          {errorAlertMessage && <div className="alertMessage">{errorAlertMessage}</div>}
+        </div>
+        <div>
+          <input className="accountUsernameInput" type="text" value={user?.email || ''} readOnly />
 
-        <div style={{ marginTop: '75px' }}>
-          <input className="usernameInput" type="text" value={userEmail} readOnly />
-
-          <div className="input-container-forIcon">
+          <div className="inputWithEditIcon">
             <input
-              className="passwordInput"
+              className="accountPasswordInput"
               type="password"
               placeholder="Password"
-              value="********" // Placeholder as actual password cannot be displayed
+              value="********"
               readOnly
             />
-            <button className="toggle-password" onClick={handleEditPasswordClick}>
-              <PencilSquareIcon className="input-icon" />
-            </button>
+            <PencilSquareIcon className="editAccountIcon" onClick={handleEditPasswordClick} />
           </div>
-
-          {successfulAlertMessage && (
-            <div className="alertMessage" style={{ marginTop: '20px', color: 'gray' }}>
-              {successfulAlertMessage}
-            </div>
-          )}
-
           {editPassword && (
             <div style={{ marginTop: '50px' }}>
-              <div className="input-container-forIcon">
+              <div className="inputWithEyeIcon">
                 <input
-                  className="passwordInput"
+                  className="newPasswordInput"
                   type={passwordVisible ? 'text' : 'password'}
                   placeholder="Current Password"
                   value={currentPassword}
                   autoComplete="off"
                   onChange={(e) => setCurrentPassword(e.target.value)}
                 />
-                <button className="toggle-password" onClick={togglePasswordVisibility}>
-                  {passwordVisible ? (
-                    <EyeSlashIcon className="input-icon" />
-                  ) : (
-                    <EyeIcon className="input-icon" />
-                  )}
-                </button>
+                {passwordVisible ? (
+                  <EyeIcon className="eyeIcon" onClick={togglePasswordVisibility} />
+                ) : (
+                  <EyeSlashIcon className="eyeIcon" onClick={togglePasswordVisibility} />
+                )}
               </div>
 
               <input
-                className="passwordInput"
+                className="newPasswordInput"
                 type={passwordVisible ? 'text' : 'password'}
                 placeholder="New Password"
                 value={newPassword}
                 autoComplete="new-password"
                 onChange={(e) => setNewPassword(e.target.value)}
-                style={{ marginTop: '10px' }}
+                style={{ marginTop: '20px' }}
               />
 
               <input
-                className="passwordInput"
+                className="newPasswordInput"
                 type={passwordVisible ? 'text' : 'password'}
                 placeholder="Confirm New Password"
                 value={confirmPassword}
                 autoComplete="new-password"
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                style={{ marginTop: '10px' }}
+                style={{ marginTop: '20px' }}
               />
 
-              <button
-                className="loginButton"
-                onClick={handleSaveNewPassword}
-                style={{ marginTop: '20px' }}
-              >
-                Save
-              </button>
-
-              {errorAlertMessage && (
-                <div className="alertMessage" style={{ marginTop: '20px', color: 'red' }}>
-                  {errorAlertMessage}
-                </div>
-              )}
+              <div className="saveButtonContainer" style={{ marginTop: '20px' }}>
+                <button className="saveButton" onClick={handleSaveNewPassword}>
+                  Save
+                </button>
+              </div>
             </div>
           )}
         </div>

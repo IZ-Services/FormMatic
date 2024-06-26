@@ -94,7 +94,7 @@
 @keyframes dotMove {
   0%,
   100% {
-    transform: rotate(180deg) translate(-142px, -10px) rotate(-180deg);
+    transform: rotate(180deg) translate(-143px, -10px) rotate(-180deg);
   }
   50% {
     transform: rotate(0deg) translate(-100px, 10px) rotate(0deg);
