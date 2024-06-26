@@ -45,6 +45,7 @@ body {
 }
 
 .usernameInput {
+  text-align: center;
   border: none;
   border-bottom: 1px solid #333;
   display: block;
@@ -64,6 +65,7 @@ body {
 }
 
 .passwordInput {
+  text-align: center;
   display: block;
   background-color: inherit;
   width: 500px;
@@ -94,12 +96,17 @@ body {
   width: 20px;
   color: #333;
 }
-
-.error-message-login {
+.errorLogin {
+  min-height: 20px; 
   color: red;
-  text-align: left;
+  text-align: center;
   font-size: 14px;
-  margin-bottom: 20px;
+  visibility: hidden; 
+  margin-bottom: 10px;
+}
+
+.errorLogin.visible {
+  visibility: visible; 
 }
 
 .loginButton {

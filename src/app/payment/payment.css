@@ -9,7 +9,7 @@ body {
   font-family: Arial, sans-serif;
 }
 
-.accountContainer{
+.paymentContainer{
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -19,14 +19,14 @@ body {
   margin-top: 8rem;
 }
 
-.login-SignIn{
+.paymentTitle{
   font-weight: 400;
   text-align: center;
   margin-bottom: 30px;
 
 }
 
-.accountUsernameInput{
+.paymentUsernameInput{
   height: 1.5rem;
   margin-bottom: 10px;
   border: 0;
@@ -39,13 +39,13 @@ body {
   margin-top: 20px;
 }
 
-.inputWithEditIcon {
+.paymentInputWithEditIcon {
   width: 100%;
   position: relative;
 }
 
 
-.accountPasswordInput {
+.paymentPasswordInput {
   text-align: center;
   display: block;
   color: #000;
@@ -62,7 +62,7 @@ body {
 }
 
 
-.editAccountIcon {
+.editPaymentIcon {
   position: absolute;
   right: 10px;
   top: 50%;
@@ -73,11 +73,11 @@ body {
   cursor: pointer;
 }
 
-.editAccountIcon:hover {
+.editPaymentIcon:hover {
   color: gray;
 }
 
-.newPasswordInput {
+.newCardInput {
   position: relative;
   display: block;
   color: #000;
@@ -94,12 +94,12 @@ body {
 }
 
 
- .inputWithEyeIcon{
+ .paymentInputWithEyeIcon{
     width: 100%;
   position: relative;
  }
 
-.eyeIcon {
+.paymentEyeIcon {
   position: absolute;
   right: 10px;
   top: 50%;
@@ -111,13 +111,13 @@ body {
 }
 
 
-.saveButtonContainer {
+.paymentButtonContainer {
   display: flex;
   justify-content: flex-end;
   width: 100%;
 }
 
-.saveButton {
+.savePaymentButton {
   background-color: black;
   color: white;
   border: none;
@@ -134,12 +134,12 @@ body {
   
 }
 
-.saveButton:hover {
+.savePaymentButton:hover {
   background-color: transparent;
   color: black;
 }
 
-.alertContainer {
+.paymentAlertContainer {
   min-height: 20px;
   display: flex;
   flex-direction: column;
@@ -147,12 +147,12 @@ body {
   justify-content: center;
 }
 
-.alertMessage{
+.alertPaymentMessage{
   text-align: center;
   color: red;
 }
 
-.successfulAlertMessage{
+.successfulPaymenttMessage{
     text-align: center;
     color: gray;
 }
