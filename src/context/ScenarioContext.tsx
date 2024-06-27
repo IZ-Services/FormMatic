@@ -1,15 +1,15 @@
-"use client";
+'use client';
 import React, { createContext, useState, useContext } from 'react';
 
 export interface Scenerio {
-	_id?: string;  
-	transactionType: string;
-  	subsections: string[];
+  _id?: string;
+  transactionType: string;
+  subsections: string[];
 }
 
 interface ScenarioContextType {
   scenarios: Scenerio[];
-	selectedSubsection: string | null;
+  selectedSubsection: string | null;
   setSelectedSubsection: (subsection: string) => void;
 }
 
@@ -30,21 +30,22 @@ const scenerios: Scenerio[] = [
   },
 ];
 
-export function ScenarioProvider({ children, }: Readonly<{ children: React.ReactNode; }>) {
-	const [selectedSubsection, setSelectedSubsection] = useState<string | null>(null);
+export function ScenarioProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+  const [selectedSubsection, setSelectedSubsection] = useState<string | null>(null);
 
-	return (
-		<ScenarioContext.Provider value={{ scenarios: scenerios, selectedSubsection, setSelectedSubsection }}>
-		{children}
-		</ScenarioContext.Provider>
-	);
-};
+  return (
+    <ScenarioContext.Provider
+      value={{ scenarios: scenerios, selectedSubsection, setSelectedSubsection }}
+    >
+      {children}
+    </ScenarioContext.Provider>
+  );
+}
 
-
-  export const useScenarioContext = () => {
+export const useScenarioContext = () => {
   const context = useContext(ScenarioContext);
   if (!context) {
-    throw new Error("useScenarioContext must be used within a ScenarioProvider");
+    throw new Error('useScenarioContext must be used within a ScenarioProvider');
   }
   return context;
 };

@@ -4,9 +4,7 @@ import './sidebar.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid';
 import { useScenarioContext } from '../../../context/ScenarioContext';
 
-
 export default function Sidebar() {
-
   const { scenarios, setSelectedSubsection } = useScenarioContext();
   const [searchScenerio, setSearchScenerio] = useState('');
 
@@ -43,7 +41,11 @@ export default function Sidebar() {
               <h1 className="scenarioTitle">{scenerio.transactionType}</h1>
               <ul>
                 {scenerio.subsections.map((subsection, subsectionIndex) => (
-                  <li key={subsectionIndex} className="subsections" onClick={() => setSelectedSubsection(subsection)}>
+                  <li
+                    key={subsectionIndex}
+                    className="subsections"
+                    onClick={() => setSelectedSubsection(subsection)}
+                  >
                     {subsection}
                   </li>
                 ))}

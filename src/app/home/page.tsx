@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useScenarioContext } from '../../context/ScenarioContext';
 import SimpleTransfer from '../components/ui/SimpleTransfer';
 
-
 export default function Home() {
-
   const { selectedSubsection } = useScenarioContext()!;
   const { user } = UserAuth();
 
@@ -32,9 +30,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="homeContainer">
-        {renderComponent()}
-      </div>
+      <div className="homeContainer">{renderComponent()}</div>
     </>
   );
 }

@@ -6,10 +6,8 @@ import { useAppContext } from '../../../context/index';
 import Link from 'next/link';
 import { IClient } from '@/models/clientSchema';
 
-
 export default function SimpleTransfer() {
   const { formData, setFormData, setTransactions } = useAppContext()!;
-
 
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false);
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false);
