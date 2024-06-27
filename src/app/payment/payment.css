@@ -43,7 +43,7 @@ body {
   position: relative;
 }
 
-.paymentPasswordInput {
+.paymentCardInput {
   text-align: center;
   display: block;
   color: #000;
@@ -149,4 +149,18 @@ body {
 .successfulPaymenttMessage {
   text-align: center;
   color: gray;
+}
+
+@media (max-width: 590px) {
+  .paymentContentWrapper {
+    max-width: 400px;
+  }
+
+  .paymentCardInput {
+    max-width: 400px;
+  }
+
+  .newCardInput {
+    max-width: 400px;
+  }
 }
