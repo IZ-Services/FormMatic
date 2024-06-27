@@ -5,7 +5,6 @@
   width: 100%;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid #ccc;
 }
 
 .myLinks {
@@ -55,6 +54,65 @@
   font-weight: 500;
 }
 
+.linkLabel {
+  position: relative;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: ghostwhite;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  margin-top: 8px;
+  border-radius: 5px;
+  width: 250px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  transition: opacity 0.5s linear, transform 0.3s ease;
+}
+
+.dropdownContainer:hover .dropdownMenu {
+  display: block;
+}
+
+.linkLabel:hover .dropdownMenu {
+  display: block;
+  visibility: visible;
+  opacity: 1;
+}
+
+
+
+.dropdownMenu li {
+  list-style-type: none;
+}
+
+.dropdownMenu a {
+  background-color: inherit;
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 14px;
+  flex-shrink: 1;
+}
+
+
+.chevronIcon {
+  width: 1.2em; 
+  height: 1.2em;
+  margin-left: 4px; 
+  vertical-align: middle; 
+}
+
+.chevronIcon.rotate {
+  transform: rotate(180deg);
+}
+
 @media (max-width: 800px) {
   .headingLink {
     display: none;
@@ -63,6 +121,7 @@
     height: 4rem;
   }
 }
+
 @media (max-width: 590px) {
   .myLinks {
     display: none;

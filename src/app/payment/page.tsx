@@ -55,7 +55,7 @@ export default function Payment() {
 
   return (
     <div className="paymentContainer">
-      <div>
+      <div className='paymentContentWrapper'>
         <h1 className="paymentTitle">Payment Settings</h1>
         <div className="paymentAlertContainer">
           {successfulAlertMessage && (
@@ -68,7 +68,7 @@ export default function Payment() {
 
           <div className="paymentInputWithEditIcon">
             <input
-              className="paymentPasswordInput"
+              className="paymentCardInput"
               type="password"
               placeholder="Card Number"
               value="********"

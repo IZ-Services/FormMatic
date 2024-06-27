@@ -150,3 +150,18 @@ body {
   text-align: center;
   color: gray;
 }
+
+
+@media (max-width: 590px) {
+  .accountContentWrapper {
+    max-width: 400px;
+  }
+
+  .accountPasswordInput{
+   max-width: 400px;
+  }
+
+  .newPasswordInput{
+    max-width: 400px;
+  }
+}

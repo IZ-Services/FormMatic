@@ -81,7 +81,7 @@ export default function Account() {
 
   return (
     <div className="accountContainer">
-      <div>
+      <div className="accountContentWrapper">
         <h1 className="login-SignIn">Account Settings</h1>
         <div className="alertContainer">
           {successfulAlertMessage && (

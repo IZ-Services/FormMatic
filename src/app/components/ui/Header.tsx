@@ -1,15 +1,19 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './header.css';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { UserAuth } from '../../../context/AuthContext';
+import { ChevronDownIcon } from '@heroicons/react/16/solid';
 
 export default function Header() {
   const { logout } = UserAuth();
 
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  
   const pathname = usePathname();
   const [activeRoute, setActiveRoute] = useState(pathname);
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
   const links = [
     { label: 'Formatic' },
@@ -17,7 +21,13 @@ export default function Header() {
     { label: 'Search Transactions', route: '/transactions' },
     { label: 'DMV Forms', route: '/dmvForms' },
     { label: 'Contact Us', route: '/contactUs' },
-    { label: 'Account', route: '/account' },
+    { 
+      label: 'Account', 
+      dropdown: [
+        { label: 'Account Settings', route: '/account' },
+        { label: 'Payment Settings', route: '/payment' }
+      ]
+    },
     { label: 'Logout', route: '/' },
   ];
 
@@ -25,11 +35,44 @@ export default function Header() {
     setActiveRoute(pathname);
   }, [pathname]);
 
+
+  const handleDropdownToggle = () => {
+    setIsDropdownVisible(prev => !prev);
+  };
+
+  const handleDropdownItemClick = (e: React.MouseEvent ) => {
+      e.stopPropagation(); 
+      setIsDropdownVisible(false);
+  };
+
+const handleClickOutside = (e: MouseEvent) => {
+  const target = e.target as Element;
+  if (
+    menuRef.current &&
+    !menuRef.current.contains(target) &&
+    !target.closest('.dropdownContainer')
+  ) {
+    setIsDropdownVisible(false);
+  }
+};
+
+
+  useEffect(() => {
+    if (isDropdownVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownVisible]);
+
   const handleSignOut = async () => {
     try {
       await logout();
     } catch (error) {
-      console.error('Error signing in: ', error);
+      console.error('Error signing out: ', error);
     }
   };
 
@@ -37,7 +80,10 @@ export default function Header() {
     <header className="headerWrapper">
       <ul className="myLinks">
         {links.map((link) => (
-          <li key={link.label} className={link.label === 'Formatic' ? 'headingLink' : 'linkLabel'}>
+          <li 
+            key={link.label} 
+            className={link.label === 'Formatic' ? 'headingLink' : 'linkLabel'} 
+          >
             {link.route ? (
               <Link
                 href={link.route}
@@ -47,7 +93,29 @@ export default function Header() {
                 {link.label}
               </Link>
             ) : (
-              <span className="link">{link.label}</span>
+              <span className="dropdownContainer" onClick={handleDropdownToggle}>
+                {link.label}
+                {link.dropdown && (
+                  <ChevronDownIcon className={`chevronIcon ${isDropdownVisible ? 'rotate' : ''}`} />
+                )}
+              </span>
+            )}
+            {link.dropdown && isDropdownVisible &&(
+              <div className="dropdownMenu" ref={menuRef}>
+                <ul className="dropdownMenuList">
+                {link.dropdown.map((item) => (
+                  <li key={item.label} onClick={handleDropdownItemClick}>
+                    <Link
+                      href={item.route}
+                      onClick={() => setActiveRoute(item.route)}
+                      className={activeRoute === item.route ? 'linkActive' : 'linkRoute'}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              </div>
             )}
           </li>
         ))}
