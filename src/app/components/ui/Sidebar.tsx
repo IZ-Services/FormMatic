@@ -2,26 +2,13 @@
 import React, { useState } from 'react';
 import './sidebar.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid';
+import { useScenarioContext } from '../../../context/ScenarioContext';
 
 export default function Sidebar() {
-  const scenerios = [
-    {
-      transactionType: 'Transfer',
-      subsections: ['Simple Transfer'],
-    },
-    {
-      transactionType: 'Renewal',
-      subsections: ['Simple Renewal'],
-    },
-    {
-      transactionType: 'Out of State Transfer',
-      subsections: ['Simple Out of State Transfer'],
-    },
-  ];
-
+  const { scenarios, setSelectedSubsection } = useScenarioContext();
   const [searchScenerio, setSearchScenerio] = useState('');
 
-  const filteredScenerios = scenerios
+  const filteredScenerios = scenarios
     .filter((scenerio) => {
       const filteredSubsections = scenerio.subsections.filter((subsection) =>
         subsection.toLowerCase().includes(searchScenerio.toLowerCase()),
@@ -54,7 +41,11 @@ export default function Sidebar() {
               <h1 className="scenarioTitle">{scenerio.transactionType}</h1>
               <ul>
                 {scenerio.subsections.map((subsection, subsectionIndex) => (
-                  <li key={subsectionIndex} className="subsections">
+                  <li
+                    key={subsectionIndex}
+                    className="subsections"
+                    onClick={() => setSelectedSubsection(subsection)}
+                  >
                     {subsection}
                   </li>
                 ))}
