@@ -55,7 +55,7 @@ export default function Payment() {
 
   return (
     <div className="paymentContainer">
-      <div className='paymentContentWrapper'>
+      <div className="paymentContentWrapper">
         <h1 className="paymentTitle">Payment Settings</h1>
         <div className="paymentAlertContainer">
           {successfulAlertMessage && (

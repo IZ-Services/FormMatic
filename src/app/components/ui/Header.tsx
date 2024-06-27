@@ -10,7 +10,7 @@ export default function Header() {
   const { logout } = UserAuth();
 
   const menuRef = useRef<HTMLDivElement | null>(null);
-  
+
   const pathname = usePathname();
   const [activeRoute, setActiveRoute] = useState(pathname);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
@@ -21,12 +21,12 @@ export default function Header() {
     { label: 'Search Transactions', route: '/transactions' },
     { label: 'DMV Forms', route: '/dmvForms' },
     { label: 'Contact Us', route: '/contactUs' },
-    { 
-      label: 'Account', 
+    {
+      label: 'Account',
       dropdown: [
         { label: 'Account Settings', route: '/account' },
-        { label: 'Payment Settings', route: '/payment' }
-      ]
+        { label: 'Payment Settings', route: '/payment' },
+      ],
     },
     { label: 'Logout', route: '/' },
   ];
@@ -35,36 +35,34 @@ export default function Header() {
     setActiveRoute(pathname);
   }, [pathname]);
 
-
   const handleDropdownToggle = () => {
-    setIsDropdownVisible(prev => !prev);
+    setIsDropdownVisible((prev) => !prev);
   };
 
-  const handleDropdownItemClick = (e: React.MouseEvent ) => {
-      e.stopPropagation(); 
-      setIsDropdownVisible(false);
-  };
-
-const handleClickOutside = (e: MouseEvent) => {
-  const target = e.target as Element;
-  if (
-    menuRef.current &&
-    !menuRef.current.contains(target) &&
-    !target.closest('.dropdownContainer')
-  ) {
+  const handleDropdownItemClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsDropdownVisible(false);
-  }
-};
+  };
 
+  const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as Element;
+    if (
+      menuRef.current &&
+      !menuRef.current.contains(target) &&
+      !target.closest('.dropdownContainer')
+    ) {
+      setIsDropdownVisible(false);
+    }
+  };
 
   useEffect(() => {
     if (isDropdownVisible) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside);
     } else {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     }
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isDropdownVisible]);
 
@@ -80,10 +78,7 @@ const handleClickOutside = (e: MouseEvent) => {
     <header className="headerWrapper">
       <ul className="myLinks">
         {links.map((link) => (
-          <li 
-            key={link.label} 
-            className={link.label === 'Formatic' ? 'headingLink' : 'linkLabel'} 
-          >
+          <li key={link.label} className={link.label === 'Formatic' ? 'headingLink' : 'linkLabel'}>
             {link.route ? (
               <Link
                 href={link.route}
@@ -100,21 +95,21 @@ const handleClickOutside = (e: MouseEvent) => {
                 )}
               </span>
             )}
-            {link.dropdown && isDropdownVisible &&(
+            {link.dropdown && isDropdownVisible && (
               <div className="dropdownMenu" ref={menuRef}>
                 <ul className="dropdownMenuList">
-                {link.dropdown.map((item) => (
-                  <li key={item.label} onClick={handleDropdownItemClick}>
-                    <Link
-                      href={item.route}
-                      onClick={() => setActiveRoute(item.route)}
-                      className={activeRoute === item.route ? 'linkActive' : 'linkRoute'}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+                  {link.dropdown.map((item) => (
+                    <li key={item.label} onClick={handleDropdownItemClick}>
+                      <Link
+                        href={item.route}
+                        onClick={() => setActiveRoute(item.route)}
+                        className={activeRoute === item.route ? 'linkActive' : 'linkRoute'}
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </li>

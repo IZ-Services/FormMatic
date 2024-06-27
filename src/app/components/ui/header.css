@@ -72,7 +72,9 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  transition: opacity 0.5s linear, transform 0.3s ease;
+  transition:
+    opacity 0.5s linear,
+    transform 0.3s ease;
 }
 
 .dropdownContainer:hover .dropdownMenu {
@@ -84,8 +86,6 @@
   visibility: visible;
   opacity: 1;
 }
-
-
 
 .dropdownMenu li {
   list-style-type: none;
@@ -101,12 +101,11 @@
   flex-shrink: 1;
 }
 
-
 .chevronIcon {
-  width: 1.2em; 
+  width: 1.2em;
   height: 1.2em;
-  margin-left: 4px; 
-  vertical-align: middle; 
+  margin-left: 4px;
+  vertical-align: middle;
 }
 
 .chevronIcon.rotate {
