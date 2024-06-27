@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 
 import '../globals.css';
 import Header from '../components/ui/Header';
+import Sidebar from '../components/ui/Sidebar';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -17,7 +18,8 @@ export default function HomeLayout({
   return (
     <>
       <Header />
-      <main>{children}</main>
+      <Sidebar />
+      <main style={{ marginLeft: '20rem' }}>{children}</main>
     </>
   );
 }
