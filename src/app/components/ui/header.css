@@ -106,8 +106,7 @@
   height: 1.2em;
   margin-left: 4px;
   vertical-align: middle;
-    transition: transform 0.3s ease;
-
+  transition: transform 0.3s ease;
 }
 
 .chevronIcon.rotate {

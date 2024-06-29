@@ -3,7 +3,12 @@ import React, { useState, useEffect, useDeferredValue, useRef } from 'react';
 import Link from 'next/link';
 import './transactions.css';
 import { useAppContext } from '@/context';
-import { TrashIcon, PencilSquareIcon, MagnifyingGlassIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import {
+  TrashIcon,
+  PencilSquareIcon,
+  MagnifyingGlassIcon,
+  ChevronDownIcon,
+} from '@heroicons/react/24/outline';
 import { IClient } from '@/models/clientSchema';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -23,14 +28,11 @@ export default function Transactions() {
   const [isDateOpen, setisDateOpen] = useState(false);
   const [selectedSubsection, setSelectedSubsection] = useState('');
 
-
   useEffect(() => {
     if (!user) {
       router.push('/');
     }
   }, [user, router]);
-
- 
 
   useEffect(() => {
     const fetchRecentTransactions = async () => {
@@ -116,7 +118,7 @@ export default function Transactions() {
     }
   };
 
-  const handleTransactionChange = async ( subsection: string) => {
+  const handleTransactionChange = async (subsection: string) => {
     setSelectedSubsection(subsection);
     setisMenuOpen(false);
 
@@ -174,8 +176,8 @@ export default function Transactions() {
     const target = e.target as Element;
     if (
       menuRef.current &&
-      !menuRef.current.contains(target)&&
-      !target.closest('.dropdown-toggle') 
+      !menuRef.current.contains(target) &&
+      !target.closest('.dropdown-toggle')
     ) {
       setisMenuOpen(false);
     }
@@ -183,11 +185,8 @@ export default function Transactions() {
 
   const handleClickOutsideDate = (e: MouseEvent) => {
     const target = e.target as Element;
-    if (
-      dateRef.current &&
-      !dateRef.current.contains(target) 
-      ) {
-        setisDateOpen(false);
+    if (dateRef.current && !dateRef.current.contains(target)) {
+      setisDateOpen(false);
     }
   };
 
@@ -197,7 +196,7 @@ export default function Transactions() {
     } else {
       document.removeEventListener('mousedown', handleClickOutsideMenu);
     }
-      return () => {
+    return () => {
       document.removeEventListener('mousedown', handleClickOutsideMenu);
     };
   }, [isMenuOpen]);
@@ -217,37 +216,51 @@ export default function Transactions() {
     <div className="container">
       <div className="transactionSearchContainer">
         <input type="date" className="transactionDate" onChange={handleDateChange} ref={dateRef} />
-          <div className="custom-dropdown" ref={menuRef}>
-                <button onClick={() => setisMenuOpen(!isMenuOpen)} className="dropdown-toggle">
-                  {selectedSubsection.length > 18 ? `${selectedSubsection.substring(0, 18)}...` : (selectedSubsection || 'Transaction type')}
-                  <ChevronDownIcon className={`transactionIcon ${isMenuOpen ? 'rotate' : ''}`} />
-                </button>
-                {isMenuOpen && (
-                  <ul className="transactionMenu">
-                 <li className='selectableTransactions' onClick={() => handleTransactionChange('All')} style={{display: 'flex'}}>
-                  <div className="checkboxWrapper">
-                    {selectedSubsection === 'All' ? <div className="activeCheckbox" /> : <div className="emptyCheckbox" />}
-                    <span className='all'>All</span>
-                  </div>
-                  </li>   
-                    {scenarios.map((scenerio: Scenerio, index: number) => (
-                      <li key={index}>
-                        <div className="dropdown-label">{scenerio.transactionType}</div>
-                        <ul className='selectableTransactions'>
-                          {scenerio.subsections.map((subsection, subIndex) => (
-                            <li key={subIndex}  onClick={() => handleTransactionChange(subsection)}>
-                                <div className="checkboxWrapper">
-                                {selectedSubsection === subsection ? <div className='activeCheckbox' /> : <div className='emptyCheckbox'/>}
-                                {subsection}
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
+        <div className="custom-dropdown" ref={menuRef}>
+          <button onClick={() => setisMenuOpen(!isMenuOpen)} className="dropdown-toggle">
+            {selectedSubsection.length > 18
+              ? `${selectedSubsection.substring(0, 18)}...`
+              : selectedSubsection || 'Transaction type'}
+            <ChevronDownIcon className={`transactionIcon ${isMenuOpen ? 'rotate' : ''}`} />
+          </button>
+          {isMenuOpen && (
+            <ul className="transactionMenu">
+              <li
+                className="selectableTransactions"
+                onClick={() => handleTransactionChange('All')}
+                style={{ display: 'flex' }}
+              >
+                <div className="checkboxWrapper">
+                  {selectedSubsection === 'All' ? (
+                    <div className="activeCheckbox" />
+                  ) : (
+                    <div className="emptyCheckbox" />
+                  )}
+                  <span className="all">All</span>
+                </div>
+              </li>
+              {scenarios.map((scenerio: Scenerio, index: number) => (
+                <li key={index}>
+                  <div className="dropdown-label">{scenerio.transactionType}</div>
+                  <ul className="selectableTransactions">
+                    {scenerio.subsections.map((subsection, subIndex) => (
+                      <li key={subIndex} onClick={() => handleTransactionChange(subsection)}>
+                        <div className="checkboxWrapper">
+                          {selectedSubsection === subsection ? (
+                            <div className="activeCheckbox" />
+                          ) : (
+                            <div className="emptyCheckbox" />
+                          )}
+                          {subsection}
+                        </div>
                       </li>
                     ))}
                   </ul>
-                )}
-            </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <div className="search-input-wrapper">
           <MagnifyingGlassIcon className="searchIcon" />
           <input

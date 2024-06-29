@@ -13,7 +13,7 @@ export default function Sidebar() {
 
   const handleSelection = (subsection: string) => {
     setSelectedSubsection(subsection);
-    setFormData({ ...formData, transactionType:subsection });
+    setFormData({ ...formData, transactionType: subsection });
   };
 
   const filteredScenerios = scenarios

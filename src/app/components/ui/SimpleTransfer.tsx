@@ -27,7 +27,6 @@ export default function SimpleTransfer() {
     setAddThirdRegisteredOwner(false);
   };
 
-
   const handleSave = async () => {
     try {
       const response = await fetch('/api/post', {
@@ -62,9 +61,7 @@ export default function SimpleTransfer() {
 
   return (
     <>
-      <div className="centerContainer">
-
-      </div>
+      <div className="centerContainer"></div>
       <div className="middleContainer">
         <h3 className="title">
           Registered Owner #1

@@ -24,8 +24,7 @@ body {
   width: 80%;
   margin-top: 5rem;
   margin-bottom: 20px;
-    position: relative; 
-
+  position: relative;
 }
 
 .transactionDate,
@@ -45,8 +44,8 @@ body {
 }
 
 .custom-dropdown {
-  position: relative; 
-    max-width: 400px;
+  position: relative;
+  max-width: 400px;
 }
 
 .dropdown-toggle {
@@ -57,8 +56,8 @@ body {
   justify-content: space-between;
   overflow: hidden;
   position: relative;
-  width: 200px; 
-  white-space: nowrap; 
+  width: 200px;
+  white-space: nowrap;
 }
 
 .transactionIcon {
@@ -66,7 +65,7 @@ body {
   height: 1.2em;
   margin-left: 4px;
   transition: transform 0.3s ease;
-  flex-shrink: 0; 
+  flex-shrink: 0;
 }
 
 .transactionIcon.rotate {
@@ -83,33 +82,32 @@ body {
   width: 400px;
   justify-content: center;
   align-items: center;
-  position: absolute; 
-  top: 100%; 
-  left: 45%; 
-  transform: translateX(-50%); 
+  position: absolute;
+  top: 100%;
+  left: 45%;
+  transform: translateX(-50%);
   transition:
     opacity 0.5s ease,
     transform 0.3s ease;
 }
 
-.dropdown-label{
-    text-align: start;
-    list-style: none;
-    color: slategray;
-    border-bottom: 1px solid slategrey;
-    padding: 5px;
-    max-width: 90%; 
-    margin: 0 auto;
+.dropdown-label {
+  text-align: start;
+  list-style: none;
+  color: slategray;
+  border-bottom: 1px solid slategrey;
+  padding: 5px;
+  max-width: 90%;
+  margin: 0 auto;
 }
 
 .selectableTransactions {
   font-size: 0.8em;
   padding: 5px;
   list-style: none;
-  margin-top: 5px; 
-   margin-bottom: 5px;
-   margin-right: 10px;
-
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-right: 10px;
 }
 
 .selectableTransactions li {
@@ -119,11 +117,11 @@ body {
 }
 
 .selectableTransactions li:hover {
-  color: lightblue
+  color: lightblue;
 }
 
-.all:hover{
-   color: lightblue
+.all:hover {
+  color: lightblue;
 }
 
 .checkboxWrapper {
@@ -253,7 +251,7 @@ body {
 
 @media (max-width: 590px) {
   .transactionDate,
-  .custom-dropdown{
+  .custom-dropdown {
     display: none;
   }
 }
