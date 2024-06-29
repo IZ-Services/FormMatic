@@ -3,10 +3,18 @@ import React, { useState } from 'react';
 import './sidebar.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid';
 import { useScenarioContext } from '../../../context/ScenarioContext';
+import { useAppContext } from '../../../context/index';
 
 export default function Sidebar() {
   const { scenarios, setSelectedSubsection } = useScenarioContext();
+  const { formData, setFormData } = useAppContext()!;
+
   const [searchScenerio, setSearchScenerio] = useState('');
+
+  const handleSelection = (subsection: string) => {
+    setSelectedSubsection(subsection);
+    setFormData({ ...formData, transactionType:subsection });
+  };
 
   const filteredScenerios = scenarios
     .filter((scenerio) => {
@@ -44,7 +52,7 @@ export default function Sidebar() {
                   <li
                     key={subsectionIndex}
                     className="subsections"
-                    onClick={() => setSelectedSubsection(subsection)}
+                    onClick={() => handleSelection(subsection)}
                   >
                     {subsection}
                   </li>
