@@ -21,7 +21,6 @@ body {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-
 }
 
 .searchScenarioWrapper {
@@ -52,7 +51,6 @@ body {
   color: black;
 }
 
-
 .pentagon {
   margin-left: 20px;
   margin-bottom: 20px;
@@ -63,8 +61,6 @@ body {
   background: black;
   display: flex;
   align-items: center;
-
-
 }
 .pentagon:after {
   content: '';
@@ -79,10 +75,10 @@ body {
 }
 
 .pentagon:hover {
-  background-color:#EED9B6;
-  border-left: 1px solid #EED9B6;
-  border-top: 1px solid #EED9B6;
-  border-bottom: 1px solid #EED9B6;
+  background-color: #eed9b6;
+  border-left: 1px solid #eed9b6;
+  border-top: 1px solid #eed9b6;
+  border-bottom: 1px solid #eed9b6;
 }
 
 .pentagon:hover:after {
@@ -92,7 +88,7 @@ body {
   height: 0;
   border-top: 25px solid transparent;
   border-bottom: 25px solid transparent;
-  border-left: 25px solid #EED9B6;
+  border-left: 25px solid #eed9b6;
   right: -25px;
   top: -1px;
 }
@@ -112,7 +108,6 @@ body {
   flex: 1;
 }
 
-
 .subsectionEmpty,
 .subsectionActive {
   border: 1px solid black;
@@ -130,7 +125,6 @@ body {
 .subsectionActive {
   background-color: black;
 }
-
 
 .subsections {
   font-size: 15px;
@@ -152,4 +146,3 @@ body {
     display: none;
   }
 }
-

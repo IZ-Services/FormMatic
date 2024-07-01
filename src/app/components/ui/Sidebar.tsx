@@ -24,13 +24,13 @@ export default function Sidebar() {
   };
 
   const filteredScenarios = scenarios
-    .map(scenario => ({
+    .map((scenario) => ({
       ...scenario,
-      subsections: scenario.subsections.filter(subsection =>
-        subsection.toLowerCase().includes(searchScenario.toLowerCase())
+      subsections: scenario.subsections.filter((subsection) =>
+        subsection.toLowerCase().includes(searchScenario.toLowerCase()),
       ),
     }))
-    .filter(scenario => scenario.subsections.length > 0);
+    .filter((scenario) => scenario.subsections.length > 0);
 
   const handleClickOutsideDate = (e: MouseEvent) => {
     const target = e.target as Element;
@@ -63,20 +63,29 @@ export default function Sidebar() {
           />
         </div>
 
-        <div className='transactionWrapper' ref={transactionRef}>
+        <div className="transactionWrapper" ref={transactionRef}>
           {filteredScenarios.map((scenario, index) => (
             <div key={index}>
-              <div className='pentagon' onClick={() => handleOpen(scenario.transactionType)}>
+              <div className="pentagon" onClick={() => handleOpen(scenario.transactionType)}>
                 <h1 className="scenarioTitle">{scenario.transactionType}</h1>
               </div>
-              <ul style={{ display: searchScenario || scenario.transactionType === selectedTransactionType ? 'block' : 'none' }}>
+              <ul
+                style={{
+                  display:
+                    searchScenario || scenario.transactionType === selectedTransactionType
+                      ? 'block'
+                      : 'none',
+                }}
+              >
                 {scenario.subsections.map((subsection, subsectionIndex) => (
                   <li
                     key={subsectionIndex}
                     className="subsections"
                     onClick={() => handleSelection(subsection, scenario.transactionType)}
                   >
-                    <div className={`${subsection === selectedSubsection ? 'subsectionActive' : 'subsectionEmpty'}`} />
+                    <div
+                      className={`${subsection === selectedSubsection ? 'subsectionActive' : 'subsectionEmpty'}`}
+                    />
                     <span>{subsection}</span>
                   </li>
                 ))}
