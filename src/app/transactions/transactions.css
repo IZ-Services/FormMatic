@@ -133,11 +133,11 @@ body {
 }
 
 .selectableTransactions li:hover {
-  color: slategray
+  color: slategray;
 }
 
 .all:hover {
-  color: slategray
+  color: slategray;
 }
 
 .checkboxWrapper {
@@ -271,4 +271,3 @@ body {
     display: none;
   }
 }
-

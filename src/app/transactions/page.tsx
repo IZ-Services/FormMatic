@@ -251,12 +251,19 @@ export default function Transactions() {
                 <li key={index}>
                   <div className="dropdown-label">
                     {scenerio.transactionType}
-                    <button onClick={() => toggleSubMenu(scenerio.transactionType)} className="submenu-toggle">
-                      <ChevronDownIcon className={`transactionIcon ${openSubMenus[scenerio.transactionType] ? 'rotate' : ''}`} />
+                    <button
+                      onClick={() => toggleSubMenu(scenerio.transactionType)}
+                      className="submenu-toggle"
+                    >
+                      <ChevronDownIcon
+                        className={`transactionIcon ${openSubMenus[scenerio.transactionType] ? 'rotate' : ''}`}
+                      />
                     </button>
                   </div>
-                  <ul className={`selectableTransactions ${openSubMenus[scenerio.transactionType] ? '' : 'hidden'}`}>
-                      {scenerio.subsections.map((subsection, subIndex) => (
+                  <ul
+                    className={`selectableTransactions ${openSubMenus[scenerio.transactionType] ? '' : 'hidden'}`}
+                  >
+                    {scenerio.subsections.map((subsection, subIndex) => (
                       <li key={subIndex} onClick={() => handleTransactionChange(subsection)}>
                         <div className="checkboxWrapper">
                           {selectedSubsection === subsection ? (
