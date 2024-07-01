@@ -18,11 +18,11 @@ const ScenarioContext = createContext<ScenarioContextType | null>(null);
 const scenerios: Scenerio[] = [
   {
     transactionType: 'Transfer',
-    subsections: ['Simple Transfer'],
+    subsections: ['Simple Transfer', 'Transfer w. Duplicate Plates/Stickers', 'Transfer w. Gift', 'Transfer w. Gift  & Duplicate Plates/Stickers'],
   },
   {
     transactionType: 'Renewal',
-    subsections: ['Simple Renewal'],
+    subsections: ['Simple Renewal', 'Renewal w. Duplicate Plates/Stickers', 'Renewal w. Change of Address', 'Out of State Renewal & Needs Smog', 'Renewal w. Disabled Plates' ],
   },
   {
     transactionType: 'Out of State Transfer',

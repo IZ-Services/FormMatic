@@ -25,7 +25,7 @@ export default function Home() {
         return <SimpleTransfer />;
       default:
         return (
-          <p className="scenarioSelect"> Welcome. Please select a scenario from the sidebar.</p>
+          <p className="scenarioSelect"> Welcome. Please select a transaction from the sidebar.</p>
         );
     }
   };

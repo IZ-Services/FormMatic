@@ -61,6 +61,7 @@ body {
   background: black;
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 .pentagon:after {
   content: '';
@@ -75,10 +76,10 @@ body {
 }
 
 .pentagon:hover {
-  background-color: #eed9b6;
-  border-left: 1px solid #eed9b6;
-  border-top: 1px solid #eed9b6;
-  border-bottom: 1px solid #eed9b6;
+  background-color:#383428;
+  border-left: 1px solid #383428;
+  border-top: 1px solid #383428;
+  border-bottom: 1px solid #383428;
 }
 
 .pentagon:hover:after {
@@ -88,7 +89,7 @@ body {
   height: 0;
   border-top: 25px solid transparent;
   border-bottom: 25px solid transparent;
-  border-left: 25px solid #eed9b6;
+  border-left: 25px solid #383428;
   right: -25px;
   top: -1px;
 }
@@ -130,7 +131,7 @@ body {
   font-size: 15px;
   font-weight: 400;
   padding-left: 20px;
-  margin-bottom: 5px;
+  margin-bottom: 15px;
   display: flex;
   align-items: center;
 }

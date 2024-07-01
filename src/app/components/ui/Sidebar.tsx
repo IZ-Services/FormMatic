@@ -57,7 +57,7 @@ export default function Sidebar() {
           <MagnifyingGlassIcon className="scenarioIcon" />
           <input
             className="scenarioInput"
-            placeholder="Search Scenarios"
+            placeholder="Search Transaction"
             value={searchScenario}
             onChange={(e) => setSearchScenario(e.target.value)}
           />
