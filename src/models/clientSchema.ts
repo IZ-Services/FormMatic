@@ -38,7 +38,7 @@ export interface IClient extends Document {
   gift: boolean;
   trade: boolean;
   transactionType: string;
-  timeCreated: string;
+  timeCreated: Date;
 }
 
 const clientSchema = new Schema({
@@ -78,7 +78,7 @@ const clientSchema = new Schema({
   gift: { type: Boolean, required: false },
   trade: { type: Boolean, required: false },
   transactionType: { type: String, required: false },
-  timeCreated: { type: String, default: Date.now },
+  timeCreated: { type: Date, default: Date.now },
 });
 
 const Client = mongoose.models?.Client || mongoose.model<IClient>('Client', clientSchema);

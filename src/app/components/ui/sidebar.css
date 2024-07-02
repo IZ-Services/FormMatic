@@ -51,25 +51,99 @@ body {
   color: black;
 }
 
-.scenarioTitle {
-  justify-content: flex-start;
+.pentagon {
+  margin-left: 20px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  position: relative;
+  width: 200px;
+  height: 50px;
+  background: black;
   display: flex;
-  font-size: 25px;
+  align-items: center;
+  cursor: pointer;
+}
+.pentagon:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-top: 25px solid transparent;
+  border-bottom: 25px solid transparent;
+  border-left: 25px solid black;
+  right: -25px;
+  top: 0px;
+}
+
+.pentagon:hover {
+  background-color: #383428;
+  border-left: 1px solid #383428;
+  border-top: 1px solid #383428;
+  border-bottom: 1px solid #383428;
+}
+
+.pentagon:hover:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-top: 25px solid transparent;
+  border-bottom: 25px solid transparent;
+  border-left: 25px solid #383428;
+  right: -25px;
+  top: -1px;
+}
+
+.pentagon:hover h1 {
+  color: white;
+}
+
+.scenarioTitle {
+  color: white;
+  display: flex;
+  font-size: 15px;
   font-weight: 500;
   padding-left: 20px;
-  margin-top: 15px;
-  margin-bottom: 10px;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+}
+
+.subsectionEmpty,
+.subsectionActive {
+  border: 1px solid black;
+  width: 10px;
+  height: 10px;
+  margin-left: 40px;
+  margin-right: 5px;
+  display: inline-block;
+}
+
+.subsectionEmpty {
+  background-color: white;
+}
+
+.subsectionActive {
+  background-color: black;
 }
 
 .subsections {
   font-size: 15px;
   font-weight: 400;
   padding-left: 20px;
-  margin-bottom: 5px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
 }
 
 .subsections:hover {
   color: gray;
   transition: 0.3s;
   cursor: pointer;
+}
+
+@media (max-width: 800px) {
+  .sidebar {
+    display: none;
+  }
 }

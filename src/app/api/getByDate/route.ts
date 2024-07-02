@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
 
     const clients = await Client.find({
       timeCreated: {
-        $gte: startOfDay.toISOString(),
-        $lte: endOfDay.toISOString(),
+        $gte: startOfDay,
+        $lte: endOfDay,
       },
     }).sort({ timeCreated: -1 });
 

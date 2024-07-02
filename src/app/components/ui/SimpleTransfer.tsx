@@ -4,14 +4,12 @@ import { useState } from 'react';
 import './simpletransfer.css';
 import { useAppContext } from '../../../context/index';
 import Link from 'next/link';
-import { IClient } from '@/models/clientSchema';
 
 export default function SimpleTransfer() {
-  const { formData, setFormData, setTransactions } = useAppContext()!;
+  const { formData, setFormData } = useAppContext()!;
 
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false);
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false);
-  const [searchFor, setSearchFor] = useState('');
 
   const handleClickAddSecondRegisteredOwner = () => {
     setAddSecondRegisteredOwner(true);
@@ -27,21 +25,6 @@ export default function SimpleTransfer() {
 
   const handleClickRemoveThirdRegisteredOwner = () => {
     setAddThirdRegisteredOwner(false);
-  };
-  const handleSearch = async () => {
-    try {
-      const res = await fetch(`/api/get?searchFor=${searchFor}`);
-      const data = await res.json();
-      data.sort(
-        (a: IClient, b: IClient) =>
-          new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime(),
-      );
-      console.log(data);
-      setTransactions(data);
-    } catch (error) {
-      console.error('Error fetching clients:', error);
-      alert('The Item You Are Looking For Was Not Found');
-    }
   };
 
   const handleSave = async () => {
@@ -78,22 +61,7 @@ export default function SimpleTransfer() {
 
   return (
     <>
-      <div className="centerContainer">
-        <input
-          className="inputSearch"
-          placeholder="Search by First Name, Last Name, or VIN"
-          value={searchFor}
-          onChange={(e) => setSearchFor(e.target.value)}
-        />
-        <Link
-          href="/transactions"
-          className="buttonSearch"
-          style={{ marginLeft: '5px' }}
-          onClick={handleSearch}
-        >
-          Search
-        </Link>
-      </div>
+      <div className="centerContainer"></div>
       <div className="middleContainer">
         <h3 className="title">
           Registered Owner #1
