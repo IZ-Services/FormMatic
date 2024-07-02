@@ -94,8 +94,8 @@ export default function Transactions() {
   const handleDateChange = async (value: Dayjs | null) => {
     setSelectedDate(value);
     if (value) {
-      const formattedDate = value.format('YYYY-MM-DD'); 
-      console.log('Formatted Date:', formattedDate); 
+      const formattedDate = value.format('YYYY-MM-DD');
+      console.log('Formatted Date:', formattedDate);
 
       try {
         const res = await fetch(`/api/getByDate?date=${formattedDate}`);

@@ -27,14 +27,13 @@ body {
   position: relative;
 }
 
-.custom-datepicker{
+.custom-datepicker {
   background-color: ghostwhite;
 }
 
 .custom-dropdown {
   position: relative;
   max-width: 400px;
-  
 }
 
 .dropdown-toggle {
@@ -261,6 +260,3 @@ body {
     display: none;
   }
 }
-
-
-
