@@ -17,10 +17,10 @@ export default function Sidebar() {
     setSelectedTransactionType(transactionType === selectedTransactionType ? '' : transactionType);
   };
 
-  const handleSelection = (subsection: string, transactionType: string) => {
+  const handleSelection = (subsection: string) => {
     setSelectedSubsection(subsection);
-    setFormData({ ...formData, transactionType });
-    setSelectedTransactionType(transactionType);
+    setSelectedTransactionType(subsection);
+    setFormData({ ...formData, transactionType: subsection });
   };
 
   const filteredScenarios = scenarios
@@ -81,7 +81,7 @@ export default function Sidebar() {
                   <li
                     key={subsectionIndex}
                     className="subsections"
-                    onClick={() => handleSelection(subsection, scenario.transactionType)}
+                    onClick={() => handleSelection(subsection)}
                   >
                     <div
                       className={`${subsection === selectedSubsection ? 'subsectionActive' : 'subsectionEmpty'}`}
