@@ -28,7 +28,7 @@ export default function Transactions() {
   const dateRef = useRef<HTMLInputElement | null>(null);
 
   const [searchFor, setSearchFor] = useState('');
-  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null); // Updated state type
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null); 
   const [isMenuOpen, setisMenuOpen] = useState(false);
   const [isDateOpen, setisDateOpen] = useState(false);
   const [selectedSubsection, setSelectedSubsection] = useState('');
@@ -94,11 +94,10 @@ export default function Transactions() {
   const handleDateChange = async (value: Dayjs | null) => {
     setSelectedDate(value);
     if (value) {
-      const formattedDate = value.format('YYYY-MM-DD');
-      console.log('Formatted Date:', formattedDate);
-
-      try {
-        const res = await fetch(`/api/getByDate?date=${formattedDate}`);
+      const startOfDay = value.startOf('day').toISOString();
+      const endOfDay = value.endOf('day').toISOString();
+    try {
+      const res = await fetch(`/api/getByDate?start=${startOfDay}&end=${endOfDay}`);
         const data = await res.json();
         if (data.error) {
           setTransactions([]);
