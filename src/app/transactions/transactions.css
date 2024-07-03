@@ -29,7 +29,7 @@ body {
 
 .custom-datepicker {
   background-color: ghostwhite;
- 
+  margin-top: 8px;
 }
 
 .custom-dropdown {
