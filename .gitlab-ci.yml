@@ -4,17 +4,15 @@ stages:
   - build
   - deploy
 
-cache:
-  paths:
-    - node_modules/
-
-before_script:
-  - npm ci
-
 install:
   stage: install
+  image: node
   script:
-    - npm ci
+    - npm install
+  artifacts:
+    paths:
+      - .node_modules
+      - package-lock.json
 
 lint:
   stage: lint
@@ -23,9 +21,7 @@ lint:
 
 build:
   stage: build
-  script:
-    - brew update 
-    - brew install npm 
+  script:  
     - npm run build
   artifacts:
     paths:
@@ -34,15 +30,7 @@ build:
 
 deploy:
   stage: deploy
+  image: node
   script:
-  -  brew upadte 
-  - brew install nodejs
-  - npm run dev
-  - echo "Deploying to production..."
-    # Add your deployment commands here
+  - npm run dev > /dev/null 2>&1 &
   
-  environment:
-    name: production
-    url: https://your-production-url.com
-  only:
-    - main
