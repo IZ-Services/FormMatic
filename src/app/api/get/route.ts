@@ -4,10 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   await connectDB();
-  
-  // Simulate a delay of 1 second (1000 milliseconds)
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
   try {
     const { searchParams } = new URL(request.url);
     let searchFor = searchParams.get('searchFor');
