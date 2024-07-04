@@ -68,12 +68,12 @@
   z-index: 1;
   margin-top: 8px;
   border-radius: 5px;
-  width: 250px;
+  width: 225px;
   justify-content: center;
   align-items: center;
   text-align: center;
   transition:
-    opacity 0.5s linear,
+    opacity 0.5s ease,
     transform 0.3s ease;
 }
 
@@ -82,7 +82,7 @@
 }
 
 .linkLabel:hover .dropdownMenu {
-  display: block;
+  transform: translateX(-50%) translateY(0);
   visibility: visible;
   opacity: 1;
 }
@@ -106,6 +106,7 @@
   height: 1.2em;
   margin-left: 4px;
   vertical-align: middle;
+  transition: transform 0.3s ease;
 }
 
 .chevronIcon.rotate {

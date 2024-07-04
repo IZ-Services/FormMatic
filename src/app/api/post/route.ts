@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       gift,
       trade,
       transactionType,
-      timeCreated: new Date().toISOString(),
+      timeCreated: new Date(),
     });
     const savedClient = await newClient.save();
 

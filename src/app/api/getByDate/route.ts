@@ -6,27 +6,22 @@ export async function GET(request: NextRequest) {
   await connectDB();
   try {
     const { searchParams } = new URL(request.url);
-    const selectedDate = searchParams.get('date');
+    const start = searchParams.get('start');
+    const end = searchParams.get('end');
 
-    if (!selectedDate) {
-      return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });
+    if (!start || !end) {
+      return NextResponse.json({ error: 'Start and end date parameters are required' }, { status: 400 });
     }
-
-    const startOfDay = new Date(selectedDate);
-    startOfDay.setUTCHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(selectedDate);
-    endOfDay.setUTCHours(23, 59, 59, 999);
 
     const clients = await Client.find({
       timeCreated: {
-        $gte: startOfDay.toISOString(),
-        $lte: endOfDay.toISOString(),
-      },
+        $gte: new Date(start),
+        $lte: new Date(end)
+      }
     }).sort({ timeCreated: -1 });
 
     if (clients.length === 0) {
-      return NextResponse.json({ error: 'No clients found for the specified date' });
+      return NextResponse.json({ error: 'No clients found for the specified date range' });
     }
     return NextResponse.json(clients);
   } catch (error) {
