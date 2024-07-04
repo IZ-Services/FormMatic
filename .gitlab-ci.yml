@@ -24,8 +24,8 @@ lint:
 build:
   stage: build
   script:
-    - apt update -y
-    - apt install npm -y
+    - brew update 
+    - brew install npm 
     - npm run build
   artifacts:
     paths:
@@ -35,7 +35,10 @@ build:
 deploy:
   stage: deploy
   script:
-    - echo "Deploying to production..."
+  -  brew upadte 
+  - brew install nodejs
+  - npm run dev
+  - echo "Deploying to production..."
     # Add your deployment commands here
   
   environment:
