@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   await connectDB();
+  const { searchParams } = new URL(request.url);
+  const transactionType = searchParams.get('transactionType');
   try {
-    const { searchParams } = new URL(request.url);
-    const transactionType = searchParams.get('transactionType');
 
     if (!transactionType) {
       return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });
