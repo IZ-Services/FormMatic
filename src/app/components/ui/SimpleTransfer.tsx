@@ -79,7 +79,7 @@ export default function SimpleTransfer() {
   // };
 
   return (
-    <NewRegisteredOwner/>
+    <NewRegisteredOwner />
     // <>
     //   <div className="centerContainer">
     //     <input
