@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     let searchFor = searchParams.get('searchFor');
 
     if (!searchFor) {
-      return;
+      return NextResponse.json({ error: 'Search parameter "searchFor" is required' }, { status: 400 });
     }
     searchFor = searchFor.replace(/[.*+?^${}()|[\]     s\\]/g, '\\$&');
 
