@@ -6,13 +6,12 @@ stages:
 
 install:
   stage: install
+  image: node
   script:
-    - brew update 
-    - brew install npm 
     - npm install
   artifacts:
     paths:
-      - .node_modules/
+      - .node_modules
       - package-lock.json
 
 lint:
@@ -31,9 +30,7 @@ build:
 
 deploy:
   stage: deploy
+  image: node
   script:
-  - brew upadte 
-  - brew install nodejs
-  - npm run dev
-
+  - npm run dev > /dev/null 2>&1 &
   
