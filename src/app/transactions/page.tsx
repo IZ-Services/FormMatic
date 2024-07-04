@@ -93,6 +93,7 @@ export default function Transactions() {
 
   const handleDateChange = async (value: Dayjs | null) => {
     setSelectedDate(value);
+    setSelectedSubsection('');
     if (value) {
       const startOfDay = value.startOf('day').toISOString();
       const endOfDay = value.endOf('day').toISOString();
