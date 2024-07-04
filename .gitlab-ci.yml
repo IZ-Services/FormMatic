@@ -1,0 +1,45 @@
+stages:
+  - install
+  - lint
+  - build
+  - deploy
+
+cache:
+  paths:
+    - node_modules/
+
+before_script:
+  - npm ci
+
+install:
+  stage: install
+  script:
+    - npm ci
+
+lint:
+  stage: lint
+  script:
+    - npm run lint
+
+build:
+  stage: build
+  script:
+    - apt update -y
+    - apt install npm -y
+    - npm run build
+  artifacts:
+    paths:
+      - .next
+
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying to production..."
+    # Add your deployment commands here
+  
+  environment:
+    name: production
+    url: https://your-production-url.com
+  only:
+    - main
