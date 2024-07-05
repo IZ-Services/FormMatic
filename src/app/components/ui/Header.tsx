@@ -55,6 +55,10 @@ export default function Header() {
     }
   };
 
+  const handleLinkClick = () => {
+      setIsDropdownVisible(false);
+  };
+
   useEffect(() => {
     if (isDropdownVisible) {
       document.addEventListener('mousedown', handleClickOutside);
@@ -88,7 +92,16 @@ export default function Header() {
                 {link.label}
               </Link>
             ) : (
-              <span className="dropdownContainer" onClick={handleDropdownToggle}>
+              <span 
+                className={`dropdownContainer ${
+                  link.label === 'Account' && link.dropdown?.some(item => item.route === activeRoute)
+                    ? 'linkActive'
+                    : link.label === 'Formatic'
+                    ? 'headingLink'
+                    : 'linkRoute'
+                }`}                
+                onClick={link.label === 'Account' ? handleDropdownToggle : handleLinkClick}
+              >
                 {link.label}
                 {link.dropdown && (
                   <ChevronDownIcon className={`chevronIcon ${isDropdownVisible ? 'rotate' : ''}`} />
@@ -103,7 +116,7 @@ export default function Header() {
                       <Link
                         href={item.route}
                         onClick={() => setActiveRoute(item.route)}
-                        className={activeRoute === item.route ? 'linkActive' : 'linkRoute'}
+                        className={activeRoute === item.route ? 'activeDropdownLink' : 'linkRoute'}
                       >
                         {item.label}
                       </Link>

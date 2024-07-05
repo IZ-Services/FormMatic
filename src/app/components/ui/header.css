@@ -54,8 +54,17 @@
   font-weight: 500;
 }
 
+.headingLink:hover {
+  color: black; 
+  cursor: default;
+}
+
 .linkLabel {
   position: relative;
+}
+
+.dropdownContainer{
+    cursor: pointer;
 }
 
 .dropdownMenu {
@@ -107,10 +116,14 @@
   margin-left: 4px;
   vertical-align: middle;
   transition: transform 0.3s ease;
+  cursor: pointer;
 }
 
 .chevronIcon.rotate {
   transform: rotate(180deg);
+}
+.activeDropdownLink {
+  color: #daba88 !important;
 }
 
 @media (max-width: 800px) {
