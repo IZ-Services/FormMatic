@@ -6,14 +6,28 @@ import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function Contact() {
-  const { user } = UserAuth();
+  const { user, isSubscribed } = UserAuth();
   const router = useRouter();
-
+  
   useEffect(() => {
     if (!user) {
       router.push('/');
+      return;
     }
-  }, [user, router]);
+
+    const creationTime = user.metadata?.creationTime;
+    if (creationTime) {
+      const userCreationDate = new Date(creationTime);
+      const currentDate = new Date();
+      const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays > 7 && !isSubscribed) {
+        router.push('/signUp'); 
+      }
+    }
+  }, [user, router, isSubscribed]);
+
 
   return (
     <div className="container">

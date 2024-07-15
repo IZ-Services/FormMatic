@@ -7,14 +7,20 @@ import {
   onAuthStateChanged,
   User,
   browserSessionPersistence,
+
 } from 'firebase/auth';
-import { auth } from '../app/firebase-config';
 import Loading from '../app/components/ui/Loading';
+import { auth } from '../app/firebase-config';
+import { getSubscriptionStatus } from '@/app/api/getSubscriptionStatus/route';
+import {initFirebase} from '../app/firebase-config';
+const app = initFirebase();
 
 export interface AuthContextType {
   user: User | null;
   emailSignIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  isSubscribed: boolean;
+  setIsSubscribed: (subscribed: boolean) => void; 
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -22,12 +28,14 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthContextProvider = ({ children }: Readonly<{ children: React.ReactNode }>) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false); 
 
   const emailSignIn = async (email: string, password: string) => {
     try {
       await setPersistence(auth, browserSessionPersistence);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       setUser(userCredential.user);
+      
     } catch (error) {
       console.error('Error signing in with email: ', error);
       throw error;
@@ -37,6 +45,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   const logout = async () => {
     try {
       await signOut(auth);
+      setIsSubscribed(false); 
       setUser(null);
     } catch (error) {
       console.error('Error signing out: ', error);
@@ -44,20 +53,29 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
     }
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    setLoading(true); 
+    if (currentUser) {
       setUser(currentUser);
-       setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+      const newSubscriptionStatus = await getSubscriptionStatus(app);
+      setIsSubscribed(newSubscriptionStatus);
+    } else {
+      setUser(null); 
+    }
+    setLoading(false);
+  });
+
+  return () => unsubscribe(); 
+}, [setIsSubscribed]); 
+  
 
   if (loading) {
     return <Loading />;
   }
 
   return (
-    <AuthContext.Provider value={{ user, emailSignIn, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, emailSignIn, logout, isSubscribed, setIsSubscribed }}>{children}</AuthContext.Provider>
   );
 };
 

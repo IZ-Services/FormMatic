@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -12,6 +12,10 @@ const firebaseConfig = {
   measurementId: 'G-B0MS0S3F1V',
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+
+export const initFirebase = () => {
+  return app;
+};
+export const firestore = getFirestore(app);
 export const auth = getAuth(app);

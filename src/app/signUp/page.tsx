@@ -1,16 +1,17 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { PencilSquareIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import './payment.css';
+import './signup.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getCheckoutUrl } from '../api/checkout/route';
 import {initFirebase} from '../firebase-config';
+import { getSubscriptionStatus } from '../api/getSubscriptionStatus/route';
 
 const app = initFirebase();
 
-export default function Payment() {
-  const { user, isSubscribed } = UserAuth();
+export default function SignUp() {
+  const { user, setIsSubscribed } = UserAuth();
   const router = useRouter();
 
   const [editCard, setEditCard] = useState(false);
@@ -24,21 +25,16 @@ export default function Payment() {
   useEffect(() => {
     if (!user) {
       router.push('/');
-      return;
     }
+    const checkSubscription = async () => {
+      const newSubscriptionStatus = user 
+        ? await getSubscriptionStatus(app)
+        : false;
+        setIsSubscribed(newSubscriptionStatus);
+    };
+    checkSubscription();
+  }, [user, router, setIsSubscribed]);
 
-    const creationTime = user.metadata?.creationTime;
-    if (creationTime) {
-      const userCreationDate = new Date(creationTime);
-      const currentDate = new Date();
-      const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      if (diffDays > 7 && !isSubscribed) {
-        router.push('/signUp'); 
-      }
-    }
-  }, [user, router, isSubscribed]);
 
 
   const handleEditPasswordClick = () => {
@@ -64,10 +60,6 @@ export default function Payment() {
     const checkoutUrl = await getCheckoutUrl(app, priceID);
     router.push(checkoutUrl);
     
-    // const portalUrl = await getPortalUrl(app);
-    // router.push(portalUrl);
-    
-    
     resetAlertMessages();
   };
 
@@ -79,33 +71,33 @@ export default function Payment() {
   };
 
   return (
-    <div className="paymentContainer">
-      <div className="paymentContentWrapper">
-        <h1 className="paymentTitle">Payment Settings</h1>
-        <div className="paymentAlertContainer">
+    <div className="signUpContainer">
+      <div className="signUpContentWrapper">
+        <h1 className="signUpTitle">Sign Up</h1>
+        <div className="signUpAlertContainer">
           {successfulAlertMessage && (
-            <div className="successfulPaymenttMessage">{successfulAlertMessage}</div>
+            <div className="successfulSignUpMessage">{successfulAlertMessage}</div>
           )}
-          {errorAlertMessage && <div className="alertPaymentMessage">{errorAlertMessage}</div>}
+          {errorAlertMessage && <div className="alertSignUpMessage">{errorAlertMessage}</div>}
         </div>
         <div>
-          <input className="paymentUsernameInput" type="text" value={user?.email || ''} readOnly />
+          <input className="signUpUsernameInput" type="text" value={user?.email || ''} readOnly />
 
-          <div className="paymentInputWithEditIcon">
+          <div className="signUpInputWithEditIcon">
             <input
-              className="paymentCardInput"
+              className="signUpCardInput"
               type="password"
               placeholder="Card Number"
               value="********"
               readOnly
             />
-            <PencilSquareIcon className="editPaymentIcon" onClick={handleEditPasswordClick} />
+            <PencilSquareIcon className="editSignUpIcon" onClick={handleEditPasswordClick} />
           </div>
           {editCard && (
             <div style={{ marginTop: '50px' }}>
-              <div className="paymentInputWithEyeIcon">
+              <div className="signUpInputWithEyeIcon">
                 <input
-                  className="newCardInput"
+                  className="newSignUpCardInput"
                   type={cardVisible ? 'text' : 'password'}
                   placeholder="Current Card"
                   value={currentCard}
@@ -113,14 +105,14 @@ export default function Payment() {
                   onChange={(e) => setCurrentCard(e.target.value)}
                 />
                 {cardVisible ? (
-                  <EyeIcon className="paymentEyeIcon" onClick={togglePasswordVisibility} />
+                  <EyeIcon className="signUpEyeIcon" onClick={togglePasswordVisibility} />
                 ) : (
-                  <EyeSlashIcon className="paymentEyeIcon" onClick={togglePasswordVisibility} />
+                  <EyeSlashIcon className="signUpEyeIcon" onClick={togglePasswordVisibility} />
                 )}
               </div>
 
               <input
-                className="newCardInput"
+                className="newSignUpCardInput"
                 type={cardVisible ? 'text' : 'password'}
                 placeholder="New Card"
                 value={newCard}
@@ -130,7 +122,7 @@ export default function Payment() {
               />
 
               <input
-                className="newCardInput"
+                className="newSignUpCardInput"
                 type={cardVisible ? 'text' : 'password'}
                 placeholder="Confirm New Card"
                 value={confirmCard}
@@ -139,8 +131,8 @@ export default function Payment() {
                 style={{ marginTop: '20px' }}
               />
 
-              <div className="paymentButtonContainer" style={{ marginTop: '20px' }}>
-                <button className="savePaymentButton" onClick={handleSavenewCard}>
+              <div className="signUpButtonContainer" style={{ marginTop: '20px' }}>
+                <button className="saveSignUpButton" onClick={handleSavenewCard}>
                   Save
                 </button>
               </div>

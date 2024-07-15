@@ -1,13 +1,14 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
-import { app } from '../firebase-config';
+import {sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../firebase-config';
 import './forgotPassword.css';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState({ text: '', type: 'success' });
 
+  
   useEffect(() => {
     if (message.text !== '') {
       const timer = setTimeout(() => {
@@ -19,7 +20,7 @@ export default function ForgotPassword() {
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    const auth = getAuth(app);
+
 
     sendPasswordResetEmail(auth, email)
       .then(() => {

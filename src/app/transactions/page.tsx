@@ -22,7 +22,7 @@ import { styled } from '@mui/material';
 export default function Transactions() {
   const { transactions, setFormData, setTransactions } = useAppContext()!;
   const { scenarios } = useScenarioContext();
-  const { user } = UserAuth();
+  const { user, isSubscribed } = UserAuth();
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const dateRef = useRef<HTMLInputElement | null>(null);
@@ -37,8 +37,22 @@ export default function Transactions() {
   useEffect(() => {
     if (!user) {
       router.push('/');
+      return;
     }
-  }, [user, router]);
+
+    const creationTime = user.metadata?.creationTime;
+    if (creationTime) {
+      const userCreationDate = new Date(creationTime);
+      const currentDate = new Date();
+      const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays > 7 && !isSubscribed) {
+        router.push('/signUp'); 
+      }
+    }
+  }, [user, router, isSubscribed]);
+
 
   useEffect(() => {
     const fetchRecentTransactions = async () => {
@@ -320,8 +334,11 @@ export default function Transactions() {
             <input
               className="transactionSearch"
               placeholder="Search By Name or Vin"
-              onChange={(e) => setSearchFor(e.target.value)}
-            />
+              onChange={(e) => {
+                  setSearchFor(e.target.value);
+                  setSelectedSubsection('');
+                  setSelectedDate(null);
+                }}            />
           </div>
         </div>
         {transactions.length === 0 ? (

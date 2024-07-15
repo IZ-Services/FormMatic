@@ -7,7 +7,7 @@ import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function Account() {
-  const { user } = UserAuth();
+  const { user, isSubscribed } = UserAuth();
 
   const router = useRouter();
 
@@ -22,8 +22,22 @@ export default function Account() {
   useEffect(() => {
     if (!user) {
       router.push('/');
+      return;
     }
-  }, [user, router]);
+
+    const creationTime = user.metadata?.creationTime;
+    if (creationTime) {
+      const userCreationDate = new Date(creationTime);
+      const currentDate = new Date();
+      const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays > 7 &&  !isSubscribed) {
+        router.push('/signUp'); 
+      }
+    }
+  }, [user, router, isSubscribed]);
+
 
   const handleEditPasswordClick = () => {
     setEditPassword(!editPassword);
@@ -82,7 +96,7 @@ export default function Account() {
   return (
     <div className="accountContainer">
       <div className="accountContentWrapper">
-        <h1 className="login-SignIn">Account Settings</h1>
+        <h1 className="accountSignIn">Account Settings</h1>
         <div className="alertContainer">
           {successfulAlertMessage && (
             <div className="successfulAlertMessage">{successfulAlertMessage}</div>
