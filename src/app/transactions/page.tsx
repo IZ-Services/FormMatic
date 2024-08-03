@@ -18,11 +18,16 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Dayjs } from 'dayjs';
 import { styled } from '@mui/material';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { initFirebase } from '../firebase-config';
+
+const app = initFirebase();
+
 
 export default function Transactions() {
   const { transactions, setFormData, setTransactions } = useAppContext()!;
   const { scenarios } = useScenarioContext();
-  const { user, isSubscribed } = UserAuth();
+  const { user } = UserAuth();
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const dateRef = useRef<HTMLInputElement | null>(null);
@@ -35,23 +40,38 @@ export default function Transactions() {
   const [openSubMenus, setOpenSubMenus] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
-    if (!user) {
-      router.push('/');
-      return;
-    }
-
-    const creationTime = user.metadata?.creationTime;
-    if (creationTime) {
-      const userCreationDate = new Date(creationTime);
-      const currentDate = new Date();
-      const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      if (diffDays > 7 && !isSubscribed) {
-        router.push('/signUp'); 
+    const checkSubscriptionStatus = async () => {
+      if (!user) {
+        router.push('/');
+        return;
       }
-    }
-  }, [user, router, isSubscribed]);
+
+      const creationTime = user.metadata?.creationTime;
+      if (creationTime) {
+        const userCreationDate = new Date(creationTime);
+        const currentDate = new Date();
+        const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 7) {
+          const db = getFirestore(app);
+          const userRef = doc(db, "customers", user.uid);
+          const userDoc = await getDoc(userRef);
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if (!userData.isSubscribed) {
+              router.push('/signUp');
+            }
+          } else {
+            router.push('/signUp');
+          }
+        }
+      }
+    };
+
+    checkSubscriptionStatus();
+  }, [user, router]);
 
 
   useEffect(() => {

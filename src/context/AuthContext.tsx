@@ -19,8 +19,6 @@ export interface AuthContextType {
   user: User | null;
   emailSignIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  isSubscribed: boolean;
-  setIsSubscribed: (subscribed: boolean) => void; 
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -28,7 +26,6 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthContextProvider = ({ children }: Readonly<{ children: React.ReactNode }>) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isSubscribed, setIsSubscribed] = useState(false); 
 
   const emailSignIn = async (email: string, password: string) => {
     try {
@@ -45,7 +42,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   const logout = async () => {
     try {
       await signOut(auth);
-      setIsSubscribed(false); 
       setUser(null);
     } catch (error) {
       console.error('Error signing out: ', error);
@@ -59,7 +55,6 @@ useEffect(() => {
     if (currentUser) {
       setUser(currentUser);
       const newSubscriptionStatus = await getSubscriptionStatus(app);
-      setIsSubscribed(newSubscriptionStatus);
     } else {
       setUser(null); 
     }
@@ -67,7 +62,7 @@ useEffect(() => {
   });
 
   return () => unsubscribe(); 
-}, [setIsSubscribed]); 
+}, []); 
   
 
   if (loading) {
@@ -75,7 +70,7 @@ useEffect(() => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, emailSignIn, logout, isSubscribed, setIsSubscribed }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, emailSignIn, logout}}>{children}</AuthContext.Provider>
   );
 };
 
