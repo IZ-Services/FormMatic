@@ -1,19 +1,23 @@
-'use client';
-import { FirebaseApp } from "firebase/app";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { NextResponse, NextRequest } from 'next/server';
+import updateSubscriptionStatus from '../../../utils/subscriptionUtil';
+import { initFirebase } from '../../firebase-config';
 
-const updateSubscriptionStatus = async (app: FirebaseApp, isSubscribed: boolean) => {
-  const auth = getAuth(app);
-  const userId = auth.currentUser?.uid;
-  if (!userId) {
-    console.error("User is not authenticated");
-    throw new Error("User is not authenticated");
+const app = initFirebase();
+
+export async function POST(req: NextRequest) {
+  try {
+    const data = await req.json();
+    const { isSubscribed } = data;
+
+    if (typeof isSubscribed !== 'boolean') {
+      throw new Error('Invalid subscription status');
+    }
+
+    await updateSubscriptionStatus(app, isSubscribed);
+    
+    return NextResponse.json({ message: 'Subscription status updated' }, { status: 200 });
+  } catch (error) {
+    console.error('Error updating subscription status:', error);
+    return NextResponse.json({ error: error }, { status: 400 });
   }
-
-  const db = getFirestore(app);
-  const userRef = doc(db, "customers", userId); 
-  await setDoc(userRef, { isSubscribed }, { merge: true });
-};
-
-export default updateSubscriptionStatus;
+}

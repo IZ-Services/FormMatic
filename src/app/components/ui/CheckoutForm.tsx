@@ -3,13 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { UserAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import {PaymentElement,useStripe, useElements} from '@stripe/react-stripe-js';
-import updateSubscriptionStatus from '../../api/subscriptionStatus/route';
 import { initFirebase } from '../../firebase-config';
 import {  PaymentIntentResult } from '@stripe/stripe-js';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import "./checkout.css";
-const app = initFirebase();
+import updateSubscriptionStatus from '../../../utils/subscriptionUtil';
 
+const app = initFirebase();
 
 export default function CheckoutForm() {
   const { user } = UserAuth();

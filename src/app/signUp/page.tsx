@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import CheckoutForm from '../components/ui/CheckoutForm';
-import { getStripePublishableKey } from '../api/subscribe/route';
+import { getStripePublishableKey } from '../../utils/stripeUtil';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
