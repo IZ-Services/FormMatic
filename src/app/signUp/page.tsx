@@ -2,13 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
-import CheckoutForm from '../components/atoms/CheckoutForm';
+import CheckoutForm from '../../components/atoms/CheckoutForm';
 import { getStripePublishableKey } from '../../utils/stripeUtil';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { initFirebase } from '../firebase-config';
-import Loading from '../components/pages/Loading';
+import { initFirebase } from '../../firebase-config';
+import Loading from '../../components/pages/Loading';
 import './SignUp.css';
 
 const publishableKey =  getStripePublishableKey();

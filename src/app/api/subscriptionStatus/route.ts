@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import updateSubscriptionStatus from '../../../utils/subscriptionUtil';
-import { initFirebase } from '../../firebase-config';
+import { initFirebase } from '../../../firebase-config';
 
 const app = initFirebase();
 

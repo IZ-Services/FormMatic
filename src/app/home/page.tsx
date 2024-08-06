@@ -5,9 +5,9 @@ import './Home.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useScenarioContext } from '../../context/ScenarioContext';
-import SimpleTransfer from '../components/molecules/SimpleTransfer';
+import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { initFirebase } from '../firebase-config';
+import { initFirebase } from '../../firebase-config';
 
 const app = initFirebase();
 

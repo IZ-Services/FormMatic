@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Sidebar.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid';
-import { useScenarioContext } from '../../../context/ScenarioContext';
-import { useAppContext } from '../../../context/index';
+import { useScenarioContext } from '../../context/ScenarioContext';
+import { useAppContext } from '../../context/index';
 
 export default function Sidebar() {
   const { scenarios, selectedSubsection, setSelectedSubsection } = useScenarioContext();

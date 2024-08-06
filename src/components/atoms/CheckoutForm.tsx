@@ -1,13 +1,13 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { UserAuth } from '../../../context/AuthContext';
+import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import {PaymentElement,useStripe, useElements} from '@stripe/react-stripe-js';
 import { initFirebase } from '../../firebase-config';
 import {  PaymentIntentResult } from '@stripe/stripe-js';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import "./Checkout.css";
-import updateSubscriptionStatus from '../../../utils/subscriptionUtil';
+import updateSubscriptionStatus from '../../utils/subscriptionUtil';
 
 const app = initFirebase();
 

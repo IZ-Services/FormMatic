@@ -19,7 +19,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Dayjs } from 'dayjs';
 import { styled } from '@mui/material';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { initFirebase } from '../firebase-config';
+import { initFirebase } from '../../firebase-config';
 
 const app = initFirebase();
 

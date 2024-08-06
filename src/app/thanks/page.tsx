@@ -5,7 +5,7 @@ import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { initFirebase } from '../firebase-config';
+import { initFirebase } from '../../firebase-config';
 
 const app = initFirebase();
 
