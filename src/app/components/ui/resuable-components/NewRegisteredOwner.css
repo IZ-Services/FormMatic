@@ -1,0 +1,34 @@
+.outer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-weight: 600;
+  align-items: center;
+}
+
+.inner {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+.mediumInputBox {
+  position: relative;
+  border: 2px solid black;
+  border-radius: 10px;
+  padding: 20px;
+  width: 250px;
+  height: 20px;
+}
+
+.mainTitle {
+  font-size: 35px;
+}
+
+.mediumInputBoxLabel {
+  position: relative;
+  border: 2px solid black;
+  padding: 10px;
+  width: 300px;
+  height: 100px;
+}
