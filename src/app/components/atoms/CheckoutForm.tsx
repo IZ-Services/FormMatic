@@ -6,7 +6,7 @@ import {PaymentElement,useStripe, useElements} from '@stripe/react-stripe-js';
 import { initFirebase } from '../../firebase-config';
 import {  PaymentIntentResult } from '@stripe/stripe-js';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import "./checkout.css";
+import "./Checkout.css";
 import updateSubscriptionStatus from '../../../utils/subscriptionUtil';
 
 const app = initFirebase();

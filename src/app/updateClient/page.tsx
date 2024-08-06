@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect } from 'react';
 import { useState } from 'react';
-import './updateClient.css';
+import './UpdateClient.css';
 import { useAppContext } from '@/context';
 import Link from 'next/link';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';

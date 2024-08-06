@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import './sidebar.css';
+import './Sidebar.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid';
 import { useScenarioContext } from '../../../context/ScenarioContext';
 import { useAppContext } from '../../../context/index';

@@ -9,7 +9,7 @@ import {
   browserSessionPersistence,
 
 } from 'firebase/auth';
-import Loading from '../app/components/ui/Loading';
+import Loading from '../app/components/pages/Loading';
 import { auth } from '../app/firebase-config';
 
 export interface AuthContextType {

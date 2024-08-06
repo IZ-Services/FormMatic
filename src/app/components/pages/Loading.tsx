@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import './loading.css';
+import './Loading.css';
 import {RingLoader} from 'react-spinners';
 
 export default function Loading() {

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useDeferredValue, useRef } from 'react';
 import Link from 'next/link';
-import './transactions.css';
+import './Transactions.css';
 import { useAppContext } from '@/context';
 import {
   TrashIcon,

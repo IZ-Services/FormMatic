@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState, useRef } from 'react';
-import './header.css';
+import './Header.css';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { UserAuth } from '../../../context/AuthContext';
