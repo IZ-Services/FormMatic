@@ -7,9 +7,10 @@ import {
   onAuthStateChanged,
   User,
   browserSessionPersistence,
+
 } from 'firebase/auth';
-import { auth } from '../app/firebase-config';
 import Loading from '../app/components/ui/Loading';
+import { auth } from '../app/firebase-config';
 
 export interface AuthContextType {
   user: User | null;
@@ -28,6 +29,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       await setPersistence(auth, browserSessionPersistence);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       setUser(userCredential.user);
+      
     } catch (error) {
       console.error('Error signing in with email: ', error);
       throw error;
@@ -44,20 +46,27 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
     }
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    setLoading(true); 
+    if (currentUser) {
       setUser(currentUser);
-      setTimeout(() => setLoading(false), 2000);
-    });
-    return () => unsubscribe();
-  }, []);
+    } else {
+      setUser(null); 
+    }
+    setLoading(false);
+  });
+
+  return () => unsubscribe(); 
+}, []); 
+  
 
   if (loading) {
     return <Loading />;
   }
 
   return (
-    <AuthContext.Provider value={{ user, emailSignIn, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, emailSignIn, logout}}>{children}</AuthContext.Provider>
   );
 };
 

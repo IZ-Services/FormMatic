@@ -25,9 +25,6 @@ export default function LoginPage() {
     } catch (error) {
       console.error('Error signing in: ', error);
       setLoginError(true);
-      setTimeout(() => {
-        setLoginError(false);
-      }, 3000);
     }
   };
 

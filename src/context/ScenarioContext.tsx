@@ -10,7 +10,7 @@ export interface Scenerio {
 interface ScenarioContextType {
   scenarios: Scenerio[];
   selectedSubsection: string | null;
-  setSelectedSubsection: (subsection: string) => void;
+  setSelectedSubsection: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const ScenarioContext = createContext<ScenarioContextType | null>(null);

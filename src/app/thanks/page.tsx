@@ -1,22 +1,18 @@
 'use client';
-import React from 'react';
-import { useEffect } from 'react';
-import './home.css';
+import React, { useEffect } from 'react';
+import './thanks.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useScenarioContext } from '../../context/ScenarioContext';
-import SimpleTransfer from '../components/ui/SimpleTransfer';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import Link from 'next/link';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import { initFirebase } from '../firebase-config';
 
 const app = initFirebase();
 
-
-export default function Home() {
-  const { selectedSubsection } = useScenarioContext()!;
+export default function Thanks() {
   const { user } = UserAuth();
   const router = useRouter();
-
+  
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
       if (!user) {
@@ -51,20 +47,12 @@ export default function Home() {
     checkSubscriptionStatus();
   }, [user, router]);
 
-  const renderComponent = () => {
-    switch (selectedSubsection) {
-      case 'Simple Transfer':
-        return <SimpleTransfer />;
-      default:
-        return (
-          <p className="scenarioSelect"> Welcome. Please select a transaction from the sidebar.</p>
-        );
-    }
-  };
 
   return (
-    <>
-      <div className="homeContainer">{renderComponent()}</div>
-    </>
+    <div className="container">
+      <h1 className="thanksHeading">Thank you</h1>
+      <button className='returnButton' onClick={() => router.push('/home')}>Back To Home</button>
+        <p>If you have any questions <Link href="/contactUs">contact us</Link></p>
+    </div>
   );
 }

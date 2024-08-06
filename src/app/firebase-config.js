@@ -1,17 +1,21 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyBih8kZRdCZFmYY_wwR4L0dssUjB1O0jnU',
-  authDomain: 'formatic-28666.firebaseapp.com',
-  projectId: 'formatic-28666',
-  storageBucket: 'formatic-28666.appspot.com',
-  messagingSenderId: '578096624618',
-  appId: '1:578096624618:web:0cf99b8871a12405ef3893',
-  measurementId: 'G-B0MS0S3F1V',
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+
+export const initFirebase = () => {
+  return app;
+};
+export const firestore = getFirestore(app);
 export const auth = getAuth(app);
