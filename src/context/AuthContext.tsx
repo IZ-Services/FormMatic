@@ -11,9 +11,6 @@ import {
 } from 'firebase/auth';
 import Loading from '../app/components/ui/Loading';
 import { auth } from '../app/firebase-config';
-import { getSubscriptionStatus } from '@/app/api/getSubscriptionStatus/route';
-import {initFirebase} from '../app/firebase-config';
-const app = initFirebase();
 
 export interface AuthContextType {
   user: User | null;
@@ -54,7 +51,6 @@ useEffect(() => {
     setLoading(true); 
     if (currentUser) {
       setUser(currentUser);
-      const newSubscriptionStatus = await getSubscriptionStatus(app);
     } else {
       setUser(null); 
     }

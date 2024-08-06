@@ -1,7 +1,5 @@
 import Stripe from 'stripe';
 import { NextResponse, NextRequest } from "next/server";
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
-import { initFirebase } from '../../firebase-config'
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY as string; 
 
@@ -9,10 +7,8 @@ const stripe = new Stripe(stripeSecretKey, {
      apiVersion: '2024-06-20',
 });
 
-const app = initFirebase();
 
 export async function POST(req: NextRequest) {
-  const db = getFirestore(app);
 
   try {
     const data = await req.json();

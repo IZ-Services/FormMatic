@@ -7,7 +7,7 @@ import { UserAuth } from '../../../context/AuthContext';
 import { ChevronDownIcon } from '@heroicons/react/16/solid';
 import { useRouter } from 'next/navigation';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { initFirebase } from '../../firebase-config'
+import { initFirebase } from '../../firebase-config';
 
 const app = initFirebase();
 
