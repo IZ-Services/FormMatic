@@ -28,16 +28,11 @@ export async function POST(req: NextRequest) {
       },
       email: email
     });
-    const taxRate = await stripe.taxRates.create({
-      display_name: 'Tax',
-      inclusive: false,
-      percentage: 10, 
-      country: 'US', 
-    });
+
 
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
-      items: [{ price: priceId, tax_rates: [taxRate.id] }], 
+      items: [{ price: priceId }], 
       payment_behavior: 'default_incomplete',
       collection_method: 'charge_automatically', 
       expand: ['latest_invoice.payment_intent'],

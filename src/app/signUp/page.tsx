@@ -7,8 +7,8 @@ import { getStripePublishableKey } from '../api/subscribe/route';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { initFirebase } from '../firebase-config'
-import Loading from '../components/ui/Loading'
+import { initFirebase } from '../firebase-config';
+import Loading from '../components/ui/Loading';
 
 const publishableKey =  getStripePublishableKey();
 const stripePromise = loadStripe(publishableKey);

@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { UserAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import {PaymentElement,useStripe, useElements} from '@stripe/react-stripe-js';
-import updateSubscriptionStatus from '../../api/subscriptionStatus/route'
+import updateSubscriptionStatus from '../../api/subscriptionStatus/route';
 import { initFirebase } from '../../firebase-config';
 import {  PaymentIntentResult } from '@stripe/stripe-js';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import "./checkout.css"
+import "./checkout.css";
 const app = initFirebase();
 
 
@@ -89,7 +89,6 @@ export default function CheckoutForm() {
         <h1 className='checkoutTitle' >Sign Up</h1>
         <PaymentElement className="payment-element" />
         <div className='buttonWrapper'>
-
         <button className="subscribeButton" disabled={isLoading || !stripe || !elements} id="submit">
           {isLoading ? <div className="spinner" id="spinner"></div> : "Subscribe"}
         </button>
