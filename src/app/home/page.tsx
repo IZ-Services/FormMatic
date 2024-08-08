@@ -96,9 +96,10 @@ export default function Home() {
   // };
 
 
-  return (
-    <>
-      <div className="homeContainer">{renderComponent()}</div>
-    </>
+  return (        
+    <div className="homeContainer">   
+      {selectedSubsection && <h2 className="homeHeading">{selectedSubsection}</h2>}
+        {renderComponent()}
+    </div>
   );
 }
