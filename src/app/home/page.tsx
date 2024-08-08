@@ -1,13 +1,13 @@
 'use client';
 import React from 'react';
 import { useEffect } from 'react';
-import './home.css';
+import './Home.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useScenarioContext } from '../../context/ScenarioContext';
-import SimpleTransfer from '../components/ui/SimpleTransfer';
+import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { initFirebase } from '../firebase-config';
+import { initFirebase } from '../../firebase-config';
 
 const app = initFirebase();
 
@@ -62,9 +62,44 @@ export default function Home() {
     }
   };
 
-  return (
-    <>
-      <div className="homeContainer">{renderComponent()}</div>
-    </>
+
+  // const handleSave = async () => {
+  //   try {
+  //     const response = await fetch('/api/post', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(formData),
+  //     });
+  //     await response.json();
+  //     alert('Client Saved!');
+  //   } catch (error) {
+  //     console.error('Error in handleSave:', error);
+  //   }
+  // };
+
+  // const handleNext = async () => {
+  //   try {
+  //     // const response = await fetch('/api/pdfLoader', {
+  //     //   method: 'POST',
+  //     //   headers: {
+  //     //     'Content-Type': 'application/json',
+  //     //   },
+  //     //  body: JSON.stringify(formData),
+  //     // });
+  //     // const data = await response.json();
+  //     // setPdfData(data.pdfData);
+  //   } catch (error) {
+  //     console.error('Error navigating to the PDF page:', error);
+  //   }
+  // };
+
+
+  return (        
+    <div className="homeContainer">   
+      {selectedSubsection && <h2 className="homeHeading">{selectedSubsection}</h2>}
+        {renderComponent()}
+    </div>
   );
 }

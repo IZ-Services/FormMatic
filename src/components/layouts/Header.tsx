@@ -1,9 +1,9 @@
 'use client';
 import React, { useEffect, useState, useRef } from 'react';
-import './header.css';
+import './Header.css';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { UserAuth } from '../../../context/AuthContext';
+import { UserAuth } from '../../context/AuthContext';
 import { ChevronDownIcon } from '@heroicons/react/16/solid';
 import { useRouter } from 'next/navigation';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
@@ -64,7 +64,7 @@ export default function Header() {
     {
       label: 'Account',
       dropdown: [
-        { label: 'Account Settings', route: '/account' },
+        { label: 'Account Settings', route: '/myAccount' },
         { label: 'Payment Settings', route: '/payment' },
       ],
     },

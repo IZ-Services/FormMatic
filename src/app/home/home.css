@@ -11,6 +11,18 @@ body {
 .homeContainer {
   justify-content: center;
   margin-top: 5rem;
+  border: 1px solid black;
+  margin-right: 20px;
+  margin-left: 20px;
+  max-width: 100%;
+  padding: 20px;
+}
+
+.homeHeading{
+  text-align: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  font-weight: 400;
 }
 
 .scenarioSelect {
@@ -24,5 +36,11 @@ body {
 @media (max-width: 800px) {
   main {
     margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 500px) {
+  main {
+    display: none;
   }
 }

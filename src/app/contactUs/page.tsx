@@ -1,11 +1,11 @@
 'use client';
 import React, { useEffect } from 'react';
-import './contact.css';
+import './Contact.css';
 import { EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { initFirebase } from '../firebase-config';
+import { initFirebase } from '../../firebase-config';
 
 const app = initFirebase();
 
