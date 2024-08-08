@@ -4,12 +4,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   await connectDB();
+  const { searchParams } = new URL(request.url);
+  let searchFor = searchParams.get('searchFor');
   try {
-    const { searchParams } = new URL(request.url);
-    let searchFor = searchParams.get('searchFor');
 
     if (!searchFor) {
-      return;
+      return NextResponse.json({ error: 'Search parameter "searchFor" is required' }, { status: 400 });
     }
     searchFor = searchFor.replace(/[.*+?^${}()|[\]     s\\]/g, '\\$&');
 

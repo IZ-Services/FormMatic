@@ -1,13 +1,53 @@
 'use client';
 import React, { useEffect, useState, useRef } from 'react';
-import './header.css';
+import './Header.css';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { UserAuth } from '../../../context/AuthContext';
+import { UserAuth } from '../../context/AuthContext';
 import { ChevronDownIcon } from '@heroicons/react/16/solid';
+import { useRouter } from 'next/navigation';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { initFirebase } from '../../firebase-config';
+
+const app = initFirebase();
 
 export default function Header() {
-  const { logout } = UserAuth();
+  const { user, logout } = UserAuth();
+  const router = useRouter();
+
+    useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      if (!user) {
+        router.push('/');
+        return;
+      }
+
+      const creationTime = user.metadata?.creationTime;
+      if (creationTime) {
+        const userCreationDate = new Date(creationTime);
+        const currentDate = new Date();
+        const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 7) {
+          const db = getFirestore(app);
+          const userRef = doc(db, "customers", user.uid);
+          const userDoc = await getDoc(userRef);
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if (!userData.isSubscribed) {
+              router.push('/signUp');
+            }
+          } else {
+            router.push('/signUp');
+          }
+        }
+      }
+    };
+
+    checkSubscriptionStatus();
+  }, [user, router]);
 
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -24,7 +64,7 @@ export default function Header() {
     {
       label: 'Account',
       dropdown: [
-        { label: 'Account Settings', route: '/account' },
+        { label: 'Account Settings', route: '/myAccount' },
         { label: 'Payment Settings', route: '/payment' },
       ],
     },
@@ -53,6 +93,10 @@ export default function Header() {
     ) {
       setIsDropdownVisible(false);
     }
+  };
+
+  const handleLinkClick = () => {
+      setIsDropdownVisible(false);
   };
 
   useEffect(() => {
@@ -88,7 +132,16 @@ export default function Header() {
                 {link.label}
               </Link>
             ) : (
-              <span className="dropdownContainer" onClick={handleDropdownToggle}>
+              <span 
+                className={`dropdownContainer ${
+                  link.label === 'Account' && link.dropdown?.some(item => item.route === activeRoute)
+                    ? 'linkActive'
+                    : link.label === 'Formatic'
+                    ? 'headingLink'
+                    : 'linkRoute'
+                }`}                
+                onClick={link.label === 'Account' ? handleDropdownToggle : handleLinkClick}
+              >
                 {link.label}
                 {link.dropdown && (
                   <ChevronDownIcon className={`chevronIcon ${isDropdownVisible ? 'rotate' : ''}`} />
@@ -103,7 +156,7 @@ export default function Header() {
                       <Link
                         href={item.route}
                         onClick={() => setActiveRoute(item.route)}
-                        className={activeRoute === item.route ? 'linkActive' : 'linkRoute'}
+                        className={activeRoute === item.route ? 'activeDropdownLink' : 'linkRoute'}
                       >
                         {item.label}
                       </Link>

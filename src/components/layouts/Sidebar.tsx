@@ -1,9 +1,9 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import './sidebar.css';
+import './Sidebar.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid';
-import { useScenarioContext } from '../../../context/ScenarioContext';
-import { useAppContext } from '../../../context/index';
+import { useScenarioContext } from '../../context/ScenarioContext';
+import { useAppContext } from '../../context/index';
 
 export default function Sidebar() {
   const { scenarios, selectedSubsection, setSelectedSubsection } = useScenarioContext();
@@ -18,19 +18,17 @@ export default function Sidebar() {
   };
 
   const handleSelection = (subsection: string) => {
-    setSelectedSubsection(subsection);
+    setSelectedSubsection((prevSelected: string | null) => (prevSelected === subsection ? null : subsection));
     setSelectedTransactionType(subsection);
     setFormData({ ...formData, transactionType: subsection });
   };
 
-  const filteredScenarios = scenarios
-    .map((scenario) => ({
-      ...scenario,
-      subsections: scenario.subsections.filter((subsection) =>
-        subsection.toLowerCase().includes(searchScenario.toLowerCase()),
-      ),
-    }))
-    .filter((scenario) => scenario.subsections.length > 0);
+  const filteredScenarios = scenarios .map((scenario) => ({
+    ...scenario, subsections: scenario.subsections.filter((subsection) =>
+      subsection.toLowerCase().includes(searchScenario.toLowerCase()),
+    ),
+  }))
+  .filter((scenario) => scenario.subsections.length > 0);
 
   const handleClickOutsideDate = (e: MouseEvent) => {
     const target = e.target as Element;

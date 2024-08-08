@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useDeferredValue, useRef } from 'react';
 import Link from 'next/link';
-import './transactions.css';
+import './Transactions.css';
 import { useAppContext } from '@/context';
 import {
   TrashIcon,
@@ -18,6 +18,11 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Dayjs } from 'dayjs';
 import { styled } from '@mui/material';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { initFirebase } from '../../firebase-config';
+
+const app = initFirebase();
+
 
 export default function Transactions() {
   const { transactions, setFormData, setTransactions } = useAppContext()!;
@@ -35,10 +40,39 @@ export default function Transactions() {
   const [openSubMenus, setOpenSubMenus] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
-    if (!user) {
-      router.push('/');
-    }
+    const checkSubscriptionStatus = async () => {
+      if (!user) {
+        router.push('/');
+        return;
+      }
+
+      const creationTime = user.metadata?.creationTime;
+      if (creationTime) {
+        const userCreationDate = new Date(creationTime);
+        const currentDate = new Date();
+        const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 7) {
+          const db = getFirestore(app);
+          const userRef = doc(db, "customers", user.uid);
+          const userDoc = await getDoc(userRef);
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if (!userData.isSubscribed) {
+              router.push('/signUp');
+            }
+          } else {
+            router.push('/signUp');
+          }
+        }
+      }
+    };
+
+    checkSubscriptionStatus();
   }, [user, router]);
+
 
   useEffect(() => {
     const fetchRecentTransactions = async () => {
@@ -93,6 +127,7 @@ export default function Transactions() {
 
   const handleDateChange = async (value: Dayjs | null) => {
     setSelectedDate(value);
+    setSelectedSubsection('');
     if (value) {
       const startOfDay = value.startOf('day').toISOString();
       const endOfDay = value.endOf('day').toISOString();
@@ -319,8 +354,11 @@ export default function Transactions() {
             <input
               className="transactionSearch"
               placeholder="Search By Name or Vin"
-              onChange={(e) => setSearchFor(e.target.value)}
-            />
+              onChange={(e) => {
+                  setSearchFor(e.target.value);
+                  setSelectedSubsection('');
+                  setSelectedDate(null);
+                }}            />
           </div>
         </div>
         {transactions.length === 0 ? (

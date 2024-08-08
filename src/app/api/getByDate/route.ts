@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   await connectDB();
+  const { searchParams } = new URL(request.url);
+  const start = searchParams.get('start');
+  const end = searchParams.get('end');
   try {
-    const { searchParams } = new URL(request.url);
-    const start = searchParams.get('start');
-    const end = searchParams.get('end');
 
     if (!start || !end) {
       return NextResponse.json({ error: 'Start and end date parameters are required' }, { status: 400 });

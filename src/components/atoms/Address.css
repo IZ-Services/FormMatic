@@ -1,0 +1,206 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+}
+
+.addressWrapper {
+  padding-bottom: 10px;
+}
+ 
+.addressCheckboxWrapper{
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+.checkboxSection{
+  display: flex;
+  flex-direction: row;
+  padding-top: 10px;
+} 
+
+.addressHeading {
+  font-weight: 400;
+  padding-top: 10px;
+}
+
+.checkBoxAddress{
+  border: 1px solid black;
+  width: 15px;
+  height: 15px;
+  margin-right: 10px;
+    cursor: pointer;
+}
+
+.subHeadings {
+  font-weight: 400;
+  padding-bottom: 5px;
+  padding-top: 10px;
+}
+
+.streetInput,
+.cityInput,
+.aptInput,
+.zipInput,
+.stateDropDown,
+.secondStateDropDown {
+  height: 2rem;
+  width: 100%;
+  padding: 0 10px; 
+  box-sizing: border-box;
+}
+
+.streetInput {
+  max-width: 700px;
+}
+
+.cityInput {
+  max-width: 700px;
+}
+
+.addressFirstLine {
+  display: flex;
+  gap: 20px;
+}
+
+.cityStateZipLine {
+  display: flex;
+  gap: 20px;
+}
+
+.addressFirstLine > div,
+.cityStateZipLine > div {
+  flex: 1;
+}
+
+input::placeholder,
+select::placeholder {
+  padding-left: 10px; 
+}
+
+.aptInput {
+  max-width: 300px;
+}
+
+.zipInput {
+  width: 200px;
+}
+
+
+.stateWrapper {
+  max-width: 100px;
+  position: relative; 
+}
+
+.stateDropDown {
+  cursor: pointer;
+  position: relative;
+  outline: none;
+  display: flex;
+  background-color: white;
+  border: 1px solid gray;
+  border-radius: 2px;
+  color: gray;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  width: 100%; 
+}
+
+.stateMenu {
+  position: absolute; 
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  list-style: none;
+  background-color: white;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  border-radius: 5px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow-y: auto;
+  height: 200px;
+  max-height: 200px; 
+  padding-right: 15px;
+  overflow-x: hidden;
+}
+
+.stateLists {
+  color: gray;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.stateLists:hover {
+  background-color: black;
+  color: white;
+  border-radius: 2px;
+}
+
+.stateIcon {
+  width: 1.2em;
+  height: 1.2em;
+  margin-left: 4px;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.stateIcon.rotate {
+  transform: rotate(180deg);
+}
+
+.checkboxSection p {
+  font-size: 1rem; 
+}
+
+.secondStateDropDown{
+  cursor: pointer;
+  position: relative;
+  outline: none;
+  display: flex;
+  background-color: white;
+  border: 1px solid gray;
+  border-radius: 2px;
+  color: gray;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  width: 100%; 
+}
+
+.secondStateIcon {
+  width: 1.2em;
+  height: 1.2em;
+  margin-left: 4px;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.secondStateIcon.rotate {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 1200px) {
+  .checkboxSection p {
+    font-size: 0.9rem; 
+  }
+}
+
+@media (max-width: 768px) {
+  .checkboxSection p {
+    font-size: 0.8rem; 
+  }
+}
+
+@media (max-width: 480px) {
+  .checkboxSection p {
+    font-size: 0.7rem; 
+  }
+}

@@ -1,5 +1,5 @@
 .headerWrapper {
-  background: #f8f8ff;
+  background: white;
   font-family: 'Roboto', sans-serif;
   position: fixed;
   width: 100%;
@@ -54,8 +54,17 @@
   font-weight: 500;
 }
 
+.headingLink:hover {
+  color: black; 
+  cursor: default;
+}
+
 .linkLabel {
   position: relative;
+}
+
+.dropdownContainer{
+    cursor: pointer;
 }
 
 .dropdownMenu {
@@ -63,7 +72,7 @@
   top: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background-color: ghostwhite;
+  background-color: white;
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 1;
   margin-top: 8px;
@@ -107,10 +116,14 @@
   margin-left: 4px;
   vertical-align: middle;
   transition: transform 0.3s ease;
+  cursor: pointer;
 }
 
 .chevronIcon.rotate {
   transform: rotate(180deg);
+}
+.activeDropdownLink {
+  color: #daba88 !important;
 }
 
 @media (max-width: 800px) {
