@@ -7,63 +7,63 @@ export default function Address() {
   const [mailingAddress, setMailingAddress] = useState(false);
   const [lesseeAddress, setLesseeAddress] = useState(false);
   const [trailerAddress, setTrailerAddress] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedState, setSelectedState] = useState('');
-  const menuRef = useRef<HTMLUListElement | null>(null);
+  const [isAddressMenuOpen, setIsAddressMenuOpen] = useState(false);
+  const [addressState, setAddressState] = useState('');
+  const addressRef = useRef<HTMLUListElement | null>(null);
   const [isSecondMenuOpen, setIsSecondMenuOpen] = useState(false);
-  const [selectedSecondState, setSelectedSecondState] = useState('');
-  const secondMenuRef = useRef<HTMLUListElement | null>(null);
+  const [mailingState, setMailingState] = useState('');
+  const mailingRef = useRef<HTMLUListElement | null>(null);
 
-  const handleStateChange = async (state: string) => {
-    setIsMenuOpen(false);
-    setSelectedState(state);
+  const handleAddressStateChange = async (state: string) => {
+    setIsAddressMenuOpen(false);
+    setAddressState(state);
   };
-    const handleSecondStateChange = async (state: string) => {
+    const handleMailingStateChange = async (state: string) => {
     setIsSecondMenuOpen(false);
-    setSelectedSecondState(state);
+    setMailingState(state);
   };
 
-    const handleClickOutsideMenu = (e: MouseEvent) => {
+    const handleClickOutsideAddressMenu = (e: MouseEvent) => {
       const target = e.target as Element;
       if (
-        menuRef.current &&
-        !menuRef.current.contains(target) &&
-        !target.closest('.stateDropDown')
+        addressRef.current &&
+        !addressRef.current.contains(target) &&
+        !target.closest('.addressStateDropDown')
       ) {
-        setIsMenuOpen(false);
+        setIsAddressMenuOpen(false);
       }
   };
 
-  const handleClickOutsideSecondMenu = (e: MouseEvent) => {
+  const handleClickOutsideMailingMenu = (e: MouseEvent) => {
       const target = e.target as Element;
       if (
-        secondMenuRef.current &&
-        !secondMenuRef.current.contains(target) &&
-        !target.closest('.secondStateDropDown')
+        mailingRef.current &&
+        !mailingRef.current.contains(target) &&
+        !target.closest('.mailingStateDropDown')
       ) {
         setIsSecondMenuOpen(false);
       }
   };
 
     useEffect(() => {
-    if (isMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutsideMenu);
+    if (isAddressMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutsideAddressMenu);
     } else {
-      document.removeEventListener('mousedown', handleClickOutsideMenu);
+      document.removeEventListener('mousedown', handleClickOutsideAddressMenu);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutsideMenu);
+      document.removeEventListener('mousedown', handleClickOutsideAddressMenu);
     };
-  }, [isMenuOpen]);
+  }, [isAddressMenuOpen]);
 
   useEffect(() => {
     if (isSecondMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutsideSecondMenu);
+      document.addEventListener('mousedown', handleClickOutsideMailingMenu);
     } else {
-      document.removeEventListener('mousedown', handleClickOutsideSecondMenu);
+      document.removeEventListener('mousedown', handleClickOutsideMailingMenu);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutsideSecondMenu);
+      document.removeEventListener('mousedown', handleClickOutsideMailingMenu);
     };
   }, [isSecondMenuOpen]);
 
@@ -154,33 +154,33 @@ export default function Address() {
           </div>
         </div>
         <div className='addressFirstLine'>
-          <div>
-            <h5 className='subHeadings'>Street</h5>
+          <div className='topGroup'>
+            <label className='subHeadings'>Street</label>
             <input className="streetInput" placeholder="Street"></input>
           </div>
           <div>
-            <h5 className='subHeadings'>APT./SPACE/STE.#</h5>
+            <label className='subHeadings'>APT./SPACE/STE.#</label>
             <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
           </div>
         </div>
         <div className='cityStateZipLine'>
           <div>
-            <h5 className='subHeadings'>City</h5>
+            <label className='subHeadings'>City</label>
             <input className="cityInput" placeholder="City"></input>
           </div>
-          <div className='stateWrapper'>
-            <h5 className='subHeadings'>State</h5>
-              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="stateDropDown">
-              { selectedState || 'State'}
-              <ChevronDownIcon className={`stateIcon ${isMenuOpen ? 'rotate' : ''}`} />
+          <div className='addressStateWrapper'>
+            <label className='subHeadings'>State</label>
+              <button onClick={() => setIsAddressMenuOpen(!isAddressMenuOpen)} className="addressStateDropDown">
+              { addressState || 'State'}
+              <ChevronDownIcon className={`addressIcon ${isAddressMenuOpen ? 'rotate' : ''}`} />
             </button>
-            {isMenuOpen && (
-              <ul ref={menuRef} className="stateMenu">
+            {isAddressMenuOpen && (
+              <ul ref={addressRef} className="addressStateMenu">
                 {states.map((state, index) => (
                   <li
-                    className='stateLists'
+                    className='addressStateLists'
                     key={index}
-                    onClick={() => handleStateChange(state.abbreviation)}
+                    onClick={() => handleAddressStateChange(state.abbreviation)}
                   >
                     {state.name}
                   </li>                
@@ -189,7 +189,7 @@ export default function Address() {
             )}
           </div>
           <div>
-            <h5 className='subHeadings'>Zip Code</h5>
+            <label className='subHeadings'>Zip Code</label>
             <input className="zipInput" placeholder="Zip Code"></input>
           </div>
         </div>
@@ -199,33 +199,33 @@ export default function Address() {
         <div className='addressWrapper'>
           <h3 className="addressHeading">Mailing Address</h3>
           <div className='addressFirstLine'>
-            <div>
-              <h5 className='subHeadings'>Street</h5>
+          <div className='topGroup'>
+              <label className='subHeadings'>Street</label>
               <input className="streetInput" placeholder="Street"></input>
             </div>
             <div>
-              <h5 className='subHeadings'>APT./SPACE/STE.#</h5>
+              <label className='subHeadings'>APT./SPACE/STE.#</label>
               <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
             </div>
           </div>
           <div className='cityStateZipLine'>
             <div>
-              <h5 className='subHeadings'>City</h5>
+              <label className='subHeadings'>City</label>
               <input className="cityInput" placeholder="City"></input>
             </div>
-            <div className='stateWrapper'>
-            <h5 className='subHeadings'>State</h5>
-              <button onClick={() => setIsSecondMenuOpen(!isSecondMenuOpen)} className="secondStateDropDown">
-              { selectedSecondState || 'State'}
-              <ChevronDownIcon className={`secondStateIcon ${isSecondMenuOpen ? 'rotate' : ''}`} />
+            <div className='addressStateWrapper'>
+            <label className='subHeadings'>State</label>
+              <button onClick={() => setIsSecondMenuOpen(!isSecondMenuOpen)} className="mailingStateDropDown">
+              { mailingState || 'State'}
+              <ChevronDownIcon className={`mailingIcon ${isSecondMenuOpen ? 'rotate' : ''}`} />
             </button>
             {isSecondMenuOpen && (
-              <ul ref={secondMenuRef} className="stateMenu">
+              <ul ref={mailingRef} className="addressStateMenu">
                 {states.map((state, index) => (
                   <li
-                    className='stateLists'
+                    className='addressStateLists'
                     key={index}
-                    onClick={() => handleSecondStateChange(state.abbreviation)}
+                    onClick={() => handleMailingStateChange(state.abbreviation)}
                   >
                     {state.name}
                   </li>                
@@ -234,7 +234,7 @@ export default function Address() {
             )}
           </div>
             <div>
-              <h5 className='subHeadings'>Zip Code</h5>
+              <label className='subHeadings'>Zip Code</label>
               <input className="zipInput" placeholder="Zip Code"></input>
             </div>
           </div>

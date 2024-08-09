@@ -1,67 +1,144 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './NewRegisteredOwner.css';
-
-// export default function NewRegisteredOwner() {
-//   return (
-//     <div className="outer">
-//       <div className="inner">
-//         <h1 className="mainTitle">New Registered Owner(s)</h1>
-//         <input className="mediumInputBox" placeholder="number of new owners"></input>
-//       </div>
-//       <div className="inner">
-//         <input className="mediumInputBox" placeholder="First name"></input>
-//         <input className="mediumInputBox" placeholder="Middle name"></input>
-//         <input className="mediumInputBox" placeholder="Last name"></input>
-//       </div>
-//       <div className="inner">
-//         <input className="mediumInputBox" placeholder="Date of Birth"></input>
-//         <input className="mediumInputBox" placeholder="Driver License Number"></input>
-//         <input className="mediumInputBox" placeholder="Address"></input>
-//       </div>
-//     </div>
-//   );
-// }
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 const NewRegisteredOwners = () => {
+   const [isRegMenuOpen, setIsRegMenuOpen] = useState(false);
+  const [regState, setRegState] = useState('');
+  const regRef = useRef<HTMLUListElement | null>(null);
+
+  const handleRegStateChange = async (state: string) => {
+    setIsRegMenuOpen(false);
+    setRegState(state);
+  };
+
+  const handleClickOutsideRegMenu = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (
+        regRef.current &&
+        !regRef.current.contains(target) &&
+        !target.closest('.regStateDropDown')
+      ) {
+        setIsRegMenuOpen(false);
+      }
+  };
+
+  useEffect(() => {
+    if (isRegMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutsideRegMenu);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutsideRegMenu);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideRegMenu);
+    };
+  }, [isRegMenuOpen]);
+
+  const states = [
+    { name: "Alabama", abbreviation: "AL" },
+    { name: "Alaska", abbreviation: "AK" },
+    { name: "Arizona", abbreviation: "AZ" },
+    { name: "Arkansas", abbreviation: "AR" },
+    { name: "California", abbreviation: "CA" },
+    { name: "Colorado", abbreviation: "CO" },
+    { name: "Connecticut", abbreviation: "CT" },
+    { name: "Delaware", abbreviation: "DE" },
+    { name: "Florida", abbreviation: "FL" },
+    { name: "Georgia", abbreviation: "GA" },
+    { name: "Hawaii", abbreviation: "HI" },
+    { name: "Idaho", abbreviation: "ID" },
+    { name: "Illinois", abbreviation: "IL" },
+    { name: "Indiana", abbreviation: "IN" },
+    { name: "Iowa", abbreviation: "IA" },
+    { name: "Kansas", abbreviation: "KS" },
+    { name: "Kentucky", abbreviation: "KY" },
+    { name: "Louisiana", abbreviation: "LA" },
+    { name: "Maine", abbreviation: "ME" },
+    { name: "Maryland", abbreviation: "MD" },
+    { name: "Massachusetts", abbreviation: "MA" },
+    { name: "Michigan", abbreviation: "MI" },
+    { name: "Minnesota", abbreviation: "MN" },
+    { name: "Mississippi", abbreviation: "MS" },
+    { name: "Missouri", abbreviation: "MO" },
+    { name: "Montana", abbreviation: "MT" },
+    { name: "Nebraska", abbreviation: "NE" },
+    { name: "Nevada", abbreviation: "NV" },
+    { name: "New Hampshire", abbreviation: "NH" },
+    { name: "New Jersey", abbreviation: "NJ" },
+    { name: "New Mexico", abbreviation: "NM" },
+    { name: "New York", abbreviation: "NY" },
+    { name: "North Carolina", abbreviation: "NC" },
+    { name: "North Dakota", abbreviation: "ND" },
+    { name: "Ohio", abbreviation: "OH" },
+    { name: "Oklahoma", abbreviation: "OK" },
+    { name: "Oregon", abbreviation: "OR" },
+    { name: "Pennsylvania", abbreviation: "PA" },
+    { name: "Rhode Island", abbreviation: "RI" },
+    { name: "South Carolina", abbreviation: "SC" },
+    { name: "South Dakota", abbreviation: "SD" },
+    { name: "Tennessee", abbreviation: "TN" },
+    { name: "Texas", abbreviation: "TX" },
+    { name: "Utah", abbreviation: "UT" },
+    { name: "Vermont", abbreviation: "VT" },
+    { name: "Virginia", abbreviation: "VA" },
+    { name: "Washington", abbreviation: "WA" },
+    { name: "West Virginia", abbreviation: "WV" },
+    { name: "Wisconsin", abbreviation: "WI" },
+    { name: "Wyoming", abbreviation: "WY" }
+  ];
+
   return (
     <div className="new-registered-owners">
-      <h2 className="heading">New Registered Owner(s)</h2>
-      <div className="form-group">
-        <div className="form-item">
-          <label>First Name</label>
-          <input type="text" placeholder="First Name" />
+      <h3 className="newRegHeading">New Registered Owner(s)</h3>
+      <div className="newRegFirstGroup">
+        <div className="newRegFormItem">
+          <label className='registeredOwnerLabel'>First Name</label>
+          <input  className='registeredOwnerInput' type="text" placeholder="First Name" />
         </div>
-        <div className="form-item">
-          <label>Middle Name</label>
-          <input type="text" placeholder="Middle Name" />
+        <div className="newRegFormItem">
+          <label className='registeredOwnerLabel'>Middle Name</label>
+          <input  className='registeredOwnerInput' type="text" placeholder="Middle Name" />
         </div>
-        <div className="form-item">
-          <label>Last Name</label>
-          <input type="text" placeholder="Last Name" />
-        </div>
-      </div>
-      <div className="form-group">
-        <div className="form-item">
-          <label>Driver License Number</label>
-          <input type="text" placeholder="Driver License Number" />
-        </div>
-        <div className="form-item">
-          <label>State</label>
-          <select>
-            <option value="">State</option>
-            {/* Add other states here */}
-          </select>
+        <div className="newRegFormItem">
+          <label className='registeredOwnerLabel'>Last Name</label>
+          <input  className='registeredOwnerInput' type="text" placeholder="Last Name" />
         </div>
       </div>
-      <div className="form-group">
-        <div className="form-item">
-          <label>Phone Number</label>
-          <input type="text" placeholder="Phone Number" />
+      <div className="newRegSecondGroup">
+        <div className="newRegInfo">
+          <label className='registeredOwnerLabel'>Driver License Number</label>
+          <input  className='registeredOwnerLicenseInput' type="text" placeholder="Driver License Number" />
         </div>
-        <div className="form-item">
-          <label>Date of Purchase</label>
-          <input type="date" placeholder="MM/DD/YYYY" />
+        <div className='regStateWrapper'>
+          <label className='registeredOwnerLabel'>State</label>
+            <button onClick={() => setIsRegMenuOpen(!isRegMenuOpen)} className="regStateDropDown">
+              { regState || 'State'}
+              <ChevronDownIcon className={`regIcon ${isRegMenuOpen ? 'rotate' : ''}`} />
+            </button>
+            {isRegMenuOpen && (
+              <ul ref={regRef} className="regStateMenu">
+                {states.map((state, index) => (
+                  <li
+                    className='regStateLists'
+                    key={index}
+                    onClick={() => handleRegStateChange(state.abbreviation)}
+                  >
+                    {state.name}
+                  </li>                
+                ))}
+              </ul>
+            )}
+        </div>
+      </div>
+      <div className="newRegThirdGroup">
+        <div className="newRegThirdItem">
+          <label className='registeredOwnerLabel'>Phone Number</label>
+          <input className='registeredNumberInput' type="text" placeholder="Phone Number" />
+        </div>
+        <div className="newRegThirdItem">
+          <label className='registeredOwnerLabel'>Date of Purchase</label>
+          <input  className='registeredDateInput' type="text" placeholder="MM/DD/YYYY" />
         </div>
       </div>
     </div>
