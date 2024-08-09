@@ -4,15 +4,18 @@ import './NewRegisteredOwner.css';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 const NewRegisteredOwners = () => {
+    {/* copy for drop down of number */}
    const [isRegMenuOpen, setIsRegMenuOpen] = useState(false);
   const [regState, setRegState] = useState('');
   const regRef = useRef<HTMLUListElement | null>(null);
 
+  {/* copy for drop down of number */}
   const handleRegStateChange = async (state: string) => {
     setIsRegMenuOpen(false);
     setRegState(state);
   };
 
+          {/* copy for drop down of number */}
   const handleClickOutsideRegMenu = (e: MouseEvent) => {
       const target = e.target as Element;
       if (
@@ -23,7 +26,7 @@ const NewRegisteredOwners = () => {
         setIsRegMenuOpen(false);
       }
   };
-
+        {/* copy for drop down of number */}
   useEffect(() => {
     if (isRegMenuOpen) {
       document.addEventListener('mousedown', handleClickOutsideRegMenu);
@@ -110,6 +113,8 @@ const NewRegisteredOwners = () => {
           <label className='registeredOwnerLabel'>Driver License Number</label>
           <input  className='registeredOwnerLicenseInput' type="text" placeholder="Driver License Number" />
         </div>
+
+        {/* copy for drop down of number */}
         <div className='regStateWrapper'>
           <label className='registeredOwnerLabel'>State</label>
             <button onClick={() => setIsRegMenuOpen(!isRegMenuOpen)} className="regStateDropDown">
@@ -130,6 +135,8 @@ const NewRegisteredOwners = () => {
               </ul>
             )}
         </div>
+
+
       </div>
       <div className="newRegThirdGroup">
         <div className="newRegThirdItem">
