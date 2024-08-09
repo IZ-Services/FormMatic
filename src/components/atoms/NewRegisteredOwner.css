@@ -84,6 +84,7 @@ body {
   color: #999;
 }
 
+/* copy for drop down  */
 .regIcon {
   width: 1.2em;
   height: 1.2em;
@@ -92,10 +93,12 @@ body {
   flex-shrink: 0;
 }
 
+/* copy for drop down  */
 .regIcon.rotate {
   transform: rotate(180deg);
 }
 
+/* copy for drop down  */
 .regStateDropDown {
   cursor: pointer;
   position: relative;
@@ -115,6 +118,7 @@ body {
   box-sizing: border-box;
 }
 
+/* copy for drop down  */
 .regStateMenu {
   position: absolute; 
   top: calc(100% + 5px);
@@ -135,12 +139,14 @@ body {
   overflow-x: hidden;
 }
 
+/* copy for drop down  */
 .regStateLists {
  color: #999;
   padding: 10px;
   font-size: 12px;
 }
 
+/* copy for drop down  */
 .regStateLists:hover {
   background-color: black;
   color: white;
