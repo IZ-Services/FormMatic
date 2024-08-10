@@ -10,20 +10,35 @@ export default function Address() {
   const [isAddressMenuOpen, setIsAddressMenuOpen] = useState(false);
   const [addressState, setAddressState] = useState('');
   const addressRef = useRef<HTMLUListElement | null>(null);
-  const [isSecondMenuOpen, setIsSecondMenuOpen] = useState(false);
+  const [isMailingMenuOpen, setIsMailingMenuOpen] = useState(false);
   const [mailingState, setMailingState] = useState('');
   const mailingRef = useRef<HTMLUListElement | null>(null);
+  const [isLesseeMenuOpen, setIsLesseeMenuOpen] = useState(false);
+  const [lesseeState, setLesseeState] = useState('');
+  const lesseeRef = useRef<HTMLUListElement | null>(null);
+  const [isTrailerMenuOpen, setIsTrailerMenuOpen] = useState(false);
+  const [trailerState, setTrailerState] = useState('');
+  const trailerRef = useRef<HTMLUListElement | null>(null);
+  
 
   const handleAddressStateChange = async (state: string) => {
     setIsAddressMenuOpen(false);
     setAddressState(state);
   };
     const handleMailingStateChange = async (state: string) => {
-    setIsSecondMenuOpen(false);
+    setIsMailingMenuOpen(false);
     setMailingState(state);
   };
+  const handleLesseeStateChange = async (state: string) => {
+    setIsLesseeMenuOpen(false);
+    setLesseeState(state);
+  };
+  const handleTrailerStateChange = async (state: string) => {
+    setIsTrailerMenuOpen(false);
+    setTrailerState(state);
+  };
 
-    const handleClickOutsideAddressMenu = (e: MouseEvent) => {
+  const handleClickOutsideAddressMenu = (e: MouseEvent) => {
       const target = e.target as Element;
       if (
         addressRef.current &&
@@ -41,10 +56,33 @@ export default function Address() {
         !mailingRef.current.contains(target) &&
         !target.closest('.mailingStateDropDown')
       ) {
-        setIsSecondMenuOpen(false);
+        setIsMailingMenuOpen(false);
+      }
+  };
+  
+  const handleClickOutsideLesseeMenu = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (
+        lesseeRef.current &&
+        !lesseeRef.current.contains(target) &&
+        !target.closest('.lesseeStateDropDown')
+      ) {
+        setIsLesseeMenuOpen(false);
       }
   };
 
+  const handleClickOutsideTrailerMenu = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (
+        trailerRef.current &&
+        !trailerRef.current.contains(target) &&
+        !target.closest('.trailerStateDropDown')
+      ) {
+        setIsTrailerMenuOpen(false);
+      }
+  };
+
+  
     useEffect(() => {
     if (isAddressMenuOpen) {
       document.addEventListener('mousedown', handleClickOutsideAddressMenu);
@@ -57,7 +95,7 @@ export default function Address() {
   }, [isAddressMenuOpen]);
 
   useEffect(() => {
-    if (isSecondMenuOpen) {
+    if (isMailingMenuOpen) {
       document.addEventListener('mousedown', handleClickOutsideMailingMenu);
     } else {
       document.removeEventListener('mousedown', handleClickOutsideMailingMenu);
@@ -65,7 +103,29 @@ export default function Address() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutsideMailingMenu);
     };
-  }, [isSecondMenuOpen]);
+  }, [isMailingMenuOpen]);
+
+    useEffect(() => {
+    if (isLesseeMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutsideLesseeMenu);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutsideLesseeMenu);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideLesseeMenu);
+    };
+  }, [isLesseeMenuOpen]);
+
+  useEffect(() => {
+    if (isTrailerMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutsideTrailerMenu);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutsideTrailerMenu);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideTrailerMenu);
+    };
+  }, [isTrailerMenuOpen]);
 
   const states = [
     { name: "Alabama", abbreviation: "AL" },
@@ -215,17 +275,109 @@ export default function Address() {
             </div>
             <div className='addressStateWrapper'>
             <label className='subHeadings'>State</label>
-              <button onClick={() => setIsSecondMenuOpen(!isSecondMenuOpen)} className="mailingStateDropDown">
+              <button onClick={() => setIsMailingMenuOpen(!isMailingMenuOpen)} className="mailingStateDropDown">
               { mailingState || 'State'}
-              <ChevronDownIcon className={`mailingIcon ${isSecondMenuOpen ? 'rotate' : ''}`} />
+              <ChevronDownIcon className={`mailingIcon ${isMailingMenuOpen ? 'rotate' : ''}`} />
             </button>
-            {isSecondMenuOpen && (
+            {isMailingMenuOpen && (
               <ul ref={mailingRef} className="addressStateMenu">
                 {states.map((state, index) => (
                   <li
                     className='addressStateLists'
                     key={index}
                     onClick={() => handleMailingStateChange(state.abbreviation)}
+                  >
+                    {state.name}
+                  </li>                
+                ))}
+              </ul>
+            )}
+          </div>
+            <div>
+              <label className='subHeadings'>Zip Code</label>
+              <input className="zipInput" placeholder="Zip Code"></input>
+            </div>
+          </div>
+        </div>
+      )}
+
+       {lesseeAddress && (
+        <div className='addressWrapper'>
+          <h3 className="addressHeading">Lessee Address</h3>
+          <div className='addressFirstLine'>
+          <div className='topGroup'>
+              <label className='subHeadings'>Street</label>
+              <input className="streetInput" placeholder="Street"></input>
+            </div>
+            <div>
+              <label className='subHeadings'>APT./SPACE/STE.#</label>
+              <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
+            </div>
+          </div>
+          <div className='cityStateZipLine'>
+            <div>
+              <label className='subHeadings'>City</label>
+              <input className="cityInput" placeholder="City"></input>
+            </div>
+            <div className='addressStateWrapper'>
+            <label className='subHeadings'>State</label>
+              <button onClick={() => setIsLesseeMenuOpen(!isLesseeMenuOpen)} className="lesseeStateDropDown">
+              { lesseeState || 'State'}
+              <ChevronDownIcon className={`lesseeIcon ${isLesseeMenuOpen ? 'rotate' : ''}`} />
+            </button>
+            {isLesseeMenuOpen && (
+              <ul ref={lesseeRef} className="addressStateMenu">
+                {states.map((state, index) => (
+                  <li
+                    className='addressStateLists'
+                    key={index}
+                    onClick={() => handleLesseeStateChange(state.abbreviation)}
+                  >
+                    {state.name}
+                  </li>                
+                ))}
+              </ul>
+            )}
+          </div>
+            <div>
+              <label className='subHeadings'>Zip Code</label>
+              <input className="zipInput" placeholder="Zip Code"></input>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {trailerAddress && (
+        <div className='addressWrapper'>
+          <h3 className="addressHeading">Vessel or Trailer Principally Kept At</h3>
+          <div className='addressFirstLine'>
+          <div className='topGroup'>
+              <label className='subHeadings'>Street</label>
+              <input className="streetInput" placeholder="Street"></input>
+            </div>
+            <div>
+              <label className='subHeadings'>APT./SPACE/STE.#</label>
+              <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
+            </div>
+          </div>
+          <div className='cityStateZipLine'>
+            <div>
+              <label className='subHeadings'>City</label>
+              <input className="cityInput" placeholder="City"></input>
+            </div>
+            <div className='addressStateWrapper'>
+            <label className='subHeadings'>State</label>
+              <button onClick={() => setIsTrailerMenuOpen(!isTrailerMenuOpen)} className="trailerStateDropDown">
+              { trailerState || 'State'}
+              <ChevronDownIcon className={`trailerIcon ${isTrailerMenuOpen ? 'rotate' : ''}`} />
+            </button>
+            {isTrailerMenuOpen && (
+              <ul ref={trailerRef} className="addressStateMenu">
+                {states.map((state, index) => (
+                  <li
+                    className='addressStateLists'
+                    key={index}
+                    onClick={() => handleTrailerStateChange(state.abbreviation)}
                   >
                     {state.name}
                   </li>                

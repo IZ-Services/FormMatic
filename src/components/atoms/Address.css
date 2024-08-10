@@ -49,7 +49,9 @@ body {
 .aptInput,
 .zipInput,
 .addressStateDropDown,
-.mailingStateDropDown {
+.mailingStateDropDown,
+.lesseeStateDropDown,
+.trailerStateDropDown {
   width: 100%;
    padding: 8px;
   border: 1px solid #ccc;
@@ -63,7 +65,9 @@ body {
 .aptInput::placeholder,
 .zipInput::placeholder,
 .addressStateDropDown::placeholder,
-.mailingStateDropDown::placeholder {
+.mailingStateDropDown::placeholder,
+.lesseeStateDropDown::placeholder,
+.trailerStateDropDown::placeholder  {
   color: #999;
 }
 
@@ -83,18 +87,13 @@ body {
 .cityStateZipLine {
   display: flex;
   gap: 20px;
+  margin-bottom: 15px;
 }
 
 .addressFirstLine > div,
 .cityStateZipLine > div {
   flex: 1;
 }
-
-/* input::placeholder,
-select::placeholder {
-  padding-left: 10px; 
-   color: #999;
-} */
 
 .aptInput {
   max-width: 300px;
@@ -188,6 +187,36 @@ select::placeholder {
   width: 100%; 
 }
 
+.lesseeStateDropDown{
+  cursor: pointer;
+  position: relative;
+  outline: none;
+  display: flex;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+   color: #999;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  width: 100%; 
+}
+
+.trailerStateDropDown{
+  cursor: pointer;
+  position: relative;
+  outline: none;
+  display: flex;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+   color: #999;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  width: 100%; 
+}
+
 .mailingIcon {
   width: 1.2em;
   height: 1.2em;
@@ -197,6 +226,30 @@ select::placeholder {
 }
 
 .mailingIcon.rotate {
+  transform: rotate(180deg);
+}
+
+.lesseeIcon {
+  width: 1.2em;
+  height: 1.2em;
+  margin-left: 4px;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.lesseeIcon.rotate {
+  transform: rotate(180deg);
+}
+
+.trailerIcon {
+  width: 1.2em;
+  height: 1.2em;
+  margin-left: 4px;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.trailerIcon.rotate {
   transform: rotate(180deg);
 }
 
