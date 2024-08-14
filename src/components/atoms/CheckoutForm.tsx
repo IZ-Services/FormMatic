@@ -52,8 +52,8 @@ export default function CheckoutForm() {
         <h1 className='checkoutTitle' >Sign Up</h1>
         <PaymentElement className="payment-element" />
         <div className='buttonWrapper'>
-        <button className="subscribeButton" disabled={isLoading || !stripe || !elements} id="submit">
-          {isLoading ? <div className="spinner" id="spinner"></div> : "Subscribe"}
+        <button className="subscribeButton">
+         Subscribe
         </button>
         {message && <div className="checkoutMessage">{message}</div>}
         </div>

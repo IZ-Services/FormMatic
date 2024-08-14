@@ -31,7 +31,6 @@ export async function POST(req: NextRequest) {
       throw new Error("Customer not found");
     }
 
-      // Retrieve the customer's active subscription
     const subscriptions = await stripe.subscriptions.list({
       customer: customer.id,
       status: 'active',
@@ -41,10 +40,17 @@ export async function POST(req: NextRequest) {
     if (!subscriptions.data.length) {
       throw new Error("No active subscription found for this customer");
     }
+    
+        const paymentMethods = await stripe.paymentMethods.list({
+      customer: customer.id,
+      type: 'card',
+    });
 
-    const subscription = subscriptions.data[0];
+    if (paymentMethods.data.length > 0) {
+      const oldCard = paymentMethods.data[0]; 
+      await stripe.paymentMethods.detach(oldCard.id);
+    }
 
-    // Create a SetupIntent to update the payment method
     const setupIntent = await stripe.setupIntents.create({
       customer: customer.id,
       payment_method_types: ['card'],
