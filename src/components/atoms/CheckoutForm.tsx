@@ -1,57 +1,21 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { UserAuth } from '../../context/AuthContext';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {PaymentElement,useStripe, useElements} from '@stripe/react-stripe-js';
 import { initFirebase } from '../../firebase-config';
 import {  PaymentIntentResult } from '@stripe/stripe-js';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import "./Checkout.css";
 import updateSubscriptionStatus from '../../utils/subscriptionUtil';
 
 const app = initFirebase();
 
 export default function CheckoutForm() {
-  const { user } = UserAuth();
   const router = useRouter();
     const stripe = useStripe();
     const elements = useElements();
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      if (!user) {
-        router.push('/');
-        return;
-      }
-
-      const creationTime = user.metadata?.creationTime;
-      if (creationTime) {
-        const userCreationDate = new Date(creationTime);
-        const currentDate = new Date();
-        const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays > 7) {
-          const db = getFirestore(app);
-          const userRef = doc(db, "customers", user.uid);
-          const userDoc = await getDoc(userRef);
-
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            if (!userData.isSubscribed) {
-              router.push('/signUp');
-            }
-          } else {
-            router.push('/signUp');
-          }
-        }
-      }
-    };
-
-    checkSubscriptionStatus();
-  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,7 +43,6 @@ export default function CheckoutForm() {
       } else {
         setMessage('Payment processing.');
       }
-
       setIsLoading(false);
     };
 
@@ -92,7 +55,7 @@ export default function CheckoutForm() {
         <button className="subscribeButton" disabled={isLoading || !stripe || !elements} id="submit">
           {isLoading ? <div className="spinner" id="spinner"></div> : "Subscribe"}
         </button>
-        {message && <div id="payment-message">{message}</div>}
+        {message && <div className="checkoutMessage">{message}</div>}
         </div>
       </form>
     </div>

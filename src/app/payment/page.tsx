@@ -1,25 +1,31 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import UpdateCardForm from '../../components/atoms/UpdateCardFrom'
+import { getStripePublishableKey } from '../../utils/stripeUtil';
+import { UserAuth } from '../../context/AuthContext';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { initFirebase } from '../../firebase-config';
+import Loading from '../../components/pages/Loading';
+import { useRouter } from 'next/navigation';
 import { PencilSquareIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import './Payment.css';
-import { UserAuth } from '../../context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { initFirebase } from '../../firebase-config';
+
+const publishableKey = getStripePublishableKey();
+const stripePromise = loadStripe(publishableKey);
 
 const app = initFirebase();
 
 export default function Payment() {
-  const { user } = UserAuth();
-  const router = useRouter();
-
+  const { user, emailSignIn } = UserAuth(); 
+	const router = useRouter();
+	  const [password, setPassword] = useState('');
+  const [clientSecret, setClientSecret] = useState(null);
+    const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
   const [editCard, setEditCard] = useState(false);
-  const [cardVisible, setCardVisible] = useState(false);
-  const [currentCard, setCurrentCard] = useState('');
-  const [newCard, setNewCard] = useState('');
-  const [confirmCard, setConfirmCard] = useState('');
-  const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
-  const [successfulAlertMessage, setSuccessfulAlertMessage] = useState<string>('');
+
+const hasFetchedClientSecret = useRef(false);
 
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
@@ -27,7 +33,6 @@ export default function Payment() {
         router.push('/');
         return;
       }
-
       const creationTime = user.metadata?.creationTime;
       if (creationTime) {
         const userCreationDate = new Date(creationTime);
@@ -56,104 +61,85 @@ export default function Payment() {
   }, [user, router]);
 
 
-  const handleEditPasswordClick = () => {
-    setEditCard(!editCard);
-    setCardVisible(false);
-    setErrorAlertMessage('');
-    setSuccessfulAlertMessage('');
-  };
+  useEffect(() => {
+    const fetchClientSecret = async () => {
+	if (hasFetchedClientSecret.current ) return;
+	hasFetchedClientSecret.current = true;
+	
+      try {
 
-  const togglePasswordVisibility = () => {
-    setCardVisible(!cardVisible);
-  };
+        const response = await fetch('/api/paymentUpdate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user?.uid, email: user?.email }),
+        });
 
-  const handleSavenewCard = async () => {
-    if (newCard !== confirmCard) {
-      setErrorAlertMessage('Card info do not match.');
-      setSuccessfulAlertMessage('');
-      resetAlertMessages();
-      return;
-    } 
-    resetAlertMessages();
-  };
+        if (!response.ok) {
+          throw new Error('Failed to fetch client secret');
+        }
 
-  const resetAlertMessages = () => {
-    setTimeout(() => {
+        const data = await response.json();
+        setClientSecret(data.clientSecret);
+      } catch (error) {
+        console.error('Error fetching client secret:', error);
+      }
+    };
+
+    if (user) {
+      fetchClientSecret();
+    }
+  }, [user]); 
+
+  if (!clientSecret) {
+    return <Loading />;
+  }
+
+const handleEditPasswordClick = async () => {
+  try {
+    if (user?.email && emailSignIn) { 
+		console.log(user.email)
+      await emailSignIn(user.email, password);
+      setEditCard(!editCard);
       setErrorAlertMessage('');
-      setSuccessfulAlertMessage('');
-    }, 3000);
-  };
+    } else {
+      console.error('Email is undefined or null.');
+    }
+  } catch (error) {
+    console.error('Error signing in: ', error);
+    setErrorAlertMessage('Failed to sign in. Please check your credentials.');
+  }
+};
+
 
   return (
-    <div className="paymentContainer">
+    <Elements stripe={stripePromise} options={{ clientSecret }}>
+		<div className="paymentContainer">
       <div className="paymentContentWrapper">
-        <h1 className="paymentTitle">Payment Settings</h1>
         <div className="paymentAlertContainer">
-          {successfulAlertMessage && (
-            <div className="successfulPaymenttMessage">{successfulAlertMessage}</div>
-          )}
           {errorAlertMessage && <div className="alertPaymentMessage">{errorAlertMessage}</div>}
         </div>
         <div>
           <input className="paymentUsernameInput" type="text" value={user?.email || ''} readOnly />
 
           <div className="paymentInputWithEditIcon">
-            <input
-              className="paymentCardInput"
-              type="password"
-              placeholder="Card Number"
-              value="********"
-              readOnly
-            />
+              <input
+                className="paymentCardInput"
+                type="password"
+                placeholder="Enter Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)} // Capture password input
+              />
             <PencilSquareIcon className="editPaymentIcon" onClick={handleEditPasswordClick} />
           </div>
           {editCard && (
-            <div style={{ marginTop: '50px' }}>
-              <div className="paymentInputWithEyeIcon">
-                <input
-                  className="newCardInput"
-                  type={cardVisible ? 'text' : 'password'}
-                  placeholder="Current Card"
-                  value={currentCard}
-                  autoComplete="off"
-                  onChange={(e) => setCurrentCard(e.target.value)}
-                />
-                {cardVisible ? (
-                  <EyeIcon className="paymentEyeIcon" onClick={togglePasswordVisibility} />
-                ) : (
-                  <EyeSlashIcon className="paymentEyeIcon" onClick={togglePasswordVisibility} />
-                )}
-              </div>
-
-              <input
-                className="newCardInput"
-                type={cardVisible ? 'text' : 'password'}
-                placeholder="New Card"
-                value={newCard}
-                autoComplete="new-card"
-                onChange={(e) => setNewCard(e.target.value)}
-                style={{ marginTop: '20px' }}
-              />
-
-              <input
-                className="newCardInput"
-                type={cardVisible ? 'text' : 'password'}
-                placeholder="Confirm New Card"
-                value={confirmCard}
-                autoComplete="new-card"
-                onChange={(e) => setConfirmCard(e.target.value)}
-                style={{ marginTop: '20px' }}
-              />
-
-              <div className="paymentButtonContainer" style={{ marginTop: '20px' }}>
-                <button className="savePaymentButton" onClick={handleSavenewCard}>
-                  Save
-                </button>
-              </div>
-            </div>
+             <UpdateCardForm />
           )}
         </div>
       </div>
     </div>
+
+    </Elements>
   );
 }
