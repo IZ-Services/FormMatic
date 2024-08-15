@@ -2,14 +2,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import UpdateCardForm from '../../components/atoms/UpdateCardFrom'
+import UpdateCardForm from '../../components/atoms/UpdateCardFrom';
 import { getStripePublishableKey } from '../../utils/stripeUtil';
 import { UserAuth } from '../../context/AuthContext';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { initFirebase } from '../../firebase-config';
 import Loading from '../../components/pages/Loading';
 import { useRouter } from 'next/navigation';
-import { PencilSquareIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import './Payment.css';
 
 const publishableKey = getStripePublishableKey();
@@ -19,13 +19,13 @@ const app = initFirebase();
 
 export default function Payment() {
   const { user, emailSignIn } = UserAuth(); 
-	const router = useRouter();
-	  const [password, setPassword] = useState('');
+  const router = useRouter();
+  const [password, setPassword] = useState('');
   const [clientSecret, setClientSecret] = useState(null);
-    const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
+  const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
   const [editCard, setEditCard] = useState(false);
-
-const hasFetchedClientSecret = useRef(false);
+  const [error, setError] = useState(false);
+  const hasFetchedClientSecret = useRef(false);
 
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
@@ -33,6 +33,7 @@ const hasFetchedClientSecret = useRef(false);
         router.push('/');
         return;
       }
+
       const creationTime = user.metadata?.creationTime;
       if (creationTime) {
         const userCreationDate = new Date(creationTime);
@@ -60,14 +61,12 @@ const hasFetchedClientSecret = useRef(false);
     checkSubscriptionStatus();
   }, [user, router]);
 
-
   useEffect(() => {
     const fetchClientSecret = async () => {
-	if (hasFetchedClientSecret.current ) return;
-	hasFetchedClientSecret.current = true;
-	
-      try {
+      if (hasFetchedClientSecret.current) return;
+      hasFetchedClientSecret.current = true;
 
+      try {
         const response = await fetch('/api/paymentUpdate', {
           method: 'POST',
           headers: {
@@ -89,57 +88,63 @@ const hasFetchedClientSecret = useRef(false);
 
     if (user) {
       fetchClientSecret();
+
+      const timeoutId = setTimeout(() => {
+        if (!clientSecret) {
+          setError(true);
+        }
+      }, 20000); 
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [user]); 
+  }, [user, clientSecret]);
+
+  if (error && !clientSecret) {
+    return <div className='paymentClientError'>Failed to load payment details. Please contact us for assistance.</div>;
+  }
 
   if (!clientSecret) {
     return <Loading />;
   }
 
-const handleEditPasswordClick = async () => {
-  try {
-    if (user?.email && emailSignIn) { 
-		console.log(user.email)
-      await emailSignIn(user.email, password);
-      setEditCard(!editCard);
-      setErrorAlertMessage('');
-    } else {
-      console.error('Email is undefined or null.');
+  const handleEditPasswordClick = async () => {
+    try {
+      if (user?.email && emailSignIn) { 
+        await emailSignIn(user.email, password);
+        setEditCard(!editCard);
+        setErrorAlertMessage('');
+      } else {
+        console.error('Email is undefined or null.');
+      }
+    } catch (error) {
+      console.error('Error signing in: ', error);
+      setErrorAlertMessage('Failed to sign in. Please check your credentials.');
     }
-  } catch (error) {
-    console.error('Error signing in: ', error);
-    setErrorAlertMessage('Failed to sign in. Please check your credentials.');
-  }
-};
-
+  };
 
   return (
     <Elements stripe={stripePromise} options={{ clientSecret }}>
-		<div className="paymentContainer">
-      <div className="paymentContentWrapper">
-        <div className="paymentAlertContainer">
-          {errorAlertMessage && <div className="alertPaymentMessage">{errorAlertMessage}</div>}
-        </div>
-        <div>
-          <input className="paymentUsernameInput" type="text" value={user?.email || ''} readOnly />
-
-          <div className="paymentInputWithEditIcon">
+      <div className="paymentContainer">
+        <div className="paymentContentWrapper">
+          <div className="paymentAlertContainer">
+            {errorAlertMessage && <div className="alertPaymentMessage">{errorAlertMessage}</div>}
+          </div>
+          <div>
+            <input className="paymentUsernameInput" type="text" value={user?.email || ''} readOnly />
+            <div className="paymentInputWithEditIcon">
               <input
                 className="paymentCardInput"
                 type="password"
                 placeholder="Enter Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)} // Capture password input
+                onChange={(e) => setPassword(e.target.value)} 
               />
-            <PencilSquareIcon className="editPaymentIcon" onClick={handleEditPasswordClick} />
+              <PencilSquareIcon className="editPaymentIcon" onClick={handleEditPasswordClick} />
+            </div>
+            {editCard && <UpdateCardForm />}
           </div>
-          {editCard && (
-             <UpdateCardForm />
-          )}
         </div>
       </div>
-    </div>
-
     </Elements>
   );
 }

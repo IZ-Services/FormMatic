@@ -22,6 +22,7 @@ export default function SignUp() {
   const router = useRouter();
   const hasFetchedClientSecret = useRef(false);
   const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
@@ -90,7 +91,20 @@ export default function SignUp() {
     };
 
     fetchClientSecret();
-  }, [user, isSubscribed]);
+
+    const timeoutId = setTimeout(() => {
+      if (!clientSecret) {
+        setError(true);
+      }
+    }, 20000); 
+
+    return () => clearTimeout(timeoutId);
+  }, [user, isSubscribed, clientSecret]);
+
+
+  if (error && !clientSecret) {
+    return <div className='signUpClientError'>Error: Failed to load payment details. Please contact us for assistance.</div>;
+  }
 
   if (!clientSecret) {
     return <Loading />;

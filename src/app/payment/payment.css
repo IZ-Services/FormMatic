@@ -145,6 +145,16 @@ body {
   color: gray;
 }
 
+.paymentClientError{
+  margin-top: 5rem;
+  text-align: center;
+    font-size: 1.5rem;
+  color: #333;
+  justify-content: center;
+  text-align: center;
+  padding-top: 10%;
+}
+
 @media (max-width: 590px) {
   .paymentContentWrapper {
     max-width: 400px;
@@ -158,3 +168,4 @@ body {
     max-width: 400px;
   }
 }
+
