@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IClient extends Document {
   _id: string;
+  user_id: string;
   firstName1: string;
   middleName1: string;
   lastName1: string;
@@ -42,6 +43,7 @@ export interface IClient extends Document {
 }
 
 const clientSchema = new Schema({
+  user_id: { type: String, required: true }, 
   firstName1: { type: String, required: false },
   middleName1: { type: String, required: false },
   lastName1: { type: String, required: false },

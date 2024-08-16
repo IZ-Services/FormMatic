@@ -6,15 +6,17 @@ export async function GET(request: NextRequest) {
   await connectDB();
   const { searchParams } = new URL(request.url);
   let searchFor = searchParams.get('searchFor');
+    const user_id = searchParams.get('user_id'); 
   try {
 
-    if (!searchFor) {
-      return NextResponse.json({ error: 'Search parameter "searchFor" is required' }, { status: 400 });
+ if (!searchFor || !user_id) {
+      return NextResponse.json({ error: 'Search parameter "searchFor" and "user_id" are required' }, { status: 400 });
     }
     searchFor = searchFor.replace(/[.*+?^${}()|[\]     s\\]/g, '\\$&');
 
     const searchRegex = new RegExp(searchFor, 'i');
     const client = await Client.find({
+      user_id, 
       $or: [
         { firstName1: { $regex: searchRegex } },
         { lastName1: { $regex: searchRegex } },

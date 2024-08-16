@@ -8,14 +8,21 @@ import { useScenarioContext } from '../../context/ScenarioContext';
 import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { initFirebase } from '../../firebase-config';
+import { useAppContext } from '../../context/index';
 
 const app = initFirebase();
 
 
 export default function Home() {
+  const { formData } = useAppContext()!;
   const { selectedSubsection } = useScenarioContext()!;
   const { user } = UserAuth();
   const router = useRouter();
+
+  const user_id = user?.uid;
+  if (!user_id) {
+    throw new Error('User not authenticated');
+  }
 
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
@@ -62,22 +69,21 @@ export default function Home() {
     }
   };
 
-
-  // const handleSave = async () => {
-  //   try {
-  //     const response = await fetch('/api/post', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify(formData),
-  //     });
-  //     await response.json();
-  //     alert('Client Saved!');
-  //   } catch (error) {
-  //     console.error('Error in handleSave:', error);
-  //   }
-  // };
+  const handleSave = async () => {
+    try {
+      const response = await fetch('/api/post', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...formData, user_id }),
+      });
+      await response.json();
+      alert('Client Saved!');
+    } catch (error) {
+      console.error('Error in handleSave:', error);
+    }
+  };
 
   // const handleNext = async () => {
   //   try {
@@ -100,6 +106,7 @@ export default function Home() {
     <div className="homeContainer">   
       {selectedSubsection && <h2 className="homeHeading">{selectedSubsection}</h2>}
         {renderComponent()}
+        <button onClick={handleSave}>save</button>
     </div>
   );
 }

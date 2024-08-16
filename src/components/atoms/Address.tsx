@@ -2,8 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Address.css';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useAppContext } from '../../context/index'
 
 export default function Address() {
+  const { formData, setFormData } = useAppContext()!;
+
   const [mailingAddress, setMailingAddress] = useState(false);
   const [lesseeAddress, setLesseeAddress] = useState(false);
   const [trailerAddress, setTrailerAddress] = useState(false);
@@ -182,6 +185,31 @@ export default function Address() {
 
   return (
     <div>
+       <input
+          className="inputData"
+          value={formData.firstName1}
+          onChange={(e) => setFormData({ ...formData, firstName1: e.target.value })}
+        />
+
+        <label style={{ marginLeft: '10px', marginTop: '10px' }}>Middle Name</label>
+        <input
+          className="inputData"
+          value={formData.middleName1}
+          onChange={(e) => setFormData({ ...formData, middleName1: e.target.value })}
+        />
+
+        <label style={{ marginLeft: '10px', marginTop: '10px' }}>Last Name</label>
+        <input
+          className="inputData"
+          value={formData.lastName1}
+          onChange={(e) => setFormData({ ...formData, lastName1: e.target.value })}
+        />
+        <input
+              className="inputData"
+              value={formData.transactionType}
+              onChange={(e) => setFormData({ ...formData, transactionType: e.target.value })}
+            />
+
       <div className='addressWrapper'>
         <div className='addressCheckboxWrapper'>
           <h3 className="addressHeading">Address</h3>

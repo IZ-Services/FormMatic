@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const reqBody = await request.json();
     const {
+      user_id, 
       firstName1,
       middleName1,
       lastName1,
@@ -46,7 +47,14 @@ export async function POST(request: NextRequest) {
       transactionType,
     } = reqBody;
 
+    if (!user_id) {
+      return NextResponse.json({ message: 'User not authenticated' }, { status: 401 });
+    }
+
+    console.log('this is user', user_id)
+    
     const newClient = new Client({
+      user_id, 
       firstName1,
       middleName1,
       lastName1,
