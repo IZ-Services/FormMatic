@@ -51,8 +51,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'User not authenticated' }, { status: 401 });
     }
 
-    console.log('this is user', user_id)
-    
     const newClient = new Client({
       user_id, 
       firstName1,

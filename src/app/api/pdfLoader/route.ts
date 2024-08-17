@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
 async function modifyReg101Pdf(fileUrl: string, formData: FormData) {
   const data = formData;
-  console.log(data);
+  
   const existingPdfBytes = await fs.readFile(fileUrl);
 
   const pdfDoc = await PDFDocument.load(existingPdfBytes, { ignoreEncryption: true });
@@ -59,14 +59,6 @@ async function modifyReg101Pdf(fileUrl: string, formData: FormData) {
   const form = pdfDoc.getForm();
 
   const allFields = form.getFields();
-  console.log(
-    'Fields in the PDF form:',
-    JSON.stringify(
-      allFields.map((field) => field.getName()),
-      null,
-      2,
-    ),
-  );
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -76,7 +68,7 @@ async function modifyReg101Pdf(fileUrl: string, formData: FormData) {
 
 async function modifyReg156Pdf(fileUrl: string, formData: FormData) {
   const data = formData;
-  console.log(data);
+
   const existingPdfBytes = await fs.readFile(fileUrl);
 
   const pdfDoc = await PDFDocument.load(existingPdfBytes, { ignoreEncryption: true });
@@ -84,14 +76,7 @@ async function modifyReg156Pdf(fileUrl: string, formData: FormData) {
   const form = pdfDoc.getForm();
 
   const allFields = form.getFields();
-  console.log(
-    'Fields in the PDF form:',
-    JSON.stringify(
-      allFields.map((field) => field.getName()),
-      null,
-      2,
-    ),
-  );
+
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -107,14 +92,7 @@ async function modifyReg227Pdf(fileUrl: string, formData: FormData) {
   const form = pdfDoc.getForm();
 
   const allFields = form.getFields();
-  console.log(
-    'Fields in the PDF form:',
-    JSON.stringify(
-      allFields.map((field) => field.getName()),
-      null,
-      2,
-    ),
-  );
+
 
   const licensePlateNumberField1 = form.getTextField('License Plate/CF Number1');
   licensePlateNumberField1.setText(formData.vehicleLicensePlateNumber || '');
@@ -253,7 +231,7 @@ async function modifyReg227Pdf(fileUrl: string, formData: FormData) {
 
 async function modifyReg256Pdf(fileUrl: string, formData: FormData) {
   const data = formData;
-  console.log(data);
+
   const existingPdfBytes = await fs.readFile(fileUrl);
 
   const pdfDoc = await PDFDocument.load(existingPdfBytes, { ignoreEncryption: true });
@@ -261,14 +239,7 @@ async function modifyReg256Pdf(fileUrl: string, formData: FormData) {
   const form = pdfDoc.getForm();
 
   const allFields = form.getFields();
-  console.log(
-    'Fields in the PDF form:',
-    JSON.stringify(
-      allFields.map((field) => field.getName()),
-      null,
-      2,
-    ),
-  );
+
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -278,7 +249,7 @@ async function modifyReg256Pdf(fileUrl: string, formData: FormData) {
 
 async function modifyReg343Pdf(fileUrl: string, formData: FormData) {
   const data = formData;
-  console.log(data);
+
   const existingPdfBytes = await fs.readFile(fileUrl);
 
   const pdfDoc = await PDFDocument.load(existingPdfBytes, { ignoreEncryption: true });
@@ -286,14 +257,7 @@ async function modifyReg343Pdf(fileUrl: string, formData: FormData) {
   const form = pdfDoc.getForm();
 
   const allFields = form.getFields();
-  console.log(
-    'Fields in the PDF form:',
-    JSON.stringify(
-      allFields.map((field) => field.getName()),
-      null,
-      2,
-    ),
-  );
+
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -303,7 +267,7 @@ async function modifyReg343Pdf(fileUrl: string, formData: FormData) {
 
 async function modifyReg488cPdf(fileUrl: string, formData: FormData) {
   const data = formData;
-  console.log(data);
+
   const existingPdfBytes = await fs.readFile(fileUrl);
 
   const pdfDoc = await PDFDocument.load(existingPdfBytes, { ignoreEncryption: true });
@@ -311,14 +275,6 @@ async function modifyReg488cPdf(fileUrl: string, formData: FormData) {
   const form = pdfDoc.getForm();
 
   const allFields = form.getFields();
-  console.log(
-    'Fields in the PDF form:',
-    JSON.stringify(
-      allFields.map((field) => field.getName()),
-      null,
-      2,
-    ),
-  );
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -328,7 +284,7 @@ async function modifyReg488cPdf(fileUrl: string, formData: FormData) {
 
 async function modifyReg4008Pdf(fileUrl: string, formData: FormData) {
   const data = formData;
-  console.log(data);
+
   const existingPdfBytes = await fs.readFile(fileUrl);
 
   const pdfDoc = await PDFDocument.load(existingPdfBytes, { ignoreEncryption: true });
@@ -336,14 +292,6 @@ async function modifyReg4008Pdf(fileUrl: string, formData: FormData) {
   const form = pdfDoc.getForm();
 
   const allFields = form.getFields();
-  console.log(
-    'Fields in the PDF form:',
-    JSON.stringify(
-      allFields.map((field) => field.getName()),
-      null,
-      2,
-    ),
-  );
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -353,7 +301,7 @@ async function modifyReg4008Pdf(fileUrl: string, formData: FormData) {
 
 async function modifyReg4017Pdf(fileUrl: string, formData: FormData) {
   const data = formData;
-  console.log(data);
+
   const existingPdfBytes = await fs.readFile(fileUrl);
 
   const pdfDoc = await PDFDocument.load(existingPdfBytes, { ignoreEncryption: true });
@@ -361,14 +309,6 @@ async function modifyReg4017Pdf(fileUrl: string, formData: FormData) {
   const form = pdfDoc.getForm();
 
   const allFields = form.getFields();
-  console.log(
-    'Fields in the PDF form:',
-    JSON.stringify(
-      allFields.map((field) => field.getName()),
-      null,
-      2,
-    ),
-  );
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
