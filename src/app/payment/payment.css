@@ -15,9 +15,15 @@ body {
   align-items: center;
   padding: 0px 20px;
   margin: 0 auto;
-  margin-top: 5rem;
+  margin-top: 8rem;
 }
 
+
+.paymentTitle {
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: 30px;
+}
 
 .paymentUsernameInput {
   height: 1.5rem;
@@ -68,65 +74,6 @@ body {
   color: gray;
 }
 
-.newCardInput {
-  position: relative;
-  display: block;
-  color: #000;
-  border: 0;
-  border-bottom: 1px solid #333;
-  background-color: inherit;
-  width: 500px;
-  height: 40px;
-  font-size: 18px;
-  overflow: hidden;
-  padding: 0 30px 0 30px;
-  margin-bottom: 10px;
-  outline: none;
-}
-
-.paymentInputWithEyeIcon {
-  width: 100%;
-  position: relative;
-}
-
-.paymentEyeIcon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  color: #333;
-  cursor: pointer;
-}
-
-.paymentButtonContainer {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-}
-
-.savePaymentButton {
-  background-color: black;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  border-radius: 4px;
-  white-space: normal;
-  overflow: hidden;
-  transition: color 0.3s;
-  border: 1px solid black;
-  justify-content: flex-end;
-  align-items: end;
-  text-align: end;
-}
-
-.savePaymentButton:hover {
-  background-color: transparent;
-  color: black;
-}
-
 .paymentAlertContainer {
   min-height: 20px;
   display: flex;
@@ -140,19 +87,19 @@ body {
   color: red;
 }
 
-.successfulPaymenttMessage {
-  text-align: center;
-  color: gray;
-}
-
 .paymentClientError{
-  margin-top: 5rem;
+  margin-top: 8rem;
   text-align: center;
     font-size: 1.5rem;
   color: #333;
   justify-content: center;
   text-align: center;
   padding-top: 10%;
+}
+
+.updateCardFormWrapper{
+    width: 100%;
+  max-width: 500px; 
 }
 
 @media (max-width: 590px) {
@@ -164,8 +111,5 @@ body {
     max-width: 400px;
   }
 
-  .newCardInput {
-    max-width: 400px;
-  }
 }
 

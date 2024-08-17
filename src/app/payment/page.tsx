@@ -125,26 +125,34 @@ export default function Payment() {
   return (
     <Elements stripe={stripePromise} options={{ clientSecret }}>
       <div className="paymentContainer">
-        <div className="paymentContentWrapper">
-          <div className="paymentAlertContainer">
-            {errorAlertMessage && <div className="alertPaymentMessage">{errorAlertMessage}</div>}
-          </div>
-          <div>
-            <input className="paymentUsernameInput" type="text" value={user?.email || ''} readOnly />
-            <div className="paymentInputWithEditIcon">
-              <input
-                className="paymentCardInput"
-                type="password"
-                placeholder="Enter Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)} 
-              />
-              <PencilSquareIcon className="editPaymentIcon" onClick={handleEditPasswordClick} />
+          {!editCard && 
+            <>
+             <h1 className="paymentTitle">Payment Settings</h1>
+            <div className="paymentAlertContainer">
+              {errorAlertMessage && <div className="alertPaymentMessage">{errorAlertMessage}</div>}
             </div>
-            {editCard && <UpdateCardForm />}
-          </div>
+            <div>
+              <input className="paymentUsernameInput" type="text" value={user?.email || ''} readOnly />
+              <div className="paymentInputWithEditIcon">
+                <input
+                  className="paymentCardInput"
+                  type="password"
+                  placeholder="Enter Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)} 
+                />
+                <PencilSquareIcon className="editPaymentIcon" onClick={handleEditPasswordClick} />
+              </div>   
+            </div>
+            </>
+          }
+          {editCard &&
+          <div className='updateCardFormWrapper'>
+
+          <UpdateCardForm/>
+          
+          </div>}
         </div>
-      </div>
     </Elements>
   );
 }

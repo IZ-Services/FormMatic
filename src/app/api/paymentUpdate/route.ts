@@ -41,13 +41,13 @@ export async function POST(req: NextRequest) {
       throw new Error("No active subscription found for this customer");
     }
     
-        const paymentMethods = await stripe.paymentMethods.list({
+    const paymentMethods = await stripe.paymentMethods.list({
       customer: customer.id,
       type: 'card',
     });
 
-    if (paymentMethods.data.length > 0) {
-      const oldCard = paymentMethods.data[0]; 
+    if (paymentMethods.data.length > 1) {
+      const oldCard = paymentMethods.data[1]; 
       await stripe.paymentMethods.detach(oldCard.id);
     }
 

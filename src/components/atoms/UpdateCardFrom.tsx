@@ -41,8 +41,10 @@ export default function UpdateCardForm() {
         <div className="updatePaymentButtonWrapper">
           <button
             className="updatePaymentButton"
+                        type="submit"
+            disabled={isLoading}
           >
-           Update Card
+            {isLoading ? 'Updating...' : 'Update Card'}
           </button>
           {message && <div className="paymentMessage">{message}</div>}
         </div>
