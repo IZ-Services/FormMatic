@@ -40,16 +40,7 @@ export async function POST(req: NextRequest) {
     if (!subscriptions.data.length) {
       throw new Error("No active subscription found for this customer");
     }
-    
-    const paymentMethods = await stripe.paymentMethods.list({
-      customer: customer.id,
-      type: 'card',
-    });
 
-    if (paymentMethods.data.length > 1) {
-      const oldCard = paymentMethods.data[1]; 
-      await stripe.paymentMethods.detach(oldCard.id);
-    }
 
     const setupIntent = await stripe.setupIntents.create({
       customer: customer.id,
