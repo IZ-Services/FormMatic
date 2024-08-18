@@ -11,7 +11,7 @@ const updateSubscriptionStatus = async (app: FirebaseApp, isSubscribed: boolean)
   }
 
   const db = getFirestore(app);
-  const userRef = doc(db, "customers", userId); 
+  const userRef = doc(db, "users", userId); 
   await setDoc(userRef, { isSubscribed }, { merge: true });
 };
 

@@ -39,7 +39,7 @@ export default function Account() {
 
         if (diffDays > 7) {
           const db = getFirestore(app);
-          const userRef = doc(db, "customers", user.uid);
+        const userRef = doc(db, "users", user.uid);  
           const userDoc = await getDoc(userRef);
 
           if (userDoc.exists()) {

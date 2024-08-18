@@ -20,9 +20,7 @@ export default function Home() {
   const router = useRouter();
 
   const user_id = user?.uid;
-  if (!user_id) {
-    throw new Error('User not authenticated');
-  }
+
 
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
@@ -40,7 +38,7 @@ export default function Home() {
 
         if (diffDays > 7) {
           const db = getFirestore(app);
-          const userRef = doc(db, "customers", user.uid);
+        const userRef = doc(db, "users", user.uid);  
           const userDoc = await getDoc(userRef);
 
           if (userDoc.exists()) {

@@ -10,7 +10,8 @@ import {
 
 } from 'firebase/auth';
 import Loading from '../components/pages/Loading';
-import { auth } from '../firebase-config';
+import { doc, collection, getDocs, setDoc, deleteDoc, orderBy, limit, query } from 'firebase/firestore';
+import { auth, firestore } from '../firebase-config';
 
 export interface AuthContextType {
   user: User | null;
@@ -29,6 +30,19 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       await setPersistence(auth, browserSessionPersistence);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       setUser(userCredential.user);
+
+      const sessionsRef = collection(firestore, 'users', userCredential.user.uid, 'sessions'); // Use `firestore`
+      const sessionsSnapshot = await getDocs(sessionsRef);
+      
+      if (sessionsSnapshot.size >=2) {
+        await removeOldestSession(sessionsRef);
+      }      
+      
+      const sessionId = generateDeviceId();
+      await setDoc(doc(sessionsRef, sessionId), {
+        deviceId: sessionId,
+        timestamp: new Date(),
+      });
       
     } catch (error) {
       console.error('Error signing in with email: ', error);
@@ -36,8 +50,33 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
     }
   };
 
+const removeOldestSession = async (sessionsRef: any) => {
+  const sessionsQuery = query(sessionsRef, orderBy('timestamp', 'asc'), limit(1)); 
+  const querySnapshot = await getDocs(sessionsQuery);
+
+  if (!querySnapshot.empty) {
+    const oldestSession = querySnapshot.docs[0];
+    await deleteDoc(oldestSession.ref);
+  }
+};
+
+  const generateDeviceId = () => {
+    return Math.random().toString(36).substring(2);
+  };
+
   const logout = async () => {
     try {
+   if (user) {
+      const sessionsRef = collection(firestore, 'users', user.uid, 'sessions');
+      const sessionQuery = query(sessionsRef, orderBy('timestamp', 'desc'), limit(1));
+      const querySnapshot = await getDocs(sessionQuery);
+
+      if (!querySnapshot.empty) {
+        const sessionDoc = querySnapshot.docs[0];
+        await deleteDoc(sessionDoc.ref);
+      }
+    }
+
       await signOut(auth);
       setUser(null);
     } catch (error) {
