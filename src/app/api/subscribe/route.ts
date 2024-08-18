@@ -14,16 +14,27 @@ export async function POST(req: NextRequest) {
     const data = await req.json();
     const { priceId, userId, email } = data;
 
-    if (!userId) {
-      throw new Error("User ID is not provided");
+
+    if (!userId || !email) {
+      throw new Error('User ID or email is not provided');
     }
 
-    const customer = await stripe.customers.create({
-      metadata: {
-        userId: userId,
-      },
-      email: email
+    const existingCustomers = await stripe.customers.list({
+      email: email,
+      limit: 1,
     });
+
+    let customer;
+    if (existingCustomers.data.length > 0) {
+      customer = existingCustomers.data[0];
+    } else {
+      customer = await stripe.customers.create({
+        metadata: {
+          userId: userId,
+        },
+        email: email,
+      });
+    }
 
 
     const subscription = await stripe.subscriptions.create({

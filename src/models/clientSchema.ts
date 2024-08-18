@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IClient extends Document {
   _id: string;
+  user_id: string;
   firstName1: string;
   middleName1: string;
   lastName1: string;
@@ -42,9 +43,10 @@ export interface IClient extends Document {
 }
 
 const clientSchema = new Schema({
-  firstName1: { type: String, required: false },
-  middleName1: { type: String, required: false },
-  lastName1: { type: String, required: false },
+  user_id: { type: String, required: true, index: true },
+  firstName1: { type: String, required: false, index: true },
+  middleName1: { type: String, required: false, index: true },
+  lastName1: { type: String, required: false, index: true },
   licenseNumber1: { type: String, required: false },
   and1: { type: Boolean, required: false },
   or1: { type: Boolean, required: false },
@@ -68,7 +70,7 @@ const clientSchema = new Schema({
   mailingCity: { type: String, required: false },
   mailingState: { type: String, required: false },
   mailingZipCode: { type: String, required: false },
-  vehicleVinNumber: { type: String, required: false },
+  vehicleVinNumber: { type: String, required: false, index: true },
   vehicleLicensePlateNumber: { type: String, required: false },
   vehicleMake: { type: String, required: false },
   vehicleSaleMonth: { type: String, required: false },
@@ -77,9 +79,17 @@ const clientSchema = new Schema({
   vehiclePurchasePrice: { type: String, required: false },
   gift: { type: Boolean, required: false },
   trade: { type: Boolean, required: false },
-  transactionType: { type: String, required: false },
-  timeCreated: { type: Date, default: Date.now },
+  transactionType: { type: String, required: false, index: true },
+  timeCreated: { type: Date, default: Date.now, index: true },
 });
+
+clientSchema.index({ user_id: 1, timeCreated: -1 });
+clientSchema.index({ user_id: 1, firstName1: 1 });
+clientSchema.index({ user_id: 1, lastName1: 1 });
+clientSchema.index({ user_id: 1, middleName1: 1 });
+clientSchema.index({ user_id: 1, transactionType: 1 });
+clientSchema.index({ user_id: 1, vehicleVinNumber: 1 });
+clientSchema.index({ timeCreated: 1 });
 
 const Client = mongoose.models?.Client || mongoose.model<IClient>('Client', clientSchema);
 
