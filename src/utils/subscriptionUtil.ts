@@ -4,14 +4,14 @@ import { getAuth } from "firebase/auth";
 
 const updateSubscriptionStatus = async (app: FirebaseApp, isSubscribed: boolean) => {
   const auth = getAuth(app);
-  const userId = auth.currentUser?.uid;
-  if (!userId) {
+  const userEmail = auth.currentUser?.email;
+  if (!userEmail) {
     console.error("User is not authenticated");
     throw new Error("User is not authenticated");
   }
 
   const db = getFirestore(app);
-  const userRef = doc(db, "users", userId); 
+  const userRef = doc(db, "users", userEmail); 
   await setDoc(userRef, { isSubscribed }, { merge: true });
 };
 

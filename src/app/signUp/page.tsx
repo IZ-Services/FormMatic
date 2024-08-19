@@ -40,7 +40,8 @@ export default function SignUp() {
 
         if (diffDays > 7) {
           const db = getFirestore(app);
-        const userRef = doc(db, "users", user.uid);  
+        if(user.email){
+          const userRef = doc(db, "users", user.email);  
           const userDoc = await getDoc(userRef);
 
           if (userDoc.exists()) {
@@ -52,6 +53,8 @@ export default function SignUp() {
           } else {
             setIsSubscribed(false);
           }
+        }
+
         } else {
           setIsSubscribed(false);
         }

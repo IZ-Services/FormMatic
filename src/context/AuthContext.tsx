@@ -12,6 +12,7 @@ import {
 import Loading from '../components/pages/Loading';
 import { doc, collection, getDocs, setDoc, deleteDoc, orderBy, limit, query } from 'firebase/firestore';
 import { auth, firestore } from '../firebase-config';
+import { CollectionReference, DocumentData } from 'firebase/firestore';
 
 export interface AuthContextType {
   user: User | null;
@@ -30,14 +31,18 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       await setPersistence(auth, browserSessionPersistence);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       setUser(userCredential.user);
+ 
+      if (!userCredential.user.email) {
+          throw new Error('User email is not available.');
+        }
 
-      const sessionsRef = collection(firestore, 'users', userCredential.user.uid, 'sessions'); // Use `firestore`
+      const sessionsRef = collection(firestore, 'users', userCredential.user.email, 'sessions'); 
       const sessionsSnapshot = await getDocs(sessionsRef);
       
       if (sessionsSnapshot.size >=2) {
         await removeOldestSession(sessionsRef);
-      }      
-      
+      }
+    
       const sessionId = generateDeviceId();
       await setDoc(doc(sessionsRef, sessionId), {
         deviceId: sessionId,
@@ -50,7 +55,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
     }
   };
 
-const removeOldestSession = async (sessionsRef: any) => {
+const removeOldestSession = async (sessionsRef: CollectionReference<DocumentData>) => {
   const sessionsQuery = query(sessionsRef, orderBy('timestamp', 'asc'), limit(1)); 
   const querySnapshot = await getDocs(sessionsQuery);
 
@@ -67,7 +72,12 @@ const removeOldestSession = async (sessionsRef: any) => {
   const logout = async () => {
     try {
    if (user) {
-      const sessionsRef = collection(firestore, 'users', user.uid, 'sessions');
+    
+    if (!user.email) {
+      throw new Error('User email is not available.');
+    }
+
+      const sessionsRef = collection(firestore, 'users', user.email, 'sessions');
       const sessionQuery = query(sessionsRef, orderBy('timestamp', 'desc'), limit(1));
       const querySnapshot = await getDocs(sessionQuery);
 
