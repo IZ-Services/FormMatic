@@ -10,7 +10,7 @@ import {
 
 } from 'firebase/auth';
 import Loading from '../components/pages/Loading';
-import { doc, collection, getDocs, setDoc, deleteDoc, orderBy, limit, query } from 'firebase/firestore';
+import { doc, collection, getDocs, setDoc, deleteDoc, orderBy, limit, query, onSnapshot } from 'firebase/firestore';
 import { auth, firestore } from '../firebase-config';
 import { CollectionReference, DocumentData } from 'firebase/firestore';
 
@@ -49,6 +49,8 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         timestamp: new Date(),
       });
       
+      monitorSession(sessionsRef, sessionId); // Start monitoring the session
+
     } catch (error) {
       console.error('Error signing in with email: ', error);
       throw error;
@@ -68,6 +70,19 @@ const removeOldestSession = async (sessionsRef: CollectionReference<DocumentData
   const generateDeviceId = () => {
     return Math.random().toString(36).substring(2);
   };
+
+    const monitorSession = (sessionsRef: CollectionReference<DocumentData>, sessionId: string) => {
+    const sessionDocRef = doc(sessionsRef, sessionId);
+    const unsubscribe = onSnapshot(sessionDocRef, (docSnapshot) => {
+      if (!docSnapshot.exists()) {
+        // If the session document is deleted, log the user out
+        logout();
+      }
+    });
+
+    return () => unsubscribe();
+  };
+
 
   const logout = async () => {
     try {
