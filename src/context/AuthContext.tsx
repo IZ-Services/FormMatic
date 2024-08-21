@@ -49,7 +49,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         timestamp: new Date(),
       });
       
-      monitorSession(sessionsRef, sessionId); // Start monitoring the session
+      monitorSession(sessionsRef, sessionId); 
 
     } catch (error) {
       console.error('Error signing in with email: ', error);
@@ -75,7 +75,6 @@ const removeOldestSession = async (sessionsRef: CollectionReference<DocumentData
     const sessionDocRef = doc(sessionsRef, sessionId);
     const unsubscribe = onSnapshot(sessionDocRef, (docSnapshot) => {
       if (!docSnapshot.exists()) {
-        // If the session document is deleted, log the user out
         logout();
       }
     });

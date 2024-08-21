@@ -21,13 +21,13 @@ export default function SignUp() {
   const [clientSecret, setClientSecret] = useState(null);
   const router = useRouter();
   const hasFetchedClientSecret = useRef(false);
-  const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
+  const [localSubscription, setLocalSubscription] = useState<boolean | null>(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
       if (!user) {
-        setIsSubscribed(null); 
+        setLocalSubscription(null); 
         return;
       }
 
@@ -46,20 +46,20 @@ export default function SignUp() {
 
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            setIsSubscribed(userData.isSubscribed);
+            setLocalSubscription(userData.isSubscribed);
             if (userData.isSubscribed) {
               router.push('/home');
             }
           } else {
-            setIsSubscribed(false);
+            setLocalSubscription(false);
           }
         }
 
         } else {
-          setIsSubscribed(false);
+          setLocalSubscription(false);
         }
       } else {
-        setIsSubscribed(false);
+        setLocalSubscription(false);
       }
     };
 
@@ -68,8 +68,8 @@ export default function SignUp() {
 
   useEffect(() => {
     const fetchClientSecret = async () => {
-      if (hasFetchedClientSecret.current || isSubscribed === null) return;
-      if (isSubscribed) return;
+      if (hasFetchedClientSecret.current || localSubscription === null) return;
+      if (localSubscription) return;
 
       hasFetchedClientSecret.current = true;
 
@@ -102,7 +102,7 @@ export default function SignUp() {
     }, 20000); 
 
     return () => clearTimeout(timeoutId);
-  }, [user, isSubscribed, clientSecret]);
+  }, [user, localSubscription, clientSecret]);
 
 
   if (error && !clientSecret) {
