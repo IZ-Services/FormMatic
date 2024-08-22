@@ -23,7 +23,7 @@ export default function Account() {
   const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
   const [successfulAlertMessage, setSuccessfulAlertMessage] = useState<string>('');
 
-  useEffect(() => {
+useEffect(() => {
     const checkSubscriptionStatus = async () => {
       if (!user) {
         router.push('/');
@@ -39,20 +39,26 @@ export default function Account() {
 
         if (diffDays > 7) {
           const db = getFirestore(app);
-          const userRef = doc(db, "customers", user.uid);
-          const userDoc = await getDoc(userRef);
+          if (user.email) {
+            const userRef = doc(db, "users", user.email);
+            const userDoc = await getDoc(userRef);
 
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            if (!userData.isSubscribed) {
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              if (!userData.isSubscribed) {
+                router.push('/signUp');
+              }
+            } else {
               router.push('/signUp');
             }
           } else {
+            console.error('User email is not available.');
             router.push('/signUp');
           }
         }
       }
     };
+
 
     checkSubscriptionStatus();
   }, [user, router]);
