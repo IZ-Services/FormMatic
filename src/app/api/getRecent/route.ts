@@ -1,7 +1,6 @@
 import connectDB from '@/lib/mongoDB';
 import Client from '@/models/clientSchema';
 import { NextRequest, NextResponse } from 'next/server';
-import { UserAuth } from '../../../context/AuthContext'; 
 
 export async function GET(request: NextRequest) {
   await connectDB();

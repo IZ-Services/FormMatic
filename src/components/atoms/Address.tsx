@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Address.css';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-import { useAppContext } from '../../context/index'
+import { useAppContext } from '../../context/index';
 
 export default function Address() {
   const { formData, setFormData } = useAppContext()!;
