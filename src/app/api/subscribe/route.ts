@@ -58,8 +58,11 @@ export async function POST(req: NextRequest) {
       throw new Error('Payment intent is not available or is of unexpected type');
     }
 
-    return NextResponse.json({ clientSecret: paymentIntent.client_secret }, { status: 200 });
 
+    return NextResponse.json({
+      clientSecret: paymentIntent.client_secret,
+      customerId: customer.id  
+    }, { status: 200 });
   } catch (error) {
     console.error('Error creating subscription:', error);
     return NextResponse.json({ error: error }, { status: 400 });

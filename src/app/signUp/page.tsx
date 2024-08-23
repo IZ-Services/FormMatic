@@ -19,6 +19,7 @@ const app = initFirebase();
 export default function SignUp() {
   const { user } = UserAuth();
   const [clientSecret, setClientSecret] = useState(null);
+  const [customerId, setCustomerId] = useState(null);
   const router = useRouter();
   const hasFetchedClientSecret = useRef(false);
   const [localSubscription, setLocalSubscription] = useState<boolean | null>(null);
@@ -88,6 +89,7 @@ export default function SignUp() {
 
         const data = await response.json();
         setClientSecret(data.clientSecret);
+        setCustomerId(data.customerId);
       } catch (error) {
         console.error('Error fetching client secret:', error);
       }
@@ -116,7 +118,7 @@ export default function SignUp() {
   return (
     <>
       <Elements stripe={stripePromise} options={{ clientSecret }}>
-        <CheckoutForm />
+        {customerId ? <CheckoutForm customerId={customerId} /> : <Loading />}
       </Elements>
     </>
   );

@@ -2,7 +2,7 @@ import { FirebaseApp } from "firebase/app";
 import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-const updateSubscriptionStatus = async (app: FirebaseApp, isSubscribed: boolean) => {
+const updateSubscriptionStatus = async (app: FirebaseApp, isSubscribed: boolean, customerId: string) => {
   const auth = getAuth(app);
   const userEmail = auth.currentUser?.email;
   if (!userEmail) {
@@ -12,7 +12,7 @@ const updateSubscriptionStatus = async (app: FirebaseApp, isSubscribed: boolean)
 
   const db = getFirestore(app);
   const userRef = doc(db, "users", userEmail); 
-  await setDoc(userRef, { isSubscribed }, { merge: true });
+  await setDoc(userRef, { isSubscribed, stripeCustomerId: customerId }, { merge: true });
 };
 
 export default updateSubscriptionStatus;

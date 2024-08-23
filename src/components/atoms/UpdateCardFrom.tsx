@@ -1,12 +1,11 @@
 'use client';
 import React, { useState } from 'react';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
-import './Update.css'
-import { UserAuth } from '../../context/AuthContext'
+import './Update.css';
+
 
 export default function UpdateCardForm() {
 
-  const { user } = UserAuth(); 
   const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState('');

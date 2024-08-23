@@ -9,7 +9,7 @@ import updateSubscriptionStatus from '../../utils/subscriptionUtil';
 
 const app = initFirebase();
 
-export default function CheckoutForm() {
+export default function CheckoutForm({ customerId }: { customerId: string }) {
   const router = useRouter();
     const stripe = useStripe();
     const elements = useElements();
@@ -33,7 +33,7 @@ export default function CheckoutForm() {
         setMessage(result.error.message || 'An unexpected error occurred.');
       } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
         try {
-          await updateSubscriptionStatus(app, true);
+          await updateSubscriptionStatus(app, true, customerId);
           setMessage('Payment successful!');
           router.push('/thanks');
         } catch (error) {
@@ -53,7 +53,7 @@ export default function CheckoutForm() {
         <PaymentElement className="payment-element" />
         <div className='buttonWrapper'>
         <button className="subscribeButton">
-         Subscribe
+         {isLoading ? 'Loading...' : 'Subscribe'}
         </button>
         {message && <div className="checkoutMessage">{message}</div>}
         </div>
