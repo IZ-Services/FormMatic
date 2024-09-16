@@ -19,6 +19,7 @@
     "@mui/styled-engine-sc": "^6.0.0-alpha.18",
     "@mui/x-date-pickers": "^7.8.0",
     "@stripe/react-stripe-js": "^2.7.3",
+    "dayjs": "^1.11.13",
     "dotenv": "^16.4.5",
     "firebase": "^10.12.3",
     "firebaseui": "^6.1.0",

@@ -14,10 +14,13 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'clientId and user_id are required' }, { status: 400 });
     }
 
-   const client = await Client.findOne({ _id: clientId, user_id: user_id });
+    const client = await Client.findOne({ _id: clientId, user_id: user_id });
 
     if (!client) {
-      return NextResponse.json({ error: 'Client not found or you do not have permission to delete this client' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Client not found or you do not have permission to delete this client' },
+        { status: 404 },
+      );
     }
 
     await Client.findByIdAndDelete(clientId);

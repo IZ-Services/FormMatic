@@ -5,15 +5,18 @@ import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 
 import './Account.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { initFirebase } from '../../firebase-config';
-
-const app = initFirebase();
 
 export default function Account() {
-  const { user } = UserAuth();
-
+  const { user, isSubscribed } = UserAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/');
+    } else if (!isSubscribed) {
+      router.push('/signUp');
+    }
+  }, [user, isSubscribed, router]);
 
   const [editPassword, setEditPassword] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -22,47 +25,6 @@ export default function Account() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
   const [successfulAlertMessage, setSuccessfulAlertMessage] = useState<string>('');
-
-useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      if (!user) {
-        router.push('/');
-        return;
-      }
-
-      const creationTime = user.metadata?.creationTime;
-      if (creationTime) {
-        const userCreationDate = new Date(creationTime);
-        const currentDate = new Date();
-        const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays > 7) {
-          const db = getFirestore(app);
-          if (user.email) {
-            const userRef = doc(db, "users", user.email);
-            const userDoc = await getDoc(userRef);
-
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              if (!userData.isSubscribed) {
-                router.push('/signUp');
-              }
-            } else {
-              router.push('/signUp');
-            }
-          } else {
-            console.error('User email is not available.');
-            router.push('/signUp');
-          }
-        }
-      }
-    };
-
-
-    checkSubscriptionStatus();
-  }, [user, router]);
-
 
   const handleEditPasswordClick = () => {
     setEditPassword(!editPassword);

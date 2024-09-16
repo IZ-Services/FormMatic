@@ -22,13 +22,12 @@ export default function Address() {
   const [isTrailerMenuOpen, setIsTrailerMenuOpen] = useState(false);
   const [trailerState, setTrailerState] = useState('');
   const trailerRef = useRef<HTMLUListElement | null>(null);
-  
 
   const handleAddressStateChange = async (state: string) => {
     setIsAddressMenuOpen(false);
     setAddressState(state);
   };
-    const handleMailingStateChange = async (state: string) => {
+  const handleMailingStateChange = async (state: string) => {
     setIsMailingMenuOpen(false);
     setMailingState(state);
   };
@@ -42,51 +41,50 @@ export default function Address() {
   };
 
   const handleClickOutsideAddressMenu = (e: MouseEvent) => {
-      const target = e.target as Element;
-      if (
-        addressRef.current &&
-        !addressRef.current.contains(target) &&
-        !target.closest('.addressStateDropDown')
-      ) {
-        setIsAddressMenuOpen(false);
-      }
+    const target = e.target as Element;
+    if (
+      addressRef.current &&
+      !addressRef.current.contains(target) &&
+      !target.closest('.addressStateDropDown')
+    ) {
+      setIsAddressMenuOpen(false);
+    }
   };
 
   const handleClickOutsideMailingMenu = (e: MouseEvent) => {
-      const target = e.target as Element;
-      if (
-        mailingRef.current &&
-        !mailingRef.current.contains(target) &&
-        !target.closest('.mailingStateDropDown')
-      ) {
-        setIsMailingMenuOpen(false);
-      }
+    const target = e.target as Element;
+    if (
+      mailingRef.current &&
+      !mailingRef.current.contains(target) &&
+      !target.closest('.mailingStateDropDown')
+    ) {
+      setIsMailingMenuOpen(false);
+    }
   };
-  
+
   const handleClickOutsideLesseeMenu = (e: MouseEvent) => {
-      const target = e.target as Element;
-      if (
-        lesseeRef.current &&
-        !lesseeRef.current.contains(target) &&
-        !target.closest('.lesseeStateDropDown')
-      ) {
-        setIsLesseeMenuOpen(false);
-      }
+    const target = e.target as Element;
+    if (
+      lesseeRef.current &&
+      !lesseeRef.current.contains(target) &&
+      !target.closest('.lesseeStateDropDown')
+    ) {
+      setIsLesseeMenuOpen(false);
+    }
   };
 
   const handleClickOutsideTrailerMenu = (e: MouseEvent) => {
-      const target = e.target as Element;
-      if (
-        trailerRef.current &&
-        !trailerRef.current.contains(target) &&
-        !target.closest('.trailerStateDropDown')
-      ) {
-        setIsTrailerMenuOpen(false);
-      }
+    const target = e.target as Element;
+    if (
+      trailerRef.current &&
+      !trailerRef.current.contains(target) &&
+      !target.closest('.trailerStateDropDown')
+    ) {
+      setIsTrailerMenuOpen(false);
+    }
   };
 
-  
-    useEffect(() => {
+  useEffect(() => {
     if (isAddressMenuOpen) {
       document.addEventListener('mousedown', handleClickOutsideAddressMenu);
     } else {
@@ -108,7 +106,7 @@ export default function Address() {
     };
   }, [isMailingMenuOpen]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (isLesseeMenuOpen) {
       document.addEventListener('mousedown', handleClickOutsideLesseeMenu);
     } else {
@@ -131,92 +129,92 @@ export default function Address() {
   }, [isTrailerMenuOpen]);
 
   const states = [
-    { name: "Alabama", abbreviation: "AL" },
-    { name: "Alaska", abbreviation: "AK" },
-    { name: "Arizona", abbreviation: "AZ" },
-    { name: "Arkansas", abbreviation: "AR" },
-    { name: "California", abbreviation: "CA" },
-    { name: "Colorado", abbreviation: "CO" },
-    { name: "Connecticut", abbreviation: "CT" },
-    { name: "Delaware", abbreviation: "DE" },
-    { name: "Florida", abbreviation: "FL" },
-    { name: "Georgia", abbreviation: "GA" },
-    { name: "Hawaii", abbreviation: "HI" },
-    { name: "Idaho", abbreviation: "ID" },
-    { name: "Illinois", abbreviation: "IL" },
-    { name: "Indiana", abbreviation: "IN" },
-    { name: "Iowa", abbreviation: "IA" },
-    { name: "Kansas", abbreviation: "KS" },
-    { name: "Kentucky", abbreviation: "KY" },
-    { name: "Louisiana", abbreviation: "LA" },
-    { name: "Maine", abbreviation: "ME" },
-    { name: "Maryland", abbreviation: "MD" },
-    { name: "Massachusetts", abbreviation: "MA" },
-    { name: "Michigan", abbreviation: "MI" },
-    { name: "Minnesota", abbreviation: "MN" },
-    { name: "Mississippi", abbreviation: "MS" },
-    { name: "Missouri", abbreviation: "MO" },
-    { name: "Montana", abbreviation: "MT" },
-    { name: "Nebraska", abbreviation: "NE" },
-    { name: "Nevada", abbreviation: "NV" },
-    { name: "New Hampshire", abbreviation: "NH" },
-    { name: "New Jersey", abbreviation: "NJ" },
-    { name: "New Mexico", abbreviation: "NM" },
-    { name: "New York", abbreviation: "NY" },
-    { name: "North Carolina", abbreviation: "NC" },
-    { name: "North Dakota", abbreviation: "ND" },
-    { name: "Ohio", abbreviation: "OH" },
-    { name: "Oklahoma", abbreviation: "OK" },
-    { name: "Oregon", abbreviation: "OR" },
-    { name: "Pennsylvania", abbreviation: "PA" },
-    { name: "Rhode Island", abbreviation: "RI" },
-    { name: "South Carolina", abbreviation: "SC" },
-    { name: "South Dakota", abbreviation: "SD" },
-    { name: "Tennessee", abbreviation: "TN" },
-    { name: "Texas", abbreviation: "TX" },
-    { name: "Utah", abbreviation: "UT" },
-    { name: "Vermont", abbreviation: "VT" },
-    { name: "Virginia", abbreviation: "VA" },
-    { name: "Washington", abbreviation: "WA" },
-    { name: "West Virginia", abbreviation: "WV" },
-    { name: "Wisconsin", abbreviation: "WI" },
-    { name: "Wyoming", abbreviation: "WY" }
+    { name: 'Alabama', abbreviation: 'AL' },
+    { name: 'Alaska', abbreviation: 'AK' },
+    { name: 'Arizona', abbreviation: 'AZ' },
+    { name: 'Arkansas', abbreviation: 'AR' },
+    { name: 'California', abbreviation: 'CA' },
+    { name: 'Colorado', abbreviation: 'CO' },
+    { name: 'Connecticut', abbreviation: 'CT' },
+    { name: 'Delaware', abbreviation: 'DE' },
+    { name: 'Florida', abbreviation: 'FL' },
+    { name: 'Georgia', abbreviation: 'GA' },
+    { name: 'Hawaii', abbreviation: 'HI' },
+    { name: 'Idaho', abbreviation: 'ID' },
+    { name: 'Illinois', abbreviation: 'IL' },
+    { name: 'Indiana', abbreviation: 'IN' },
+    { name: 'Iowa', abbreviation: 'IA' },
+    { name: 'Kansas', abbreviation: 'KS' },
+    { name: 'Kentucky', abbreviation: 'KY' },
+    { name: 'Louisiana', abbreviation: 'LA' },
+    { name: 'Maine', abbreviation: 'ME' },
+    { name: 'Maryland', abbreviation: 'MD' },
+    { name: 'Massachusetts', abbreviation: 'MA' },
+    { name: 'Michigan', abbreviation: 'MI' },
+    { name: 'Minnesota', abbreviation: 'MN' },
+    { name: 'Mississippi', abbreviation: 'MS' },
+    { name: 'Missouri', abbreviation: 'MO' },
+    { name: 'Montana', abbreviation: 'MT' },
+    { name: 'Nebraska', abbreviation: 'NE' },
+    { name: 'Nevada', abbreviation: 'NV' },
+    { name: 'New Hampshire', abbreviation: 'NH' },
+    { name: 'New Jersey', abbreviation: 'NJ' },
+    { name: 'New Mexico', abbreviation: 'NM' },
+    { name: 'New York', abbreviation: 'NY' },
+    { name: 'North Carolina', abbreviation: 'NC' },
+    { name: 'North Dakota', abbreviation: 'ND' },
+    { name: 'Ohio', abbreviation: 'OH' },
+    { name: 'Oklahoma', abbreviation: 'OK' },
+    { name: 'Oregon', abbreviation: 'OR' },
+    { name: 'Pennsylvania', abbreviation: 'PA' },
+    { name: 'Rhode Island', abbreviation: 'RI' },
+    { name: 'South Carolina', abbreviation: 'SC' },
+    { name: 'South Dakota', abbreviation: 'SD' },
+    { name: 'Tennessee', abbreviation: 'TN' },
+    { name: 'Texas', abbreviation: 'TX' },
+    { name: 'Utah', abbreviation: 'UT' },
+    { name: 'Vermont', abbreviation: 'VT' },
+    { name: 'Virginia', abbreviation: 'VA' },
+    { name: 'Washington', abbreviation: 'WA' },
+    { name: 'West Virginia', abbreviation: 'WV' },
+    { name: 'Wisconsin', abbreviation: 'WI' },
+    { name: 'Wyoming', abbreviation: 'WY' },
   ];
 
   return (
     <div>
-       <input
-          className="inputData"
-          value={formData.firstName1}
-          onChange={(e) => setFormData({ ...formData, firstName1: e.target.value })}
-        />
+      <input
+        className="inputData"
+        value={formData.firstName1}
+        onChange={(e) => setFormData({ ...formData, firstName1: e.target.value })}
+      />
 
-        <label style={{ marginLeft: '10px', marginTop: '10px' }}>Middle Name</label>
-        <input
-          className="inputData"
-          value={formData.middleName1}
-          onChange={(e) => setFormData({ ...formData, middleName1: e.target.value })}
-        />
+      <label style={{ marginLeft: '10px', marginTop: '10px' }}>Middle Name</label>
+      <input
+        className="inputData"
+        value={formData.middleName1}
+        onChange={(e) => setFormData({ ...formData, middleName1: e.target.value })}
+      />
 
-        <label style={{ marginLeft: '10px', marginTop: '10px' }}>Last Name</label>
-        <input
-          className="inputData"
-          value={formData.lastName1}
-          onChange={(e) => setFormData({ ...formData, lastName1: e.target.value })}
-        />
-        <input
-              className="inputData"
-              value={formData.transactionType}
-              onChange={(e) => setFormData({ ...formData, transactionType: e.target.value })}
-            />
+      <label style={{ marginLeft: '10px', marginTop: '10px' }}>Last Name</label>
+      <input
+        className="inputData"
+        value={formData.lastName1}
+        onChange={(e) => setFormData({ ...formData, lastName1: e.target.value })}
+      />
+      <input
+        className="inputData"
+        value={formData.transactionType}
+        onChange={(e) => setFormData({ ...formData, transactionType: e.target.value })}
+      />
 
-      <div className='addressWrapper'>
-        <div className='addressCheckboxWrapper'>
+      <div className="addressWrapper">
+        <div className="addressCheckboxWrapper">
           <h3 className="addressHeading">Address</h3>
           <div className="checkboxSection">
             <input
               type="checkbox"
-              className='checkBoxAddress'
+              className="checkBoxAddress"
               checked={mailingAddress}
               onChange={() => setMailingAddress(!mailingAddress)}
             />
@@ -225,7 +223,7 @@ export default function Address() {
           <div className="checkboxSection">
             <input
               type="checkbox"
-              className='checkBoxAddress'
+              className="checkBoxAddress"
               checked={lesseeAddress}
               onChange={() => setLesseeAddress(!lesseeAddress)}
             />
@@ -234,141 +232,150 @@ export default function Address() {
           <div className="checkboxSection">
             <input
               type="checkbox"
-              className='checkBoxAddress'
+              className="checkBoxAddress"
               checked={trailerAddress}
               onChange={() => setTrailerAddress(!trailerAddress)}
             />
             <p>Trailer/Vessel location</p>
           </div>
         </div>
-        <div className='addressFirstLine'>
-          <div className='topGroup'>
-            <label className='subHeadings'>Street</label>
+        <div className="addressFirstLine">
+          <div className="topGroup">
+            <label className="subHeadings">Street</label>
             <input className="streetInput" placeholder="Street"></input>
           </div>
           <div>
-            <label className='subHeadings'>APT./SPACE/STE.#</label>
+            <label className="subHeadings">APT./SPACE/STE.#</label>
             <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
           </div>
         </div>
-        <div className='cityStateZipLine'>
+        <div className="cityStateZipLine">
           <div>
-            <label className='subHeadings'>City</label>
+            <label className="subHeadings">City</label>
             <input className="cityInput" placeholder="City"></input>
           </div>
-          <div className='addressStateWrapper'>
-            <label className='subHeadings'>State</label>
-              <button onClick={() => setIsAddressMenuOpen(!isAddressMenuOpen)} className="addressStateDropDown">
-              { addressState || 'State'}
+          <div className="addressStateWrapper">
+            <label className="subHeadings">State</label>
+            <button
+              onClick={() => setIsAddressMenuOpen(!isAddressMenuOpen)}
+              className="addressStateDropDown"
+            >
+              {addressState || 'State'}
               <ChevronDownIcon className={`addressIcon ${isAddressMenuOpen ? 'rotate' : ''}`} />
             </button>
             {isAddressMenuOpen && (
               <ul ref={addressRef} className="addressStateMenu">
                 {states.map((state, index) => (
                   <li
-                    className='addressStateLists'
+                    className="addressStateLists"
                     key={index}
                     onClick={() => handleAddressStateChange(state.abbreviation)}
                   >
                     {state.name}
-                  </li>                
+                  </li>
                 ))}
               </ul>
             )}
           </div>
           <div>
-            <label className='subHeadings'>Zip Code</label>
+            <label className="subHeadings">Zip Code</label>
             <input className="zipInput" placeholder="Zip Code"></input>
           </div>
         </div>
       </div>
-      
+
       {mailingAddress && (
-        <div className='addressWrapper'>
+        <div className="addressWrapper">
           <h3 className="addressHeading">Mailing Address</h3>
-          <div className='addressFirstLine'>
-          <div className='topGroup'>
-              <label className='subHeadings'>Street</label>
+          <div className="addressFirstLine">
+            <div className="topGroup">
+              <label className="subHeadings">Street</label>
               <input className="streetInput" placeholder="Street"></input>
             </div>
             <div>
-              <label className='subHeadings'>APT./SPACE/STE.#</label>
+              <label className="subHeadings">APT./SPACE/STE.#</label>
               <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
             </div>
           </div>
-          <div className='cityStateZipLine'>
+          <div className="cityStateZipLine">
             <div>
-              <label className='subHeadings'>City</label>
+              <label className="subHeadings">City</label>
               <input className="cityInput" placeholder="City"></input>
             </div>
-            <div className='addressStateWrapper'>
-            <label className='subHeadings'>State</label>
-              <button onClick={() => setIsMailingMenuOpen(!isMailingMenuOpen)} className="mailingStateDropDown">
-              { mailingState || 'State'}
-              <ChevronDownIcon className={`mailingIcon ${isMailingMenuOpen ? 'rotate' : ''}`} />
-            </button>
-            {isMailingMenuOpen && (
-              <ul ref={mailingRef} className="addressStateMenu">
-                {states.map((state, index) => (
-                  <li
-                    className='addressStateLists'
-                    key={index}
-                    onClick={() => handleMailingStateChange(state.abbreviation)}
-                  >
-                    {state.name}
-                  </li>                
-                ))}
-              </ul>
-            )}
-          </div>
+            <div className="addressStateWrapper">
+              <label className="subHeadings">State</label>
+              <button
+                onClick={() => setIsMailingMenuOpen(!isMailingMenuOpen)}
+                className="mailingStateDropDown"
+              >
+                {mailingState || 'State'}
+                <ChevronDownIcon className={`mailingIcon ${isMailingMenuOpen ? 'rotate' : ''}`} />
+              </button>
+              {isMailingMenuOpen && (
+                <ul ref={mailingRef} className="addressStateMenu">
+                  {states.map((state, index) => (
+                    <li
+                      className="addressStateLists"
+                      key={index}
+                      onClick={() => handleMailingStateChange(state.abbreviation)}
+                    >
+                      {state.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <div>
-              <label className='subHeadings'>Zip Code</label>
+              <label className="subHeadings">Zip Code</label>
               <input className="zipInput" placeholder="Zip Code"></input>
             </div>
           </div>
         </div>
       )}
 
-       {lesseeAddress && (
-        <div className='addressWrapper'>
+      {lesseeAddress && (
+        <div className="addressWrapper">
           <h3 className="addressHeading">Lessee Address</h3>
-          <div className='addressFirstLine'>
-          <div className='topGroup'>
-              <label className='subHeadings'>Street</label>
+          <div className="addressFirstLine">
+            <div className="topGroup">
+              <label className="subHeadings">Street</label>
               <input className="streetInput" placeholder="Street"></input>
             </div>
             <div>
-              <label className='subHeadings'>APT./SPACE/STE.#</label>
+              <label className="subHeadings">APT./SPACE/STE.#</label>
               <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
             </div>
           </div>
-          <div className='cityStateZipLine'>
+          <div className="cityStateZipLine">
             <div>
-              <label className='subHeadings'>City</label>
+              <label className="subHeadings">City</label>
               <input className="cityInput" placeholder="City"></input>
             </div>
-            <div className='addressStateWrapper'>
-            <label className='subHeadings'>State</label>
-              <button onClick={() => setIsLesseeMenuOpen(!isLesseeMenuOpen)} className="lesseeStateDropDown">
-              { lesseeState || 'State'}
-              <ChevronDownIcon className={`lesseeIcon ${isLesseeMenuOpen ? 'rotate' : ''}`} />
-            </button>
-            {isLesseeMenuOpen && (
-              <ul ref={lesseeRef} className="addressStateMenu">
-                {states.map((state, index) => (
-                  <li
-                    className='addressStateLists'
-                    key={index}
-                    onClick={() => handleLesseeStateChange(state.abbreviation)}
-                  >
-                    {state.name}
-                  </li>                
-                ))}
-              </ul>
-            )}
-          </div>
+            <div className="addressStateWrapper">
+              <label className="subHeadings">State</label>
+              <button
+                onClick={() => setIsLesseeMenuOpen(!isLesseeMenuOpen)}
+                className="lesseeStateDropDown"
+              >
+                {lesseeState || 'State'}
+                <ChevronDownIcon className={`lesseeIcon ${isLesseeMenuOpen ? 'rotate' : ''}`} />
+              </button>
+              {isLesseeMenuOpen && (
+                <ul ref={lesseeRef} className="addressStateMenu">
+                  {states.map((state, index) => (
+                    <li
+                      className="addressStateLists"
+                      key={index}
+                      onClick={() => handleLesseeStateChange(state.abbreviation)}
+                    >
+                      {state.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <div>
-              <label className='subHeadings'>Zip Code</label>
+              <label className="subHeadings">Zip Code</label>
               <input className="zipInput" placeholder="Zip Code"></input>
             </div>
           </div>
@@ -376,45 +383,48 @@ export default function Address() {
       )}
 
       {trailerAddress && (
-        <div className='addressWrapper'>
+        <div className="addressWrapper">
           <h3 className="addressHeading">Vessel or Trailer Principally Kept At</h3>
-          <div className='addressFirstLine'>
-          <div className='topGroup'>
-              <label className='subHeadings'>Street</label>
+          <div className="addressFirstLine">
+            <div className="topGroup">
+              <label className="subHeadings">Street</label>
               <input className="streetInput" placeholder="Street"></input>
             </div>
             <div>
-              <label className='subHeadings'>APT./SPACE/STE.#</label>
+              <label className="subHeadings">APT./SPACE/STE.#</label>
               <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
             </div>
           </div>
-          <div className='cityStateZipLine'>
+          <div className="cityStateZipLine">
             <div>
-              <label className='subHeadings'>City</label>
+              <label className="subHeadings">City</label>
               <input className="cityInput" placeholder="City"></input>
             </div>
-            <div className='addressStateWrapper'>
-            <label className='subHeadings'>State</label>
-              <button onClick={() => setIsTrailerMenuOpen(!isTrailerMenuOpen)} className="trailerStateDropDown">
-              { trailerState || 'State'}
-              <ChevronDownIcon className={`trailerIcon ${isTrailerMenuOpen ? 'rotate' : ''}`} />
-            </button>
-            {isTrailerMenuOpen && (
-              <ul ref={trailerRef} className="addressStateMenu">
-                {states.map((state, index) => (
-                  <li
-                    className='addressStateLists'
-                    key={index}
-                    onClick={() => handleTrailerStateChange(state.abbreviation)}
-                  >
-                    {state.name}
-                  </li>                
-                ))}
-              </ul>
-            )}
-          </div>
+            <div className="addressStateWrapper">
+              <label className="subHeadings">State</label>
+              <button
+                onClick={() => setIsTrailerMenuOpen(!isTrailerMenuOpen)}
+                className="trailerStateDropDown"
+              >
+                {trailerState || 'State'}
+                <ChevronDownIcon className={`trailerIcon ${isTrailerMenuOpen ? 'rotate' : ''}`} />
+              </button>
+              {isTrailerMenuOpen && (
+                <ul ref={trailerRef} className="addressStateMenu">
+                  {states.map((state, index) => (
+                    <li
+                      className="addressStateLists"
+                      key={index}
+                      onClick={() => handleTrailerStateChange(state.abbreviation)}
+                    >
+                      {state.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <div>
-              <label className='subHeadings'>Zip Code</label>
+              <label className="subHeadings">Zip Code</label>
               <input className="zipInput" placeholder="Zip Code"></input>
             </div>
           </div>

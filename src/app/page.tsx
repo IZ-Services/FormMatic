@@ -17,7 +17,7 @@ export default function LoginPage() {
   const [loginError, setLoginError] = useState(false);
 
   const handleSignIn = async (event: React.FormEvent) => {
-    event.preventDefault(); 
+    event.preventDefault();
 
     try {
       if (emailSignIn) {

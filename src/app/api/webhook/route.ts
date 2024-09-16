@@ -17,7 +17,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const rawBody = await req.text();
-    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET as string);
+    event = stripe.webhooks.constructEvent(
+      rawBody,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET as string,
+    );
   } catch (err) {
     console.error('Error verifying Stripe webhook signature:', err);
     return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
@@ -30,17 +34,17 @@ export async function POST(req: NextRequest) {
         const invoice = event.data.object as Stripe.Invoice | Stripe.PaymentIntent;
         const customerId = invoice.customer as string;
 
-        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
-        const email = customer.email;
+        const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
+        const userId = customer.metadata.userId;
 
-        if (email) {
-          const userDocRef = doc(db, 'users', email);
+        if (userId) {
+          const userDocRef = doc(db, 'users', userId);
 
           await updateDoc(userDocRef, {
             isSubscribed: false,
           });
         } else {
-          console.error('No email found for the customer');
+          console.error('Customer not found');
         }
         break;
       }

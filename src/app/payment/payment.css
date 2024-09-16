@@ -18,7 +18,6 @@ body {
   margin-top: 8rem;
 }
 
-
 .paymentTitle {
   font-weight: 400;
   text-align: center;
@@ -87,19 +86,19 @@ body {
   color: red;
 }
 
-.paymentClientError{
+.paymentClientError {
   margin-top: 8rem;
   text-align: center;
-    font-size: 1.5rem;
+  font-size: 1.5rem;
   color: #333;
   justify-content: center;
   text-align: center;
   padding-top: 10%;
 }
 
-.updateCardFormWrapper{
-    width: 100%;
-  max-width: 500px; 
+.updateCardFormWrapper {
+  width: 100%;
+  max-width: 500px;
 }
 
 @media (max-width: 590px) {
@@ -110,6 +109,4 @@ body {
   .paymentCardInput {
     max-width: 400px;
   }
-
 }
-

@@ -7,36 +7,36 @@
 body {
   font-family: Arial, sans-serif;
 }
- 
-.addressCheckboxWrapper{
+
+.addressCheckboxWrapper {
   display: flex;
   flex-direction: row;
   gap: 20px;
 }
 
-.checkboxSection{
+.checkboxSection {
   display: flex;
   flex-direction: row;
   padding-top: 15px;
-} 
+}
 
 .addressHeading {
   font-weight: 400;
   padding-top: 10px;
   text-decoration: underline;
-      margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
-.checkBoxAddress{
+.checkBoxAddress {
   border: 1px solid black;
   width: 15px;
   height: 15px;
   margin-right: 10px;
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .subHeadings {
-    display: block;
+  display: block;
   margin-bottom: 5px;
   font-size: 14px;
   font-weight: 400;
@@ -53,11 +53,10 @@ body {
 .lesseeStateDropDown,
 .trailerStateDropDown {
   width: 100%;
-   padding: 8px;
+  padding: 8px;
   border: 1px solid #ccc;
   border-radius: 2px;
   font-size: 14px;
-
 }
 
 .streetInput::placeholder,
@@ -67,7 +66,7 @@ body {
 .addressStateDropDown::placeholder,
 .mailingStateDropDown::placeholder,
 .lesseeStateDropDown::placeholder,
-.trailerStateDropDown::placeholder  {
+.trailerStateDropDown::placeholder {
   color: #999;
 }
 
@@ -103,10 +102,9 @@ body {
   width: 200px;
 }
 
-
 .addressStateWrapper {
   max-width: 100px;
-  position: relative; 
+  position: relative;
 }
 
 .addressStateDropDown {
@@ -117,15 +115,15 @@ body {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 2px;
-   color: #999;
+  color: #999;
   text-align: center;
   justify-content: center;
   align-items: center;
-  width: 100%; 
+  width: 100%;
 }
 
 .addressStateMenu {
-  position: absolute; 
+  position: absolute;
   top: calc(100% + 5px);
   left: 0;
   right: 0;
@@ -139,13 +137,13 @@ body {
   text-align: center;
   overflow-y: auto;
   height: 200px;
-  max-height: 200px; 
+  max-height: 200px;
   padding-right: 15px;
   overflow-x: hidden;
 }
 
 .addressStateLists {
- color: #999;
+  color: #999;
   padding: 10px;
   font-size: 12px;
 }
@@ -169,10 +167,10 @@ body {
 }
 
 .checkboxSection p {
-  font-size: 1rem; 
+  font-size: 1rem;
 }
 
-.mailingStateDropDown{
+.mailingStateDropDown {
   cursor: pointer;
   position: relative;
   outline: none;
@@ -180,14 +178,14 @@ body {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 2px;
-   color: #999;
+  color: #999;
   text-align: center;
   justify-content: center;
   align-items: center;
-  width: 100%; 
+  width: 100%;
 }
 
-.lesseeStateDropDown{
+.lesseeStateDropDown {
   cursor: pointer;
   position: relative;
   outline: none;
@@ -195,14 +193,14 @@ body {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 2px;
-   color: #999;
+  color: #999;
   text-align: center;
   justify-content: center;
   align-items: center;
-  width: 100%; 
+  width: 100%;
 }
 
-.trailerStateDropDown{
+.trailerStateDropDown {
   cursor: pointer;
   position: relative;
   outline: none;
@@ -210,11 +208,11 @@ body {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 2px;
-   color: #999;
+  color: #999;
   text-align: center;
   justify-content: center;
   align-items: center;
-  width: 100%; 
+  width: 100%;
 }
 
 .mailingIcon {
@@ -253,24 +251,24 @@ body {
   transform: rotate(180deg);
 }
 
-.topGroup{
+.topGroup {
   margin-bottom: 15px;
 }
 
 @media (max-width: 1200px) {
   .checkboxSection p {
-    font-size: 0.6rem; 
+    font-size: 0.6rem;
   }
 }
 
 @media (max-width: 768px) {
   .checkboxSection p {
-    font-size: 0.6rem; 
+    font-size: 0.6rem;
   }
 }
 
 @media (max-width: 480px) {
   .checkboxSection p {
-    font-size: 0.5rem; 
+    font-size: 0.5rem;
   }
 }

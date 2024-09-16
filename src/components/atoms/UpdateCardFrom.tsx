@@ -3,9 +3,7 @@ import React, { useState } from 'react';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
 import './Update.css';
 
-
 export default function UpdateCardForm() {
-
   const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState('');
@@ -19,13 +17,12 @@ export default function UpdateCardForm() {
     try {
       const { error, setupIntent } = await stripe.confirmSetup({
         elements,
-        redirect: 'if_required', 
+        redirect: 'if_required',
       });
 
-    if (error) {
-          setMessage(error.message || 'An unexpected error occurred.');
-        } else if (setupIntent.status === 'succeeded') {
-
+      if (error) {
+        setMessage(error.message || 'An unexpected error occurred.');
+      } else if (setupIntent.status === 'succeeded') {
         const response = await fetch('/api/detachOldCard', {
           method: 'POST',
           headers: {
@@ -34,7 +31,8 @@ export default function UpdateCardForm() {
           body: JSON.stringify({
             customerId: setupIntent.payment_method,
             newPaymentMethodId: setupIntent.payment_method,
-          }),        });
+          }),
+        });
 
         if (!response.ok) {
           throw new Error('Failed to detach old cards');
@@ -42,13 +40,13 @@ export default function UpdateCardForm() {
 
         setMessage('Card updated successfully!');
       }
-      } catch (error) {
-        console.error('Error updating payment method:', error);
-        setMessage('An unexpected error occurred.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    } catch (error) {
+      console.error('Error updating payment method:', error);
+      setMessage('An unexpected error occurred.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="updateCardContainer">
@@ -56,11 +54,7 @@ export default function UpdateCardForm() {
         <h1 className="updateCardTitle">Update Card</h1>
         <PaymentElement className="updatePayment-element" />
         <div className="updatePaymentButtonWrapper">
-          <button
-            className="updatePaymentButton"
-                        type="submit"
-            disabled={isLoading}
-          >
+          <button className="updatePaymentButton" type="submit" disabled={isLoading}>
             {isLoading ? 'Updating...' : 'Update Card'}
           </button>
           {message && <div className="paymentMessage">{message}</div>}

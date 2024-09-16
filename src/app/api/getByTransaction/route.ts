@@ -9,19 +9,17 @@ export async function GET(request: NextRequest) {
   const user_id = searchParams.get('user_id');
 
   try {
-
     if (!transactionType) {
       return NextResponse.json({ error: 'Transaction parameter is required' }, { status: 400 });
     }
 
     if (!user_id) {
       return NextResponse.json({ error: 'User parameter is required' }, { status: 400 });
-
     }
 
     const clients = await Client.find({
       user_id: user_id,
-      transactionType: transactionType
+      transactionType: transactionType,
     });
 
     if (clients.length === 0) {
