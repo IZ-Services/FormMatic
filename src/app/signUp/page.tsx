@@ -14,6 +14,7 @@ const stripePromise = loadStripe(publishableKey);
 
 export default function SignUp() {
   const { user, isSubscribed } = UserAuth();
+  const [loading, setLoading] = useState(true); 
   const [clientSecret, setClientSecret] = useState(null);
   const [customerId, setCustomerId] = useState(null);
   const router = useRouter();
@@ -23,17 +24,21 @@ export default function SignUp() {
   useEffect(() => {
     if (!user) {
       router.push('/');
-    } else if (isSubscribed) {
+    } else if (isSubscribed === true) {
       router.push('/home');
+      setLoading(false);
+   } else if (isSubscribed === false) {
+      setLoading(false); 
     }
   }, [user, isSubscribed, router]);
-
+  
   useEffect(() => {
+
     const fetchClientSecret = async () => {
-      if (hasFetchedClientSecret.current || !user || clientSecret) return; // Ensure it only runs once and skips if already fetched
-
+      if (hasFetchedClientSecret.current || !user || clientSecret) return;
+      
       hasFetchedClientSecret.current = true;
-
+      
       try {
         const response = await fetch('/api/subscribe', {
           method: 'POST',
@@ -46,11 +51,11 @@ export default function SignUp() {
             email: user?.email,
           }),
         });
-
+        
         if (!response.ok) {
           throw new Error('Failed to fetch client secret');
         }
-
+        
         const data = await response.json();
         setClientSecret(data.clientSecret);
         setCustomerId(data.customerId);
@@ -59,18 +64,22 @@ export default function SignUp() {
         setError(true);
       }
     };
-
+    
     fetchClientSecret();
-
+    
     const timeoutId = setTimeout(() => {
       if (!clientSecret) {
         setError(true);
       }
     }, 20000);
-
+    
     return () => clearTimeout(timeoutId);
   }, [user, clientSecret]);
-
+  
+  if (loading) {
+    return <Loading />;
+  }
+  
   if (error && !clientSecret) {
     return (
       <div className="signUpClientError">

@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { useEffect } from 'react';
 import './Home.css';
 import { UserAuth } from '../../context/AuthContext';
@@ -7,12 +7,14 @@ import { useRouter } from 'next/navigation';
 import { useScenarioContext } from '../../context/ScenarioContext';
 import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import { useAppContext } from '../../context/index';
+import  Loading  from '../../components/pages/Loading';
 
 export default function Home() {
   const { formData } = useAppContext()!;
   const { selectedSubsection } = useScenarioContext()!;
   const { user, isSubscribed } = UserAuth();
   const router = useRouter();
+  const [loading, setLoading] = useState(true); 
 
   const user_email = user?.email;
 
@@ -21,8 +23,14 @@ export default function Home() {
       router.push('/');
     } else if (!isSubscribed) {
       router.push('/signUp');
+    } else {
+      setLoading(false); 
     }
   }, [user, isSubscribed, router]);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   const renderComponent = () => {
     switch (selectedSubsection) {

@@ -1,21 +1,29 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Contact.css';
 import { EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
+import  Loading  from '../../components/pages/Loading';
 
 export default function Contact() {
   const { user, isSubscribed } = UserAuth();
   const router = useRouter();
+  const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
     if (!user) {
       router.push('/');
     } else if (!isSubscribed) {
       router.push('/signUp');
+    } else {
+      setLoading(false); 
     }
   }, [user, isSubscribed, router]);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="container">

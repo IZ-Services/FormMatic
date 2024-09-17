@@ -6,22 +6,29 @@ import { useAppContext } from '@/context';
 import Link from 'next/link';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
+import  Loading  from '../../components/pages/Loading';
 
 export default function UpdateClient() {
   const { formData, setFormData } = useAppContext()!;
   const { user, isSubscribed } = UserAuth();
   const router = useRouter();
+  const [loading, setLoading] = useState(true); 
+  const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false);
+  const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false);
 
   useEffect(() => {
     if (!user) {
       router.push('/');
     } else if (!isSubscribed) {
       router.push('/signUp');
+    } else {
+      setLoading(false); 
     }
   }, [user, isSubscribed, router]);
 
-  const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false);
-  const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false);
+  if (loading) {
+    return <Loading />;
+  }
 
   const handleClickAddSecondRegisteredOwner = () => {
     setAddSecondRegisteredOwner(true);

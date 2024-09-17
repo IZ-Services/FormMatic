@@ -5,19 +5,12 @@ import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 
 import './Account.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
+import  Loading  from '../../components/pages/Loading';
 
 export default function Account() {
   const { user, isSubscribed } = UserAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    if (!user) {
-      router.push('/');
-    } else if (!isSubscribed) {
-      router.push('/signUp');
-    }
-  }, [user, isSubscribed, router]);
-
+  const [loading, setLoading] = useState(true); 
   const [editPassword, setEditPassword] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -25,6 +18,20 @@ export default function Account() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
   const [successfulAlertMessage, setSuccessfulAlertMessage] = useState<string>('');
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/');
+    } else if (!isSubscribed) {
+      router.push('/signUp');
+    } else {
+      setLoading(false); 
+    }
+  }, [user, isSubscribed, router]);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   const handleEditPasswordClick = () => {
     setEditPassword(!editPassword);

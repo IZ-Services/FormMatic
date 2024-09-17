@@ -7,7 +7,6 @@ import { getStripePublishableKey } from '../../utils/stripeUtil';
 import { UserAuth } from '../../context/AuthContext';
 import Loading from '../../components/pages/Loading';
 import { useRouter } from 'next/navigation';
-import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import './Payment.css';
 
 const publishableKey = getStripePublishableKey();
@@ -22,57 +21,68 @@ export default function Payment() {
   const [editCard, setEditCard] = useState(false);
   const [error, setError] = useState(false);
   const hasFetchedClientSecret = useRef(false);
+  const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
     if (!user) {
       router.push('/');
     } else if (!isSubscribed) {
       router.push('/signUp');
-    }
-  }, [user, isSubscribed, router]);
+    } else {
+      setLoading(false); 
+      
+      const fetchClientSecret = async () => {
+        if (hasFetchedClientSecret.current) return;
+        hasFetchedClientSecret.current = true;
 
-  useEffect(() => {
-    const fetchClientSecret = async () => {
-      if (hasFetchedClientSecret.current) return;
-      hasFetchedClientSecret.current = true;
-
-      try {
-        const response = await fetch('/api/paymentUpdate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user?.uid, email: user?.email }),
-        });
+        try {
+          const response = await fetch('/api/paymentUpdate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId: user?.uid, email: user?.email }),
+          });
 
         if (!response.ok) {
+          const data = await response.json();
+          if (data.error === 'No active subscription found for this customer') {
+            setErrorAlertMessage("You can update your payment details after your free trial has expired.");
+            setError(true);            
+            return;
+          }
           throw new Error('Failed to fetch client secret');
         }
 
-        const data = await response.json();
-        setClientSecret(data.clientSecret);
-      } catch (error) {
-        console.error('Error fetching client secret:', error);
-      }
-    };
-
-    if (user) {
-      fetchClientSecret();
-
-      const timeoutId = setTimeout(() => {
-        if (!clientSecret) {
+          const data = await response.json();
+          setClientSecret(data.clientSecret);
+        } catch (error) {
+          console.error('Error fetching client secret:', error);
+          setErrorAlertMessage('Failed to load payment details. Please contact us for assistance.');
           setError(true);
         }
-      }, 20000);
+      };
 
+      if (user) {
+        fetchClientSecret();
+        const timeoutId = setTimeout(() => {
+          if (!clientSecret) {
+            setError(true);
+          }
+        }, 20000);
       return () => clearTimeout(timeoutId);
+      }
     }
-  }, [user, clientSecret]);
+  }, [user, isSubscribed, router, clientSecret]);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   if (error && !clientSecret) {
     return (
       <div className="paymentClientError">
-        Failed to load payment details. Please contact us for assistance.
+        {errorAlertMessage}
       </div>
     );
   }
@@ -120,7 +130,9 @@ export default function Payment() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
-                <PencilSquareIcon className="editPaymentIcon" onClick={handleEditPasswordClick} />
+                <button className="paymentUpdateButton" onClick={handleEditPasswordClick} >
+                  Enter
+                </button>
               </div>
             </div>
           </>

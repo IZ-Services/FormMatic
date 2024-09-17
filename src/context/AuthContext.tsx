@@ -45,10 +45,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   const router = useRouter();
 
   const logout = useCallback(async () => {
-    console.log('new  log out.');
-    if (!user || !user.uid) {
-      return;
-    }
+    if (!user || !user.uid) { return; }
 
     try {
       const sessionId = sessionStorage.getItem('sessionId');
@@ -57,7 +54,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         const sessionsRef = collection(firestore, 'users', user.uid, 'sessions');
         await deleteDoc(doc(sessionsRef, sessionId));
         sessionStorage.removeItem('sessionId');
-        console.log('Session removed from Firestore and session storage.');
       }
 
       if (unsubscribeSnapshot) {
@@ -65,7 +61,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       }
 
       await signOut(auth);
-      console.log('User logged out successfully.');
     } catch (error) {
       console.error('Error signing out: ', error);
     }
@@ -86,8 +81,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   };
 
   const emailSignIn = async (email: string, password: string) => {
-    console.log('Attempting to sign in:', email);
-
     try {
       await setPersistence(auth, browserSessionPersistence);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -100,18 +93,14 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         ? new Date(userCredential.user.metadata.lastSignInTime)
         : new Date();
 
-      console.log('Sign-in successful, auth time:', authTime);
-
       const sessionsRef = collection(firestore, 'users', userCredential.user.uid, 'sessions');
       const sessionsSnapshot = await getDocs(sessionsRef);
 
       if (sessionsSnapshot.size >= 2) {
         await removeOldestSession(sessionsRef);
-        console.log('removing session');
       }
 
       const sessionId = generateDeviceId();
-      console.log('Generated session ID:', sessionId);
 
       await setDoc(doc(sessionsRef, sessionId), {
         deviceId: sessionId,
@@ -120,7 +109,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       });
 
       sessionStorage.setItem('sessionId', sessionId);
-      console.log('Session ID stored in session storage.');
     } catch (error) {
       console.error('Error signing in with email: ', error);
       throw error;
@@ -128,12 +116,9 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   };
 
   useEffect(() => {
-    console.log('Effect 1 triggered');
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
-      console.log('Auth state changed');
       if (currentUser) {
         setUser(currentUser);
-        console.log('User is authenticated, checking subscription status...');
 
         const creationTime = currentUser.metadata?.creationTime;
 
@@ -149,79 +134,63 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
 
         const db = getFirestore(app);
         const userRef = doc(db, 'users', currentUser.uid);
+        
         if (diffDays < 7) {
           setIsSubscribed(true);
           setLoading(false);
+          return;
         }
 
         const unsubscribeSnapshot = onSnapshot(userRef, (userDoc) => {
           if (userDoc.exists()) {
             const userData = userDoc.data();
             setIsSubscribed(userData.isSubscribed ?? false);
-            console.log('User document data:', userData);
+
             if (!userData.isSubscribed) {
               router.push('/signUp');
+              setLoading(false);
+              return;
             }
-          } else {
-            console.log('User document does not exist, redirecting to home.');
-            router.push('/');
-          }
+          } 
           setLoading(false);
         });
 
         setUnsubscribeSnapshot(() => unsubscribeSnapshot);
 
-        return () => {
-          unsubscribeSnapshot();
-          console.log('Cleaning up snapshot listener');
-        };
+        return () => { unsubscribeSnapshot();};
       } else {
-        console.log('No authenticated user, redirecting to home.');
         setUser(null);
         setIsSubscribed(false);
         setLoading(false);
         router.push('/');
+        return;
       }
     });
-    return () => {
-      unsubscribeAuth();
-      console.log('Cleaning up auth state listener');
-    };
+    return () => { unsubscribeAuth();};
   }, [router]);
 
   useEffect(() => {
-    if (!user) {
-      console.log('No authenticated user, skipping session listener setup.');
-      return;
-    }
-    console.log('Setting up session listener');
+    if (!user) { return; }
+
     const sessionId = sessionStorage.getItem('sessionId');
+    
     if (user && sessionId) {
       const sessionsRef = collection(firestore, 'users', user.uid, 'sessions');
       const sessionDocRef = doc(sessionsRef, sessionId);
 
-      console.log('Session document reference:', sessionDocRef.path);
       const unsubscribe = onSnapshot(
         sessionDocRef,
         (docSnapshot) => {
           if (!docSnapshot.exists()) {
-            console.log('Session document no longer exists, logging out.');
             logout();
-          } else {
-            console.log('Session document exists:', docSnapshot.data());
           }
         },
         (error) => {
           console.error('Error in session document listener:', error);
         },
       );
-      return () => {
-        console.log('Cleaning up session document listener');
-        unsubscribe();
-      };
-    } else {
-      console.log('No user or session ID, skipping session listener setup.');
-    }
+      return () => { unsubscribe(); };
+    } 
   }, [user, logout]);
 
   if (loading) {

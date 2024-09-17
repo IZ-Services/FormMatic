@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!subscriptions.data.length) {
-      throw new Error('No active subscription found for this customer');
+      return NextResponse.json({ error: 'No active subscription found for this customer' }, { status: 404 });
     }
 
     const setupIntent = await stripe.setupIntents.create({
