@@ -15,8 +15,8 @@ const stripePromise = loadStripe(publishableKey);
 export default function SignUp() {
   const { user, isSubscribed } = UserAuth();
   const [loading, setLoading] = useState(true);
-  const [clientSecret, setClientSecret] = useState(null);
-  const [customerId, setCustomerId] = useState(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(null);
   const router = useRouter();
   const hasFetchedClientSecret = useRef(false);
   const [error, setError] = useState(false);
@@ -34,9 +34,18 @@ export default function SignUp() {
 
   useEffect(() => {
     const fetchClientSecret = async () => {
-      if (hasFetchedClientSecret.current || !user || clientSecret) return;
+    if (hasFetchedClientSecret.current || !user || clientSecret || isSubscribed) return;
 
       hasFetchedClientSecret.current = true;
+
+      const storedClientSecret = sessionStorage.getItem('clientSecret');
+      const storedCustomerId = sessionStorage.getItem('customerId');
+
+      if (storedClientSecret && storedCustomerId) {
+        setClientSecret(storedClientSecret);
+        setCustomerId(storedCustomerId);
+        return;
+      }
 
       try {
         const response = await fetch('/api/subscribe', {
@@ -58,6 +67,9 @@ export default function SignUp() {
         const data = await response.json();
         setClientSecret(data.clientSecret);
         setCustomerId(data.customerId);
+
+        sessionStorage.setItem('clientSecret', data.clientSecret);
+        sessionStorage.setItem('customerId', data.customerId);
       } catch (error) {
         console.error('Error fetching client secret:', error);
         setError(true);
@@ -73,7 +85,7 @@ export default function SignUp() {
     }, 20000);
 
     return () => clearTimeout(timeoutId);
-  }, [user, clientSecret]);
+  }, [user, clientSecret, isSubscribed]);
 
   if (loading) {
     return <Loading />;

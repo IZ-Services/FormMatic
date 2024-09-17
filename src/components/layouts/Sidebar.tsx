@@ -4,14 +4,32 @@ import './Sidebar.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid';
 import { useScenarioContext } from '../../context/ScenarioContext';
 import { useAppContext } from '../../context/index';
+import { UserAuth } from '../../context/AuthContext';
 
 export default function Sidebar() {
   const { scenarios, selectedSubsection, setSelectedSubsection } = useScenarioContext();
   const { formData, setFormData } = useAppContext()!;
+  const {isSubscribed} = UserAuth();
+
   const transactionRef = useRef<HTMLDivElement | null>(null);
 
   const [searchScenario, setSearchScenario] = useState('');
   const [selectedTransactionType, setSelectedTransactionType] = useState('');
+
+  useEffect(() => {
+    if (selectedTransactionType) {
+      document.addEventListener('mousedown', handleClickOutsideDate);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutsideDate);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideDate);
+    };
+  }, [selectedTransactionType]);
+  
+  if (!isSubscribed) {
+    return null;
+  }
 
   const handleOpen = (transactionType: string) => {
     setSelectedTransactionType(transactionType === selectedTransactionType ? '' : transactionType);
@@ -40,17 +58,6 @@ export default function Sidebar() {
       setSelectedTransactionType('');
     }
   };
-
-  useEffect(() => {
-    if (selectedTransactionType) {
-      document.addEventListener('mousedown', handleClickOutsideDate);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutsideDate);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideDate);
-    };
-  }, [selectedTransactionType]);
 
   return (
     <div className="sidebar">

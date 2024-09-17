@@ -62,6 +62,9 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         unsubscribeSnapshot();
       }
 
+      sessionStorage.removeItem('clientSecret');
+      sessionStorage.removeItem('customerId');
+
       await signOut(auth);
     } catch (error) {
       console.error('Error signing out: ', error);
