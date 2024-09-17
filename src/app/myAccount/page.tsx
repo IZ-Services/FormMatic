@@ -5,12 +5,12 @@ import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 
 import './Account.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import  Loading  from '../../components/pages/Loading';
+import Loading from '../../components/pages/Loading';
 
 export default function Account() {
   const { user, isSubscribed } = UserAuth();
   const router = useRouter();
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   const [editPassword, setEditPassword] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -25,7 +25,7 @@ export default function Account() {
     } else if (!isSubscribed) {
       router.push('/signUp');
     } else {
-      setLoading(false); 
+      setLoading(false);
     }
   }, [user, isSubscribed, router]);
 

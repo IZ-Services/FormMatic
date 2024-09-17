@@ -18,7 +18,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Dayjs } from 'dayjs';
 import { styled } from '@mui/material';
-import  Loading  from '../../components/pages/Loading';
+import Loading from '../../components/pages/Loading';
 
 export default function Transactions() {
   const { transactions, setFormData, setTransactions } = useAppContext()!;
@@ -30,7 +30,7 @@ export default function Transactions() {
 
   const [searchFor, setSearchFor] = useState('');
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   const [isMenuOpen, setisMenuOpen] = useState(false);
   const [isDateOpen, setisDateOpen] = useState(false);
   const [selectedSubsection, setSelectedSubsection] = useState('');
@@ -43,11 +43,10 @@ export default function Transactions() {
     } else if (!isSubscribed) {
       router.push('/signUp');
     } else {
-      setLoading(false); 
+      setLoading(false);
     }
   }, [user, isSubscribed, router]);
-  
-  
+
   useEffect(() => {
     const fetchRecentTransactions = async () => {
       try {
@@ -65,8 +64,7 @@ export default function Transactions() {
     };
     fetchRecentTransactions();
   }, [setTransactions, user?.uid]);
-  
-  
+
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       try {
@@ -97,59 +95,59 @@ export default function Transactions() {
     }, 300);
     return () => clearTimeout(delayDebounceFn);
   }, [deferredSearchFor, setTransactions, user?.uid]);
-  
+
   const handleDateChange = (value: Dayjs | null) => {
     if (!user?.uid) {
       console.error('User ID is required');
       return;
     }
-    
+
     setSelectedDate(value);
     setSelectedSubsection('');
-    
+
     if (value) {
       const startOfDay = value.startOf('day').toISOString();
       const endOfDay = value.endOf('day').toISOString();
-      
+
       fetch(
         `/api/getByDate?start=${encodeURIComponent(startOfDay)}&end=${encodeURIComponent(endOfDay)}&user_id=${encodeURIComponent(user.uid)}`,
       )
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.error) {
+            setTransactions([]);
+            console.error('Error fetching transactions:', data.error);
+          } else if (Array.isArray(data)) {
+            data.sort(
+              (a: IClient, b: IClient) =>
+                new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime(),
+            );
+            setTransactions(data);
+          } else {
+            setTransactions([]);
+            console.error('Expected an array of transactions');
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching transactions by date:', error);
           setTransactions([]);
-          console.error('Error fetching transactions:', data.error);
-        } else if (Array.isArray(data)) {
-          data.sort(
-            (a: IClient, b: IClient) =>
-              new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime(),
-          );
-          setTransactions(data);
-        } else {
-          setTransactions([]);
-          console.error('Expected an array of transactions');
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching transactions by date:', error);
-        setTransactions([]);
-      });
+        });
     }
   };
-  
+
   const handleTransactionChange = async (subsection: string, user_id: string | undefined) => {
     if (!user_id) return;
-    
+
     setSelectedSubsection(subsection);
     setisMenuOpen(false);
     setSelectedDate(null);
     try {
       const response =
-      subsection === 'All'
-      ? await fetch(`/api/getRecent?user_id=${user_id}`)
-      : await fetch(`/api/getByTransaction?transactionType=${subsection}&user_id=${user_id}`);
+        subsection === 'All'
+          ? await fetch(`/api/getRecent?user_id=${user_id}`)
+          : await fetch(`/api/getByTransaction?transactionType=${subsection}&user_id=${user_id}`);
       const data = await response.json();
-      
+
       if (data.error) {
         setTransactions([]);
       } else {
@@ -164,10 +162,10 @@ export default function Transactions() {
       console.error('Error updating transaction:', error);
     }
   };
-  
+
   const handleEdit = async (clientId: string, user_id: string | undefined) => {
     if (!user_id) return;
-    
+
     try {
       const clientToEdit = transactions.find(
         (client) => client._id === clientId && client.user_id === user_id,
@@ -181,27 +179,27 @@ export default function Transactions() {
       console.error('Error fetching clients:', error);
     }
   };
-  
+
   const handleDelete = async (clientId: string, user_id: string | undefined) => {
     if (!user_id) {
       console.error('User ID is required');
       return;
     }
-    
+
     try {
       const response = await fetch(`/api/delete?clientId=${clientId}&user_id=${user_id}`, {
         method: 'DELETE',
       });
-      
+
       await response.json();
-      
+
       setTransactions(transactions.filter((client) => client._id !== clientId));
       alert('Client Deleted.');
     } catch (error) {
       console.error('Error deleting client:', error);
     }
   };
-  
+
   const handleClickOutsideMenu = (e: MouseEvent) => {
     const target = e.target as Element;
     if (
@@ -212,14 +210,14 @@ export default function Transactions() {
       setisMenuOpen(false);
     }
   };
-  
+
   const handleClickOutsideDate = (e: MouseEvent) => {
     const target = e.target as Element;
     if (dateRef.current && !dateRef.current.contains(target)) {
       setisDateOpen(false);
     }
   };
-  
+
   useEffect(() => {
     if (isMenuOpen) {
       document.addEventListener('mousedown', handleClickOutsideMenu);
@@ -230,7 +228,7 @@ export default function Transactions() {
       document.removeEventListener('mousedown', handleClickOutsideMenu);
     };
   }, [isMenuOpen]);
-  
+
   useEffect(() => {
     if (isDateOpen) {
       document.addEventListener('mousedown', handleClickOutsideDate);
@@ -241,14 +239,14 @@ export default function Transactions() {
       document.removeEventListener('mousedown', handleClickOutsideDate);
     };
   }, [isDateOpen]);
-  
+
   const toggleSubMenu = (transactionType: string) => {
     setOpenSubMenus((prev) => ({
       ...prev,
       [transactionType]: !prev[transactionType],
     }));
   };
-  
+
   const StyledDatePicker = styled(DatePicker)({
     '.MuiOutlinedInput-notchedOutline': {
       display: 'none',
@@ -268,11 +266,11 @@ export default function Transactions() {
       transform: 'translateX(-200px)',
     },
   });
-  
+
   if (loading) {
     return <Loading />;
   }
-  
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <div className="container">
@@ -288,7 +286,7 @@ export default function Transactions() {
                 textField: { size: 'small' },
                 layout: { className: 'custom-datepicker' },
               }}
-              />
+            />
           </div>
           <div className="custom-dropdown" ref={menuRef}>
             <button onClick={() => setisMenuOpen(!isMenuOpen)} className="dropdown-toggle">

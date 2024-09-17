@@ -45,7 +45,9 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   const router = useRouter();
 
   const logout = useCallback(async () => {
-    if (!user || !user.uid) { return; }
+    if (!user || !user.uid) {
+      return;
+    }
 
     try {
       const sessionId = sessionStorage.getItem('sessionId');
@@ -134,7 +136,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
 
         const db = getFirestore(app);
         const userRef = doc(db, 'users', currentUser.uid);
-        
+
         if (diffDays < 7) {
           setIsSubscribed(true);
           setLoading(false);
@@ -151,13 +153,15 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
               setLoading(false);
               return;
             }
-          } 
+          }
           setLoading(false);
         });
 
         setUnsubscribeSnapshot(() => unsubscribeSnapshot);
 
-        return () => { unsubscribeSnapshot();};
+        return () => {
+          unsubscribeSnapshot();
+        };
       } else {
         setUser(null);
         setIsSubscribed(false);
@@ -166,14 +170,18 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         return;
       }
     });
-    return () => { unsubscribeAuth();};
+    return () => {
+      unsubscribeAuth();
+    };
   }, [router]);
 
   useEffect(() => {
-    if (!user) { return; }
+    if (!user) {
+      return;
+    }
 
     const sessionId = sessionStorage.getItem('sessionId');
-    
+
     if (user && sessionId) {
       const sessionsRef = collection(firestore, 'users', user.uid, 'sessions');
       const sessionDocRef = doc(sessionsRef, sessionId);
@@ -189,8 +197,10 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
           console.error('Error in session document listener:', error);
         },
       );
-      return () => { unsubscribe(); };
-    } 
+      return () => {
+        unsubscribe();
+      };
+    }
   }, [user, logout]);
 
   if (loading) {

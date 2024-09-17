@@ -4,12 +4,12 @@ import './Thanks.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import  Loading  from '../../components/pages/Loading';
+import Loading from '../../components/pages/Loading';
 
 export default function Thanks() {
   const { user, isSubscribed } = UserAuth();
   const router = useRouter();
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
@@ -17,7 +17,7 @@ export default function Thanks() {
     } else if (!isSubscribed) {
       router.push('/signUp');
     } else {
-      setLoading(false); 
+      setLoading(false);
     }
   }, [user, isSubscribed, router]);
 

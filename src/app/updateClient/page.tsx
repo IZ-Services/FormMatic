@@ -6,13 +6,13 @@ import { useAppContext } from '@/context';
 import Link from 'next/link';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import  Loading  from '../../components/pages/Loading';
+import Loading from '../../components/pages/Loading';
 
 export default function UpdateClient() {
   const { formData, setFormData } = useAppContext()!;
   const { user, isSubscribed } = UserAuth();
   const router = useRouter();
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   const [addSecondRegisteredOwner, setAddSecondRegisteredOwner] = useState(false);
   const [addThirdRegisteredOwner, setAddThirdRegisteredOwner] = useState(false);
 
@@ -22,7 +22,7 @@ export default function UpdateClient() {
     } else if (!isSubscribed) {
       router.push('/signUp');
     } else {
-      setLoading(false); 
+      setLoading(false);
     }
   }, [user, isSubscribed, router]);
 

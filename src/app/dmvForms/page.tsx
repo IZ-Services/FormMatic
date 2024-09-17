@@ -5,7 +5,7 @@ import './DmvForms.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import  Loading  from '../../components/pages/Loading';
+import Loading from '../../components/pages/Loading';
 
 const formNames = [
   'ADM399/ APPLICATION FOR REFUND',
@@ -37,7 +37,7 @@ const formNames = [
 
 export default function DMVFroms() {
   const { user, isSubscribed } = UserAuth();
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   const [selectedUrl, setSelectedUrl] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [filteredForms, setFilteredForms] = useState<string[]>([]);
@@ -49,7 +49,7 @@ export default function DMVFroms() {
     } else if (!isSubscribed) {
       router.push('/signUp');
     } else {
-      setLoading(false); 
+      setLoading(false);
       setFilteredForms(formNames);
     }
   }, [user, isSubscribed, router]);

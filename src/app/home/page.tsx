@@ -7,14 +7,14 @@ import { useRouter } from 'next/navigation';
 import { useScenarioContext } from '../../context/ScenarioContext';
 import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import { useAppContext } from '../../context/index';
-import  Loading  from '../../components/pages/Loading';
+import Loading from '../../components/pages/Loading';
 
 export default function Home() {
   const { formData } = useAppContext()!;
   const { selectedSubsection } = useScenarioContext()!;
   const { user, isSubscribed } = UserAuth();
   const router = useRouter();
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   const user_email = user?.email;
 
@@ -24,7 +24,7 @@ export default function Home() {
     } else if (!isSubscribed) {
       router.push('/signUp');
     } else {
-      setLoading(false); 
+      setLoading(false);
     }
   }, [user, isSubscribed, router]);
 

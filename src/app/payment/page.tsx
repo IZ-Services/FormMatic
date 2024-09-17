@@ -21,7 +21,7 @@ export default function Payment() {
   const [editCard, setEditCard] = useState(false);
   const [error, setError] = useState(false);
   const hasFetchedClientSecret = useRef(false);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
@@ -29,8 +29,8 @@ export default function Payment() {
     } else if (!isSubscribed) {
       router.push('/signUp');
     } else {
-      setLoading(false); 
-      
+      setLoading(false);
+
       const fetchClientSecret = async () => {
         if (hasFetchedClientSecret.current) return;
         hasFetchedClientSecret.current = true;
@@ -44,15 +44,17 @@ export default function Payment() {
             body: JSON.stringify({ userId: user?.uid, email: user?.email }),
           });
 
-        if (!response.ok) {
-          const data = await response.json();
-          if (data.error === 'No active subscription found for this customer') {
-            setErrorAlertMessage("You can update your payment details after your free trial has expired.");
-            setError(true);            
-            return;
+          if (!response.ok) {
+            const data = await response.json();
+            if (data.error === 'No active subscription found for this customer') {
+              setErrorAlertMessage(
+                'You can update your payment details after your free trial has expired.',
+              );
+              setError(true);
+              return;
+            }
+            throw new Error('Failed to fetch client secret');
           }
-          throw new Error('Failed to fetch client secret');
-        }
 
           const data = await response.json();
           setClientSecret(data.clientSecret);
@@ -70,7 +72,7 @@ export default function Payment() {
             setError(true);
           }
         }, 20000);
-      return () => clearTimeout(timeoutId);
+        return () => clearTimeout(timeoutId);
       }
     }
   }, [user, isSubscribed, router, clientSecret]);
@@ -80,11 +82,7 @@ export default function Payment() {
   }
 
   if (error && !clientSecret) {
-    return (
-      <div className="paymentClientError">
-        {errorAlertMessage}
-      </div>
-    );
+    return <div className="paymentClientError">{errorAlertMessage}</div>;
   }
 
   if (!clientSecret) {
@@ -130,7 +128,7 @@ export default function Payment() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
-                <button className="paymentUpdateButton" onClick={handleEditPasswordClick} >
+                <button className="paymentUpdateButton" onClick={handleEditPasswordClick}>
                   Enter
                 </button>
               </div>
