@@ -9,28 +9,38 @@ import { UserAuth } from '../../context/AuthContext';
 export default function Sidebar() {
   const { scenarios, selectedSubsection, setSelectedSubsection } = useScenarioContext();
   const { formData, setFormData } = useAppContext()!;
-  const {isSubscribed} = UserAuth();
+  const { isSubscribed } = UserAuth();
 
   const transactionRef = useRef<HTMLDivElement | null>(null);
 
   const [searchScenario, setSearchScenario] = useState('');
   const [selectedTransactionType, setSelectedTransactionType] = useState('');
+  
+  const handleClickOutsideDate = (e: MouseEvent) => {
+    const target = e.target as Element;
+    if (transactionRef.current && !transactionRef.current.contains(target)) {
+      setSelectedTransactionType('');
+    }
+  };
 
   useEffect(() => {
-    if (selectedTransactionType) {
-      document.addEventListener('mousedown', handleClickOutsideDate);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutsideDate);
+    if(isSubscribed){
+      if (selectedTransactionType) {
+        document.addEventListener('mousedown', handleClickOutsideDate);
+      } else {
+        document.removeEventListener('mousedown', handleClickOutsideDate);
+      }
     }
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutsideDate);
     };
   }, [selectedTransactionType]);
-  
+
   if (!isSubscribed) {
     return null;
   }
-
+  
   const handleOpen = (transactionType: string) => {
     setSelectedTransactionType(transactionType === selectedTransactionType ? '' : transactionType);
   };
@@ -51,13 +61,6 @@ export default function Sidebar() {
       ),
     }))
     .filter((scenario) => scenario.subsections.length > 0);
-
-  const handleClickOutsideDate = (e: MouseEvent) => {
-    const target = e.target as Element;
-    if (transactionRef.current && !transactionRef.current.contains(target)) {
-      setSelectedTransactionType('');
-    }
-  };
 
   return (
     <div className="sidebar">

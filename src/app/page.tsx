@@ -22,7 +22,7 @@ export default function LoginPage() {
     try {
       if (emailSignIn) {
         await emailSignIn(email, password);
-        
+
         if (isSubscribed) {
           router.push('/home');
         } else {

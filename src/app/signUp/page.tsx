@@ -34,7 +34,7 @@ export default function SignUp() {
 
   useEffect(() => {
     const fetchClientSecret = async () => {
-    if (hasFetchedClientSecret.current || !user || clientSecret || isSubscribed) return;
+      if (hasFetchedClientSecret.current || !user || clientSecret || isSubscribed) return;
 
       hasFetchedClientSecret.current = true;
 
