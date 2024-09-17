@@ -15,13 +15,13 @@ const stripePromise = loadStripe(publishableKey);
 export default function Payment() {
   const { user, isSubscribed, emailSignIn } = UserAuth();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState('');
-  const [clientSecret, setClientSecret] = useState(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [errorAlertMessage, setErrorAlertMessage] = useState<string>('');
   const [editCard, setEditCard] = useState(false);
   const [error, setError] = useState(false);
   const hasFetchedClientSecret = useRef(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
@@ -32,8 +32,15 @@ export default function Payment() {
       setLoading(false);
 
       const fetchClientSecret = async () => {
-        if (hasFetchedClientSecret.current) return;
+        if (hasFetchedClientSecret.current || clientSecret) return;
         hasFetchedClientSecret.current = true;
+        
+        const storedClientSecret = sessionStorage.getItem('paymentClientSecret');
+
+        if (storedClientSecret) {
+          setClientSecret(storedClientSecret);
+          return;
+        }
 
         try {
           const response = await fetch('/api/paymentUpdate', {
@@ -58,6 +65,7 @@ export default function Payment() {
 
           const data = await response.json();
           setClientSecret(data.clientSecret);
+          sessionStorage.setItem('paymentClientSecret', data.clientSecret);
         } catch (error) {
           console.error('Error fetching client secret:', error);
           setErrorAlertMessage('Failed to load payment details. Please contact us for assistance.');

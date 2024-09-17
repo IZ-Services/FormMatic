@@ -17,9 +17,9 @@ export default function SignUp() {
   const [loading, setLoading] = useState(true);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [error, setError] = useState(false);
   const router = useRouter();
   const hasFetchedClientSecret = useRef(false);
-  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!user) {

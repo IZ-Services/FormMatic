@@ -64,6 +64,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
 
       sessionStorage.removeItem('clientSecret');
       sessionStorage.removeItem('customerId');
+      sessionStorage.removeItem('paymentClientSecret');
 
       await signOut(auth);
     } catch (error) {
