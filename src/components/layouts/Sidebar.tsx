@@ -15,7 +15,7 @@ export default function Sidebar() {
 
   const [searchScenario, setSearchScenario] = useState('');
   const [selectedTransactionType, setSelectedTransactionType] = useState('');
-  
+
   const handleClickOutsideDate = (e: MouseEvent) => {
     const target = e.target as Element;
     if (transactionRef.current && !transactionRef.current.contains(target)) {
@@ -24,14 +24,14 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
-    if(isSubscribed){
+    if (isSubscribed) {
       if (selectedTransactionType) {
         document.addEventListener('mousedown', handleClickOutsideDate);
       } else {
         document.removeEventListener('mousedown', handleClickOutsideDate);
       }
     }
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutsideDate);
     };
@@ -40,7 +40,7 @@ export default function Sidebar() {
   if (!isSubscribed) {
     return null;
   }
-  
+
   const handleOpen = (transactionType: string) => {
     setSelectedTransactionType(transactionType === selectedTransactionType ? '' : transactionType);
   };
