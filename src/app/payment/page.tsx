@@ -34,7 +34,7 @@ export default function Payment() {
       const fetchClientSecret = async () => {
         if (hasFetchedClientSecret.current || clientSecret) return;
         hasFetchedClientSecret.current = true;
-        
+
         const storedClientSecret = sessionStorage.getItem('paymentClientSecret');
 
         if (storedClientSecret) {
