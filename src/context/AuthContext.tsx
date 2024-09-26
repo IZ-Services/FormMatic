@@ -55,18 +55,22 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       if (sessionId) {
         const sessionsRef = collection(firestore, 'users', user.uid, 'sessions');
         await deleteDoc(doc(sessionsRef, sessionId));
-        sessionStorage.removeItem('sessionId');
       }
 
+      sessionStorage.removeItem('sessionId');
+      sessionStorage.removeItem('clientSecret');
+      sessionStorage.removeItem('customerId');
+      sessionStorage.removeItem('paymentClientSecret');
+      
       if (unsubscribeSnapshot) {
         unsubscribeSnapshot();
       }
 
-      sessionStorage.removeItem('clientSecret');
-      sessionStorage.removeItem('customerId');
-      sessionStorage.removeItem('paymentClientSecret');
-
       await signOut(auth);
+
+      setUser(null); 
+      setIsSubscribed(false); 
+   
     } catch (error) {
       console.error('Error signing out: ', error);
     }
@@ -107,14 +111,14 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       }
 
       const sessionId = generateDeviceId();
+      sessionStorage.setItem('sessionId', sessionId);
 
       await setDoc(doc(sessionsRef, sessionId), {
         deviceId: sessionId,
         authTime,
         timestamp: new Date(),
       });
-
-      sessionStorage.setItem('sessionId', sessionId);
+      
     } catch (error) {
       console.error('Error signing in with email: ', error);
       throw error;
@@ -148,64 +152,69 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         }
 
         const unsubscribeSnapshot = onSnapshot(userRef, (userDoc) => {
+           console.log('In unsubscribeSnapshot');
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            setIsSubscribed(userData.isSubscribed ?? false);
+            const subscribed = userData.isSubscribed;
 
-            if (!userData.isSubscribed) {
+            if (!subscribed) {
               router.push('/signUp');
               setLoading(false);
               return;
             }
+            setIsSubscribed(subscribed);
+          } else {
+            setIsSubscribed(false);
+            router.push('/signUp');
           }
           setLoading(false);
         });
 
         setUnsubscribeSnapshot(() => unsubscribeSnapshot);
 
+        const sessionId = sessionStorage.getItem('sessionId');
+        let unsubscribeSession = null;  
+
+        if (sessionId ) {
+          const sessionsRef = collection(firestore, 'users', currentUser.uid, 'sessions');
+          const sessionDocRef = doc(sessionsRef, sessionId);
+          
+          unsubscribeSession = onSnapshot( sessionDocRef, (docSnapshot) => { 
+            console.log('In unsubscribe');
+            if (!docSnapshot.exists()) {
+              console.log('Session no longer exists, logging out.');
+              logout();
+            }
+          }); 
+        }
+
         return () => {
-          unsubscribeSnapshot();
+          if (unsubscribeSnapshot) {
+            unsubscribeSnapshot();
+          }
+          if (unsubscribeSession) {
+            unsubscribeSession();
+          }
         };
       } else {
-        setUser(null);
-        setIsSubscribed(false);
+        if(!user){
+          setLoading(false);
+          return;
+        }
+        try {
+          await logout();  
+          router.push('/'); 
+        } catch (error) {
+          console.error('Error during logout:', error);
+        }
         setLoading(false);
-        router.push('/');
         return;
       }
     });
     return () => {
       unsubscribeAuth();
     };
-  }, [router]);
-
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    const sessionId = sessionStorage.getItem('sessionId');
-
-    if (user && sessionId) {
-      const sessionsRef = collection(firestore, 'users', user.uid, 'sessions');
-      const sessionDocRef = doc(sessionsRef, sessionId);
-
-      const unsubscribe = onSnapshot(
-        sessionDocRef,
-        (docSnapshot) => {
-          if (!docSnapshot.exists()) {
-            logout();
-          }
-        },
-        (error) => {
-          console.error('Error in session document listener:', error);
-        },
-      );
-      return () => {
-        unsubscribe();
-      };
-    }
-  }, [user, logout]);
+  }, [logout, router, user]);
 
   if (loading) {
     return <Loading />;
