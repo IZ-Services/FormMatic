@@ -35,7 +35,7 @@ export default function Sidebar() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutsideDate);
     };
-  }, [selectedTransactionType]);
+  }, [isSubscribed, selectedTransactionType]);
 
   if (!isSubscribed) {
     return null;
