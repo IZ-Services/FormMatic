@@ -50,15 +50,15 @@ export async function POST(request: NextRequest) {
 }
 
 async function modifyReg101Pdf(fileUrl: string, formData: FormData) {
-  const data = formData;
-  
+  formData;
+
   const existingPdfBytes = await fs.readFile(fileUrl);
 
   const pdfDoc = await PDFDocument.load(existingPdfBytes, { ignoreEncryption: true });
 
   const form = pdfDoc.getForm();
 
-  const allFields = form.getFields();
+  form.getFields();
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -67,7 +67,7 @@ async function modifyReg101Pdf(fileUrl: string, formData: FormData) {
 }
 
 async function modifyReg156Pdf(fileUrl: string, formData: FormData) {
-  const data = formData;
+  formData;
 
   const existingPdfBytes = await fs.readFile(fileUrl);
 
@@ -75,8 +75,7 @@ async function modifyReg156Pdf(fileUrl: string, formData: FormData) {
 
   const form = pdfDoc.getForm();
 
-  const allFields = form.getFields();
-
+  form.getFields();
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -91,8 +90,7 @@ async function modifyReg227Pdf(fileUrl: string, formData: FormData) {
 
   const form = pdfDoc.getForm();
 
-  const allFields = form.getFields();
-
+  form.getFields();
 
   const licensePlateNumberField1 = form.getTextField('License Plate/CF Number1');
   licensePlateNumberField1.setText(formData.vehicleLicensePlateNumber || '');
@@ -230,7 +228,7 @@ async function modifyReg227Pdf(fileUrl: string, formData: FormData) {
 }
 
 async function modifyReg256Pdf(fileUrl: string, formData: FormData) {
-  const data = formData;
+  formData;
 
   const existingPdfBytes = await fs.readFile(fileUrl);
 
@@ -238,8 +236,7 @@ async function modifyReg256Pdf(fileUrl: string, formData: FormData) {
 
   const form = pdfDoc.getForm();
 
-  const allFields = form.getFields();
-
+  form.getFields();
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -248,7 +245,7 @@ async function modifyReg256Pdf(fileUrl: string, formData: FormData) {
 }
 
 async function modifyReg343Pdf(fileUrl: string, formData: FormData) {
-  const data = formData;
+  formData;
 
   const existingPdfBytes = await fs.readFile(fileUrl);
 
@@ -256,8 +253,7 @@ async function modifyReg343Pdf(fileUrl: string, formData: FormData) {
 
   const form = pdfDoc.getForm();
 
-  const allFields = form.getFields();
-
+  form.getFields();
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -266,7 +262,7 @@ async function modifyReg343Pdf(fileUrl: string, formData: FormData) {
 }
 
 async function modifyReg488cPdf(fileUrl: string, formData: FormData) {
-  const data = formData;
+  formData;
 
   const existingPdfBytes = await fs.readFile(fileUrl);
 
@@ -274,7 +270,7 @@ async function modifyReg488cPdf(fileUrl: string, formData: FormData) {
 
   const form = pdfDoc.getForm();
 
-  const allFields = form.getFields();
+  form.getFields();
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -283,7 +279,7 @@ async function modifyReg488cPdf(fileUrl: string, formData: FormData) {
 }
 
 async function modifyReg4008Pdf(fileUrl: string, formData: FormData) {
-  const data = formData;
+  formData;
 
   const existingPdfBytes = await fs.readFile(fileUrl);
 
@@ -291,7 +287,7 @@ async function modifyReg4008Pdf(fileUrl: string, formData: FormData) {
 
   const form = pdfDoc.getForm();
 
-  const allFields = form.getFields();
+  form.getFields();
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -300,7 +296,7 @@ async function modifyReg4008Pdf(fileUrl: string, formData: FormData) {
 }
 
 async function modifyReg4017Pdf(fileUrl: string, formData: FormData) {
-  const data = formData;
+  formData;
 
   const existingPdfBytes = await fs.readFile(fileUrl);
 
@@ -308,7 +304,7 @@ async function modifyReg4017Pdf(fileUrl: string, formData: FormData) {
 
   const form = pdfDoc.getForm();
 
-  const allFields = form.getFields();
+  form.getFields();
 
   const pdfBytes = await pdfDoc.save();
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');

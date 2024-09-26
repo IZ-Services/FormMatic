@@ -6,72 +6,46 @@ import CheckoutForm from '../../components/atoms/CheckoutForm';
 import { getStripePublishableKey } from '../../utils/stripeUtil';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { initFirebase } from '../../firebase-config';
 import Loading from '../../components/pages/Loading';
 import './SignUp.css';
 
 const publishableKey = getStripePublishableKey();
 const stripePromise = loadStripe(publishableKey);
 
-const app = initFirebase();
-
 export default function SignUp() {
-  const { user } = UserAuth();
-  const [clientSecret, setClientSecret] = useState(null);
+  const { user, isSubscribed } = UserAuth();
+  const [loading, setLoading] = useState(true);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [error, setError] = useState(false);
   const router = useRouter();
   const hasFetchedClientSecret = useRef(false);
-  const [localSubscription, setLocalSubscription] = useState<boolean | null>(null);
-  const [error, setError] = useState(false);
 
   useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      if (!user) {
-        setLocalSubscription(null); 
-        return;
-      }
-
-      const creationTime = user.metadata?.creationTime;
-      if (creationTime) {
-        const userCreationDate = new Date(creationTime);
-        const currentDate = new Date();
-        const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays > 7) {
-          const db = getFirestore(app);
-        if(user.email){
-          const userRef = doc(db, "users", user.email);  
-          const userDoc = await getDoc(userRef);
-
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            setLocalSubscription(userData.isSubscribed);
-            if (userData.isSubscribed) {
-              router.push('/home');
-            }
-          } else {
-            setLocalSubscription(false);
-          }
-        }
-
-        } else {
-          setLocalSubscription(false);
-        }
-      } else {
-        setLocalSubscription(false);
-      }
-    };
-
-    checkSubscriptionStatus();
-  }, [user, router]);
+    if (!user) {
+      router.push('/');
+    } else if (isSubscribed === true) {
+      router.push('/home');
+      setLoading(false);
+    } else if (isSubscribed === false) {
+      setLoading(false);
+    }
+  }, [user, isSubscribed, router]);
 
   useEffect(() => {
     const fetchClientSecret = async () => {
-      if (hasFetchedClientSecret.current || localSubscription === null) return;
-      if (localSubscription) return;
+      if (hasFetchedClientSecret.current || !user || clientSecret || isSubscribed) return;
 
       hasFetchedClientSecret.current = true;
+
+      const storedClientSecret = sessionStorage.getItem('clientSecret');
+      const storedCustomerId = sessionStorage.getItem('customerId');
+
+      if (storedClientSecret && storedCustomerId) {
+        setClientSecret(storedClientSecret);
+        setCustomerId(storedCustomerId);
+        return;
+      }
 
       try {
         const response = await fetch('/api/subscribe', {
@@ -79,7 +53,11 @@ export default function SignUp() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ priceId: 'price_1PZja22MeJbZrBb1WqRwBP4U', userId: user?.uid, email: user?.email }),
+          body: JSON.stringify({
+            priceId: 'price_1PZja22MeJbZrBb1WqRwBP4U',
+            userId: user?.uid,
+            email: user?.email,
+          }),
         });
 
         if (!response.ok) {
@@ -88,8 +66,13 @@ export default function SignUp() {
 
         const data = await response.json();
         setClientSecret(data.clientSecret);
+        setCustomerId(data.customerId);
+
+        sessionStorage.setItem('clientSecret', data.clientSecret);
+        sessionStorage.setItem('customerId', data.customerId);
       } catch (error) {
         console.error('Error fetching client secret:', error);
+        setError(true);
       }
     };
 
@@ -99,14 +82,21 @@ export default function SignUp() {
       if (!clientSecret) {
         setError(true);
       }
-    }, 20000); 
+    }, 20000);
 
     return () => clearTimeout(timeoutId);
-  }, [user, localSubscription, clientSecret]);
+  }, [user, clientSecret, isSubscribed]);
 
+  if (loading) {
+    return <Loading />;
+  }
 
   if (error && !clientSecret) {
-    return <div className='signUpClientError'>Error: Failed to load payment details. Please contact us for assistance.</div>;
+    return (
+      <div className="signUpClientError">
+        Error: Failed to load payment details. Please contact us for assistance.
+      </div>
+    );
   }
 
   if (!clientSecret) {
@@ -116,7 +106,7 @@ export default function SignUp() {
   return (
     <>
       <Elements stripe={stripePromise} options={{ clientSecret }}>
-        <CheckoutForm />
+        {customerId ? <CheckoutForm customerId={customerId} /> : <Loading />}
       </Elements>
     </>
   );

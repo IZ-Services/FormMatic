@@ -55,7 +55,7 @@
 }
 
 .headingLink:hover {
-  color: black; 
+  color: black;
   cursor: default;
 }
 
@@ -63,8 +63,8 @@
   position: relative;
 }
 
-.dropdownContainer{
-    cursor: pointer;
+.dropdownContainer {
+  cursor: pointer;
 }
 
 .dropdownMenu {

@@ -1,12 +1,12 @@
 import Stripe from 'stripe';
 import { NextResponse, NextRequest } from 'next/server';
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY as string; 
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY as string;
 const stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2024-06-20',
 });
 
-export async function POST(req: NextRequest) { 
+export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
     const { customerId, newPaymentMethodId } = data;
@@ -27,14 +27,13 @@ export async function POST(req: NextRequest) {
       type: 'card',
     });
 
-    const oldPaymentMethods = paymentMethods.data.filter(pm => pm.id !== newPaymentMethodId);
+    const oldPaymentMethods = paymentMethods.data.filter((pm) => pm.id !== newPaymentMethodId);
 
     for (const paymentMethod of oldPaymentMethods) {
       await stripe.paymentMethods.detach(paymentMethod.id);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
-
   } catch (error) {
     console.error('Error detaching old payment methods:', error);
     return NextResponse.json({ error: error }, { status: 400 });

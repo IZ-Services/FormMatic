@@ -1,59 +1,16 @@
 'use client';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import './Header.css';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { UserAuth } from '../../context/AuthContext';
 import { ChevronDownIcon } from '@heroicons/react/16/solid';
 import { useRouter } from 'next/navigation';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { initFirebase } from '../../firebase-config';
-
-const app = initFirebase();
 
 export default function Header() {
-  const { user, logout } = UserAuth();
+  const { logout } = UserAuth();
   const router = useRouter();
 
-useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      if (!user) {
-        router.push('/');
-        return;
-      }
-
-      const creationTime = user.metadata?.creationTime;
-      if (creationTime) {
-        const userCreationDate = new Date(creationTime);
-        const currentDate = new Date();
-        const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays > 7) {
-          const db = getFirestore(app);
-          if (user.email) {
-            const userRef = doc(db, "users", user.email);
-            const userDoc = await getDoc(userRef);
-
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              if (!userData.isSubscribed) {
-                router.push('/signUp');
-              }
-            } else {
-              router.push('/signUp');
-            }
-          } else {
-            console.error('User email is not available.');
-            router.push('/signUp');
-          }
-        }
-      }
-    };
-
-
-    checkSubscriptionStatus();
-  }, [user, router]);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const pathname = usePathname();
@@ -101,7 +58,7 @@ useEffect(() => {
   };
 
   const handleLinkClick = () => {
-      setIsDropdownVisible(false);
+    setIsDropdownVisible(false);
   };
 
   useEffect(() => {
@@ -115,13 +72,14 @@ useEffect(() => {
     };
   }, [isDropdownVisible]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     try {
       await logout();
+      router.push('/');
     } catch (error) {
       console.error('Error signing out: ', error);
     }
-  };
+  }, [logout, router]);
 
   return (
     <header className="headerWrapper">
@@ -137,14 +95,15 @@ useEffect(() => {
                 {link.label}
               </Link>
             ) : (
-              <span 
+              <span
                 className={`dropdownContainer ${
-                  link.label === 'Account' && link.dropdown?.some(item => item.route === activeRoute)
+                  link.label === 'Account' &&
+                  link.dropdown?.some((item) => item.route === activeRoute)
                     ? 'linkActive'
                     : link.label === 'Formatic'
-                    ? 'headingLink'
-                    : 'linkRoute'
-                }`}                
+                      ? 'headingLink'
+                      : 'linkRoute'
+                }`}
                 onClick={link.label === 'Account' ? handleDropdownToggle : handleLinkClick}
               >
                 {link.label}

@@ -5,91 +5,58 @@ import './DmvForms.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { initFirebase } from '../../firebase-config';
+import Loading from '../../components/pages/Loading';
 
-const app = initFirebase();
+const formNames = [
+  'ADM399/ APPLICATION FOR REFUND',
+  'BOAT101/ APPLICATION FOR REGISTRATION NUMBER, CERTIFICATE OF OWNERSHIP, AND CERTIFICATE OF NUMBER FOR UNDOCUMENTED VESSEL',
+  'DMV14/ NOTICE OF CHANGE OF ADDRESS',
+  'REG5/ AFFIDAVIT FOR TRANSFER WITHOUT PROBATE CALIFORNIA TITLED VEHICLE OR VESSELS ONLY',
+  'REG17/ SPECIAL INTEREST LICENSE PLATE APPLICATION',
+  'REG17A/ SPECIAL RECOGNITION LICENSE PLATE APPLICATION',
+  'REG31/ VERIFICATION OF VEHICLE',
+  'REG65/ APPLICATION FOR VEHICLE LICENSE FEE REFUND',
+  'REG101/ STATEMENT TO RECORD OWNERSHIP',
+  'REG102/ CERTIFICATE OF NON-OPERATION ',
+  'REG135/ BILL OF SALE',
+  'REG138/ NOTICE OF TRANSFER AND RELEASE OF LIABILITY',
+  'REG156/ APPLICATION FOR REPLACEMENT PLATES, STICKERS, DOCUMENTS',
+  'REG195/ APPLICATION FOR DISABLED PERSON PLACARD OR PLATES',
+  'REG227/ APPLICATION FOR REPLACEMENT OR TRANSFER OF TITLE',
+  'REG256/ STATEMENT OF FACTS',
+  'REG256A/ MISCELLANEOUS CERTIFICATIONS',
+  'REG256F/ STATEMENT OF FACTS CALIFORNIA NON-CERTIFIED VEHICLE',
+  'REG343/ APPLICATION FOR TITLE OR REGISTRATION',
+  'REG345/ SPECIALIZED TRANSPORTATION VEHICLE EXEMPTION CERTIFICATION',
+  'REG488c/ APPLICATION FOR SALVAGE CERTIFICATE OR NONREPAIRABLE VEHICLE CERTIFICATE',
+  'REG4008/ DECLARATION OF GROSS VEHICLE WEIGHT (GVW)/COMBINED GROSS VEHICLE WEIGHT (CGW)',
+  'REG4017/ PERMANENT TRAILER IDENTIFICATION (PTI) CERTIFICATION',
+  'REG5045/ NONRESIDENT MILITARY (NRM) VEHICLE LICENSE FEE AND TRANSPORTATION IMPROVEMENT FEE EXEMPTION',
+  'REG5103/ APPLICATION FOR TEMPORARY SMOG EXEMPTION FOR A VEHICLE LOCATED OUT-OF-STATE',
+];
 
 export default function DMVFroms() {
-  const { user } = UserAuth();
-  const router = useRouter();
-
+  const { user, isSubscribed } = UserAuth();
+  const [loading, setLoading] = useState(true);
   const [selectedUrl, setSelectedUrl] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [filteredForms, setFilteredForms] = useState<string[]>([]);
-
-  const formNames = [
-    'ADM399/ APPLICATION FOR REFUND',
-    'BOAT101/ APPLICATION FOR REGISTRATION NUMBER, CERTIFICATE OF OWNERSHIP, AND CERTIFICATE OF NUMBER FOR UNDOCUMENTED VESSEL',
-    'DMV14/ NOTICE OF CHANGE OF ADDRESS',
-    'REG5/ AFFIDAVIT FOR TRANSFER WITHOUT PROBATE CALIFORNIA TITLED VEHICLE OR VESSELS ONLY',
-    'REG17/ SPECIAL INTEREST LICENSE PLATE APPLICATION',
-    'REG17A/ SPECIAL RECOGNITION LICENSE PLATE APPLICATION',
-    'REG31/ VERIFICATION OF VEHICLE',
-    'REG65/ APPLICATION FOR VEHICLE LICENSE FEE REFUND',
-    'REG101/ STATEMENT TO RECORD OWNERSHIP',
-    'REG102/ CERTIFICATE OF NON-OPERATION ',
-    'REG135/ BILL OF SALE',
-    'REG138/ NOTICE OF TRANSFER AND RELEASE OF LIABILITY',
-    'REG156/ APPLICATION FOR REPLACEMENT PLATES, STICKERS, DOCUMENTS',
-    'REG195/ APPLICATION FOR DISABLED PERSON PLACARD OR PLATES',
-    'REG227/ APPLICATION FOR REPLACEMENT OR TRANSFER OF TITLE',
-    'REG256/ STATEMENT OF FACTS',
-    'REG256A/ MISCELLANEOUS CERTIFICATIONS',
-    'REG256F/ STATEMENT OF FACTS CALIFORNIA NON-CERTIFIED VEHICLE',
-    'REG343/ APPLICATION FOR TITLE OR REGISTRATION',
-    'REG345/ SPECIALIZED TRANSPORTATION VEHICLE EXEMPTION CERTIFICATION',
-    'REG488c/ APPLICATION FOR SALVAGE CERTIFICATE OR NONREPAIRABLE VEHICLE CERTIFICATE',
-    'REG4008/ DECLARATION OF GROSS VEHICLE WEIGHT (GVW)/COMBINED GROSS VEHICLE WEIGHT (CGW)',
-    'REG4017/ PERMANENT TRAILER IDENTIFICATION (PTI) CERTIFICATION',
-    'REG5045/ NONRESIDENT MILITARY (NRM) VEHICLE LICENSE FEE AND TRANSPORTATION IMPROVEMENT FEE EXEMPTION',
-    'REG5103/ APPLICATION FOR TEMPORARY SMOG EXEMPTION FOR A VEHICLE LOCATED OUT-OF-STATE',
-  ];
+  const router = useRouter();
 
   useEffect(() => {
-    setFilteredForms(formNames);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!user) {
+      router.push('/');
+    } else if (!isSubscribed) {
+      router.push('/signUp');
+    } else {
+      setLoading(false);
+      setFilteredForms(formNames);
+    }
+  }, [user, isSubscribed, router]);
 
-useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      if (!user) {
-        router.push('/');
-        return;
-      }
-
-      const creationTime = user.metadata?.creationTime;
-      if (creationTime) {
-        const userCreationDate = new Date(creationTime);
-        const currentDate = new Date();
-        const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays > 7) {
-          const db = getFirestore(app);
-          if (user.email) {
-            const userRef = doc(db, "users", user.email);
-            const userDoc = await getDoc(userRef);
-
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              if (!userData.isSubscribed) {
-                router.push('/signUp');
-              }
-            } else {
-              router.push('/signUp');
-            }
-          } else {
-            console.error('User email is not available.');
-            router.push('/signUp');
-          }
-        }
-      }
-    };
-
-
-    checkSubscriptionStatus();
-  }, [user, router]);
+  if (loading) {
+    return <Loading />;
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);

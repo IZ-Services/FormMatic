@@ -7,20 +7,22 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const start = searchParams.get('start');
   const end = searchParams.get('end');
-  const user_id = searchParams.get('user_id'); 
+  const user_id = searchParams.get('user_id');
 
   try {
-
     if (!start || !end || !user_id) {
-      return NextResponse.json({ error: 'Start, end date, and user_id parameters are required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Start, end date, and user_id parameters are required' },
+        { status: 400 },
+      );
     }
 
     const clients = await Client.find({
-      user_id: user_id, 
+      user_id: user_id,
       timeCreated: {
         $gte: new Date(start),
-        $lte: new Date(end)
-      }
+        $lte: new Date(end),
+      },
     }).sort({ timeCreated: -1 });
 
     if (clients.length === 0) {

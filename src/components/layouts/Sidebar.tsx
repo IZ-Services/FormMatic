@@ -4,31 +4,17 @@ import './Sidebar.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid';
 import { useScenarioContext } from '../../context/ScenarioContext';
 import { useAppContext } from '../../context/index';
+import { UserAuth } from '../../context/AuthContext';
 
 export default function Sidebar() {
   const { scenarios, selectedSubsection, setSelectedSubsection } = useScenarioContext();
   const { formData, setFormData } = useAppContext()!;
+  const { isSubscribed } = UserAuth();
+
   const transactionRef = useRef<HTMLDivElement | null>(null);
 
   const [searchScenario, setSearchScenario] = useState('');
   const [selectedTransactionType, setSelectedTransactionType] = useState('');
-
-  const handleOpen = (transactionType: string) => {
-    setSelectedTransactionType(transactionType === selectedTransactionType ? '' : transactionType);
-  };
-
-  const handleSelection = (subsection: string) => {
-    setSelectedSubsection((prevSelected: string | null) => (prevSelected === subsection ? null : subsection));
-    setSelectedTransactionType(subsection);
-    setFormData({ ...formData, transactionType: subsection });
-  };
-
-  const filteredScenarios = scenarios .map((scenario) => ({
-    ...scenario, subsections: scenario.subsections.filter((subsection) =>
-      subsection.toLowerCase().includes(searchScenario.toLowerCase()),
-    ),
-  }))
-  .filter((scenario) => scenario.subsections.length > 0);
 
   const handleClickOutsideDate = (e: MouseEvent) => {
     const target = e.target as Element;
@@ -38,15 +24,43 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
-    if (selectedTransactionType) {
-      document.addEventListener('mousedown', handleClickOutsideDate);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutsideDate);
+    if (isSubscribed) {
+      if (selectedTransactionType) {
+        document.addEventListener('mousedown', handleClickOutsideDate);
+      } else {
+        document.removeEventListener('mousedown', handleClickOutsideDate);
+      }
     }
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutsideDate);
     };
-  }, [selectedTransactionType]);
+  }, [isSubscribed, selectedTransactionType]);
+
+  if (!isSubscribed) {
+    return null;
+  }
+
+  const handleOpen = (transactionType: string) => {
+    setSelectedTransactionType(transactionType === selectedTransactionType ? '' : transactionType);
+  };
+
+  const handleSelection = (subsection: string) => {
+    setSelectedSubsection((prevSelected: string | null) =>
+      prevSelected === subsection ? null : subsection,
+    );
+    setSelectedTransactionType(subsection);
+    setFormData({ ...formData, transactionType: subsection });
+  };
+
+  const filteredScenarios = scenarios
+    .map((scenario) => ({
+      ...scenario,
+      subsections: scenario.subsections.filter((subsection) =>
+        subsection.toLowerCase().includes(searchScenario.toLowerCase()),
+      ),
+    }))
+    .filter((scenario) => scenario.subsections.length > 0);
 
   return (
     <div className="sidebar">

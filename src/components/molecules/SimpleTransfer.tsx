@@ -5,9 +5,8 @@ import Address from '../atoms/Address';
 import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
 
 export default function SimpleTransfer() {
-
   return (
-    <div className='simpleTransferWrapper'>
+    <div className="simpleTransferWrapper">
       <NewRegisteredOwners />
       <Address />
     </div>

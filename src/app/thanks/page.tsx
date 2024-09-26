@@ -1,64 +1,39 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Thanks.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { initFirebase } from '../../firebase-config';
-
-const app = initFirebase();
+import Loading from '../../components/pages/Loading';
 
 export default function Thanks() {
-  const { user } = UserAuth();
+  const { user, isSubscribed } = UserAuth();
   const router = useRouter();
-  
-useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      if (!user) {
-        router.push('/');
-        return;
-      }
+  const [loading, setLoading] = useState(true);
 
-      const creationTime = user.metadata?.creationTime;
-      if (creationTime) {
-        const userCreationDate = new Date(creationTime);
-        const currentDate = new Date();
-        const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  useEffect(() => {
+    if (!user) {
+      router.push('/');
+    } else if (!isSubscribed) {
+      router.push('/signUp');
+    } else {
+      setLoading(false);
+    }
+  }, [user, isSubscribed, router]);
 
-        if (diffDays > 7) {
-          const db = getFirestore(app);
-          if (user.email) {
-            const userRef = doc(db, "users", user.email);
-            const userDoc = await getDoc(userRef);
-
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              if (!userData.isSubscribed) {
-                router.push('/signUp');
-              }
-            } else {
-              router.push('/signUp');
-            }
-          } else {
-            console.error('User email is not available.');
-            router.push('/signUp');
-          }
-        }
-      }
-    };
-
-
-    checkSubscriptionStatus();
-  }, [user, router]);
-
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="container">
       <h1 className="thanksHeading">Thank you</h1>
-      <button className='returnButton' onClick={() => router.push('/home')}>Back To Home</button>
-        <p>If you have any questions <Link href="/contactUs">contact us</Link></p>
+      <button className="returnButton" onClick={() => router.push('/home')}>
+        Back To Home
+      </button>
+      <p>
+        If you have any questions <Link href="/contactUs">contact us</Link>
+      </p>
     </div>
   );
 }

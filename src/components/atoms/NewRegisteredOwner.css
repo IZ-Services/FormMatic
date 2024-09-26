@@ -45,13 +45,12 @@ body {
 
 .regStateWrapper {
   max-width: 100px;
-  position: relative; 
+  position: relative;
   flex: 1;
   margin-right: 10px;
 }
 
-
-.registeredOwnerLabel{
+.registeredOwnerLabel {
   display: block;
   margin-bottom: 5px;
   font-size: 14px;
@@ -60,7 +59,7 @@ body {
   align-items: center;
 }
 
-.registeredOwnerInput{
+.registeredOwnerInput {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
@@ -72,7 +71,7 @@ body {
   color: #999;
 }
 
-.registeredOwnerLicenseInput{
+.registeredOwnerLicenseInput {
   max-width: 400px;
   padding: 8px;
   border: 1px solid #ccc;
@@ -107,20 +106,20 @@ body {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 2px;
-   color: #999;
+  color: #999;
   text-align: center;
   justify-content: center;
   align-items: center;
-  width: 100%; 
-    height: 2rem;
   width: 100%;
-  padding: 0 10px; 
+  height: 2rem;
+  width: 100%;
+  padding: 0 10px;
   box-sizing: border-box;
 }
 
 /* copy for drop down  */
 .regStateMenu {
-  position: absolute; 
+  position: absolute;
   top: calc(100% + 5px);
   left: 0;
   right: 0;
@@ -134,14 +133,14 @@ body {
   text-align: center;
   overflow-y: auto;
   height: 200px;
-  max-height: 200px; 
+  max-height: 200px;
   padding-right: 15px;
   overflow-x: hidden;
 }
 
 /* copy for drop down  */
 .regStateLists {
- color: #999;
+  color: #999;
   padding: 10px;
   font-size: 12px;
 }
@@ -158,8 +157,7 @@ body {
   margin-bottom: 15px;
 }
 
-
-.registeredNumberInput{
+.registeredNumberInput {
   max-width: 600px;
   padding: 8px;
   border: 1px solid #ccc;
@@ -172,7 +170,7 @@ body {
   color: #999;
 }
 
-.registeredDateInput{
+.registeredDateInput {
   max-width: 400px;
   padding: 8px;
   border: 1px solid #ccc;

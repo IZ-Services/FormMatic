@@ -18,67 +18,34 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Dayjs } from 'dayjs';
 import { styled } from '@mui/material';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { initFirebase } from '../../firebase-config';
-
-const app = initFirebase();
-
+import Loading from '../../components/pages/Loading';
 
 export default function Transactions() {
   const { transactions, setFormData, setTransactions } = useAppContext()!;
   const { scenarios } = useScenarioContext();
-  const { user } = UserAuth();
+  const { user, isSubscribed } = UserAuth();
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const dateRef = useRef<HTMLInputElement | null>(null);
 
   const [searchFor, setSearchFor] = useState('');
-  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null); 
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isMenuOpen, setisMenuOpen] = useState(false);
   const [isDateOpen, setisDateOpen] = useState(false);
   const [selectedSubsection, setSelectedSubsection] = useState('');
   const [openSubMenus, setOpenSubMenus] = useState<{ [key: string]: boolean }>({});
+  const deferredSearchFor = useDeferredValue(searchFor);
 
-useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      if (!user) {
-        router.push('/');
-        return;
-      }
-
-      const creationTime = user.metadata?.creationTime;
-      if (creationTime) {
-        const userCreationDate = new Date(creationTime);
-        const currentDate = new Date();
-        const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays > 7) {
-          const db = getFirestore(app);
-          if (user.email) {
-            const userRef = doc(db, "users", user.email);
-            const userDoc = await getDoc(userRef);
-
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              if (!userData.isSubscribed) {
-                router.push('/signUp');
-              }
-            } else {
-              router.push('/signUp');
-            }
-          } else {
-            console.error('User email is not available.');
-            router.push('/signUp');
-          }
-        }
-      }
-    };
-
-
-    checkSubscriptionStatus();
-  }, [user, router]);
-
+  useEffect(() => {
+    if (!user) {
+      router.push('/');
+    } else if (!isSubscribed) {
+      router.push('/signUp');
+    } else {
+      setLoading(false);
+    }
+  }, [user, isSubscribed, router]);
 
   useEffect(() => {
     const fetchRecentTransactions = async () => {
@@ -98,13 +65,11 @@ useEffect(() => {
     fetchRecentTransactions();
   }, [setTransactions, user?.uid]);
 
-  const deferredSearchFor = useDeferredValue(searchFor);
-
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       try {
         if (deferredSearchFor.trim() === '') {
-        const res = await fetch(`/api/getRecent?user_id=${user?.uid}`);
+          const res = await fetch(`/api/getRecent?user_id=${user?.uid}`);
           const data = await res.json();
           if (Array.isArray(data)) {
             setTransactions(data);
@@ -112,7 +77,7 @@ useEffect(() => {
             setTransactions([]);
           }
         } else {
-        const res = await fetch(`/api/get?searchFor=${deferredSearchFor}&user_id=${user?.uid}`);
+          const res = await fetch(`/api/get?searchFor=${deferredSearchFor}&user_id=${user?.uid}`);
           const data = await res.json();
           if (data.error) {
             setTransactions([]);
@@ -129,107 +94,111 @@ useEffect(() => {
       }
     }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [deferredSearchFor, setTransactions,  user?.uid]);
+  }, [deferredSearchFor, setTransactions, user?.uid]);
 
-const handleDateChange = (value: Dayjs | null) => {
-  if (!user?.uid) {
-    console.error('User ID is required');
-    return;
-  }
+  const handleDateChange = (value: Dayjs | null) => {
+    if (!user?.uid) {
+      console.error('User ID is required');
+      return;
+    }
 
-  setSelectedDate(value);
-  setSelectedSubsection('');
+    setSelectedDate(value);
+    setSelectedSubsection('');
 
-  if (value) {
-    const startOfDay = value.startOf('day').toISOString();
-    const endOfDay = value.endOf('day').toISOString();
+    if (value) {
+      const startOfDay = value.startOf('day').toISOString();
+      const endOfDay = value.endOf('day').toISOString();
 
-    fetch(`/api/getByDate?start=${encodeURIComponent(startOfDay)}&end=${encodeURIComponent(endOfDay)}&user_id=${encodeURIComponent(user.uid)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
+      fetch(
+        `/api/getByDate?start=${encodeURIComponent(startOfDay)}&end=${encodeURIComponent(endOfDay)}&user_id=${encodeURIComponent(user.uid)}`,
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.error) {
+            setTransactions([]);
+            console.error('Error fetching transactions:', data.error);
+          } else if (Array.isArray(data)) {
+            data.sort(
+              (a: IClient, b: IClient) =>
+                new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime(),
+            );
+            setTransactions(data);
+          } else {
+            setTransactions([]);
+            console.error('Expected an array of transactions');
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching transactions by date:', error);
           setTransactions([]);
-          console.error('Error fetching transactions:', data.error);
-        } else if (Array.isArray(data)) {
-          data.sort(
-            (a: IClient, b: IClient) =>
-              new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime()
-          );
+        });
+    }
+  };
+
+  const handleTransactionChange = async (subsection: string, user_id: string | undefined) => {
+    if (!user_id) return;
+
+    setSelectedSubsection(subsection);
+    setisMenuOpen(false);
+    setSelectedDate(null);
+    try {
+      const response =
+        subsection === 'All'
+          ? await fetch(`/api/getRecent?user_id=${user_id}`)
+          : await fetch(`/api/getByTransaction?transactionType=${subsection}&user_id=${user_id}`);
+      const data = await response.json();
+
+      if (data.error) {
+        setTransactions([]);
+      } else {
+        if (Array.isArray(data)) {
           setTransactions(data);
         } else {
           setTransactions([]);
           console.error('Expected an array of transactions');
         }
-      })
-      .catch((error) => {
-        console.error('Error fetching transactions by date:', error);
-        setTransactions([]);
-      });
-  }
-};
-
-const handleTransactionChange = async (subsection: string, user_id: string | undefined) => {
-  if (!user_id) return; 
-
-  setSelectedSubsection(subsection);
-  setisMenuOpen(false);
-  setSelectedDate(null);
-  try {
-    const response =
-      subsection === 'All'
-        ? await fetch(`/api/getRecent?user_id=${user_id}`)
-        : await fetch(`/api/getByTransaction?transactionType=${subsection}&user_id=${user_id}`);
-    const data = await response.json();
-
-    if (data.error) {
-      setTransactions([]);
-    } else {
-      if (Array.isArray(data)) {
-        setTransactions(data);
-      } else {
-        setTransactions([]);
-        console.error('Expected an array of transactions');
       }
+    } catch (error) {
+      console.error('Error updating transaction:', error);
     }
-  } catch (error) {
-    console.error('Error updating transaction:', error);
-  }
-};
+  };
 
-const handleEdit = async (clientId: string, user_id: string | undefined) => {
-  if (!user_id) return;
+  const handleEdit = async (clientId: string, user_id: string | undefined) => {
+    if (!user_id) return;
 
-  try {
-    const clientToEdit = transactions.find((client) => client._id === clientId && client.user_id === user_id);
-    if (clientToEdit) {
-      setFormData(clientToEdit);
-    } else {
-      alert('Client not found.');
+    try {
+      const clientToEdit = transactions.find(
+        (client) => client._id === clientId && client.user_id === user_id,
+      );
+      if (clientToEdit) {
+        setFormData(clientToEdit);
+      } else {
+        alert('Client not found.');
+      }
+    } catch (error) {
+      console.error('Error fetching clients:', error);
     }
-  } catch (error) {
-    console.error('Error fetching clients:', error);
-  }
-};
+  };
 
-const handleDelete = async (clientId: string, user_id: string | undefined) => {
-  if (!user_id) {
-    console.error('User ID is required');
-    return;
-  }
+  const handleDelete = async (clientId: string, user_id: string | undefined) => {
+    if (!user_id) {
+      console.error('User ID is required');
+      return;
+    }
 
-  try {
-    const response = await fetch(`/api/delete?clientId=${clientId}&user_id=${user_id}`, {
-      method: 'DELETE',
-    });
+    try {
+      const response = await fetch(`/api/delete?clientId=${clientId}&user_id=${user_id}`, {
+        method: 'DELETE',
+      });
 
-    await response.json();
+      await response.json();
 
-    setTransactions(transactions.filter((client) => client._id !== clientId));
-    alert('Client Deleted.');
-  } catch (error) {
-    console.error('Error deleting client:', error);
-  }
-};
+      setTransactions(transactions.filter((client) => client._id !== clientId));
+      alert('Client Deleted.');
+    } catch (error) {
+      console.error('Error deleting client:', error);
+    }
+  };
 
   const handleClickOutsideMenu = (e: MouseEvent) => {
     const target = e.target as Element;
@@ -298,6 +267,10 @@ const handleDelete = async (clientId: string, user_id: string | undefined) => {
     },
   });
 
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <div className="container">
@@ -326,7 +299,7 @@ const handleDelete = async (clientId: string, user_id: string | undefined) => {
               <ul className="transactionMenu">
                 <li
                   className="selectableTransactions"
-                   onClick={() => handleTransactionChange('All', user?.uid || '')}
+                  onClick={() => handleTransactionChange('All', user?.uid || '')}
                   style={{ display: 'flex' }}
                 >
                   <div className="checkboxWrapper">
@@ -355,7 +328,10 @@ const handleDelete = async (clientId: string, user_id: string | undefined) => {
                       className={`selectableTransactions ${openSubMenus[scenerio.transactionType] ? '' : 'hidden'}`}
                     >
                       {scenerio.subsections.map((subsection, subIndex) => (
-                        <li key={subIndex} onClick={() => handleTransactionChange(subsection, user?.uid || '')}>
+                        <li
+                          key={subIndex}
+                          onClick={() => handleTransactionChange(subsection, user?.uid || '')}
+                        >
                           <div className="checkboxWrapper">
                             {selectedSubsection === subsection ? (
                               <div className="activeCheckbox" />
@@ -378,10 +354,11 @@ const handleDelete = async (clientId: string, user_id: string | undefined) => {
               className="transactionSearch"
               placeholder="Search By Name or Vin"
               onChange={(e) => {
-                  setSearchFor(e.target.value);
-                  setSelectedSubsection('');
-                  setSelectedDate(null);
-                }}            />
+                setSearchFor(e.target.value);
+                setSelectedSubsection('');
+                setSelectedDate(null);
+              }}
+            />
           </div>
         </div>
         {transactions.length === 0 ? (
@@ -411,12 +388,15 @@ const handleDelete = async (clientId: string, user_id: string | undefined) => {
                       <Link
                         href="/updateClient"
                         className="editanddelete-button"
-                        onClick={() => handleEdit(client._id,  user?.uid || '')}
+                        onClick={() => handleEdit(client._id, user?.uid || '')}
                       >
                         <PencilSquareIcon className="editIcon" />
                       </Link>
                       <button className="editanddelete-button">
-                        <TrashIcon className="trashIcon" onClick={() => handleDelete(client._id, user?.uid || '')} />
+                        <TrashIcon
+                          className="trashIcon"
+                          onClick={() => handleDelete(client._id, user?.uid || '')}
+                        />
                       </button>
                     </td>
                   </tr>

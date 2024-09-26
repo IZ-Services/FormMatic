@@ -8,7 +8,7 @@ import { UserAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const { emailSignIn } = UserAuth();
+  const { emailSignIn, isSubscribed } = UserAuth();
   const router = useRouter();
 
   const [email, setEmail] = useState('');
@@ -17,12 +17,17 @@ export default function LoginPage() {
   const [loginError, setLoginError] = useState(false);
 
   const handleSignIn = async (event: React.FormEvent) => {
-    event.preventDefault(); 
+    event.preventDefault();
 
     try {
       if (emailSignIn) {
         await emailSignIn(email, password);
-        router.push('/home');
+
+        if (isSubscribed) {
+          router.push('/home');
+        } else {
+          router.push('/signUp');
+        }
       }
     } catch (error) {
       console.error('Error signing in: ', error);
