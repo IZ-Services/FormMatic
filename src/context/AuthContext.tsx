@@ -61,16 +61,15 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       sessionStorage.removeItem('clientSecret');
       sessionStorage.removeItem('customerId');
       sessionStorage.removeItem('paymentClientSecret');
-      
+
       if (unsubscribeSnapshot) {
         unsubscribeSnapshot();
       }
 
       await signOut(auth);
 
-      setUser(null); 
-      setIsSubscribed(false); 
-   
+      setUser(null);
+      setIsSubscribed(false);
     } catch (error) {
       console.error('Error signing out: ', error);
     }
@@ -118,7 +117,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         authTime,
         timestamp: new Date(),
       });
-      
     } catch (error) {
       console.error('Error signing in with email: ', error);
       throw error;
@@ -152,7 +150,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         }
 
         const unsubscribeSnapshot = onSnapshot(userRef, (userDoc) => {
-           console.log('In unsubscribeSnapshot');
+          console.log('In unsubscribeSnapshot');
           if (userDoc.exists()) {
             const userData = userDoc.data();
             const subscribed = userData.isSubscribed;
@@ -173,19 +171,19 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         setUnsubscribeSnapshot(() => unsubscribeSnapshot);
 
         const sessionId = sessionStorage.getItem('sessionId');
-        let unsubscribeSession = null;  
+        let unsubscribeSession = null;
 
-        if (sessionId ) {
+        if (sessionId) {
           const sessionsRef = collection(firestore, 'users', currentUser.uid, 'sessions');
           const sessionDocRef = doc(sessionsRef, sessionId);
-          
-          unsubscribeSession = onSnapshot( sessionDocRef, (docSnapshot) => { 
+
+          unsubscribeSession = onSnapshot(sessionDocRef, (docSnapshot) => {
             console.log('In unsubscribe');
             if (!docSnapshot.exists()) {
               console.log('Session no longer exists, logging out.');
               logout();
             }
-          }); 
+          });
         }
 
         return () => {
@@ -197,13 +195,13 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
           }
         };
       } else {
-        if(!user){
+        if (!user) {
           setLoading(false);
           return;
         }
         try {
-          await logout();  
-          router.push('/'); 
+          await logout();
+          router.push('/');
         } catch (error) {
           console.error('Error during logout:', error);
         }
