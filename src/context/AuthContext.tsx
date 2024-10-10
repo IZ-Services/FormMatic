@@ -9,22 +9,11 @@ import {
   browserSessionPersistence,
 } from 'firebase/auth';
 import Loading from '../components/pages/Loading';
-import {
-  doc,
-  collection,
-  getDocs,
-  setDoc,
-  deleteDoc,
-  orderBy,
-  limit,
-  query,
-  onSnapshot,
-  getFirestore,
-} from 'firebase/firestore';
+import { doc, collection, deleteDoc, onSnapshot, getFirestore } from 'firebase/firestore';
 import { auth, firestore } from '../firebase-config';
-import { CollectionReference, DocumentData } from 'firebase/firestore';
 import { initFirebase } from '../firebase-config';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 const app = initFirebase();
 export interface AuthContextType {
@@ -40,21 +29,24 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [unsubscribeSnapshot, setUnsubscribeSnapshot] = useState<(() => void) | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const router = useRouter();
 
   const logout = useCallback(async () => {
     if (!user || !user.uid) {
+      console.log('No user found, returning from logout');
       return;
     }
 
     try {
+      console.log('Attempting to log out user:', user.uid);
       const sessionId = sessionStorage.getItem('sessionId');
 
       if (sessionId) {
         const sessionsRef = collection(firestore, 'users', user.uid, 'sessions');
         await deleteDoc(doc(sessionsRef, sessionId));
+        console.log('Session deleted:', sessionId);
       }
 
       sessionStorage.removeItem('sessionId');
@@ -62,61 +54,39 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       sessionStorage.removeItem('customerId');
       sessionStorage.removeItem('paymentClientSecret');
 
-      if (unsubscribeSnapshot) {
-        unsubscribeSnapshot();
-      }
-
       await signOut(auth);
+      console.log('Successfully signed out user:', user.uid);
 
+      setSessionId(null);
       setUser(null);
       setIsSubscribed(false);
     } catch (error) {
       console.error('Error signing out: ', error);
     }
-  }, [unsubscribeSnapshot, user]);
-
-  const removeOldestSession = async (sessionsRef: CollectionReference<DocumentData>) => {
-    const sessionsQuery = query(sessionsRef, orderBy('authTime', 'asc'), limit(1));
-    const querySnapshot = await getDocs(sessionsQuery);
-
-    if (!querySnapshot.empty) {
-      const oldestSession = querySnapshot.docs[0];
-      await deleteDoc(oldestSession.ref);
-    }
-  };
-
-  const generateDeviceId = () => {
-    return Math.random().toString(36).substring(2);
-  };
+  }, [user]);
 
   const emailSignIn = async (email: string, password: string) => {
     try {
+      console.log('Starting email sign-in for:', email);
       await setPersistence(auth, browserSessionPersistence);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
-      if (!userCredential.user.email) {
-        throw new Error('User email is not available.');
-      }
+      console.log('Sign-in successful for:', userCredential.user.email);
 
       const authTime = userCredential.user.metadata.lastSignInTime
         ? new Date(userCredential.user.metadata.lastSignInTime)
         : new Date();
 
-      const sessionsRef = collection(firestore, 'users', userCredential.user.uid, 'sessions');
-      const sessionsSnapshot = await getDocs(sessionsRef);
+      const response = await axios.post(
+        'http://127.0.0.1:5001/formatic-28666/us-central1/manageUserSessions',
+        {
+          userId: userCredential.user.uid,
+          authTime,
+        },
+      );
 
-      if (sessionsSnapshot.size >= 2) {
-        await removeOldestSession(sessionsRef);
-      }
-
-      const sessionId = generateDeviceId();
-      sessionStorage.setItem('sessionId', sessionId);
-
-      await setDoc(doc(sessionsRef, sessionId), {
-        deviceId: sessionId,
-        authTime,
-        timestamp: new Date(),
-      });
+      setSessionId(response.data.sessionId);
+      sessionStorage.setItem('sessionId', response.data.sessionId);
+      console.log('Session created with ID:', response.data.sessionId);
     } catch (error) {
       console.error('Error signing in with email: ', error);
       throw error;
@@ -125,86 +95,14 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+      console.log('Auth state changed, current user:', currentUser);
       if (currentUser) {
         setUser(currentUser);
-
-        const creationTime = currentUser.metadata?.creationTime;
-
-        if (!creationTime) {
-          setLoading(false);
-          return;
-        }
-
-        const userCreationDate = new Date(creationTime);
-        const currentDate = new Date();
-        const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        const db = getFirestore(app);
-        const userRef = doc(db, 'users', currentUser.uid);
-
-        if (diffDays < 7) {
-          setIsSubscribed(true);
-          setLoading(false);
-          return;
-        }
-
-        const unsubscribeSnapshot = onSnapshot(userRef, (userDoc) => {
-          console.log('In unsubscribeSnapshot');
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            const subscribed = userData.isSubscribed;
-
-            if (!subscribed) {
-              router.push('/signUp');
-              setLoading(false);
-              return;
-            }
-            setIsSubscribed(subscribed);
-          } else {
-            setIsSubscribed(false);
-            router.push('/signUp');
-          }
-          setLoading(false);
-        });
-
-        setUnsubscribeSnapshot(() => unsubscribeSnapshot);
-
-        const sessionId = sessionStorage.getItem('sessionId');
-        let unsubscribeSession = null;
-
-        if (sessionId) {
-          const sessionsRef = collection(firestore, 'users', currentUser.uid, 'sessions');
-          const sessionDocRef = doc(sessionsRef, sessionId);
-
-          unsubscribeSession = onSnapshot(sessionDocRef, (docSnapshot) => {
-            console.log('In unsubscribe');
-            if (!docSnapshot.exists()) {
-              console.log('Session no longer exists, logging out.');
-              logout();
-            }
-          });
-        }
-
-        return () => {
-          if (unsubscribeSnapshot) {
-            unsubscribeSnapshot();
-          }
-          if (unsubscribeSession) {
-            unsubscribeSession();
-          }
-        };
+        console.log('User set in state:', currentUser.uid);
       } else {
-        if (!user) {
-          setLoading(false);
-          return;
-        }
-        try {
-          await logout();
-          router.push('/');
-        } catch (error) {
-          console.error('Error during logout:', error);
-        }
+        await logout();
+        router.push('/');
+        console.log('No user found, redirecting to home');
         setLoading(false);
         return;
       }
@@ -213,6 +111,81 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       unsubscribeAuth();
     };
   }, [logout, router, user]);
+
+  useEffect(() => {
+    if (!user || !sessionId) {
+      console.log('No user or session ID found, setting loading to false');
+      setLoading(false);
+      return;
+    }
+
+    console.log('Session ID found in storage:', sessionId);
+
+    const sessionRef = doc(firestore, 'users', user.uid, 'sessions', sessionId);
+    const unsubscribeSessionSnapshot = onSnapshot(sessionRef, (docSnapshot) => {
+      console.log('Session snapshot updated:', docSnapshot.exists());
+      if (!docSnapshot.exists()) {
+        console.log('Session no longer exists, logging out');
+        logout();
+      }
+    });
+
+    return () => {
+      unsubscribeSessionSnapshot();
+    };
+  }, [logout, sessionId, user]);
+
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    const creationTime = user.metadata?.creationTime;
+
+    if (!creationTime) {
+      setLoading(false);
+      return;
+    }
+
+    const userCreationDate = new Date(creationTime);
+    const currentDate = new Date();
+    const diffTime = Math.abs(currentDate.getTime() - userCreationDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    const db = getFirestore(app);
+    const userRef = doc(db, 'users', user.uid);
+
+    if (diffDays < 7) {
+      setIsSubscribed(true);
+      setLoading(false);
+      return;
+    }
+
+    const unsubscribeSnapshot = onSnapshot(userRef, (userDoc) => {
+      console.log('User document snapshot:', userDoc.exists());
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const subscribed = userData.isSubscribed;
+        console.log('User isSubscribed field:', subscribed);
+
+        if (!subscribed) {
+          router.push('/signUp');
+          setLoading(false);
+          return;
+        }
+        setIsSubscribed(subscribed);
+      } else {
+        setIsSubscribed(false);
+        router.push('/signUp');
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribeSnapshot();
+    };
+  }, [router, user]);
 
   if (loading) {
     return <Loading />;

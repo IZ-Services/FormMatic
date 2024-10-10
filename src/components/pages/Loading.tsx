@@ -1,12 +1,12 @@
 'use client';
 import React from 'react';
 import './Loading.css';
-import { RingLoader } from 'react-spinners';
+import { FadeLoader } from 'react-spinners';
 
 export default function Loading() {
   return (
     <div className="spinner">
-      <RingLoader color="black" speedMultiplier={1} />
+      <FadeLoader color="black" speedMultiplier={1} />
     </div>
   );
 }
