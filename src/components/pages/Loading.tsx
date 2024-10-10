@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import './Loading.css';
-import { FadeLoader} from 'react-spinners';
+import { FadeLoader } from 'react-spinners';
 
 export default function Loading() {
   return (

@@ -9,17 +9,11 @@ import {
   browserSessionPersistence,
 } from 'firebase/auth';
 import Loading from '../components/pages/Loading';
-import {
-  doc,
-  collection,
-  deleteDoc,
-  onSnapshot,
-  getFirestore,
-} from 'firebase/firestore';
+import { doc, collection, deleteDoc, onSnapshot, getFirestore } from 'firebase/firestore';
 import { auth, firestore } from '../firebase-config';
 import { initFirebase } from '../firebase-config';
 import { useRouter } from 'next/navigation';
-import axios from 'axios'; 
+import axios from 'axios';
 
 const app = initFirebase();
 export interface AuthContextType {
@@ -60,8 +54,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       sessionStorage.removeItem('customerId');
       sessionStorage.removeItem('paymentClientSecret');
 
-  
-
       await signOut(auth);
       console.log('Successfully signed out user:', user.uid);
 
@@ -72,7 +64,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       console.error('Error signing out: ', error);
     }
   }, [user]);
-
 
   const emailSignIn = async (email: string, password: string) => {
     try {
@@ -85,16 +76,17 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         ? new Date(userCredential.user.metadata.lastSignInTime)
         : new Date();
 
-        
-      const response = await axios.post('http://127.0.0.1:5001/formatic-28666/us-central1/manageUserSessions', {
-        userId: userCredential.user.uid,
-        authTime
-      });
-          
+      const response = await axios.post(
+        'http://127.0.0.1:5001/formatic-28666/us-central1/manageUserSessions',
+        {
+          userId: userCredential.user.uid,
+          authTime,
+        },
+      );
+
       setSessionId(response.data.sessionId);
       sessionStorage.setItem('sessionId', response.data.sessionId);
       console.log('Session created with ID:', response.data.sessionId);
-
     } catch (error) {
       console.error('Error signing in with email: ', error);
       throw error;
@@ -107,8 +99,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       if (currentUser) {
         setUser(currentUser);
         console.log('User set in state:', currentUser.uid);
-      } 
-      else {
+      } else {
         await logout();
         router.push('/');
         console.log('No user found, redirecting to home');
@@ -121,8 +112,8 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
     };
   }, [logout, router, user]);
 
-  useEffect(() => {  
-    if (!user || !sessionId) { 
+  useEffect(() => {
+    if (!user || !sessionId) {
       console.log('No user or session ID found, setting loading to false');
       setLoading(false);
       return;
@@ -135,7 +126,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       console.log('Session snapshot updated:', docSnapshot.exists());
       if (!docSnapshot.exists()) {
         console.log('Session no longer exists, logging out');
-       logout();
+        logout();
       }
     });
 
@@ -144,9 +135,8 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
     };
   }, [logout, sessionId, user]);
 
-
-  useEffect(()=>{
-    if(!user){
+  useEffect(() => {
+    if (!user) {
       setLoading(false);
       return;
     }
@@ -185,19 +175,17 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
           return;
         }
         setIsSubscribed(subscribed);
-      } 
-      else {
+      } else {
         setIsSubscribed(false);
         router.push('/signUp');
       }
       setLoading(false);
     });
 
-
     return () => {
       unsubscribeSnapshot();
     };
-  },[router, user]);
+  }, [router, user]);
 
   if (loading) {
     return <Loading />;
