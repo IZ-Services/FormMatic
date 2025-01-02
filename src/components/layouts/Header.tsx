@@ -18,7 +18,7 @@ export default function Header() {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
   const links = [
-    { label: 'Formatic' },
+    { label: 'FormMatic' },
     { label: 'Home', route: '/home' },
     { label: 'Search Transactions', route: '/transactions' },
     { label: 'DMV Forms', route: '/dmvForms' },
@@ -85,7 +85,7 @@ export default function Header() {
     <header className="headerWrapper">
       <ul className="myLinks">
         {links.map((link) => (
-          <li key={link.label} className={link.label === 'Formatic' ? 'headingLink' : 'linkLabel'}>
+          <li key={link.label} className={link.label === 'FormMatic' ? 'headingLink' : 'linkLabel'}>
             {link.route ? (
               <Link
                 href={link.route}
@@ -100,7 +100,7 @@ export default function Header() {
                   link.label === 'Account' &&
                   link.dropdown?.some((item) => item.route === activeRoute)
                     ? 'linkActive'
-                    : link.label === 'Formatic'
+                    : link.label === 'FormMatic'
                       ? 'headingLink'
                       : 'linkRoute'
                 }`}
