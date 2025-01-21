@@ -9,7 +9,9 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "prettier": "prettier --write '**/*.{js,jsx,json,ts,tsx,scss,css,md}'",
-    "prepare": "husky"
+    "prepare": "husky && husky install",
+    "test": "echo \"No tests specified\""
+
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -49,6 +51,7 @@
     "eslint-plugin-prettier": "^5.1.3",
     "eslint-plugin-react": "^7.34.2",
     "firebase-tools": "^13.19.0",
+    "husky": "^8.0.0",
     "prettier": "^3.3.2",
     "typescript": "^5"
   }
