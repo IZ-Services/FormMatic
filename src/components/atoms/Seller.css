@@ -1,0 +1,74 @@
+.seller-section {
+    font-family: Arial, sans-serif;
+  }
+  
+  .sellerHeading {
+    font-size: 20px;
+    font-weight: bold;
+  }
+  .driverState {
+    display: flex;
+    justify-content: flex-start; 
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  .stateField {
+    flex: 1; 
+    max-width: 150px;
+  }
+
+  .driverLicenseField {
+    flex: 3; 
+    max-width: 306px;
+  }
+  
+  .sellerFirstGroup,
+  .sellerSecondGroup,
+  .sellerThirdGroup {
+    display: flex;
+    margin-bottom: 15px;
+  }
+
+  .sellerThirdGroup {
+    display: flex;
+    margin-bottom: 15px;
+    gap: 10px;
+  }
+  
+  .sellerFormItem,
+  .sellerInfo {
+    flex: 1;
+    margin-right: 10px;
+  }
+  
+  .sellerLabel {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+  
+  .sellerInput,
+  .sellerLicenseInput,
+  .sellerNumberInput,
+  .sellerDateInput {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    font-size: 14px;
+  }
+
+  .sellerHeader {
+    display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 15px;
+  }
+  
+  .sellerStateWrapper {
+    max-width: 100px;
+    position: relative;
+    flex: 1;
+    margin-right: 10px;
+  }
+  

@@ -1,50 +1,18 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './NewRegisteredOwner.css';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
-const NewRegisteredOwners = () => {
-  {
-    /* copy for drop down of number */
-  }
+const NewRegisteredOwners: React.FC = () => {
+  const { formData, updateField } = useFormContext();
+
   const [isRegMenuOpen, setIsRegMenuOpen] = useState(false);
-  const [regState, setRegState] = useState('');
+  const [isHowManyMenuOpen, setIsHowManyMenuOpen] = useState(false);
+
   const regRef = useRef<HTMLUListElement | null>(null);
+  const howManyRef = useRef<HTMLUListElement | null>(null);
 
-  {
-    /* copy for drop down of number */
-  }
-  const handleRegStateChange = async (state: string) => {
-    setIsRegMenuOpen(false);
-    setRegState(state);
-  };
-
-  {
-    /* copy for drop down of number */
-  }
-  const handleClickOutsideRegMenu = (e: MouseEvent) => {
-    const target = e.target as Element;
-    if (
-      regRef.current &&
-      !regRef.current.contains(target) &&
-      !target.closest('.regStateDropDown')
-    ) {
-      setIsRegMenuOpen(false);
-    }
-  };
-  {
-    /* copy for drop down of number */
-  }
-  useEffect(() => {
-    if (isRegMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutsideRegMenu);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutsideRegMenu);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideRegMenu);
-    };
-  }, [isRegMenuOpen]);
 
   const states = [
     { name: 'Alabama', abbreviation: 'AL' },
@@ -99,23 +67,96 @@ const NewRegisteredOwners = () => {
     { name: 'Wyoming', abbreviation: 'WY' },
   ];
 
+  const howManyOptions = ['1', '2', '3'];
+
+  const handleClickOutsideMenus = (e: MouseEvent) => {
+    const target = e.target as Element;
+    if (
+      regRef.current &&
+      !regRef.current.contains(target) &&
+      !target.closest('.regStateDropDown')
+    ) {
+      setIsRegMenuOpen(false);
+    }
+    if (
+      howManyRef.current &&
+      !howManyRef.current.contains(target) &&
+      !target.closest('.howManyDropDown')
+    ) {
+      setIsHowManyMenuOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutsideMenus);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideMenus);
+    };
+  }, []);
+
   return (
     <div className="new-registered-owners">
-      <h3 className="newRegHeading">New Registered Owner(s)</h3>
+      <div className="newRegHeader">
+        <h3 className="newRegHeading">New Registered Owner(s)</h3>
+        <div className="howManyWrapper">
+          <button
+            onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
+            className="howManyDropDown"
+          >
+            {formData.howMany || 'How Many'}
+            <ChevronDownIcon
+              className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`}
+            />
+          </button>
+          {isHowManyMenuOpen && (
+            <ul ref={howManyRef} className="howManyMenu">
+              {howManyOptions.map((option, index) => (
+                <li
+                  className="howManyLists"
+                  key={index}
+                  onClick={() => updateField('howMany', option)}
+                >
+                  {option}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
       <div className="newRegFirstGroup">
         <div className="newRegFormItem">
           <label className="registeredOwnerLabel">First Name</label>
-          <input className="registeredOwnerInput" type="text" placeholder="First Name" />
+          <input
+            className="registeredOwnerInput"
+            type="text"
+            placeholder="First Name"
+            value={formData.firstName || ''}
+            onChange={(e) => updateField('firstName', e.target.value)}
+          />
         </div>
         <div className="newRegFormItem">
           <label className="registeredOwnerLabel">Middle Name</label>
-          <input className="registeredOwnerInput" type="text" placeholder="Middle Name" />
+          <input
+            className="registeredOwnerInput"
+            type="text"
+            placeholder="Middle Name"
+            value={formData.middleName || ''}
+            onChange={(e) => updateField('middleName', e.target.value)}
+          />
         </div>
         <div className="newRegFormItem">
           <label className="registeredOwnerLabel">Last Name</label>
-          <input className="registeredOwnerInput" type="text" placeholder="Last Name" />
+          <input
+            className="registeredOwnerInput"
+            type="text"
+            placeholder="Last Name"
+            value={formData.lastName || ''}
+            onChange={(e) => updateField('lastName', e.target.value)}
+          />
         </div>
       </div>
+
       <div className="newRegSecondGroup">
         <div className="newRegInfo">
           <label className="registeredOwnerLabel">Driver License Number</label>
@@ -123,15 +164,21 @@ const NewRegisteredOwners = () => {
             className="registeredOwnerLicenseInput"
             type="text"
             placeholder="Driver License Number"
+            value={formData.licenseNumber || ''}
+            onChange={(e) => updateField('licenseNumber', e.target.value)}
           />
         </div>
 
-        {/* copy for drop down of number */}
         <div className="regStateWrapper">
           <label className="registeredOwnerLabel">State</label>
-          <button onClick={() => setIsRegMenuOpen(!isRegMenuOpen)} className="regStateDropDown">
-            {regState || 'State'}
-            <ChevronDownIcon className={`regIcon ${isRegMenuOpen ? 'rotate' : ''}`} />
+          <button
+            onClick={() => setIsRegMenuOpen(!isRegMenuOpen)}
+            className="regStateDropDown"
+          >
+            {formData.state || 'State'}
+            <ChevronDownIcon
+              className={`regIcon ${isRegMenuOpen ? 'rotate' : ''}`}
+            />
           </button>
           {isRegMenuOpen && (
             <ul ref={regRef} className="regStateMenu">
@@ -139,7 +186,7 @@ const NewRegisteredOwners = () => {
                 <li
                   className="regStateLists"
                   key={index}
-                  onClick={() => handleRegStateChange(state.abbreviation)}
+                  onClick={() => updateField('state', state.abbreviation)}
                 >
                   {state.name}
                 </li>
@@ -148,14 +195,57 @@ const NewRegisteredOwners = () => {
           )}
         </div>
       </div>
+
       <div className="newRegThirdGroup">
         <div className="newRegThirdItem">
           <label className="registeredOwnerLabel">Phone Number</label>
-          <input className="registeredNumberInput" type="text" placeholder="Phone Number" />
+          <input
+            className="registeredNumberInput"
+            type="text"
+            placeholder="Phone Number"
+            value={formData.phoneNumber || ''}
+            onChange={(e) => updateField('phoneNumber', e.target.value)}
+          />
         </div>
         <div className="newRegThirdItem">
           <label className="registeredOwnerLabel">Date of Purchase</label>
-          <input className="registeredDateInput" type="text" placeholder="MM/DD/YYYY" />
+          <input
+            className="registeredDateInput"
+            type="text"
+            placeholder="MM/DD/YYYY"
+            value={formData.purchaseDate || ''}
+            onChange={(e) => updateField('purchaseDate', e.target.value)}
+          />
+        </div>
+        <div className="newRegThirdItem">
+          <label className="registeredOwnerLabel">Purchase Price/Value</label>
+          <input
+            className="registeredValueInput"
+            type="text"
+            placeholder="Enter Amount"
+            value={formData.purchaseValue || ''}
+            onChange={(e) => updateField('purchaseValue', e.target.value)}
+          />
+        </div>
+        <div className="newRegThirdItem checkboxWrapper">
+          <label className="checkboxLabel">
+            <input
+              type="checkbox"
+              className="checkboxInput"
+              checked={formData.isGift || false}
+              onChange={(e) => updateField('isGift', e.target.checked)}
+            />{' '}
+            Gift
+          </label>
+          <label className="checkboxLabel">
+            <input
+              type="checkbox"
+              className="checkboxInput"
+              checked={formData.isTrade || false}
+              onChange={(e) => updateField('isTrade', e.target.checked)}
+            />{' '}
+            Trade
+          </label>
         </div>
       </div>
     </div>

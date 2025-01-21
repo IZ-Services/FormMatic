@@ -1,0 +1,66 @@
+.dropdownWrapper {
+    margin-bottom: 16px;
+    width: 100%;
+  }
+  
+  .dropdownWrapper h3 {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #000;
+  }
+  
+  .dropdown {
+    cursor: pointer;
+    position: relative;
+    outline: none;
+    display: flex;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    color: #999; 
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 66%;
+    height: 38px;
+    box-sizing: border-box;
+  }
+  
+  .dropdown:focus,
+  .dropdown:hover {
+    border-color: #000000;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  }
+  
+  .dropdown option[value=""] {
+    color: #999;
+  }
+  
+  .otherInput {
+    margin-top: 8px;
+    width: 66%; 
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    font-size: 14px;
+    color: #333;
+    box-sizing: border-box;
+  }
+  
+  .otherInput::placeholder {
+    color: #999; 
+  }
+  
+  @media (max-width: 768px) {
+    .dropdown,
+    .otherInput {
+      font-size: 12px;
+      height: 36px;
+    }
+  
+    .dropdownWrapper h3 {
+      font-size: 14px;
+    }
+  }
+  

@@ -2,43 +2,63 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Address.css';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-import { useAppContext } from '../../context/index';
 
 export default function Address() {
-  const { formData, setFormData } = useAppContext()!;
-
+  const [isRegMenuOpen, setIsRegMenuOpen] = useState(false);
+  const regRef = useRef<HTMLUListElement | null>(null);
   const [mailingAddress, setMailingAddress] = useState(false);
   const [lesseeAddress, setLesseeAddress] = useState(false);
   const [trailerAddress, setTrailerAddress] = useState(false);
   const [isAddressMenuOpen, setIsAddressMenuOpen] = useState(false);
-  const [addressState, setAddressState] = useState('');
   const addressRef = useRef<HTMLUListElement | null>(null);
   const [isMailingMenuOpen, setIsMailingMenuOpen] = useState(false);
-  const [mailingState, setMailingState] = useState('');
   const mailingRef = useRef<HTMLUListElement | null>(null);
   const [isLesseeMenuOpen, setIsLesseeMenuOpen] = useState(false);
-  const [lesseeState, setLesseeState] = useState('');
   const lesseeRef = useRef<HTMLUListElement | null>(null);
   const [isTrailerMenuOpen, setIsTrailerMenuOpen] = useState(false);
   const [trailerState, setTrailerState] = useState('');
   const trailerRef = useRef<HTMLUListElement | null>(null);
+    const [regState, setRegState] = useState('');
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const [mailingState, setMailingState] = useState('');
+    const [lesseeState, setLesseeState] = useState('');
 
-  const handleAddressStateChange = async (state: string) => {
-    setIsAddressMenuOpen(false);
-    setAddressState(state);
-  };
-  const handleMailingStateChange = async (state: string) => {
-    setIsMailingMenuOpen(false);
-    setMailingState(state);
-  };
-  const handleLesseeStateChange = async (state: string) => {
-    setIsLesseeMenuOpen(false);
-    setLesseeState(state);
-  };
-  const handleTrailerStateChange = async (state: string) => {
-    setIsTrailerMenuOpen(false);
-    setTrailerState(state);
-  };
+
+    const handleDropdownClick = (dropdown: string) => {
+      setOpenDropdown((prev) => (prev === dropdown ? null : dropdown));
+    };
+  
+    const handleStateChange = (
+      stateSetter: React.Dispatch<React.SetStateAction<string>>,
+      dropdown: string,
+      state: string
+    ) => {
+      stateSetter(state);
+      setOpenDropdown(null);
+    };
+  
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Element;
+      const refs = [regRef, addressRef, mailingRef, lesseeRef, trailerRef];
+      const dropdownNames = ['reg', 'address', 'mailing', 'lessee', 'trailer'];
+  
+      if (
+        openDropdown &&
+        refs[dropdownNames.indexOf(openDropdown)]?.current &&
+        !refs[dropdownNames.indexOf(openDropdown)]!.current!.contains(target)
+      ) {
+        setOpenDropdown(null);
+      }
+    };
+  
+    useEffect(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [openDropdown]);
+  
+   
 
   const handleClickOutsideAddressMenu = (e: MouseEvent) => {
     const target = e.target as Element;
@@ -183,31 +203,6 @@ export default function Address() {
 
   return (
     <div>
-      <input
-        className="inputData"
-        value={formData.firstName1}
-        onChange={(e) => setFormData({ ...formData, firstName1: e.target.value })}
-      />
-
-      <label style={{ marginLeft: '10px', marginTop: '10px' }}>Middle Name</label>
-      <input
-        className="inputData"
-        value={formData.middleName1}
-        onChange={(e) => setFormData({ ...formData, middleName1: e.target.value })}
-      />
-
-      <label style={{ marginLeft: '10px', marginTop: '10px' }}>Last Name</label>
-      <input
-        className="inputData"
-        value={formData.lastName1}
-        onChange={(e) => setFormData({ ...formData, lastName1: e.target.value })}
-      />
-      <input
-        className="inputData"
-        value={formData.transactionType}
-        onChange={(e) => setFormData({ ...formData, transactionType: e.target.value })}
-      />
-
       <div className="addressWrapper">
         <div className="addressCheckboxWrapper">
           <h3 className="addressHeading">Address</h3>
@@ -239,37 +234,81 @@ export default function Address() {
             <p>Trailer/Vessel location</p>
           </div>
         </div>
-        <div className="addressFirstLine">
-          <div className="topGroup">
-            <label className="subHeadings">Street</label>
-            <input className="streetInput" placeholder="Street"></input>
+        <div className="streetAptGroup">
+            <div className="formGroup streetField">
+              <label className="formLabel">Street</label>
+              <input className="formInputt" type="text" placeholder="Street" />
+            </div>
+            <div className="formGroup aptField">
+              <label className="formLabel">APT./SPACE/STE.#</label>
+              <input className="formInputt" type="text" placeholder="APT./SPACE/STE.#" />
+            </div>
           </div>
-          <div>
-            <label className="subHeadings">APT./SPACE/STE.#</label>
-            <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
-          </div>
+          <div className="cityStateZipGroupp">
+          <div className="cityFieldCustomWidth">
+  <label className="formLabel">City</label>
+  <input className="cityInputt" type="text" placeholder="City" />
+</div>
+
+<div className="regStateWrapper">
+          <label className="registeredOwnerLabel">State</label>
+          <button onClick={() => handleDropdownClick('reg')} className="regStateDropDown">
+            {regState || 'State'}
+            <ChevronDownIcon className={`regIcon ${openDropdown === 'reg' ? 'rotate' : ''}`} />
+          </button>
+          {openDropdown === 'reg' && (
+            <ul ref={regRef} className="regStateMenu">
+              {states.map((state, index) => (
+                <li
+                  key={index}
+                  onClick={() => handleStateChange(setRegState, 'reg', state.abbreviation)}
+                  className="regStateLists"
+                >
+                  {state.name}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-        <div className="cityStateZipLine">
-          <div>
-            <label className="subHeadings">City</label>
-            <input className="cityInput" placeholder="City"></input>
+            <div className="formGroup zipCodeField">
+              <label className="formLabel">ZIP Code</label>
+              <input className="formInputt" type="text" placeholder="Zip Code" />
+            </div>
           </div>
-          <div className="addressStateWrapper">
-            <label className="subHeadings">State</label>
-            <button
-              onClick={() => setIsAddressMenuOpen(!isAddressMenuOpen)}
-              className="addressStateDropDown"
-            >
-              {addressState || 'State'}
-              <ChevronDownIcon className={`addressIcon ${isAddressMenuOpen ? 'rotate' : ''}`} />
+      </div>
+
+      {mailingAddress && (
+  <div className="addressWrapper">
+    <h3 className="addressHeading">Mailing Address</h3>
+    <div className="streetAptGroup">
+      <div className="formGroup streetField">
+        <label className="formLabel">Street</label>
+        <input className="formInputt streetInput" type="text" placeholder="Street" />
+      </div>
+      <div className="formGroup aptField">
+        <label className="formLabel">PO Box No</label>
+        <input className="formInputt aptInput" type="text" placeholder="PO Box No" />
+      </div>
+    </div>
+    <div className="cityStateZipGroupp">
+    <div className="cityFieldCustomWidth">
+  <label className="formLabel">City</label>
+  <input className="cityInputt" type="text" placeholder="City" />
+</div>
+
+<div className="regStateWrapper">
+            <label className="registeredOwnerLabel">State</label>
+            <button onClick={() => handleDropdownClick('mailing')} className="regStateDropDown">
+              {mailingState || 'State'}
+              <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
             </button>
-            {isAddressMenuOpen && (
-              <ul ref={addressRef} className="addressStateMenu">
+            {openDropdown === 'mailing' && (
+              <ul ref={mailingRef} className="regStateMenu">
                 {states.map((state, index) => (
                   <li
-                    className="addressStateLists"
                     key={index}
-                    onClick={() => handleAddressStateChange(state.abbreviation)}
+                    onClick={() => handleStateChange(setMailingState, 'mailing', state.abbreviation)}
+                    className="regStateLists"
                   >
                     {state.name}
                   </li>
@@ -277,159 +316,117 @@ export default function Address() {
               </ul>
             )}
           </div>
-          <div>
-            <label className="subHeadings">Zip Code</label>
-            <input className="zipInput" placeholder="Zip Code"></input>
+      <div className="formGroup zipCodeField">
+        <label className="formLabel">ZIP Code</label>
+        <input className="formInputt zipInput" type="text" placeholder="ZIP Code" />
+      </div>
+    </div>
+  </div>
+)}
+
+{lesseeAddress && (
+  <div className="addressWrapper">
+    <h3 className="addressHeading">Lessee Address</h3>
+    <div className="streetAptGroup">
+      <div className="formGroup streetField">
+        <label className="formLabel">Street</label>
+        <input className="formInputt streetInput" type="text" placeholder="Street" />
+      </div>
+      <div className="formGroup aptField">
+        <label className="formLabel">APT./SPACE/STE.#</label>
+        <input className="formInputt aptInput" type="text" placeholder="APT./SPACE/STE.#" />
+      </div>
+    </div>
+    <div className="cityStateZipGroupp">
+    <div className="cityFieldCustomWidth">
+  <label className="formLabel">City</label>
+  <input className="cityInputt" type="text" placeholder="City" />
+</div>
+
+<div className="regStateWrapper">
+            <label className="registeredOwnerLabel">State</label>
+            <button onClick={() => handleDropdownClick('lessee')} className="regStateDropDown">
+              {lesseeState || 'State'}
+              <ChevronDownIcon className={`regIcon ${openDropdown === 'lessee' ? 'rotate' : ''}`} />
+            </button>
+            {openDropdown === 'lessee' && (
+              <ul ref={lesseeRef} className="regStateMenu">
+                {states.map((state, index) => (
+                  <li
+                    key={index}
+                    onClick={() => handleStateChange(setLesseeState, 'lessee', state.abbreviation)}
+                    className="regStateLists"
+                  >
+                    {state.name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-        </div>
+      <div className="formGroup zipCodeField">
+        <label className="formLabel">ZIP Code</label>
+        <input className="formInputt zipInput" type="text" placeholder="ZIP Code" />
+      </div>
+    </div>
+  </div>
+)}
+
+
+{trailerAddress && (
+  <div className="addressWrapper">
+    <h3 className="addressHeading">Vessel or Trailer Coach Principally Kept At</h3>
+    <div className="streetAptGroup">
+      <div className="formGroup streetField">
+        <label className="formLabel">Street</label>
+        <input className="formInputt streetInput" type="text" placeholder="Street" />
+      </div>
+      <div className="formGroup aptField">
+        <label className="formLabel">APT./SPACE/STE.#</label>
+        <input className="formInputt aptInput" type="text" placeholder="APT./SPACE/STE.#" />
+      </div>
+    </div>
+    <div className="cityStateZipGroupp">
+    <div className="cityFieldCustomWidth">
+  <label className="formLabel">City</label>
+  <input className="cityInputt" type="text" placeholder="City" />
+</div>
+
+<div className="regStateWrapper">
+            <label className="registeredOwnerLabel">State</label>
+            <button onClick={() => handleDropdownClick('trailer')} className="regStateDropDown">
+              {trailerState || 'State'}
+              <ChevronDownIcon className={`regIcon ${openDropdown === 'trailer' ? 'rotate' : ''}`} />
+            </button>
+            {openDropdown === 'trailer' && (
+              <ul ref={trailerRef} className="regStateMenu">
+                {states.map((state, index) => (
+                  <li
+                    key={index}
+                    onClick={() => handleStateChange(setTrailerState, 'trailer', state.abbreviation)}
+                    className="regStateLists"
+                  >
+                    {state.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+      <div className="formGroup zipCodeField">
+        <label className="formLabel">ZIP Code</label>
+        <input className="formInputt zipInput" type="text" placeholder="ZIP Code" />
       </div>
 
-      {mailingAddress && (
-        <div className="addressWrapper">
-          <h3 className="addressHeading">Mailing Address</h3>
-          <div className="addressFirstLine">
-            <div className="topGroup">
-              <label className="subHeadings">Street</label>
-              <input className="streetInput" placeholder="Street"></input>
-            </div>
-            <div>
-              <label className="subHeadings">APT./SPACE/STE.#</label>
-              <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
-            </div>
-          </div>
-          <div className="cityStateZipLine">
-            <div>
-              <label className="subHeadings">City</label>
-              <input className="cityInput" placeholder="City"></input>
-            </div>
-            <div className="addressStateWrapper">
-              <label className="subHeadings">State</label>
-              <button
-                onClick={() => setIsMailingMenuOpen(!isMailingMenuOpen)}
-                className="mailingStateDropDown"
-              >
-                {mailingState || 'State'}
-                <ChevronDownIcon className={`mailingIcon ${isMailingMenuOpen ? 'rotate' : ''}`} />
-              </button>
-              {isMailingMenuOpen && (
-                <ul ref={mailingRef} className="addressStateMenu">
-                  {states.map((state, index) => (
-                    <li
-                      className="addressStateLists"
-                      key={index}
-                      onClick={() => handleMailingStateChange(state.abbreviation)}
-                    >
-                      {state.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <div>
-              <label className="subHeadings">Zip Code</label>
-              <input className="zipInput" placeholder="Zip Code"></input>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {lesseeAddress && (
-        <div className="addressWrapper">
-          <h3 className="addressHeading">Lessee Address</h3>
-          <div className="addressFirstLine">
-            <div className="topGroup">
-              <label className="subHeadings">Street</label>
-              <input className="streetInput" placeholder="Street"></input>
-            </div>
-            <div>
-              <label className="subHeadings">APT./SPACE/STE.#</label>
-              <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
-            </div>
-          </div>
-          <div className="cityStateZipLine">
-            <div>
-              <label className="subHeadings">City</label>
-              <input className="cityInput" placeholder="City"></input>
-            </div>
-            <div className="addressStateWrapper">
-              <label className="subHeadings">State</label>
-              <button
-                onClick={() => setIsLesseeMenuOpen(!isLesseeMenuOpen)}
-                className="lesseeStateDropDown"
-              >
-                {lesseeState || 'State'}
-                <ChevronDownIcon className={`lesseeIcon ${isLesseeMenuOpen ? 'rotate' : ''}`} />
-              </button>
-              {isLesseeMenuOpen && (
-                <ul ref={lesseeRef} className="addressStateMenu">
-                  {states.map((state, index) => (
-                    <li
-                      className="addressStateLists"
-                      key={index}
-                      onClick={() => handleLesseeStateChange(state.abbreviation)}
-                    >
-                      {state.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <div>
-              <label className="subHeadings">Zip Code</label>
-              <input className="zipInput" placeholder="Zip Code"></input>
-            </div>
-          </div>
-        </div>
-      )}
+    </div>
+    <div className="countryField">
+        <label className="formLabel">Country</label>
+        <input className="countryInput" type="text" placeholder="Country" />
+      </div>
+  </div>
+)}
 
-      {trailerAddress && (
-        <div className="addressWrapper">
-          <h3 className="addressHeading">Vessel or Trailer Principally Kept At</h3>
-          <div className="addressFirstLine">
-            <div className="topGroup">
-              <label className="subHeadings">Street</label>
-              <input className="streetInput" placeholder="Street"></input>
-            </div>
-            <div>
-              <label className="subHeadings">APT./SPACE/STE.#</label>
-              <input className="aptInput" placeholder="APT./SPACE/STE.#"></input>
-            </div>
-          </div>
-          <div className="cityStateZipLine">
-            <div>
-              <label className="subHeadings">City</label>
-              <input className="cityInput" placeholder="City"></input>
-            </div>
-            <div className="addressStateWrapper">
-              <label className="subHeadings">State</label>
-              <button
-                onClick={() => setIsTrailerMenuOpen(!isTrailerMenuOpen)}
-                className="trailerStateDropDown"
-              >
-                {trailerState || 'State'}
-                <ChevronDownIcon className={`trailerIcon ${isTrailerMenuOpen ? 'rotate' : ''}`} />
-              </button>
-              {isTrailerMenuOpen && (
-                <ul ref={trailerRef} className="addressStateMenu">
-                  {states.map((state, index) => (
-                    <li
-                      className="addressStateLists"
-                      key={index}
-                      onClick={() => handleTrailerStateChange(state.abbreviation)}
-                    >
-                      {state.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <div>
-              <label className="subHeadings">Zip Code</label>
-              <input className="zipInput" placeholder="Zip Code"></input>
-            </div>
-          </div>
-        </div>
-      )}
+
+
     </div>
   );
 }

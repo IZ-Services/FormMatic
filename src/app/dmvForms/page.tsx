@@ -120,7 +120,7 @@ export default function DMVFroms() {
         url = 'https://www.dmv.ca.gov/portal/uploads/2021/11/REG-227-R9-2021-AS-WWW.pdf';
         break;
       case 'REG256/ STATEMENT OF FACTS':
-        url = 'https://www.dmv.ca.gov/portal/uploads/2022/10/REG-256-SP-R7-2009-AS-WWW.pdf';
+        url = 'https://irp.cdn-website.com/3f72d434/files/uploaded/Statement%20Of%20Fact%20%28REG%20256%29.pdf';
         break;
       case 'REG256A/ MISCELLANEOUS CERTIFICATIONS':
         url = 'https://www.dmv.ca.gov/portal/uploads/2020/12/reg256a.pdf';

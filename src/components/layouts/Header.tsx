@@ -1,3 +1,5 @@
+// File: /c:/Users/hp/client web app/FormMatic/src/components/layouts/Header.tsx
+
 'use client';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import './Header.css';
@@ -6,6 +8,8 @@ import Link from 'next/link';
 import { UserAuth } from '../../context/AuthContext';
 import { ChevronDownIcon } from '@heroicons/react/16/solid';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import Logo from '../../../public/logo/logo.png';
 
 export default function Header() {
   const { logout } = UserAuth();
@@ -18,7 +22,7 @@ export default function Header() {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
   const links = [
-    { label: 'FormMatic' },
+    { type: 'logo' },
     { label: 'Home', route: '/home' },
     { label: 'Search Transactions', route: '/transactions' },
     { label: 'DMV Forms', route: '/dmvForms' },
@@ -84,9 +88,22 @@ export default function Header() {
   return (
     <header className="headerWrapper">
       <ul className="myLinks">
-        {links.map((link) => (
-          <li key={link.label} className={link.label === 'FormMatic' ? 'headingLink' : 'linkLabel'}>
-            {link.route ? (
+        {links.map((link, index) => (
+          <li
+            key={index}
+            className={`${
+              link.type === 'logo'
+                ? 'logoContainer'
+                : link.label === 'Logout'
+                ? 'logoutLabel'
+                : 'linkLabel'
+            }`}
+          >
+            {link.type === 'logo' ? (
+              <Link href="/home"> 
+                <Image src={Logo} alt="Logo" className="headerLogo" />
+              </Link>
+            ) : link.route ? (
               <Link
                 href={link.route}
                 className={activeRoute === link.route ? 'linkActive' : 'linkRoute'}
@@ -100,9 +117,7 @@ export default function Header() {
                   link.label === 'Account' &&
                   link.dropdown?.some((item) => item.route === activeRoute)
                     ? 'linkActive'
-                    : link.label === 'FormMatic'
-                      ? 'headingLink'
-                      : 'linkRoute'
+                    : 'linkRoute'
                 }`}
                 onClick={link.label === 'Account' ? handleDropdownToggle : handleLinkClick}
               >

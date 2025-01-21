@@ -1,23 +1,24 @@
-import {onCall} from "firebase-functions/v2/https";
-import {initializeApp} from "firebase-admin/app";
-import {getFirestore, Timestamp} from "firebase-admin/firestore";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { initializeApp } from "firebase-admin/app";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { randomUUID } from "crypto";
 
 initializeApp();
 const db = getFirestore();
 
 export const manageUserSessions = onCall(async (request) => {
   try {
-    const {auth: contextAuth} = request;
+    const { auth: contextAuth, rawRequest } = request;
 
     if (!contextAuth) {
-      throw new Error("Unauthorized request: user is not authenticated");
+      throw new HttpsError("unauthenticated", "User is not authenticated.");
     }
 
     const userId = contextAuth.uid;
 
     const authTimestamp = Timestamp.now();
+    const sessionId = randomUUID();
 
-    const sessionId = Math.random().toString(36).substring(2);
     const userSessionsRef = db.collection("users")
       .doc(userId)
       .collection("sessions");
@@ -31,14 +32,20 @@ export const manageUserSessions = onCall(async (request) => {
       await oldestSession.ref.delete();
     }
 
+    const ipAddress = rawRequest.headers["x-forwarded-for"] || rawRequest.connection.remoteAddress;
+    const userAgent = rawRequest.headers["user-agent"];
+
     await userSessionsRef.doc(sessionId).set({
       deviceId: sessionId,
       authTime: authTimestamp,
+      ipAddress,
+      userAgent,
+      expiresAt: Timestamp.fromMillis(authTimestamp.toMillis() + 7 * 24 * 60 * 60 * 1000), 
     });
 
-    return {sessionId};
+    return { sessionId };
   } catch (error) {
     console.error("Error managing user sessions:", error);
-    throw new Error("Error managing user sessions");
+    throw new HttpsError("internal", "Error managing user sessions.");
   }
 });
