@@ -11,6 +11,6 @@ body {
 .simpleTransferWrapper {
   max-width: 100%;
   margin: 0 auto;
-  padding: 5% 15%;
+  /* padding: 5% 15%; */
   background-color: white;
 }

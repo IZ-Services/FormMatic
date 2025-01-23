@@ -20,10 +20,12 @@ export async function POST(request: Request) {
       transactionType,
       formData,
     });
-    await transaction.save();
+    const savedTransaction = await transaction.save();
 
     return NextResponse.json(
-      { message: 'Transaction saved successfully!' },
+      { message: 'Transaction saved successfully!',
+        transactionId: savedTransaction._id,
+       },
       { status: 200 }
     );
   } catch (error) {
@@ -34,3 +36,48 @@ export async function POST(request: Request) {
     );
   }
 }
+
+
+export async function GET(request: Request) {
+  await connectDB();
+
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get('userId');
+  const transactionId = searchParams.get('transactionId');
+
+  if (!userId && !transactionId) {
+    return NextResponse.json(
+      { error: 'Either userId or transactionId is required to fetch transactions.' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    let query = {};
+    if (userId) {
+      query = { userId };
+    }
+    if (transactionId) {
+      query = { _id: transactionId };
+    }
+
+    const transactions = await TransactionModel.find(query);
+
+    if (transactions.length === 0) {
+      return NextResponse.json(
+        { message: 'No transactions found.' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { transactions },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    return NextResponse.json(
+      { error: 'Internal server error. Could not fetch transactions.' },
+      { status: 500 }
+    );
+  }}

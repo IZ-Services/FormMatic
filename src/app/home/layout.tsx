@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Metadata } from 'next';
 
@@ -17,9 +18,9 @@ export default function HomeLayout({
 }>) {
   return (
     <>
-      {/* <Header />
-      <Sidebar /> */}
-      <main style={{ marginLeft: '0' }}>{children}</main>
+      <Header />
+      <Sidebar />
+      <main style={{ marginLeft: '20rem' }}>{children}</main>
     </>
   );
 }

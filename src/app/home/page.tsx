@@ -1,5 +1,6 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useEffect } from 'react';
 import './Home.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -9,10 +10,13 @@ import { useAppContext } from '../../context/index';
 import Loading from '../../components/pages/Loading';
 
 export default function Home() {
+  const { formData } = useAppContext()!;
   const { selectedSubsection } = useScenarioContext()!;
   const { user, isSubscribed } = UserAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+
+  const user_email = user?.email;
 
   useEffect(() => {
     if (!user) {
@@ -34,28 +38,48 @@ export default function Home() {
         return <SimpleTransfer />;
       default:
         return (
-          <div className="defaultContainer">
-            <div className="centeredContent">
-              <img src="/logo/newimg.png" alt="Logo" className="centeredLogo" />
-              <p className="scenarioSelect">From Data to Documents in Seconds.</p>
-              <div className="box-3">
-                <div
-                  className="btn btn-three"
-                  onClick={() => router.push('/selectTransaction')}
-                >
-                  <span>Make a Transaction</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <p className="scenarioSelect"> Welcome. Please select a transaction from the sidebar.</p>
         );
     }
   };
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch('/api/post', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...formData, user_email }),
+      });
+      await response.json();
+      alert('Client Saved!');
+    } catch (error) {
+      console.error('Error in handleSave:', error);
+    }
+  };
+
+  // const handleNext = async () => {
+  //   try {
+  //     // const response = await fetch('/api/pdfLoader', {
+  //     //   method: 'POST',
+  //     //   headers: {
+  //     //     'Content-Type': 'application/json',
+  //     //   },
+  //     //  body: JSON.stringify(formData),
+  //     // });
+  //     // const data = await response.json();
+  //     // setPdfData(data.pdfData);
+  //   } catch (error) {
+  //     console.error('Error navigating to the PDF page:', error);
+  //   }
+  // };
 
   return (
     <div className="homeContainer">
       {selectedSubsection && <h2 className="homeHeading">{selectedSubsection}</h2>}
       {renderComponent()}
+      {/* <button onClick={handleSave}>save</button> */}
     </div>
   );
 }

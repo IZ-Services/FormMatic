@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// Define a transaction interface
 interface Transaction extends Document {
   userId: string;
   transactionType: string;
@@ -8,7 +7,6 @@ interface Transaction extends Document {
   createdAt: Date;
 }
 
-// Define the schema
 const TransactionSchema = new Schema<Transaction>({
   userId: { type: String, required: true },
   transactionType: { type: String, required: true },
@@ -16,6 +14,5 @@ const TransactionSchema = new Schema<Transaction>({
   createdAt: { type: Date, default: Date.now },
 });
 
-// Export the model (ensure it's not recompiled during hot reloads)
 export default mongoose.models.Transaction ||
   mongoose.model<Transaction>('Transaction', TransactionSchema);
