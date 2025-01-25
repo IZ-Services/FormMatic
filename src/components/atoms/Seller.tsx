@@ -1,60 +1,16 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import './Seller.css';
+import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import './Seller.css';
 
 const SellerSection = () => {
-  const [isSellerMenuOpen, setIsSellerMenuOpen] = useState(false);
-  const [isHowManyMenuOpen, setIsHowManyMenuOpen] = useState(false);
-  const [sellerState, setSellerState] = useState('');
-  const [howMany, setHowMany] = useState('');
-  const sellerRef = useRef<HTMLUListElement | null>(null);
-  const howManyRef = useRef<HTMLUListElement | null>(null);
-  const [selectedState, setSelectedState] = useState('');
-  
-      const [isRegMenuOpen, setIsRegMenuOpen] = useState(false);
-      const regRef = useRef<HTMLUListElement | null>(null);
-       const [regState, setRegState] = useState('');
-        
-          const handleRegStateChange = (state: string) => {
-            setIsRegMenuOpen(false);
-            setRegState(state);
-          };
-        
-  const handleSellerStateChange = (state: string) => {
-    setIsSellerMenuOpen(false);
-    setSellerState(state);
-  };
-
-  const handleHowManyChange = (value: string) => {
-    setIsHowManyMenuOpen(false);
-    setHowMany(value);
-  };
-
-  const handleClickOutsideMenus = (e: MouseEvent) => {
-    const target = e.target as Element;
-    if (
-      sellerRef.current &&
-      !sellerRef.current.contains(target) &&
-      !target.closest('.sellerStateDropDown')
-    ) {
-      setIsSellerMenuOpen(false);
-    }
-    if (
-      howManyRef.current &&
-      !howManyRef.current.contains(target) &&
-      !target.closest('.howManyDropDown')
-    ) {
-      setIsHowManyMenuOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutsideMenus);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideMenus);
-    };
-  }, []);
+  const { formData, updateField } = useFormContext();
+  const [openDropdown, setOpenDropdown] = useState<{ 
+    type: 'count' | 'state', 
+    index?: number 
+  } | null>(null);
+  const dropdownRef = useRef<HTMLUListElement>(null);
 
   const states = [
     { name: 'Alabama', abbreviation: 'AL' },
@@ -107,9 +63,139 @@ const SellerSection = () => {
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ];
+  ]; 
 
-  const howManyOptions = ['1', '2', '3'];
+  const handleSellerChange = (index: number, field: string, value: string) => {
+    const sellers = [...(formData.sellerInfo?.sellers || [])];
+    sellers[index] = { ...sellers[index], [field]: value };
+    updateField('sellerInfo', { ...formData.sellerInfo, sellers });
+  };
+
+  const handleCountChange = (count: string) => {
+    const currentSellers = formData.sellerInfo?.sellers || [{}];
+    const newSellers = Array(Number(count)).fill({}).map((_, i) => currentSellers[i] || {});
+    
+    updateField('sellerInfo', {
+      ...formData.sellerInfo,
+      sellerCount: count,
+      sellers: newSellers
+    });
+    setOpenDropdown(null);
+  };
+
+  const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as Element;
+    if (dropdownRef.current && !dropdownRef.current.contains(target)) {
+      setOpenDropdown(null);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const renderSellerForms = () => {
+    const count = Number(formData.sellerInfo?.sellerCount || 1);
+    return Array.from({ length: count }).map((_, index) => (
+      <div key={index} className="seller-form-section">
+        <h4 className="seller-number">Seller {index + 1}</h4>
+        
+        <div className="sellerFirstGroup">
+          <div className="sellerFormItem">
+            <label className="sellerLabel">First Name</label>
+            <input
+              className="sellerInput"
+              type="text"
+              placeholder="First Name"
+              value={formData.sellerInfo?.sellers?.[index]?.firstName || ''}
+              onChange={(e) => handleSellerChange(index, 'firstName', e.target.value)}
+            />
+          </div>
+          <div className="sellerFormItem">
+            <label className="sellerLabel">Middle Name</label>
+            <input
+              className="sellerInput"
+              type="text"
+              placeholder="Middle Name"
+              value={formData.sellerInfo?.sellers?.[index]?.middleName || ''}
+              onChange={(e) => handleSellerChange(index, 'middleName', e.target.value)}
+            />
+          </div>
+          <div className="sellerFormItem">
+            <label className="sellerLabel">Last Name</label>
+            <input
+              className="sellerInput"
+              type="text"
+              placeholder="Last Name"
+              value={formData.sellerInfo?.sellers?.[index]?.lastName || ''}
+              onChange={(e) => handleSellerChange(index, 'lastName', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="driverState">
+          <div className="driverLicenseField">
+            <label className="formLabel">Driver License Number</label>
+            <input
+              className="formInput"
+              type="text"
+              placeholder="Driver License Number"
+              value={formData.sellerInfo?.sellers?.[index]?.licenseNumber || ''}
+              onChange={(e) => handleSellerChange(index, 'licenseNumber', e.target.value)}
+            />
+          </div>
+          <div className="regStateWrapper">
+            <label className="registeredOwnerLabel">State</label>
+            <button
+              onClick={() => setOpenDropdown({ type: 'state', index })}
+              className="regStateDropDown"
+            >
+              {formData.sellerInfo?.sellers?.[index]?.state || 'State'}
+              <ChevronDownIcon
+                className={`regIcon ${openDropdown?.type === 'state' && openDropdown?.index === index ? 'rotate' : ''}`}
+              />
+            </button>
+            {openDropdown?.type === 'state' && openDropdown?.index === index && (
+              <ul ref={dropdownRef} className="regStateMenu">
+                {states.map((state, i) => (
+                  <li
+                    className="regStateLists"
+                    key={i}
+                    onClick={() => handleSellerChange(index, 'state', state.abbreviation)}
+                  >
+                    {state.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        <div className="sellerThirdGroup">
+          <div className="sellerThirdItem">
+            <label className="sellerLabel">Phone Number</label>
+            <input
+              className="sellerNumberInput"
+              type="text"
+              placeholder="Phone Number"
+              value={formData.sellerInfo?.sellers?.[index]?.phone || ''}
+              onChange={(e) => handleSellerChange(index, 'phone', e.target.value)}
+            />
+          </div>
+          <div className="sellerThirdItem">
+            <label className="sellerLabel">Date of Sale</label>
+            <input
+              className="sellerDateInput"
+              type="date"
+              value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
+              onChange={(e) => handleSellerChange(index, 'saleDate', e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+    ));
+  };
 
   return (
     <div className="seller-section">
@@ -117,21 +203,21 @@ const SellerSection = () => {
         <h3 className="sellerHeading">Seller(s)</h3>
         <div className="howManyWrapper">
           <button
-            onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
+            onClick={() => setOpenDropdown(openDropdown?.type === 'count' ? null : { type: 'count' })}
             className="howManyDropDown"
           >
-            {howMany || 'How Many'}
+            {formData.sellerInfo?.sellerCount || 'How Many'}
             <ChevronDownIcon
-              className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`}
+              className={`howManyIcon ${openDropdown?.type === 'count' ? 'rotate' : ''}`}
             />
           </button>
-          {isHowManyMenuOpen && (
-            <ul ref={howManyRef} className="howManyMenu">
-              {howManyOptions.map((option, index) => (
+          {openDropdown?.type === 'count' && (
+            <ul ref={dropdownRef} className="howManyMenu">
+              {['1', '2', '3'].map((option, index) => (
                 <li
                   className="howManyLists"
                   key={index}
-                  onClick={() => handleHowManyChange(option)}
+                  onClick={() => handleCountChange(option)}
                 >
                   {option}
                 </li>
@@ -141,83 +227,7 @@ const SellerSection = () => {
         </div>
       </div>
 
-      <div className="sellerFirstGroup">
-        <div className="sellerFormItem">
-          <label className="sellerLabel">First Name</label>
-          <input
-            className="sellerInput"
-            type="text"
-            placeholder="First Name"
-          />
-        </div>
-        <div className="sellerFormItem">
-          <label className="sellerLabel">Middle Name</label>
-          <input
-            className="sellerInput"
-            type="text"
-            placeholder="Middle Name"
-          />
-        </div>
-        <div className="sellerFormItem">
-          <label className="sellerLabel">Last Name</label>
-          <input
-            className="sellerInput"
-            type="text"
-            placeholder="Last Name"
-          />
-        </div>
-      </div>
-
-      <div className="driverState">
-             <div className="driverLicenseField">
-               <label className="formLabel">Driver License Number</label>
-               <input className="formInput" type="text" placeholder="Driver License Number" />
-             </div>
-              <div className="regStateWrapper">
-                                     <label className="registeredOwnerLabel">State</label>
-                                     <button
-                                       onClick={() => setIsRegMenuOpen(!isRegMenuOpen)}
-                                       className="regStateDropDown"
-                                     >
-                                       {regState || 'State'}
-                                       <ChevronDownIcon
-                                         className={`regIcon ${isRegMenuOpen ? 'rotate' : ''}`}
-                                       />
-                                     </button>
-                                     {isRegMenuOpen && (
-                                       <ul ref={regRef} className="regStateMenu">
-                                         {states.map((state, index) => (
-                                           <li
-                                             className="regStateLists"
-                                             key={index}
-                                             onClick={() => handleRegStateChange(state.abbreviation)}
-                                           >
-                                             {state.name}
-                                           </li>
-                                         ))}
-                                       </ul>
-                                     )}
-                                   </div>
-            </div>
-
-      <div className="sellerThirdGroup">
-        <div className="sellerThirdItem">
-          <label className="sellerLabel">Phone Number</label>
-          <input
-            className="sellerNumberInput"
-            type="text"
-            placeholder="Phone Number"
-          />
-        </div>
-        <div className="sellerThirdItem">
-          <label className="sellerLabel">Date of Sale</label>
-          <input
-            className="sellerDateInput"
-            type="text"
-            placeholder="MM/DD/YYYY"
-          />
-        </div>
-      </div>
+      {renderSellerForms()}
     </div>
   );
 };

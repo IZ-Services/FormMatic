@@ -1,37 +1,15 @@
 // File: NewLienHolder.jsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './NewLienHolder.css';
 
 const NewLienHolder = () => {
-    const [isRegMenuOpen, setIsRegMenuOpen] = useState(false);
-    const regRef = useRef<HTMLUListElement | null>(null);
+  const { formData, updateField } = useFormContext();
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const regRef = useRef<HTMLUListElement | null>(null);
+  const mailingRef = useRef<HTMLUListElement | null>(null);
 
-const [regState, setRegState] = useState('');
-    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-    const [mailingState, setMailingState] = useState('');
-      const [mailingAddress, setMailingAddress] = useState(false);
-      const mailingRef = useRef<HTMLUListElement | null>(null);
-    
-    const handleRegStateChange = (state: string) => {
-      setIsRegMenuOpen(false);
-      setRegState(state);
-    };
-
-     const handleDropdownClick = (dropdown: string) => {
-          setOpenDropdown((prev) => (prev === dropdown ? null : dropdown));
-        };
-      
-        const handleStateChange = (
-          stateSetter: React.Dispatch<React.SetStateAction<string>>,
-          dropdown: string,
-          state: string
-        ) => {
-          stateSetter(state);
-          setOpenDropdown(null);
-        };
-      
-  
   const states = [
     { name: 'Alabama', abbreviation: 'AL' },
     { name: 'Alaska', abbreviation: 'AK' },
@@ -83,9 +61,36 @@ const [regState, setRegState] = useState('');
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ];
+  ];  
 
+  const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as Element;
+    if (openDropdown === 'reg' && regRef.current && !regRef.current.contains(target)) {
+      setOpenDropdown(null);
+    } else if (openDropdown === 'mailing' && mailingRef.current && !mailingRef.current.contains(target)) {
+      setOpenDropdown(null);
+    }
+  };
 
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openDropdown]);
+
+  const handleStateChange = (dropdown: string, stateAbbreviation: string, isMailing = false) => {
+    const lienHolder = formData.lienHolder || {};
+    const addressKey = isMailing ? 'mailingAddress' : 'address';
+    const currentAddress = lienHolder[addressKey] || {};
+
+    updateField('lienHolder', {
+      ...lienHolder,
+      [addressKey]: {
+        ...currentAddress,
+        state: stateAbbreviation,
+      },
+    });
+    setOpenDropdown(null);
+  };
 
   return (
     <div className="newLienHolderWrapper">
@@ -96,8 +101,14 @@ const [regState, setRegState] = useState('');
             <input
               type="checkbox"
               className="mailingCheckboxInput"
-              checked={mailingAddress}
-              onChange={() => setMailingAddress(!mailingAddress)}
+              checked={formData.lienHolder?.mailingAddressDifferent || false}
+              onChange={(e) => {
+                const lienHolder = formData.lienHolder || {};
+                updateField('lienHolder', {
+                  ...lienHolder,
+                  mailingAddressDifferent: e.target.checked,
+                });
+              }}
             />
             If mailing address is different
           </label>
@@ -109,104 +120,222 @@ const [regState, setRegState] = useState('');
           className="formInput"
           type="text"
           placeholder="True Full Name or Bank/Finance Company or Individual"
+          value={formData.lienHolder?.name || ''}
+          onChange={(e) => {
+            const lienHolder = formData.lienHolder || {};
+            updateField('lienHolder', { ...lienHolder, name: e.target.value });
+          }}
         />
       </div>
       <div className="formGroup maxWidthField">
         <label className="formLabel">ELT Number</label>
-        <input className="formInput" type="text" placeholder="ELT Number" />
+        <input
+          className="formInput"
+          type="text"
+          placeholder="ELT Number"
+          value={formData.lienHolder?.eltNumber || ''}
+          onChange={(e) => {
+            const lienHolder = formData.lienHolder || {};
+            updateField('lienHolder', { ...lienHolder, eltNumber: e.target.value });
+          }}
+        />
       </div>
       <div className="streetAptGroup">
         <div className="formGroup streetField">
           <label className="formLabel">Street</label>
-          <input className="formInput" type="text" placeholder="Street" />
+          <input
+            className="formInput"
+            type="text"
+            placeholder="Street"
+            value={formData.lienHolder?.address?.street || ''}
+            onChange={(e) => {
+              const lienHolder = formData.lienHolder || {};
+              const address = lienHolder.address || {};
+              updateField('lienHolder', {
+                ...lienHolder,
+                address: { ...address, street: e.target.value },
+              });
+            }}
+          />
         </div>
         <div className="formGroup aptField">
           <label className="formLabel">APT./SPACE/STE.#</label>
-          <input className="formInput" type="text" placeholder="APT./SPACE/STE.#" />
+          <input
+            className="formInput"
+            type="text"
+            placeholder="APT./SPACE/STE.#"
+            value={formData.lienHolder?.address?.apt || ''}
+            onChange={(e) => {
+              const lienHolder = formData.lienHolder || {};
+              const address = lienHolder.address || {};
+              updateField('lienHolder', {
+                ...lienHolder,
+                address: { ...address, apt: e.target.value },
+              });
+            }}
+          />
         </div>
       </div>
       <div className="cityStateZipGroup">
-      <div className="cityFieldCustomWidth">
-  <label className="formLabel">City</label>
-  <input className="cityInputt" type="text" placeholder="City" />
-</div>
+        <div className="cityFieldCustomWidth">
+          <label className="formLabel">City</label>
+          <input
+            className="cityInputt"
+            type="text"
+            placeholder="City"
+            value={formData.lienHolder?.address?.city || ''}
+            onChange={(e) => {
+              const lienHolder = formData.lienHolder || {};
+              const address = lienHolder.address || {};
+              updateField('lienHolder', {
+                ...lienHolder,
+                address: { ...address, city: e.target.value },
+              });
+            }}
+          />
+        </div>
         <div className="regStateWrapper">
-                        <label className="registeredOwnerLabel">State</label>
-                        <button
-                          onClick={() => setIsRegMenuOpen(!isRegMenuOpen)}
-                          className="regStateDropDown"
-                        >
-                          {regState || 'State'}
-                          <ChevronDownIcon
-                            className={`regIcon ${isRegMenuOpen ? 'rotate' : ''}`}
-                          />
-                        </button>
-                        {isRegMenuOpen && (
-                          <ul ref={regRef} className="regStateMenu">
-                            {states.map((state, index) => (
-                              <li
-                                className="regStateLists"
-                                key={index}
-                                onClick={() => handleRegStateChange(state.abbreviation)}
-                              >
-                                {state.name}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
+          <label className="registeredOwnerLabel">State</label>
+          <button
+            onClick={() => setOpenDropdown(openDropdown === 'reg' ? null : 'reg')}
+            className="regStateDropDown"
+          >
+            {formData.lienHolder?.address?.state || 'State'}
+            <ChevronDownIcon className={`regIcon ${openDropdown === 'reg' ? 'rotate' : ''}`} />
+          </button>
+          {openDropdown === 'reg' && (
+            <ul ref={regRef} className="regStateMenu">
+              {states.map((state, index) => (
+                <li
+                  className="regStateLists"
+                  key={index}
+                  onClick={() => handleStateChange('reg', state.abbreviation)}
+                >
+                  {state.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <div className="formGroup zipCodeField">
           <label className="formLabel">ZIP Code</label>
-          <input className="formInput" type="text" placeholder="Zip Code" />
+          <input
+            className="formInput"
+            type="text"
+            placeholder="Zip Code"
+            value={formData.lienHolder?.address?.zip || ''}
+            onChange={(e) => {
+              const lienHolder = formData.lienHolder || {};
+              const address = lienHolder.address || {};
+              updateField('lienHolder', {
+                ...lienHolder,
+                address: { ...address, zip: e.target.value },
+              });
+            }}
+          />
         </div>
       </div>
 
-      {mailingAddress && (
-       <div className="addressWrapper">
-         <h3 className="addressHeading">Mailing Address</h3>
-         <div className="streetAptGroup">
-           <div className="formGroup streetField">
-             <label className="formLabel">Street</label>
-             <input className="formInputt streetInput" type="text" placeholder="Street" />
-           </div>
-           <div className="formGroup aptField">
-             <label className="formLabel">PO Box No</label>
-             <input className="formInputt aptInput" type="text" placeholder="PO Box No" />
-           </div>
-         </div>
-         <div className="cityStateZipGroupp">
-         <div className="cityFieldCustomWidth">
-       <label className="formLabel">City</label>
-       <input className="cityInputt" type="text" placeholder="City" />
-     </div>
-     
-     <div className="regStateWrapper">
-                 <label className="registeredOwnerLabel">State</label>
-                 <button onClick={() => handleDropdownClick('mailing')} className="regStateDropDown">
-                   {mailingState || 'State'}
-                   <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
-                 </button>
-                 {openDropdown === 'mailing' && (
-                   <ul ref={mailingRef} className="regStateMenu">
-                     {states.map((state, index) => (
-                       <li
-                         key={index}
-                         onClick={() => handleStateChange(setMailingState, 'mailing', state.abbreviation)}
-                         className="regStateLists"
-                       >
-                         {state.name}
-                       </li>
-                     ))}
-                   </ul>
-                 )}
-               </div>
-           <div className="formGroup zipCodeField">
-             <label className="formLabel">ZIP Code</label>
-             <input className="formInputt zipInput" type="text" placeholder="ZIP Code" />
-           </div>
-         </div>
-       </div>
-     )}
+      {formData.lienHolder?.mailingAddressDifferent && (
+        <div className="addressWrapper">
+          <h3 className="addressHeading">Mailing Address</h3>
+          <div className="streetAptGroup">
+            <div className="formGroup streetField">
+              <label className="formLabel">Street</label>
+              <input
+                className="formInputt streetInput"
+                type="text"
+                placeholder="Street"
+                value={formData.lienHolder?.mailingAddress?.street || ''}
+                onChange={(e) => {
+                  const lienHolder = formData.lienHolder || {};
+                  const mailingAddress = lienHolder.mailingAddress || {};
+                  updateField('lienHolder', {
+                    ...lienHolder,
+                    mailingAddress: { ...mailingAddress, street: e.target.value },
+                  });
+                }}
+              />
+            </div>
+            <div className="formGroup aptField">
+              <label className="formLabel">PO Box No</label>
+              <input
+                className="formInputt aptInput"
+                type="text"
+                placeholder="PO Box No"
+                value={formData.lienHolder?.mailingAddress?.poBox || ''}
+                onChange={(e) => {
+                  const lienHolder = formData.lienHolder || {};
+                  const mailingAddress = lienHolder.mailingAddress || {};
+                  updateField('lienHolder', {
+                    ...lienHolder,
+                    mailingAddress: { ...mailingAddress, poBox: e.target.value },
+                  });
+                }}
+              />
+            </div>
+          </div>
+          <div className="cityStateZipGroupp">
+            <div className="cityFieldCustomWidth">
+              <label className="formLabel">City</label>
+              <input
+                className="cityInputt"
+                type="text"
+                placeholder="City"
+                value={formData.lienHolder?.mailingAddress?.city || ''}
+                onChange={(e) => {
+                  const lienHolder = formData.lienHolder || {};
+                  const mailingAddress = lienHolder.mailingAddress || {};
+                  updateField('lienHolder', {
+                    ...lienHolder,
+                    mailingAddress: { ...mailingAddress, city: e.target.value },
+                  });
+                }}
+              />
+            </div>
+            <div className="regStateWrapper">
+              <label className="registeredOwnerLabel">State</label>
+              <button
+                onClick={() => setOpenDropdown(openDropdown === 'mailing' ? null : 'mailing')}
+                className="regStateDropDown"
+              >
+                {formData.lienHolder?.mailingAddress?.state || 'State'}
+                <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
+              </button>
+              {openDropdown === 'mailing' && (
+                <ul ref={mailingRef} className="regStateMenu">
+                  {states.map((state, index) => (
+                    <li
+                      key={index}
+                      onClick={() => handleStateChange('mailing', state.abbreviation, true)}
+                      className="regStateLists"
+                    >
+                      {state.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="formGroup zipCodeField">
+              <label className="formLabel">ZIP Code</label>
+              <input
+                className="formInputt zipInput"
+                type="text"
+                placeholder="ZIP Code"
+                value={formData.lienHolder?.mailingAddress?.zip || ''}
+                onChange={(e) => {
+                  const lienHolder = formData.lienHolder || {};
+                  const mailingAddress = lienHolder.mailingAddress || {};
+                  updateField('lienHolder', {
+                    ...lienHolder,
+                    mailingAddress: { ...mailingAddress, zip: e.target.value },
+                  });
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

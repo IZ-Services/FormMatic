@@ -28,30 +28,19 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess }) =
     };
 
     try {
-      console.log('[SaveButton] Saving transaction...');
       const saveResponse = await fetch('/api/save', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSave),
       });
 
       if (saveResponse.ok) {
         const saveResult = await saveResponse.json();
-        console.log('[SaveButton] Transaction saved:', saveResult);
-
-        alert('Transaction saved successfully: ' + saveResult.message);
-
-        // Extract transactionId from the save response
         const { transactionId } = saveResult;
 
-        // Call the fillPdf API with the transactionId
         const fillPdfResponse = await fetch('/api/fillPdf', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ transactionId }),
         });
 
@@ -59,25 +48,23 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess }) =
           const pdfBlob = await fillPdfResponse.blob();
           const pdfUrl = URL.createObjectURL(pdfBlob);
 
-          window.open(pdfUrl, '_blank');
-          console.log('[SaveButton] PDF opened in a new tab.');
+          const pdfWindow = window.open(pdfUrl, '_blank');
+          if (!pdfWindow) {
+            alert('Please allow popups to view the PDF.');
+          }
         } else {
-          const pdfError = await fillPdfResponse.json();
-          console.error('[SaveButton] Error generating PDF:', pdfError);
-          alert('Failed to generate PDF: ' + pdfError.error);
+          const error = await fillPdfResponse.json();
+          throw new Error(error.error || 'Failed to generate PDF');
         }
 
-        if (onSuccess) {
-          onSuccess(); // Trigger any additional success actions
-        }
+        onSuccess?.();
       } else {
         const error = await saveResponse.json();
-        console.error('[SaveButton] Error saving transaction:', error);
-        alert('Failed to save transaction: ' + error.error);
+        throw new Error(error.error || 'Failed to save transaction');
       }
-    } catch (error) {
-      console.error('[SaveButton] Unexpected error:', error);
-      alert('An unexpected error occurred.');
+    } catch (error: any) {
+      console.error('Save failed:', error);
+      alert(`Error: ${error.message || 'An unexpected error occurred'}`);
     } finally {
       setIsLoading(false);
     }

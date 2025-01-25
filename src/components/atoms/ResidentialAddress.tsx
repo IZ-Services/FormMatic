@@ -1,96 +1,14 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
-import './ResidentialAddress.css';
+import React, { useRef, useEffect, useState } from 'react';
+import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import './ResidentialAddress.css';
 
 export default function ResidentialAddress() {
-  const [isRegMenuOpen, setIsRegMenuOpen] = useState(false);
-  const regRef = useRef<HTMLUListElement | null>(null);
-  const [regState, setRegState] = useState('');
-  const [isMailingAddress, setIsMailingAddress] = useState(false);
-  const [isMailingMenuOpen, setIsMailingMenuOpen] = useState(false);
-  const mailingRef = useRef<HTMLUListElement | null>(null);
-  const [mailingState, setMailingState] = useState('');
-
-  const [missingTitleReason, setMissingTitleReason] = useState('');
-  const [showMissingTitleOtherInput, setShowMissingTitleOtherInput] = useState(false);
-  const [missingTitleOther, setMissingTitleOther] = useState('');
-
-  const [powerOfAttorney, setPowerOfAttorney] = useState('');
-  const [showPowerOfAttorneyOtherInput, setShowPowerOfAttorneyOtherInput] = useState(false);
-  const [powerOfAttorneyOther, setPowerOfAttorneyOther] = useState('');
-
+  const { formData, updateField } = useFormContext();
+  const regRef = useRef<HTMLUListElement>(null);
+  const mailingRef = useRef<HTMLUListElement>(null);
   const [openDropdown, setOpenDropdown] = useState<'reg' | 'mailing' | null>(null);
-
-
-  const handleMissingTitleReasonChange = (reason: string) => {
-    setMissingTitleReason(reason);
-    setShowMissingTitleOtherInput(reason === 'Other');
-  };
-
-  const handlePowerOfAttorneyChange = (reason: string) => {
-    setPowerOfAttorney(reason);
-    setShowPowerOfAttorneyOtherInput(reason === 'Other');
-  };
-
-  const handleClickOutsideRegMenu = (e: MouseEvent) => {
-    const target = e.target as Element;
-    if (
-      regRef.current &&
-      !regRef.current.contains(target) &&
-      !target.closest('.regStateDropDown')
-    ) {
-      setIsRegMenuOpen(false);
-    }
-  };
-
-  const handleClickOutsideMailingMenu = (e: MouseEvent) => {
-    const target = e.target as Element;
-    if (
-      mailingRef.current &&
-      !mailingRef.current.contains(target) &&
-      !target.closest('.regStateDropDown')
-    ) {
-      setIsMailingMenuOpen(false);
-    }
-  };
-
-  const handleDropdownClick = (dropdown: 'reg' | 'mailing') => {
-    setOpenDropdown((prev) => (prev === dropdown ? null : dropdown));
-  };
-
-  const handleStateChange = (
-    stateSetter: React.Dispatch<React.SetStateAction<string>>,
-    dropdown: string,
-    state: string
-  ) => {
-    stateSetter(state);
-    setOpenDropdown(null); 
-  };
-
-  useEffect(() => {
-    if (isRegMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutsideRegMenu);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutsideRegMenu);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideRegMenu);
-    };
-  }, [isRegMenuOpen]);
-
-  useEffect(() => {
-    if (isMailingMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutsideMailingMenu);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutsideMailingMenu);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideMailingMenu);
-    };
-  }, [isMailingMenuOpen]);
-
-  
 
   const states = [
     { name: 'Alabama', abbreviation: 'AL' },
@@ -143,10 +61,57 @@ export default function ResidentialAddress() {
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ];
-
+  ];  
   const missingTitleOptions = ['Lost', 'Damaged', 'Never Received', 'Other'];
   const powerOfAttorneyOptions = ['General', 'Limited', 'Medical', 'Other'];
+
+  const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as Element;
+    if (openDropdown && 
+      ((openDropdown === 'reg' && regRef.current && !regRef.current.contains(target)) ||
+       (openDropdown === 'mailing' && mailingRef.current && !mailingRef.current.contains(target))) &&
+      !target.closest('.regStateDropDown')) {
+      setOpenDropdown(null);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openDropdown]);
+
+  const handleAddressChange = (section: string, field: string, value: string) => {
+    const current = formData.residentialAddress?.[section] || {};
+    updateField('residentialAddress', {
+      ...formData.residentialAddress,
+      [section]: { ...current, [field]: value }
+    });
+  };
+
+  const handleCheckboxChange = (field: string, checked: boolean) => {
+    updateField('residentialAddress', {
+      ...formData.residentialAddress,
+      [field]: checked
+    });
+  };
+
+  const handleMissingTitleChange = (field: string, value: string) => {
+    const current = formData.missingTitleInfo || {};
+    updateField('missingTitleInfo', {
+      ...current,
+      [field]: value,
+      ...(field === 'reason' && value !== 'Other' ? { otherReason: '' } : {})
+    });
+  };
+
+  const handlePowerOfAttorneyChange = (field: string, value: string) => {
+    const current = formData.powerOfAttorneyInfo || {};
+    updateField('powerOfAttorneyInfo', {
+      ...current,
+      [field]: value,
+      ...(field === 'type' && value !== 'Other' ? { otherType: '' } : {})
+    });
+  };
 
   return (
     <div>
@@ -157,8 +122,8 @@ export default function ResidentialAddress() {
             <input
               type="checkbox"
               className="checkBoxAddress"
-              checked={isMailingAddress}
-              onChange={() => setIsMailingAddress(!isMailingAddress)}
+              checked={formData.residentialAddress?.mailingAddressDifferent || false}
+              onChange={(e) => handleCheckboxChange('mailingAddressDifferent', e.target.checked)}
             />
             <p>If mailing address is different</p>
           </div>
@@ -166,98 +131,151 @@ export default function ResidentialAddress() {
         <div className="streetAptGroup">
           <div className="formGroup streetField">
             <label className="formLabel">Street</label>
-            <input className="formInputt" type="text" placeholder="Street" />
+            <input
+              className="formInputt"
+              type="text"
+              placeholder="Street"
+              value={formData.residentialAddress?.address?.street || ''}
+              onChange={(e) => handleAddressChange('address', 'street', e.target.value)}
+            />
           </div>
           <div className="formGroup aptField">
             <label className="formLabel">APT./SPACE/STE.#</label>
-            <input className="formInputt" type="text" placeholder="APT./SPACE/STE.#" />
+            <input
+              className="formInputt"
+              type="text"
+              placeholder="APT./SPACE/STE.#"
+              value={formData.residentialAddress?.address?.apt || ''}
+              onChange={(e) => handleAddressChange('address', 'apt', e.target.value)}
+            />
           </div>
         </div>
         <div className="cityStateZipGroupp">
           <div className="cityFieldCustomWidth">
             <label className="formLabel">City</label>
-            <input className="cityInputt" type="text" placeholder="City" />
+            <input
+              className="cityInputt"
+              type="text"
+              placeholder="City"
+              value={formData.residentialAddress?.address?.city || ''}
+              onChange={(e) => handleAddressChange('address', 'city', e.target.value)}
+            />
           </div>
           <div className="regStateWrapper">
-                    <label className="registeredOwnerLabel">State</label>
-                    <button onClick={() => handleDropdownClick('reg')} className="regStateDropDown">
-                      {regState || 'State'}
-                      <ChevronDownIcon className={`regIcon ${openDropdown === 'reg' ? 'rotate' : ''}`} />
-                    </button>
-                    {openDropdown === 'reg' && (
-                      <ul ref={regRef} className="regStateMenu">
-                        {states.map((state, index) => (
-                          <li
-                            key={index}
-                            onClick={() => handleStateChange(setRegState, 'reg', state.abbreviation)}
-                            className="regStateLists"
-                          >
-                            {state.name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+            <label className="registeredOwnerLabel">State</label>
+            <button
+              onClick={() => setOpenDropdown(openDropdown === 'reg' ? null : 'reg')}
+              className="regStateDropDown"
+            >
+              {formData.residentialAddress?.address?.state || 'State'}
+              <ChevronDownIcon className={`regIcon ${openDropdown === 'reg' ? 'rotate' : ''}`} />
+            </button>
+            {openDropdown === 'reg' && (
+              <ul ref={regRef} className="regStateMenu">
+                {states.map((state, index) => (
+                  <li
+                    key={index}
+                    onClick={() => handleAddressChange('address', 'state', state.abbreviation)}
+                    className="regStateLists"
+                  >
+                    {state.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <div className="formGroup zipCodeField">
             <label className="formLabel">ZIP Code</label>
-            <input className="formInputt" type="text" placeholder="ZIP Code" />
+            <input
+              className="formInputt"
+              type="text"
+              placeholder="ZIP Code"
+              value={formData.residentialAddress?.address?.zip || ''}
+              onChange={(e) => handleAddressChange('address', 'zip', e.target.value)}
+            />
           </div>
         </div>
       </div>
 
-       {isMailingAddress && (
-       <div className="addressWrapper">
-         <h3 className="addressHeading">Mailing Address</h3>
-         <div className="streetAptGroup">
-           <div className="formGroup streetField">
-             <label className="formLabel">Street</label>
-             <input className="formInputt streetInput" type="text" placeholder="Street" />
-           </div>
-           <div className="formGroup aptField">
-             <label className="formLabel">PO Box No</label>
-             <input className="formInputt aptInput" type="text" placeholder="PO Box No" />
-           </div>
-         </div>
-         <div className="cityStateZipGroupp">
-         <div className="cityFieldCustomWidth">
-       <label className="formLabel">City</label>
-       <input className="cityInputt" type="text" placeholder="City" />
-     </div>
-     
-     <div className="regStateWrapper">
-                 <label className="registeredOwnerLabel">State</label>
-                 <button onClick={() => handleDropdownClick('mailing')} className="regStateDropDown">
-                   {mailingState || 'State'}
-                   <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
-                 </button>
-                 {openDropdown === 'mailing' && (
-                   <ul ref={mailingRef} className="regStateMenu">
-                     {states.map((state, index) => (
-                       <li
-                         key={index}
-                         onClick={() => handleStateChange(setMailingState, 'mailing', state.abbreviation)}
-                         className="regStateLists"
-                       >
-                         {state.name}
-                       </li>
-                     ))}
-                   </ul>
-                 )}
-               </div>
-           <div className="formGroup zipCodeField">
-             <label className="formLabel">ZIP Code</label>
-             <input className="formInputt zipInput" type="text" placeholder="ZIP Code" />
-           </div>
-         </div>
-       </div>
-     )}
+      {formData.residentialAddress?.mailingAddressDifferent && (
+        <div className="addressWrapper">
+          <h3 className="addressHeading">Mailing Address</h3>
+          <div className="streetAptGroup">
+            <div className="formGroup streetField">
+              <label className="formLabel">Street</label>
+              <input
+                className="formInputt streetInput"
+                type="text"
+                placeholder="Street"
+                value={formData.residentialAddress?.mailingAddress?.street || ''}
+                onChange={(e) => handleAddressChange('mailingAddress', 'street', e.target.value)}
+              />
+            </div>
+            <div className="formGroup aptField">
+              <label className="formLabel">PO Box No</label>
+              <input
+                className="formInputt aptInput"
+                type="text"
+                placeholder="PO Box No"
+                value={formData.residentialAddress?.mailingAddress?.poBox || ''}
+                onChange={(e) => handleAddressChange('mailingAddress', 'poBox', e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="cityStateZipGroupp">
+            <div className="cityFieldCustomWidth">
+              <label className="formLabel">City</label>
+              <input
+                className="cityInputt"
+                type="text"
+                placeholder="City"
+                value={formData.residentialAddress?.mailingAddress?.city || ''}
+                onChange={(e) => handleAddressChange('mailingAddress', 'city', e.target.value)}
+              />
+            </div>
+            <div className="regStateWrapper">
+              <label className="registeredOwnerLabel">State</label>
+              <button
+                onClick={() => setOpenDropdown(openDropdown === 'mailing' ? null : 'mailing')}
+                className="regStateDropDown"
+              >
+                {formData.residentialAddress?.mailingAddress?.state || 'State'}
+                <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
+              </button>
+              {openDropdown === 'mailing' && (
+                <ul ref={mailingRef} className="regStateMenu">
+                  {states.map((state, index) => (
+                    <li
+                      key={index}
+                      onClick={() => handleAddressChange('mailingAddress', 'state', state.abbreviation)}
+                      className="regStateLists"
+                    >
+                      {state.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="formGroup zipCodeField">
+              <label className="formLabel">ZIP Code</label>
+              <input
+                className="formInputt zipInput"
+                type="text"
+                placeholder="ZIP Code"
+                value={formData.residentialAddress?.mailingAddress?.zip || ''}
+                onChange={(e) => handleAddressChange('mailingAddress', 'zip', e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="dropdownWrapper">
         <h3>Missing Title Reason</h3>
         <select
           className="dropdown"
-          value={missingTitleReason}
-          onChange={(e) => handleMissingTitleReasonChange(e.target.value)}
+          value={formData.missingTitleInfo?.reason || ''}
+          onChange={(e) => handleMissingTitleChange('reason', e.target.value)}
         >
           <option value="">Options</option>
           {missingTitleOptions.map((reason, index) => (
@@ -266,13 +284,13 @@ export default function ResidentialAddress() {
             </option>
           ))}
         </select>
-        {showMissingTitleOtherInput && (
+        {formData.missingTitleInfo?.reason === 'Other' && (
           <input
             type="text"
             className="otherInput"
             placeholder="Enter the reason"
-            value={missingTitleOther}
-            onChange={(e) => setMissingTitleOther(e.target.value)}
+            value={formData.missingTitleInfo?.otherReason || ''}
+            onChange={(e) => handleMissingTitleChange('otherReason', e.target.value)}
           />
         )}
       </div>
@@ -281,8 +299,8 @@ export default function ResidentialAddress() {
         <h3>Power of Attorney</h3>
         <select
           className="dropdown"
-          value={powerOfAttorney}
-          onChange={(e) => handlePowerOfAttorneyChange(e.target.value)}
+          value={formData.powerOfAttorneyInfo?.type || ''}
+          onChange={(e) => handlePowerOfAttorneyChange('type', e.target.value)}
         >
           <option value="">Options</option>
           {powerOfAttorneyOptions.map((option, index) => (
@@ -291,13 +309,13 @@ export default function ResidentialAddress() {
             </option>
           ))}
         </select>
-        {showPowerOfAttorneyOtherInput && (
+        {formData.powerOfAttorneyInfo?.type === 'Other' && (
           <input
             type="text"
             className="otherInput"
             placeholder="Enter the reason"
-            value={powerOfAttorneyOther}
-            onChange={(e) => setPowerOfAttorneyOther(e.target.value)}
+            value={formData.powerOfAttorneyInfo?.otherType || ''}
+            onChange={(e) => handlePowerOfAttorneyChange('otherType', e.target.value)}
           />
         )}
       </div>
