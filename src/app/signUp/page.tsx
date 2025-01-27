@@ -7,7 +7,7 @@ import { getStripePublishableKey } from '../../utils/stripeUtil';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Loading from '../../components/pages/Loading';
-import './signUp.css';
+import './signup.css';
 
 const publishableKey = getStripePublishableKey();
 const stripePromise = loadStripe(publishableKey);

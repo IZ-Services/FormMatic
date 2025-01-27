@@ -11,7 +11,7 @@ import ResidentialAddress from '../atoms/ResidentialAddress';
 import SaveButton from '../atoms/savebutton';
 import { FormDataProvider } from '../../app/api/formDataContext/formDataContextProvider';
 import { ScenarioProvider } from '../../context/ScenarioContext';
-import './SimpleTransfer.css';
+import './Simpletransfer.css';
 
 export default function SimpleTransfer() {
   const searchParams = useSearchParams();

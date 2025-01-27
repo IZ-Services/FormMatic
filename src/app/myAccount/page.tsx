@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { PencilSquareIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
-import './account.css';
+import './Account.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Loading from '../../components/pages/Loading';
