@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import './Thanks.css';
+import './thanks.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';

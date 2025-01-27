@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect } from 'react';
 import { useState } from 'react';
-import './UpdateClient.css';
+import './updateClient.css';
 import { useAppContext } from '@/context';
 import Link from 'next/link';
 import { UserAuth } from '../../context/AuthContext';
