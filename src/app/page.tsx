@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { useState } from 'react';
-import './Login.css';
+import './login.css';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/16/solid';
 import { UserAuth } from '../context/AuthContext';

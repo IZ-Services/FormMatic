@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import './Contact.css';
+import './contact.css';
 import { EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';

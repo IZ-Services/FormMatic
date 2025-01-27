@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import './DmvForms.css';
+import './dmvForms.css';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';

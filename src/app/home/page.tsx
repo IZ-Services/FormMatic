@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useEffect } from 'react';
-import './Home.css';
+import './home.css';
 import { UserAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useScenarioContext } from '../../context/ScenarioContext';
