@@ -1,13 +1,11 @@
 'use client';
 import React, { createContext, useContext, useState } from 'react';
 
-type FormData = {
-  [key: string]: any;
-};
+type FormData = Record<string, unknown>;
 
 type FormContextType = {
   formData: FormData;
-  updateField: (key: string, value: any) => void;
+  updateField: (key: string, value: unknown) => void; 
   transactionType: string;
   setTransactionType: (type: string) => void;
 };
@@ -18,7 +16,7 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [formData, setFormData] = useState<FormData>({});
   const [transactionType, setTransactionType] = useState<string>('');
 
-  const updateField = (key: string, value: any) => {
+  const updateField = (key: string, value: unknown) => {
     console.log(`Updating field: ${key} with value:`, value);
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
@@ -36,7 +34,7 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
 export const useFormContext = () => {
   const context = useContext(FormContext);
-  console.log('FormContext value in useFormContext:', context); // Log context value
+  console.log('FormContext value in useFormContext:', context); 
   if (!context) {
     throw new Error('useFormContext must be used within a FormDataProvider');
   }

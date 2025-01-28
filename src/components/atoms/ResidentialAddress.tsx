@@ -4,8 +4,45 @@ import { useFormContext } from '../../app/api/formDataContext/formDataContextPro
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import './ResidentialAddress.css';
 
+interface Address {
+  street?: string;
+  apt?: string;
+  poBox?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+}
+
+interface ResidentialAddressData {
+  mailingAddressDifferent?: boolean;
+  address?: Address;
+  mailingAddress?: Address;
+}
+
+interface MissingTitleInfo {
+  reason?: string;
+  otherReason?: string;
+}
+
+interface PowerOfAttorneyInfo {
+  type?: string;
+  otherType?: string;
+}
+
+interface FormData {
+  residentialAddress?: ResidentialAddressData;
+  missingTitleInfo?: MissingTitleInfo;
+  powerOfAttorneyInfo?: PowerOfAttorneyInfo;
+  [key: string]: any;
+}
+
+interface FormContext {
+  formData: FormData;
+  updateField: (field: string, value: any) => void;
+}
+
 export default function ResidentialAddress() {
-  const { formData, updateField } = useFormContext();
+  const { formData, updateField } = useFormContext() as FormContext;
   const regRef = useRef<HTMLUListElement>(null);
   const mailingRef = useRef<HTMLUListElement>(null);
   const [openDropdown, setOpenDropdown] = useState<'reg' | 'mailing' | null>(null);
@@ -80,22 +117,22 @@ export default function ResidentialAddress() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown]);
 
-  const handleAddressChange = (section: string, field: string, value: string) => {
+  const handleAddressChange = (section: 'address' | 'mailingAddress', field: keyof Address, value: string) => {
     const current = formData.residentialAddress?.[section] || {};
     updateField('residentialAddress', {
-      ...formData.residentialAddress,
+      ...(formData.residentialAddress || {}),
       [section]: { ...current, [field]: value }
     });
   };
 
-  const handleCheckboxChange = (field: string, checked: boolean) => {
+  const handleCheckboxChange = (field: keyof ResidentialAddressData, checked: boolean) => {
     updateField('residentialAddress', {
-      ...formData.residentialAddress,
+      ...(formData.residentialAddress || {}),
       [field]: checked
     });
   };
 
-  const handleMissingTitleChange = (field: string, value: string) => {
+  const handleMissingTitleChange = (field: keyof MissingTitleInfo, value: string) => {
     const current = formData.missingTitleInfo || {};
     updateField('missingTitleInfo', {
       ...current,
@@ -104,7 +141,7 @@ export default function ResidentialAddress() {
     });
   };
 
-  const handlePowerOfAttorneyChange = (field: string, value: string) => {
+  const handlePowerOfAttorneyChange = (field: keyof PowerOfAttorneyInfo, value: string) => {
     const current = formData.powerOfAttorneyInfo || {};
     updateField('powerOfAttorneyInfo', {
       ...current,

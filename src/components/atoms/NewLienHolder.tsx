@@ -1,11 +1,41 @@
-// File: NewLienHolder.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './NewLienHolder.css';
 
+interface Address {
+  street?: string;
+  apt?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+}
+
+interface MailingAddress {
+  street?: string;
+  poBox?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+}
+
+interface LienHolder {
+  name?: string;
+  eltNumber?: string;
+  mailingAddressDifferent?: boolean;
+  address?: Address;
+  mailingAddress?: MailingAddress;
+}
+
+interface FormContextType {
+  formData: {
+    lienHolder?: LienHolder;
+  };
+  updateField: (field: string, value: any) => void;
+}
+
 const NewLienHolder = () => {
-  const { formData, updateField } = useFormContext();
+  const { formData, updateField } = useFormContext() as FormContextType;
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const regRef = useRef<HTMLUListElement | null>(null);
   const mailingRef = useRef<HTMLUListElement | null>(null);
@@ -61,7 +91,7 @@ const NewLienHolder = () => {
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ];  
+  ];
 
   const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as Element;
@@ -78,17 +108,16 @@ const NewLienHolder = () => {
   }, [openDropdown]);
 
   const handleStateChange = (dropdown: string, stateAbbreviation: string, isMailing = false) => {
-    const lienHolder = formData.lienHolder || {};
+    const lienHolder = { ...formData.lienHolder } as LienHolder;
     const addressKey = isMailing ? 'mailingAddress' : 'address';
-    const currentAddress = lienHolder[addressKey] || {};
+    
+    if (isMailing) {
+      lienHolder.mailingAddress = { ...(lienHolder.mailingAddress || {}), state: stateAbbreviation };
+    } else {
+      lienHolder.address = { ...(lienHolder.address || {}), state: stateAbbreviation };
+    }
 
-    updateField('lienHolder', {
-      ...lienHolder,
-      [addressKey]: {
-        ...currentAddress,
-        state: stateAbbreviation,
-      },
-    });
+    updateField('lienHolder', lienHolder);
     setOpenDropdown(null);
   };
 
@@ -103,7 +132,7 @@ const NewLienHolder = () => {
               className="mailingCheckboxInput"
               checked={formData.lienHolder?.mailingAddressDifferent || false}
               onChange={(e) => {
-                const lienHolder = formData.lienHolder || {};
+                const lienHolder = { ...formData.lienHolder } as LienHolder;
                 updateField('lienHolder', {
                   ...lienHolder,
                   mailingAddressDifferent: e.target.checked,
@@ -122,7 +151,7 @@ const NewLienHolder = () => {
           placeholder="True Full Name or Bank/Finance Company or Individual"
           value={formData.lienHolder?.name || ''}
           onChange={(e) => {
-            const lienHolder = formData.lienHolder || {};
+            const lienHolder = { ...formData.lienHolder } as LienHolder;
             updateField('lienHolder', { ...lienHolder, name: e.target.value });
           }}
         />
@@ -135,7 +164,7 @@ const NewLienHolder = () => {
           placeholder="ELT Number"
           value={formData.lienHolder?.eltNumber || ''}
           onChange={(e) => {
-            const lienHolder = formData.lienHolder || {};
+            const lienHolder = { ...formData.lienHolder } as LienHolder;
             updateField('lienHolder', { ...lienHolder, eltNumber: e.target.value });
           }}
         />
@@ -149,8 +178,8 @@ const NewLienHolder = () => {
             placeholder="Street"
             value={formData.lienHolder?.address?.street || ''}
             onChange={(e) => {
-              const lienHolder = formData.lienHolder || {};
-              const address = lienHolder.address || {};
+              const lienHolder = { ...formData.lienHolder } as LienHolder;
+              const address = { ...(lienHolder.address || {}) };
               updateField('lienHolder', {
                 ...lienHolder,
                 address: { ...address, street: e.target.value },
@@ -166,8 +195,8 @@ const NewLienHolder = () => {
             placeholder="APT./SPACE/STE.#"
             value={formData.lienHolder?.address?.apt || ''}
             onChange={(e) => {
-              const lienHolder = formData.lienHolder || {};
-              const address = lienHolder.address || {};
+              const lienHolder = { ...formData.lienHolder } as LienHolder;
+              const address = { ...(lienHolder.address || {}) };
               updateField('lienHolder', {
                 ...lienHolder,
                 address: { ...address, apt: e.target.value },
@@ -185,8 +214,8 @@ const NewLienHolder = () => {
             placeholder="City"
             value={formData.lienHolder?.address?.city || ''}
             onChange={(e) => {
-              const lienHolder = formData.lienHolder || {};
-              const address = lienHolder.address || {};
+              const lienHolder = { ...formData.lienHolder } as LienHolder;
+              const address = { ...(lienHolder.address || {}) };
               updateField('lienHolder', {
                 ...lienHolder,
                 address: { ...address, city: e.target.value },
@@ -225,8 +254,8 @@ const NewLienHolder = () => {
             placeholder="Zip Code"
             value={formData.lienHolder?.address?.zip || ''}
             onChange={(e) => {
-              const lienHolder = formData.lienHolder || {};
-              const address = lienHolder.address || {};
+              const lienHolder = { ...formData.lienHolder } as LienHolder;
+              const address = { ...(lienHolder.address || {}) };
               updateField('lienHolder', {
                 ...lienHolder,
                 address: { ...address, zip: e.target.value },
@@ -248,8 +277,8 @@ const NewLienHolder = () => {
                 placeholder="Street"
                 value={formData.lienHolder?.mailingAddress?.street || ''}
                 onChange={(e) => {
-                  const lienHolder = formData.lienHolder || {};
-                  const mailingAddress = lienHolder.mailingAddress || {};
+                  const lienHolder = { ...formData.lienHolder } as LienHolder;
+                  const mailingAddress = { ...(lienHolder.mailingAddress || {}) };
                   updateField('lienHolder', {
                     ...lienHolder,
                     mailingAddress: { ...mailingAddress, street: e.target.value },
@@ -265,8 +294,8 @@ const NewLienHolder = () => {
                 placeholder="PO Box No"
                 value={formData.lienHolder?.mailingAddress?.poBox || ''}
                 onChange={(e) => {
-                  const lienHolder = formData.lienHolder || {};
-                  const mailingAddress = lienHolder.mailingAddress || {};
+                  const lienHolder = { ...formData.lienHolder } as LienHolder;
+                  const mailingAddress = { ...(lienHolder.mailingAddress || {}) };
                   updateField('lienHolder', {
                     ...lienHolder,
                     mailingAddress: { ...mailingAddress, poBox: e.target.value },
@@ -284,8 +313,8 @@ const NewLienHolder = () => {
                 placeholder="City"
                 value={formData.lienHolder?.mailingAddress?.city || ''}
                 onChange={(e) => {
-                  const lienHolder = formData.lienHolder || {};
-                  const mailingAddress = lienHolder.mailingAddress || {};
+                  const lienHolder = { ...formData.lienHolder } as LienHolder;
+                  const mailingAddress = { ...(lienHolder.mailingAddress || {}) };
                   updateField('lienHolder', {
                     ...lienHolder,
                     mailingAddress: { ...mailingAddress, city: e.target.value },

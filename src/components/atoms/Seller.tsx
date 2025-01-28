@@ -4,8 +4,33 @@ import { useFormContext } from '../../app/api/formDataContext/formDataContextPro
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import './Seller.css';
 
+interface Seller {
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  licenseNumber?: string;
+  state?: string;
+  phone?: string;
+  saleDate?: string;
+}
+
+interface SellerInfo {
+  sellerCount?: string;
+  sellers?: Seller[];
+}
+
+interface FormData {
+  sellerInfo?: SellerInfo;
+  [key: string]: any;
+}
+
+interface FormContext {
+  formData: FormData;
+  updateField: (field: string, value: any) => void;
+}
+
 const SellerSection = () => {
-  const { formData, updateField } = useFormContext();
+  const { formData, updateField } = useFormContext() as FormContext;
   const [openDropdown, setOpenDropdown] = useState<{ 
     type: 'count' | 'state', 
     index?: number 
@@ -63,20 +88,25 @@ const SellerSection = () => {
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ]; 
+  ];  
 
-  const handleSellerChange = (index: number, field: string, value: string) => {
+  const handleSellerChange = (index: number, field: keyof Seller, value: string) => {
     const sellers = [...(formData.sellerInfo?.sellers || [])];
     sellers[index] = { ...sellers[index], [field]: value };
-    updateField('sellerInfo', { ...formData.sellerInfo, sellers });
+    updateField('sellerInfo', { 
+      ...(formData.sellerInfo || {}), 
+      sellers 
+    });
   };
 
   const handleCountChange = (count: string) => {
     const currentSellers = formData.sellerInfo?.sellers || [{}];
-    const newSellers = Array(Number(count)).fill({}).map((_, i) => currentSellers[i] || {});
+    const newSellers = Array(Number(count))
+      .fill({})
+      .map((_, i) => currentSellers[i] || {});
     
     updateField('sellerInfo', {
-      ...formData.sellerInfo,
+      ...(formData.sellerInfo || {}),
       sellerCount: count,
       sellers: newSellers
     });

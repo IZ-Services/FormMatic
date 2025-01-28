@@ -3,11 +3,22 @@ import React from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './VehicleInformation.css';
 
+interface VehicleInformationType {
+  licensePlate?: string;
+  hullId?: string;
+  year?: string;
+  make?: string;
+  odometerDiscrepancyExplanation?: string;
+  mileage?: string;
+  notActualMileage?: boolean;
+  exceedsMechanicalLimit?: boolean;
+}
+
 const VehicleInformation = () => {
   const { formData, updateField } = useFormContext();
 
-  const handleVehicleInfoChange = (field: string, value: string | boolean) => {
-    const currentInfo = formData.vehicleInformation || {};
+  const handleVehicleInfoChange = (field: keyof VehicleInformationType, value: string | boolean) => {
+    const currentInfo = (formData.vehicleInformation || {}) as VehicleInformationType;
     updateField('vehicleInformation', { ...currentInfo, [field]: value });
   };
 
@@ -21,7 +32,7 @@ const VehicleInformation = () => {
           className="formInput vehicleLicenseInput"
           type="text"
           placeholder="Vehicle License Plate or Vessel CF Number"
-          value={formData.vehicleInformation?.licensePlate || ''}
+          value={(formData.vehicleInformation as VehicleInformationType)?.licensePlate || ''}
           onChange={(e) => handleVehicleInfoChange('licensePlate', e.target.value)}
         />
       </div>
@@ -32,7 +43,7 @@ const VehicleInformation = () => {
           className="formInput hullIdInput"
           type="text"
           placeholder="Vehicle/ Hull Identification Number"
-          value={formData.vehicleInformation?.hullId || ''}
+          value={(formData.vehicleInformation as VehicleInformationType)?.hullId || ''}
           onChange={(e) => handleVehicleInfoChange('hullId', e.target.value)}
         />
       </div>
@@ -44,7 +55,7 @@ const VehicleInformation = () => {
             className="yearInput"
             type="text"
             placeholder="Year of Vehicle"
-            value={formData.vehicleInformation?.year || ''}
+            value={(formData.vehicleInformation as VehicleInformationType)?.year || ''}
             onChange={(e) => handleVehicleInfoChange('year', e.target.value)}
           />
         </div>
@@ -54,7 +65,7 @@ const VehicleInformation = () => {
             className="makeInput"
             type="text"
             placeholder="Make of Vehicle OR Vessel Builder"
-            value={formData.vehicleInformation?.make || ''}
+            value={(formData.vehicleInformation as VehicleInformationType)?.make || ''}
             onChange={(e) => handleVehicleInfoChange('make', e.target.value)}
           />
         </div>
@@ -64,7 +75,7 @@ const VehicleInformation = () => {
             className="odometerInput"
             type="text"
             placeholder="Explanation"
-            value={formData.vehicleInformation?.odometerDiscrepancyExplanation || ''}
+            value={(formData.vehicleInformation as VehicleInformationType)?.odometerDiscrepancyExplanation || ''}
             onChange={(e) => handleVehicleInfoChange('odometerDiscrepancyExplanation', e.target.value)}
           />
         </div>
@@ -77,7 +88,7 @@ const VehicleInformation = () => {
             className="formInput mileageInput"
             type="text"
             placeholder="Mileage of Vehicle"
-            value={formData.vehicleInformation?.mileage || ''}
+            value={(formData.vehicleInformation as VehicleInformationType)?.mileage || ''}
             onChange={(e) => handleVehicleInfoChange('mileage', e.target.value)}
           />
         </div>
@@ -85,7 +96,7 @@ const VehicleInformation = () => {
           <label className="checkboxLabel">
             <input
               type="checkbox"
-              checked={formData.vehicleInformation?.notActualMileage || false}
+              checked={(formData.vehicleInformation as VehicleInformationType)?.notActualMileage || false}
               onChange={(e) => handleVehicleInfoChange('notActualMileage', e.target.checked)}
               className="checkboxInput"
             />
@@ -94,7 +105,7 @@ const VehicleInformation = () => {
           <label className="checkboxLabel">
             <input
               type="checkbox"
-              checked={formData.vehicleInformation?.exceedsMechanicalLimit || false}
+              checked={(formData.vehicleInformation as VehicleInformationType)?.exceedsMechanicalLimit || false}
               onChange={(e) => handleVehicleInfoChange('exceedsMechanicalLimit', e.target.checked)}
               className="checkboxInput"
             />

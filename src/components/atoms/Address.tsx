@@ -4,9 +4,31 @@ import './Address.css';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 
+interface AddressData {
+  street?: string;
+  apt?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  poBox?: string;
+  country?: string;
+}
+
+interface FormData {
+  mailingAddressDifferent?: boolean;
+  lesseeAddressDifferent?: boolean;
+  trailerLocationDifferent?: boolean;
+  address?: AddressData;
+  mailingAddress?: AddressData;
+  lesseeAddress?: AddressData;
+  trailerLocation?: AddressData;
+}
 
 export default function Address() {
-  const { formData, updateField } = useFormContext();
+  const { formData, updateField } = useFormContext() as {
+    formData: FormData;
+    updateField: (section: string, value: any) => void;
+  };
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRefs = {
     reg: useRef<HTMLUListElement>(null),
@@ -66,26 +88,29 @@ export default function Address() {
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ];
-
+  ];  
 
   const handleDropdownClick = (dropdown: string) => {
-    setOpenDropdown(prev => prev === dropdown ? null : dropdown);
+    setOpenDropdown(prev => (prev === dropdown ? null : dropdown));
   };
 
-  const handleAddressChange = (section: string, field: string, value: string) => {
-    const currentData = formData[section] || {};
+  const handleAddressChange = (section: keyof FormData, field: keyof AddressData, value: string) => {
+    const currentData = (formData[section] ?? {}) as AddressData; 
     updateField(section, { ...currentData, [field]: value });
   };
+  
 
-  const handleCheckboxChange = (field: string, checked: boolean) => {
+  const handleCheckboxChange = (field: keyof FormData, checked: boolean) => {
     updateField(field, checked);
   };
 
   const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as Element;
-    if (openDropdown && dropdownRefs[openDropdown as keyof typeof dropdownRefs].current && 
-        !dropdownRefs[openDropdown as keyof typeof dropdownRefs].current?.contains(target)) {
+    if (
+      openDropdown &&
+      dropdownRefs[openDropdown as keyof typeof dropdownRefs].current &&
+      !dropdownRefs[openDropdown as keyof typeof dropdownRefs].current?.contains(target)
+    ) {
       setOpenDropdown(null);
     }
   };
@@ -104,7 +129,7 @@ export default function Address() {
             <input
               type="checkbox"
               className="checkBoxAddress"
-              checked={formData.mailingAddressDifferent || false}
+              checked={!!formData.mailingAddressDifferent}
               onChange={(e) => handleCheckboxChange('mailingAddressDifferent', e.target.checked)}
             />
             <p>If mailing address is different</p>
@@ -113,7 +138,7 @@ export default function Address() {
             <input
               type="checkbox"
               className="checkBoxAddress"
-              checked={formData.lesseeAddressDifferent || false}
+              checked={!!formData.lesseeAddressDifferent}
               onChange={(e) => handleCheckboxChange('lesseeAddressDifferent', e.target.checked)}
             />
             <p>If lessee address is different</p>
@@ -122,7 +147,7 @@ export default function Address() {
             <input
               type="checkbox"
               className="checkBoxAddress"
-              checked={formData.trailerLocationDifferent || false}
+              checked={!!formData.trailerLocationDifferent}
               onChange={(e) => handleCheckboxChange('trailerLocationDifferent', e.target.checked)}
             />
             <p>Trailer/Vessel location</p>

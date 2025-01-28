@@ -79,18 +79,21 @@ const NewRegisteredOwners: React.FC = () => {
     { name: 'Wyoming', abbreviation: 'WY' },
   ];  const howManyOptions = ['1', '2', '3'];
 
-  const owners: OwnerData[] = formData.owners || [{
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    licenseNumber: '',
-    state: '',
-    phoneNumber: '',
-    purchaseDate: '',
-    purchaseValue: '',
-    isGift: false,
-    isTrade: false
-  }];
+const owners: OwnerData[] = Array.isArray(formData.owners) && formData.owners.length > 0
+  ? formData.owners
+  : [{
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      licenseNumber: '',
+      state: '',
+      phoneNumber: '',
+      purchaseDate: '',
+      purchaseValue: '',
+      isGift: false,
+      isTrade: false
+    }];
+
 
   const handleHowManyChange = (count: string) => {
     const newCount = parseInt(count);
@@ -150,7 +153,7 @@ const NewRegisteredOwners: React.FC = () => {
             onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
             className="howManyDropDown"
           >
-            {formData.howMany || 'How Many'}
+{String(formData.howMany || 'How Many')}
             <ChevronDownIcon className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`} />
           </button>
           {isHowManyMenuOpen && (
