@@ -34,7 +34,7 @@ export default function Home() {
 
   const renderComponent = () => {
     switch (selectedSubsection) {
-      case 'Simple Transfer Without Title':
+      case 'Simple Transfer':
         return <SimpleTransfer />;
       default:
         return (
@@ -43,21 +43,21 @@ export default function Home() {
     }
   };
 
-  const handleSave = async () => {
-    try {
-      const response = await fetch('/api/post', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ...formData, user_email }),
-      });
-      await response.json();
-      alert('Client Saved!');
-    } catch (error) {
-      console.error('Error in handleSave:', error);
-    }
-  };
+  // const handleSave = async () => {
+  //   try {
+  //     const response = await fetch('/api/post', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ ...formData, user_email }),
+  //     });
+  //     await response.json();
+  //     alert('Client Saved!');
+  //   } catch (error) {
+  //     console.error('Error in handleSave:', error);
+  //   }
+  // };
 
   // const handleNext = async () => {
   //   try {

@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
 import { useSearchParams } from 'next/navigation';
-import Sidebar from '../layouts/Sidebar';
 import Address from '../atoms/Address';
 import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
 import NewLien from '../atoms/NewLienHolder';
@@ -14,7 +13,6 @@ import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
 
 export default function SimpleTransfer() {
-  const searchParams = useSearchParams();
 
   const handleSaveSuccess = () => {
     console.log('Save completed successfully');

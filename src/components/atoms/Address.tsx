@@ -4,15 +4,6 @@ import './Address.css';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 
-interface AddressData {
-  street: string;
-  apt: string;
-  city: string;
-  state: string;
-  zip: string;
-  poBox?: string;
-  country?: string;
-}
 
 export default function Address() {
   const { formData, updateField } = useFormContext();
