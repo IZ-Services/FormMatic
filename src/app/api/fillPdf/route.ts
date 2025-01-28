@@ -83,27 +83,34 @@ interface TrailerLocationData {
   country: string;
 }
 
-
 export async function POST(request: Request) {
   try {
     await connectDB();
+
     const requestData = await request.json();
-    const { transactionId, pdfUrl } = requestData;
+    const { transactionId } = requestData;
 
     if (!transactionId) {
       return NextResponse.json({ error: 'Transaction ID is required.' }, { status: 400 });
     }
 
-    const resolvedPdfUrl = path.resolve(process.cwd(), pdfUrl || 'public/pdfs/REG227.pdf');
+    const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://form-matic2.vercel.app'}/pdfs/REG227.pdf`;
+
+    const pdfResponse = await fetch(pdfUrl);
+    if (!pdfResponse.ok) {
+      throw new Error('Failed to fetch the PDF file.');
+    }
+    const existingPdfBytes = await pdfResponse.arrayBuffer();
+
     const transaction = await TransactionModel.findById(transactionId);
     if (!transaction) {
       return NextResponse.json({ error: 'Transaction not found.' }, { status: 404 });
     }
 
     const formData = transaction.formData;
-    const pdfBytes = await modifyReg227Pdf(resolvedPdfUrl, formData);
+    const modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData);
 
-    return new Response(pdfBytes, {
+    return new Response(modifiedPdfBytes, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'inline; filename="filled-reg227-form.pdf"',
@@ -115,9 +122,9 @@ export async function POST(request: Request) {
   }
 }
 
-async function modifyReg227Pdf(fileUrl: string, formData: any): Promise<Uint8Array> {
-  const existingPdfBytes = await fs.readFile(fileUrl);
-  const pdfDoc = await PDFDocument.load(existingPdfBytes, { ignoreEncryption: true });
+async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
+  
   const form = pdfDoc.getForm();
   const fieldNames = form.getFields().map(f => f.getName());
   console.log('Available PDF Fields:', JSON.stringify(fieldNames, null, 2));
