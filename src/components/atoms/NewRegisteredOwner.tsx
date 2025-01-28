@@ -15,7 +15,12 @@ interface OwnerData {
   purchaseValue: string;
   isGift: boolean;
   isTrade: boolean;
+  isAnd: boolean;
+  isOr: boolean;
 }
+
+// A helper type for all boolean fields in OwnerData
+type BooleanKeys = 'isGift' | 'isTrade' | 'isAnd' | 'isOr';
 
 const NewRegisteredOwners: React.FC = () => {
   const { formData, updateField } = useFormContext();
@@ -77,25 +82,32 @@ const NewRegisteredOwners: React.FC = () => {
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ];  const howManyOptions = ['1', '2', '3'];
+  ];
 
-  const owners: OwnerData[] = formData.owners || [{
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    licenseNumber: '',
-    state: '',
-    phoneNumber: '',
-    purchaseDate: '',
-    purchaseValue: '',
-    isGift: false,
-    isTrade: false
-  }];
+  const howManyOptions = ['1', '2', '3'];
+
+  // Use the existing owners array from formData or a default
+  const owners: OwnerData[] = formData.owners || [
+    {
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      licenseNumber: '',
+      state: '',
+      phoneNumber: '',
+      purchaseDate: '',
+      purchaseValue: '',
+      isGift: false,
+      isTrade: false,
+      isAnd: false,
+      isOr: false,
+    },
+  ];
 
   const handleHowManyChange = (count: string) => {
     const newCount = parseInt(count);
     const newOwners = [...owners];
-    
+
     while (newOwners.length < newCount) {
       newOwners.push({
         firstName: '',
@@ -107,31 +119,67 @@ const NewRegisteredOwners: React.FC = () => {
         purchaseDate: '',
         purchaseValue: '',
         isGift: false,
-        isTrade: false
+        isTrade: false,
+        isAnd: false,
+        isOr: false,
       });
     }
-    
+
     while (newOwners.length > newCount) {
       newOwners.pop();
     }
-    
+
     updateField('owners', newOwners);
     updateField('howMany', count);
     setIsHowManyMenuOpen(false);
   };
 
-  const handleOwnerFieldChange = (index: number, field: keyof OwnerData, value: any) => {
+  /** Generic field change (e.g., firstName, phoneNumber, etc.). */
+  const handleOwnerFieldChange = (
+    index: number,
+    field: keyof OwnerData,
+    value: any
+  ) => {
     const newOwners = [...owners];
     newOwners[index] = { ...newOwners[index], [field]: value };
     updateField('owners', newOwners);
   };
 
+  /**
+   * Ensure only one of two boolean fields can be checked at the same time.
+   * (Gift vs Trade) or (And vs Or).
+   */
+  const handleExclusiveCheckboxChange = (
+    index: number,
+    field: BooleanKeys,     // 'isGift', 'isTrade', 'isAnd', or 'isOr'
+    otherField: BooleanKeys,
+    checked: boolean
+  ) => {
+    const newOwners = [...owners];
+
+    newOwners[index][field] = checked;
+    if (checked) {
+      newOwners[index][otherField] = false;
+    }
+
+    updateField('owners', newOwners);
+  };
+
+  /** Closes the dropdown(s) if user clicks outside. */
   const handleClickOutsideMenus = (e: MouseEvent) => {
     const target = e.target as Element;
-    if (regRef.current && !regRef.current.contains(target) && !target.closest('.regStateDropDown')) {
+    if (
+      regRef.current &&
+      !regRef.current.contains(target) &&
+      !target.closest('.regStateDropDown')
+    ) {
       setIsRegMenuOpen(false);
     }
-    if (howManyRef.current && !howManyRef.current.contains(target) && !target.closest('.howManyDropDown')) {
+    if (
+      howManyRef.current &&
+      !howManyRef.current.contains(target) &&
+      !target.closest('.howManyDropDown')
+    ) {
       setIsHowManyMenuOpen(false);
     }
   };
@@ -148,17 +196,20 @@ const NewRegisteredOwners: React.FC = () => {
         <div className="howManyWrapper">
           <button
             onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
-            className={`howManyDropDown ${formData.howMany ? 'SelectedHowManyDropDown' : ''}`}
+            className={`howManyDropDown ${formData.howMany ? 'SelectedHowManyDropDown' : ''
+              }`}
           >
             {formData.howMany || 'How Many'}
-            <ChevronDownIcon className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`} />
+            <ChevronDownIcon
+              className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`}
+            />
           </button>
           {isHowManyMenuOpen && (
             <ul ref={howManyRef} className="howManyMenu">
-              {howManyOptions.map((option, index) => (
+              {howManyOptions.map((option, i) => (
                 <li
                   className="howManyLists"
-                  key={index}
+                  key={i}
                   onClick={() => handleHowManyChange(option)}
                 >
                   {option}
@@ -175,7 +226,46 @@ const NewRegisteredOwners: React.FC = () => {
           className={`owner-section ${owners.length > 1 && index > 0 ? 'owner-section-border' : ''
             }`}
         >
-          <h3 className="owner-section-heading">New Registered Owner {index + 1}</h3>
+          {/* Heading + "And" / "Or" checkboxes (only for 2nd or 3rd owner) */}
+          <div className="ownerHeadingWithCheckboxes">
+            <h3 className="owner-section-heading">New Registered Owner {index + 1}</h3>
+            {index >= 1 && (
+              <div className="checkboxWrapper andOrWrapper">
+                <label className="checkboxLabel">
+                  <input
+                    type="checkbox"
+                    className="checkboxInput"
+                    checked={owner.isAnd}
+                    onChange={(e) =>
+                      handleExclusiveCheckboxChange(
+                        index,
+                        'isAnd',
+                        'isOr',
+                        e.target.checked
+                      )
+                    }
+                  />{' '}
+                  And
+                </label>
+                <label className="checkboxLabel">
+                  <input
+                    type="checkbox"
+                    className="checkboxInput"
+                    checked={owner.isOr}
+                    onChange={(e) =>
+                      handleExclusiveCheckboxChange(
+                        index,
+                        'isOr',
+                        'isAnd',
+                        e.target.checked
+                      )
+                    }
+                  />{' '}
+                  Or
+                </label>
+              </div>
+            )}
+          </div>
 
           <div className="newRegFirstGroup">
             <div className="newRegFormItem">
@@ -218,7 +308,9 @@ const NewRegisteredOwners: React.FC = () => {
                 type="text"
                 placeholder="Driver License Number"
                 value={owner.licenseNumber}
-                onChange={(e) => handleOwnerFieldChange(index, 'licenseNumber', e.target.value)}
+                onChange={(e) =>
+                  handleOwnerFieldChange(index, 'licenseNumber', e.target.value)
+                }
               />
             </div>
 
@@ -232,16 +324,18 @@ const NewRegisteredOwners: React.FC = () => {
                 className={`regStateDropDown ${owner.state ? 'selectedState' : ''}`}
               >
                 {owner.state || 'State'}
-                <ChevronDownIcon className={`regIcon ${isRegMenuOpen ? 'rotate' : ''}`} />
+                <ChevronDownIcon
+                  className={`regIcon ${isRegMenuOpen ? 'rotate' : ''}`}
+                />
               </button>
               {isRegMenuOpen && activeOwnerIndex === index && (
                 <ul ref={regRef} className="regStateMenu">
-                  {states.map((state, stateIndex) => (
+                  {states.map((state, i) => (
                     <li
                       className="regStateLists"
-                      key={stateIndex}
+                      key={i}
                       onClick={() => {
-                        handleOwnerFieldChange(index, 'state', state.abbreviation); 
+                        handleOwnerFieldChange(index, 'state', state.abbreviation);
                         setIsRegMenuOpen(false);
                       }}
                     >
@@ -254,7 +348,6 @@ const NewRegisteredOwners: React.FC = () => {
           </div>
 
           <div className="newRegThirdGroup">
-            {/* Keep Phone Number for everyone */}
             <div className="newRegThirdItem">
               <label className="registeredOwnerLabel">Phone Number</label>
               <input
@@ -262,11 +355,13 @@ const NewRegisteredOwners: React.FC = () => {
                 type="text"
                 placeholder="Phone Number"
                 value={owner.phoneNumber}
-                onChange={(e) => handleOwnerFieldChange(index, 'phoneNumber', e.target.value)}
+                onChange={(e) =>
+                  handleOwnerFieldChange(index, 'phoneNumber', e.target.value)
+                }
               />
             </div>
 
-            {/* Only show these for the first owner (index === 0) */}
+            {/* Only show purchase-related fields for the first owner */}
             {index === 0 && (
               <>
                 <div className="newRegThirdItem">
@@ -276,7 +371,9 @@ const NewRegisteredOwners: React.FC = () => {
                     type="text"
                     placeholder="MM/DD/YYYY"
                     value={owner.purchaseDate}
-                    onChange={(e) => handleOwnerFieldChange(index, 'purchaseDate', e.target.value)}
+                    onChange={(e) =>
+                      handleOwnerFieldChange(index, 'purchaseDate', e.target.value)
+                    }
                   />
                 </div>
 
@@ -287,7 +384,9 @@ const NewRegisteredOwners: React.FC = () => {
                     type="text"
                     placeholder="Enter Amount"
                     value={owner.purchaseValue}
-                    onChange={(e) => handleOwnerFieldChange(index, 'purchaseValue', e.target.value)}
+                    onChange={(e) =>
+                      handleOwnerFieldChange(index, 'purchaseValue', e.target.value)
+                    }
                   />
                 </div>
 
@@ -297,7 +396,14 @@ const NewRegisteredOwners: React.FC = () => {
                       type="checkbox"
                       className="checkboxInput"
                       checked={owner.isGift}
-                      onChange={(e) => handleOwnerFieldChange(index, 'isGift', e.target.checked)}
+                      onChange={(e) =>
+                        handleExclusiveCheckboxChange(
+                          index,
+                          'isGift',
+                          'isTrade',
+                          e.target.checked
+                        )
+                      }
                     />{' '}
                     Gift
                   </label>
@@ -306,7 +412,14 @@ const NewRegisteredOwners: React.FC = () => {
                       type="checkbox"
                       className="checkboxInput"
                       checked={owner.isTrade}
-                      onChange={(e) => handleOwnerFieldChange(index, 'isTrade', e.target.checked)}
+                      onChange={(e) =>
+                        handleExclusiveCheckboxChange(
+                          index,
+                          'isTrade',
+                          'isGift',
+                          e.target.checked
+                        )
+                      }
                     />{' '}
                     Trade
                   </label>

@@ -311,3 +311,13 @@ body {
   margin-top: 25px;
   padding-top: 25px;
 }
+
+.ownerHeadingWithCheckboxes {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.andOrWrapper {
+  margin-top: 0 !important;
+}
