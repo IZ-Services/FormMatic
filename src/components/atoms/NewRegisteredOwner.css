@@ -52,6 +52,7 @@ body {
 
 .registeredOwnerLabel {
   display: block;
+  margin-top: 15px;
   margin-bottom: 5px;
   font-size: 14px;
   font-weight: 400;
@@ -62,8 +63,8 @@ body {
 .registeredOwnerInput {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 2px;
+  border: 3px solid #666;
+  border-radius: 8px;
   font-size: 14px;
 }
 
@@ -74,8 +75,8 @@ body {
 .registeredOwnerLicenseInput {
   width: 309px;
   padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 2px;
+  border: 3px solid #666;
+  border-radius: 8px;
   font-size: 14px;
 }
 
@@ -86,9 +87,11 @@ body {
 .regIcon {
   width: 1.2em;
   height: 1.2em;
-  margin-left: 4px;
   transition: transform 0.3s ease;
   flex-shrink: 0;
+  position: absolute;
+  right: 10px;
+  margin-left: 0;
 }
 
 .regIcon.rotate {
@@ -101,18 +104,19 @@ body {
   outline: none;
   display: flex;
   background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 2px;
+  border: 3px solid #666;
+  border-radius: 8px;
   color: #999;
   text-align: center;
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 2rem;
+    height: 2rem;
   width: 100%;
   padding: 0 10px;
   box-sizing: border-box;
   height: 38px;
+  /* padding-right: 40px; */
 }
 
 .regStateMenu {
@@ -124,6 +128,7 @@ body {
   background-color: white;
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 1;
+  /* border: 3px solid #666; */
   border-radius: 5px;
   justify-content: center;
   align-items: center;
@@ -133,12 +138,15 @@ body {
   max-height: 200px;
   padding-right: 15px;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 .regStateLists {
   color: #999;
   padding: 10px;
   font-size: 12px;
+  cursor: pointer;
 }
 
 .regStateLists:hover {
@@ -147,16 +155,21 @@ body {
   border-radius: 2px;
 }
 
+.selectedState {
+  color: #000;
+}
+
 .newRegThirdGroup {
   display: flex;
   margin-bottom: 15px;
 }
 
+/* Thicker input fields */
 .registeredNumberInput {
   max-width: 600px;
   padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 2px;
+  border: 3px solid #666;
+  border-radius: 8px;
   font-size: 14px;
   margin-right: 20px;
 }
@@ -168,8 +181,8 @@ body {
 .registeredDateInput {
   max-width: 400px;
   padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 2px;
+  border: 3px solid #666;
+  border-radius: 8px;
   font-size: 14px;
   margin-right: 20px;
 }
@@ -200,21 +213,29 @@ body {
   justify-content: center;
   align-items: center;
   background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 2px;
+  border: 3px solid #666;
+  border-radius: 8px;
   color: #999;
   text-align: center;
   width: 100%;
   height: 2rem;
   padding: 0 10px;
+  padding-right: 30px;
   box-sizing: border-box;
+}
+
+.SelectedHowManyDropDown{
+  color: #000;
 }
 
 .howManyIcon {
   width: 1.2em;
   height: 1.2em;
-  margin-left: 4px;
   transition: transform 0.3s ease;
+  flex-shrink: 0;
+  position: absolute;
+  right: 10px;
+  margin-left: 0;
 }
 
 .howManyIcon.rotate {
@@ -234,6 +255,7 @@ body {
   text-align: center;
   overflow-y: auto;
   max-height: 200px;
+  margin-left: 20px;
 }
 
 .howManyLists {
@@ -248,7 +270,6 @@ body {
   color: white;
 }
 
-
 .newRegFourthGroup {
   display: flex;
   margin-bottom: 15px;
@@ -257,17 +278,18 @@ body {
 .registeredValueInput {
   max-width: 400px;
   padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 2px;
+  border: 3px solid #666;
+  border-radius: 8px;
   font-size: 14px;
   margin-right: 20px;
 }
 
+/* Thicker checkboxes */
 .checkboxWrapper {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 35px;
 }
 
 .checkboxLabel {
@@ -278,6 +300,14 @@ body {
 
 .checkboxInput {
   margin-right: 5px;
-  width: 15px;
-  height: 15px;
+  width: 20px;
+  height: 20px;
+  transform: scale(1.4);
+    transform-origin: center;
+}
+
+.owner-section-border {
+  border-top: 2px solid #ccc;
+  margin-top: 25px;
+  padding-top: 25px;
 }

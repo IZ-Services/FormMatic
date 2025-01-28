@@ -148,7 +148,7 @@ const NewRegisteredOwners: React.FC = () => {
         <div className="howManyWrapper">
           <button
             onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
-            className="howManyDropDown"
+            className={`howManyDropDown ${formData.howMany ? 'SelectedHowManyDropDown' : ''}`}
           >
             {formData.howMany || 'How Many'}
             <ChevronDownIcon className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`} />
@@ -170,8 +170,12 @@ const NewRegisteredOwners: React.FC = () => {
       </div>
 
       {owners.map((owner, index) => (
-        <div key={index} className="owner-section">
-          <h4 className="owner-section-heading">New Registered Owner {index + 1}</h4>
+        <div
+          key={index}
+          className={`owner-section ${owners.length > 1 && index > 0 ? 'owner-section-border' : ''
+            }`}
+        >
+          <h3 className="owner-section-heading">New Registered Owner {index + 1}</h3>
 
           <div className="newRegFirstGroup">
             <div className="newRegFormItem">
@@ -225,7 +229,7 @@ const NewRegisteredOwners: React.FC = () => {
                   setActiveOwnerIndex(index);
                   setIsRegMenuOpen(true);
                 }}
-                className="regStateDropDown"
+                className={`regStateDropDown ${owner.state ? 'selectedState' : ''}`}
               >
                 {owner.state || 'State'}
                 <ChevronDownIcon className={`regIcon ${isRegMenuOpen ? 'rotate' : ''}`} />
@@ -236,7 +240,10 @@ const NewRegisteredOwners: React.FC = () => {
                     <li
                       className="regStateLists"
                       key={stateIndex}
-                      onClick={() => handleOwnerFieldChange(index, 'state', state.abbreviation)}
+                      onClick={() => {
+                        handleOwnerFieldChange(index, 'state', state.abbreviation); 
+                        setIsRegMenuOpen(false);
+                      }}
                     >
                       {state.name}
                     </li>
@@ -247,6 +254,7 @@ const NewRegisteredOwners: React.FC = () => {
           </div>
 
           <div className="newRegThirdGroup">
+            {/* Keep Phone Number for everyone */}
             <div className="newRegThirdItem">
               <label className="registeredOwnerLabel">Phone Number</label>
               <input
@@ -257,46 +265,54 @@ const NewRegisteredOwners: React.FC = () => {
                 onChange={(e) => handleOwnerFieldChange(index, 'phoneNumber', e.target.value)}
               />
             </div>
-            <div className="newRegThirdItem">
-              <label className="registeredOwnerLabel">Date of Purchase</label>
-              <input
-                className="registeredDateInput"
-                type="text"
-                placeholder="MM/DD/YYYY"
-                value={owner.purchaseDate}
-                onChange={(e) => handleOwnerFieldChange(index, 'purchaseDate', e.target.value)}
-              />
-            </div>
-            <div className="newRegThirdItem">
-              <label className="registeredOwnerLabel">Purchase Price/Value</label>
-              <input
-                className="registeredValueInput"
-                type="text"
-                placeholder="Enter Amount"
-                value={owner.purchaseValue}
-                onChange={(e) => handleOwnerFieldChange(index, 'purchaseValue', e.target.value)}
-              />
-            </div>
-            <div className="newRegThirdItem checkboxWrapper">
-              <label className="checkboxLabel">
-                <input
-                  type="checkbox"
-                  className="checkboxInput"
-                  checked={owner.isGift}
-                  onChange={(e) => handleOwnerFieldChange(index, 'isGift', e.target.checked)}
-                />{' '}
-                Gift
-              </label>
-              <label className="checkboxLabel">
-                <input
-                  type="checkbox"
-                  className="checkboxInput"
-                  checked={owner.isTrade}
-                  onChange={(e) => handleOwnerFieldChange(index, 'isTrade', e.target.checked)}
-                />{' '}
-                Trade
-              </label>
-            </div>
+
+            {/* Only show these for the first owner (index === 0) */}
+            {index === 0 && (
+              <>
+                <div className="newRegThirdItem">
+                  <label className="registeredOwnerLabel">Date of Purchase</label>
+                  <input
+                    className="registeredDateInput"
+                    type="text"
+                    placeholder="MM/DD/YYYY"
+                    value={owner.purchaseDate}
+                    onChange={(e) => handleOwnerFieldChange(index, 'purchaseDate', e.target.value)}
+                  />
+                </div>
+
+                <div className="newRegThirdItem">
+                  <label className="registeredOwnerLabel">Purchase Price/Value</label>
+                  <input
+                    className="registeredValueInput"
+                    type="text"
+                    placeholder="Enter Amount"
+                    value={owner.purchaseValue}
+                    onChange={(e) => handleOwnerFieldChange(index, 'purchaseValue', e.target.value)}
+                  />
+                </div>
+
+                <div className="newRegThirdItem checkboxWrapper">
+                  <label className="checkboxLabel">
+                    <input
+                      type="checkbox"
+                      className="checkboxInput"
+                      checked={owner.isGift}
+                      onChange={(e) => handleOwnerFieldChange(index, 'isGift', e.target.checked)}
+                    />{' '}
+                    Gift
+                  </label>
+                  <label className="checkboxLabel">
+                    <input
+                      type="checkbox"
+                      className="checkboxInput"
+                      checked={owner.isTrade}
+                      onChange={(e) => handleOwnerFieldChange(index, 'isTrade', e.target.checked)}
+                    />{' '}
+                    Trade
+                  </label>
+                </div>
+              </>
+            )}
           </div>
         </div>
       ))}
