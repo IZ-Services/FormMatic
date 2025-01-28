@@ -94,7 +94,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Transaction ID is required.' }, { status: 400 });
     }
 
-    const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://form-matic2.vercel.app'}/pdfs/REG227.pdf`;
+    const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://form-matic2.vercel.app'}/pdfs/Reg227.pdf`;
 
     const pdfResponse = await fetch(pdfUrl);
     if (!pdfResponse.ok) {
