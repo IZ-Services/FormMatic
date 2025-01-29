@@ -300,6 +300,11 @@ const NewRegisteredOwners: React.FC = () => {
             </div>
           </div>
 
+          {/* 
+            For ALL owners: licenseNumber + state in the second group.
+            For owners 2 and 3 (index >= 1), we ALSO show the phone number
+            in the same row (to the right of the state dropdown).
+          */}
           <div className="newRegSecondGroup">
             <div className="newRegInfo">
               <label className="registeredOwnerLabel">Driver License Number</label>
@@ -345,88 +350,109 @@ const NewRegisteredOwners: React.FC = () => {
                 </ul>
               )}
             </div>
-          </div>
 
-          <div className="newRegThirdGroup">
-            <div className="newRegThirdItem">
-              <label className="registeredOwnerLabel">Phone Number</label>
-              <input
-                className="registeredNumberInput"
-                type="text"
-                placeholder="Phone Number"
-                value={owner.phoneNumber}
-                onChange={(e) =>
-                  handleOwnerFieldChange(index, 'phoneNumber', e.target.value)
-                }
-              />
-            </div>
-
-            {/* Only show purchase-related fields for the first owner */}
-            {index === 0 && (
-              <>
-                <div className="newRegThirdItem">
-                  <label className="registeredOwnerLabel">Date of Purchase</label>
-                  <input
-                    className="registeredDateInput"
-                    type="text"
-                    placeholder="MM/DD/YYYY"
-                    value={owner.purchaseDate}
-                    onChange={(e) =>
-                      handleOwnerFieldChange(index, 'purchaseDate', e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="newRegThirdItem">
-                  <label className="registeredOwnerLabel">Purchase Price/Value</label>
-                  <input
-                    className="registeredValueInput"
-                    type="text"
-                    placeholder="Enter Amount"
-                    value={owner.purchaseValue}
-                    onChange={(e) =>
-                      handleOwnerFieldChange(index, 'purchaseValue', e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="newRegThirdItem checkboxWrapper">
-                  <label className="checkboxLabel">
-                    <input
-                      type="checkbox"
-                      className="checkboxInput"
-                      checked={owner.isGift}
-                      onChange={(e) =>
-                        handleExclusiveCheckboxChange(
-                          index,
-                          'isGift',
-                          'isTrade',
-                          e.target.checked
-                        )
-                      }
-                    />{' '}
-                    Gift
-                  </label>
-                  <label className="checkboxLabel">
-                    <input
-                      type="checkbox"
-                      className="checkboxInput"
-                      checked={owner.isTrade}
-                      onChange={(e) =>
-                        handleExclusiveCheckboxChange(
-                          index,
-                          'isTrade',
-                          'isGift',
-                          e.target.checked
-                        )
-                      }
-                    />{' '}
-                    Trade
-                  </label>
-                </div>
-              </>
+            {/* 
+              For second/third owners (index >= 1), show phone number 
+              in the same row as the state dropdown, with a custom 
+              class to nudge it left.
+            */}
+            {index >= 1 && (
+              <div className="newRegInfo newRegInfoSecondOwner">
+                <label className="registeredOwnerLabel">Phone Number</label>
+                <input
+                  className="registeredNumberInput"
+                  type="text"
+                  placeholder="Phone Number"
+                  value={owner.phoneNumber}
+                  onChange={(e) =>
+                    handleOwnerFieldChange(index, 'phoneNumber', e.target.value)
+                  }
+                />
+              </div>
             )}
           </div>
+
+          {/* 
+            For the FIRST owner only, keep phone number + purchase details 
+            in the third group below.
+          */}
+          {index === 0 && (
+            <div className="newRegThirdGroup">
+              <div className="newRegThirdItem">
+                <label className="registeredOwnerLabel">Phone Number</label>
+                <input
+                  className="registeredNumberInput"
+                  type="text"
+                  placeholder="Phone Number"
+                  value={owner.phoneNumber}
+                  onChange={(e) =>
+                    handleOwnerFieldChange(index, 'phoneNumber', e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="newRegThirdItem">
+                <label className="registeredOwnerLabel">Date of Purchase</label>
+                <input
+                  className="registeredDateInput"
+                  type="text"
+                  placeholder="MM/DD/YYYY"
+                  value={owner.purchaseDate}
+                  onChange={(e) =>
+                    handleOwnerFieldChange(index, 'purchaseDate', e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="newRegThirdItem">
+                <label className="registeredOwnerLabel">Purchase Price/Value</label>
+                <input
+                  className="registeredValueInput"
+                  type="text"
+                  placeholder="Enter Amount"
+                  value={owner.purchaseValue}
+                  onChange={(e) =>
+                    handleOwnerFieldChange(index, 'purchaseValue', e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="newRegThirdItem checkboxWrapper">
+                <label className="checkboxLabel">
+                  <input
+                    type="checkbox"
+                    className="checkboxInput"
+                    checked={owner.isGift}
+                    onChange={(e) =>
+                      handleExclusiveCheckboxChange(
+                        index,
+                        'isGift',
+                        'isTrade',
+                        e.target.checked
+                      )
+                    }
+                  />{' '}
+                  Gift
+                </label>
+                <label className="checkboxLabel">
+                  <input
+                    type="checkbox"
+                    className="checkboxInput"
+                    checked={owner.isTrade}
+                    onChange={(e) =>
+                      handleExclusiveCheckboxChange(
+                        index,
+                        'isTrade',
+                        'isGift',
+                        e.target.checked
+                      )
+                    }
+                  />{' '}
+                  Trade
+                </label>
+              </div>
+            </div>
+          )}
         </div>
       ))}
     </div>
