@@ -19,7 +19,7 @@ const scenerios: Scenerio[] = [
   {
     transactionType: 'Simple Transfer',
     subsections: [
-      'Simple Transfer',
+      'Simple Transfer Without Title',
       'Simple Transfer + Duplicate Title',
       'Simple Transfer + Duplicate Plates/Stickers',
       'Simple Transfer + Smog Required',

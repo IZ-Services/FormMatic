@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import './Sidebar.css';
-import { MagnifyingGlassIcon } from '@heroicons/react/16/solid';
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/16/solid';
 import { useScenarioContext } from '../../context/ScenarioContext';
 import { useAppContext } from '../../context/index';
 import { UserAuth } from '../../context/AuthContext';
@@ -15,6 +15,7 @@ export default function Sidebar() {
 
   const [searchScenario, setSearchScenario] = useState('');
   const [selectedTransactionType, setSelectedTransactionType] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleClickOutsideDate = (e: MouseEvent) => {
     const target = e.target as Element;
@@ -53,6 +54,10 @@ export default function Sidebar() {
     setFormData({ ...formData, transactionType: subsection });
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   const filteredScenarios = scenarios
     .map((scenario) => ({
       ...scenario,
@@ -63,49 +68,62 @@ export default function Sidebar() {
     .filter((scenario) => scenario.subsections.length > 0);
 
   return (
-    <div className="sidebar">
-      <div className="sidebarWrapper">
-        <div className="searchScenarioWrapper">
-          <MagnifyingGlassIcon className="scenarioIcon" />
-          <input
-            className="scenarioInput"
-            placeholder="Search Transaction"
-            value={searchScenario}
-            onChange={(e) => setSearchScenario(e.target.value)}
-          />
-        </div>
+    <>
+      <button className="sidebarToggle" onClick={toggleSidebar}>
+  <span>Transactions</span>
+</button>
 
-        <div className="transactionWrapper" ref={transactionRef}>
-          {filteredScenarios.map((scenario, index) => (
-            <div key={index}>
-              <div className="pentagon" onClick={() => handleOpen(scenario.transactionType)}>
-                <h1 className="scenarioTitle">{scenario.transactionType}</h1>
+
+      <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+        <div className="sidebarWrapper">
+          <button className="close" onClick={toggleSidebar}>
+            <XMarkIcon className="closeIcon" />
+          </button>
+
+          <div className="searchScenarioWrapper">
+            <MagnifyingGlassIcon className="scenarioIcon" />
+            <input
+              className="scenarioInput"
+              placeholder="Search Transaction"
+              value={searchScenario}
+              onChange={(e) => setSearchScenario(e.target.value)}
+            />
+          </div>
+
+          <div className="transactionWrapper" ref={transactionRef}>
+            {filteredScenarios.map((scenario, index) => (
+              <div key={index}>
+                <div className="pentagon" onClick={() => handleOpen(scenario.transactionType)}>
+                  <h1 className="scenarioTitle">{scenario.transactionType}</h1>
+                </div>
+                <ul
+                  style={{
+                    display:
+                      searchScenario || scenario.transactionType === selectedTransactionType
+                        ? 'block'
+                        : 'none',
+                  }}
+                >
+                  {scenario.subsections.map((subsection, subsectionIndex) => (
+                    <li
+                      key={subsectionIndex}
+                      className="subsections"
+                      onClick={() => handleSelection(subsection)}
+                    >
+                      <div
+                        className={`${subsection === selectedSubsection ? 'subsectionActive' : 'subsectionEmpty'}`}
+                      />
+                      <span>{subsection}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul
-                style={{
-                  display:
-                    searchScenario || scenario.transactionType === selectedTransactionType
-                      ? 'block'
-                      : 'none',
-                }}
-              >
-                {scenario.subsections.map((subsection, subsectionIndex) => (
-                  <li
-                    key={subsectionIndex}
-                    className="subsections"
-                    onClick={() => handleSelection(subsection)}
-                  >
-                    <div
-                      className={`${subsection === selectedSubsection ? 'subsectionActive' : 'subsectionEmpty'}`}
-                    />
-                    <span>{subsection}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+
+      {isSidebarOpen && <div className="overlay" onClick={toggleSidebar}></div>}
+    </>
   );
 }

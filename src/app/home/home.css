@@ -11,7 +11,7 @@ body {
 
 .homeContainer {
   justify-content: center;
-  margin-top: 5rem;
+  margin-top: 6rem;
   border: 1px solid black;
   margin-right: 20px;
   margin-left: 20px;
@@ -38,6 +38,10 @@ body {
 @media (max-width: 800px) {
   main {
     margin-left: 0 !important;
+  }
+
+  .homeContainer{
+    margin-left: 50px;
   }
 }
 

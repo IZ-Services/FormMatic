@@ -1,3 +1,4 @@
+/* Reset Defaults */
 * {
   margin: 0;
   padding: 0;
@@ -15,15 +16,25 @@ body {
   flex-direction: column;
   width: 20rem;
   flex-shrink: 0;
+  background: white;
+  left: 0;
+  top: 0;
+  /* box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); */
+  transition: transform 0.3s ease-in-out;
 }
 
+/* Sidebar Wrapper */
 .sidebarWrapper {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  margin-bottom: 100px;
-}
+  display: flex
+  ;
+      flex-direction: column;
+      overflow-y: auto;
+      /* margin-bottom: 100px; */
+      margin-top: 30%;
+  }
 
+
+/* Search Bar */
 .searchScenarioWrapper {
   display: flex;
   align-items: center;
@@ -52,6 +63,7 @@ body {
   color: black;
 }
 
+/* Pentagon Button */
 .pentagon {
   margin-left: 20px;
   margin-bottom: 20px;
@@ -110,13 +122,14 @@ body {
   flex: 1;
 }
 
+/* Subsection Items */
 .subsectionEmpty,
 .subsectionActive {
   border: 1px solid black;
   width: 10px;
   height: 10px;
-  margin-left: 40px;
-  margin-right: 5px;
+  margin-left: 2px;
+  margin-right: 15px;
   display: inline-block;
 }
 
@@ -146,6 +159,112 @@ body {
 
 @media (max-width: 800px) {
   .sidebar {
+    width: 80%;
+    max-width: 300px;
+    transform: translateX(-100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    background: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+
+   .sidebarWrapper{
+    margin-top: 10%;
+   }
+  }
+
+  /* Sidebar Open State */
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Sidebar Toggle Button */
+  .dragbutton {
+    position: fixed;
+    top: 50%;
+    left: -10px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 1100;
+  }
+
+  .dragicon {
+    width: 40px;
+    height: 40px;
+    color: black;
+  }
+
+  /* Close Button */
+  .close {
+    display: flex
+    ;
+            width: 100%;
+            /* padding-bottom: 6px; */
+            margin-left: 15px;
+            background-color: #007bff00;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            justify-content: flex-start;
+  }
+
+  .closeIcon {
+    width: 30px;
+    height: 30px;
+    color: #565a5c;
+  }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 900;
+    display: none;
+  }
+
+  .overlay.show {
+    display: block;
+  }
+}
+
+@media (min-width: 801px) and (max-width: 7680px) {
+  .dragbutton {
+    display: none;
+  }
+}
+.sidebarToggle {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgb(0 0 0 / 0%);
+  color: #000000;
+  border: .7px solid black;
+  border-radius: 0 12px 12px 0;
+  padding: 4px;
+  cursor: pointer;
+  writing-mode: vertical-rl;
+  text-align: center;
+  font-weight: bold;
+  font-size: 16px;
+  height: 160px;
+  display: flex
+;
+  align-items: center;
+  justify-content: center;
+}
+@media (min-width: 801px) {
+  .close {
     display: none;
   }
 }

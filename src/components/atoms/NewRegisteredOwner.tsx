@@ -1,8 +1,9 @@
 'use client';
+
 import React, { useRef, useState, useEffect } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
-import './NewRegisteredOwner.css';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import './NewRegisteredOwner.css';
 
 interface OwnerData {
   firstName: string;
@@ -10,6 +11,7 @@ interface OwnerData {
   lastName: string;
   licenseNumber: string;
   state: string;
+  phoneCode: string;
   phoneNumber: string;
   purchaseDate: string;
   purchaseValue: string;
@@ -17,8 +19,70 @@ interface OwnerData {
   isTrade: boolean;
 }
 
-const NewRegisteredOwners: React.FC = () => {
-  const { formData, updateField } = useFormContext();
+interface NewRegisteredOwnersProps {
+  formData?: { owners?: OwnerData[]; howMany?: string };
+}
+
+const phoneCodes = ['+1', '+44', '+91', '+61', '+81'];
+
+const states = [
+  { name: 'Alabama', abbreviation: 'AL' },
+  { name: 'Alaska', abbreviation: 'AK' },
+  { name: 'Arizona', abbreviation: 'AZ' },
+  { name: 'Arkansas', abbreviation: 'AR' },
+  { name: 'California', abbreviation: 'CA' },
+  { name: 'Colorado', abbreviation: 'CO' },
+  { name: 'Connecticut', abbreviation: 'CT' },
+  { name: 'Delaware', abbreviation: 'DE' },
+  { name: 'Florida', abbreviation: 'FL' },
+  { name: 'Georgia', abbreviation: 'GA' },
+  { name: 'Hawaii', abbreviation: 'HI' },
+  { name: 'Idaho', abbreviation: 'ID' },
+  { name: 'Illinois', abbreviation: 'IL' },
+  { name: 'Indiana', abbreviation: 'IN' },
+  { name: 'Iowa', abbreviation: 'IA' },
+  { name: 'Kansas', abbreviation: 'KS' },
+  { name: 'Kentucky', abbreviation: 'KY' },
+  { name: 'Louisiana', abbreviation: 'LA' },
+  { name: 'Maine', abbreviation: 'ME' },
+  { name: 'Maryland', abbreviation: 'MD' },
+  { name: 'Massachusetts', abbreviation: 'MA' },
+  { name: 'Michigan', abbreviation: 'MI' },
+  { name: 'Minnesota', abbreviation: 'MN' },
+  { name: 'Mississippi', abbreviation: 'MS' },
+  { name: 'Missouri', abbreviation: 'MO' },
+  { name: 'Montana', abbreviation: 'MT' },
+  { name: 'Nebraska', abbreviation: 'NE' },
+  { name: 'Nevada', abbreviation: 'NV' },
+  { name: 'New Hampshire', abbreviation: 'NH' },
+  { name: 'New Jersey', abbreviation: 'NJ' },
+  { name: 'New Mexico', abbreviation: 'NM' },
+  { name: 'New York', abbreviation: 'NY' },
+  { name: 'North Carolina', abbreviation: 'NC' },
+  { name: 'North Dakota', abbreviation: 'ND' },
+  { name: 'Ohio', abbreviation: 'OH' },
+  { name: 'Oklahoma', abbreviation: 'OK' },
+  { name: 'Oregon', abbreviation: 'OR' },
+  { name: 'Pennsylvania', abbreviation: 'PA' },
+  { name: 'Rhode Island', abbreviation: 'RI' },
+  { name: 'South Carolina', abbreviation: 'SC' },
+  { name: 'South Dakota', abbreviation: 'SD' },
+  { name: 'Tennessee', abbreviation: 'TN' },
+  { name: 'Texas', abbreviation: 'TX' },
+  { name: 'Utah', abbreviation: 'UT' },
+  { name: 'Vermont', abbreviation: 'VT' },
+  { name: 'Virginia', abbreviation: 'VA' },
+  { name: 'Washington', abbreviation: 'WA' },
+  { name: 'West Virginia', abbreviation: 'WV' },
+  { name: 'Wisconsin', abbreviation: 'WI' },
+  { name: 'Wyoming', abbreviation: 'WY' },
+];
+
+const howManyOptions = ['1', '2', '3'];
+
+const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) => {
+  const { updateField } = useFormContext();
+  const [owners, setOwners] = useState<OwnerData[]>([]);
   const [isRegMenuOpen, setIsRegMenuOpen] = useState(false);
   const [isHowManyMenuOpen, setIsHowManyMenuOpen] = useState(false);
   const [activeOwnerIndex, setActiveOwnerIndex] = useState(0);
@@ -26,79 +90,16 @@ const NewRegisteredOwners: React.FC = () => {
   const regRef = useRef<HTMLUListElement | null>(null);
   const howManyRef = useRef<HTMLUListElement | null>(null);
 
-  const states = [
-    { name: 'Alabama', abbreviation: 'AL' },
-    { name: 'Alaska', abbreviation: 'AK' },
-    { name: 'Arizona', abbreviation: 'AZ' },
-    { name: 'Arkansas', abbreviation: 'AR' },
-    { name: 'California', abbreviation: 'CA' },
-    { name: 'Colorado', abbreviation: 'CO' },
-    { name: 'Connecticut', abbreviation: 'CT' },
-    { name: 'Delaware', abbreviation: 'DE' },
-    { name: 'Florida', abbreviation: 'FL' },
-    { name: 'Georgia', abbreviation: 'GA' },
-    { name: 'Hawaii', abbreviation: 'HI' },
-    { name: 'Idaho', abbreviation: 'ID' },
-    { name: 'Illinois', abbreviation: 'IL' },
-    { name: 'Indiana', abbreviation: 'IN' },
-    { name: 'Iowa', abbreviation: 'IA' },
-    { name: 'Kansas', abbreviation: 'KS' },
-    { name: 'Kentucky', abbreviation: 'KY' },
-    { name: 'Louisiana', abbreviation: 'LA' },
-    { name: 'Maine', abbreviation: 'ME' },
-    { name: 'Maryland', abbreviation: 'MD' },
-    { name: 'Massachusetts', abbreviation: 'MA' },
-    { name: 'Michigan', abbreviation: 'MI' },
-    { name: 'Minnesota', abbreviation: 'MN' },
-    { name: 'Mississippi', abbreviation: 'MS' },
-    { name: 'Missouri', abbreviation: 'MO' },
-    { name: 'Montana', abbreviation: 'MT' },
-    { name: 'Nebraska', abbreviation: 'NE' },
-    { name: 'Nevada', abbreviation: 'NV' },
-    { name: 'New Hampshire', abbreviation: 'NH' },
-    { name: 'New Jersey', abbreviation: 'NJ' },
-    { name: 'New Mexico', abbreviation: 'NM' },
-    { name: 'New York', abbreviation: 'NY' },
-    { name: 'North Carolina', abbreviation: 'NC' },
-    { name: 'North Dakota', abbreviation: 'ND' },
-    { name: 'Ohio', abbreviation: 'OH' },
-    { name: 'Oklahoma', abbreviation: 'OK' },
-    { name: 'Oregon', abbreviation: 'OR' },
-    { name: 'Pennsylvania', abbreviation: 'PA' },
-    { name: 'Rhode Island', abbreviation: 'RI' },
-    { name: 'South Carolina', abbreviation: 'SC' },
-    { name: 'South Dakota', abbreviation: 'SD' },
-    { name: 'Tennessee', abbreviation: 'TN' },
-    { name: 'Texas', abbreviation: 'TX' },
-    { name: 'Utah', abbreviation: 'UT' },
-    { name: 'Vermont', abbreviation: 'VT' },
-    { name: 'Virginia', abbreviation: 'VA' },
-    { name: 'Washington', abbreviation: 'WA' },
-    { name: 'West Virginia', abbreviation: 'WV' },
-    { name: 'Wisconsin', abbreviation: 'WI' },
-    { name: 'Wyoming', abbreviation: 'WY' },
-  ];  const howManyOptions = ['1', '2', '3'];
-
-const owners: OwnerData[] = Array.isArray(formData.owners) && formData.owners.length > 0
-  ? formData.owners
-  : [{
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      licenseNumber: '',
-      state: '',
-      phoneNumber: '',
-      purchaseDate: '',
-      purchaseValue: '',
-      isGift: false,
-      isTrade: false
-    }];
-
+  useEffect(() => {
+    if (formData?.owners) {
+      setOwners(formData.owners);
+    }
+  }, [formData]);
 
   const handleHowManyChange = (count: string) => {
     const newCount = parseInt(count);
-    const newOwners = [...owners];
-    
+    let newOwners = [...owners];
+
     while (newOwners.length < newCount) {
       newOwners.push({
         firstName: '',
@@ -106,18 +107,20 @@ const owners: OwnerData[] = Array.isArray(formData.owners) && formData.owners.le
         lastName: '',
         licenseNumber: '',
         state: '',
+        phoneCode: '',
         phoneNumber: '',
         purchaseDate: '',
         purchaseValue: '',
         isGift: false,
-        isTrade: false
+        isTrade: false,
       });
     }
-    
+
     while (newOwners.length > newCount) {
       newOwners.pop();
     }
-    
+
+    setOwners(newOwners);
     updateField('owners', newOwners);
     updateField('howMany', count);
     setIsHowManyMenuOpen(false);
@@ -126,6 +129,7 @@ const owners: OwnerData[] = Array.isArray(formData.owners) && formData.owners.le
   const handleOwnerFieldChange = (index: number, field: keyof OwnerData, value: any) => {
     const newOwners = [...owners];
     newOwners[index] = { ...newOwners[index], [field]: value };
+    setOwners(newOwners);
     updateField('owners', newOwners);
   };
 
@@ -143,19 +147,19 @@ const owners: OwnerData[] = Array.isArray(formData.owners) && formData.owners.le
     document.addEventListener('mousedown', handleClickOutsideMenus);
     return () => document.removeEventListener('mousedown', handleClickOutsideMenus);
   }, []);
-
   return (
     <div className="new-registered-owners">
       <div className="newRegHeader">
         <h3 className="newRegHeading">New Registered Owner(s)</h3>
         <div className="howManyWrapper">
           <button
-            onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
-            className="howManyDropDown"
-          >
-{String(formData.howMany || 'How Many')}
-            <ChevronDownIcon className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`} />
-          </button>
+              onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
+              className="howManyDropDown"
+            >
+              {String(formData?.howMany ?? 'How Many')}
+              <ChevronDownIcon className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`} />
+            </button>
+
           {isHowManyMenuOpen && (
             <ul ref={howManyRef} className="howManyMenu">
               {howManyOptions.map((option, index) => (
@@ -248,19 +252,29 @@ const owners: OwnerData[] = Array.isArray(formData.owners) && formData.owners.le
               )}
             </div>
           </div>
-
           <div className="newRegThirdGroup">
             <div className="newRegThirdItem">
               <label className="registeredOwnerLabel">Phone Number</label>
-              <input
-                className="registeredNumberInput"
-                type="text"
-                placeholder="Phone Number"
-                value={owner.phoneNumber}
-                onChange={(e) => handleOwnerFieldChange(index, 'phoneNumber', e.target.value)}
-              />
-            </div>
-            <div className="newRegThirdItem">
+              <div className="phone-input-group">
+                <select
+                  className="phone-code-select"
+                  value={owner.phoneCode}
+                  onChange={(e) => handleOwnerFieldChange(index, 'phoneCode', e.target.value)}
+                >
+                  {phoneCodes.map((code) => (
+                    <option key={code} value={code}>{code}</option>
+                  ))}
+                </select>
+                <input
+                  className="registeredNumberInput"
+                  type="text"
+                  placeholder="Phone Number"
+                  value={owner.phoneNumber}
+                  onChange={(e) => handleOwnerFieldChange(index, 'phoneNumber', e.target.value)}
+                />
+              </div>
+              </div>
+              <div className="newRegThirdItem">
               <label className="registeredOwnerLabel">Date of Purchase</label>
               <input
                 className="registeredDateInput"
@@ -300,7 +314,7 @@ const owners: OwnerData[] = Array.isArray(formData.owners) && formData.owners.le
                 Trade
               </label>
             </div>
-          </div>
+        </div>
         </div>
       ))}
     </div>

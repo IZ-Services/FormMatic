@@ -1,27 +1,27 @@
 import connectDB from '@/lib/mongoDB';
-import Client from '@/models/clientSchema';
+import Transaction from '@/models/transaction';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   await connectDB();
 
   const { searchParams } = new URL(request.url);
-  const user_id = searchParams.get('user_id');
+  const userId = searchParams.get('userId');
 
-  if (!user_id) {
+  if (!userId) {
     return NextResponse.json({ error: 'User not authenticated' }, { status: 401 });
   }
 
   try {
-    const clients = await Client.find({ user_id }).sort({ timeCreated: -1 });
+    const transactions = await Transaction.find({ userId }).sort({ timeCreated: -1 });
 
-    if (clients.length === 0) {
-      return NextResponse.json({ error: 'No clients found' }, { status: 404 });
+    if (transactions.length === 0) {
+      return NextResponse.json({ error: 'No transactions found' }, { status: 404 });
     }
 
-    return NextResponse.json(clients);
+    return NextResponse.json(transactions);
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: error }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

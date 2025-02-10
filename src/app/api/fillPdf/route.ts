@@ -19,11 +19,24 @@ interface ProcessedFormData {
   isTrade: boolean;
   owner2FullName?: string;
   owner2LicenseNumber?: string;
+  owner3State?: string;
+  owner3FullName?: string;
+  owner3LicenseNumber?: string;
   owner2State?: string;
-  address: AddressData;
-  mailingAddress?: MailingAddressData;
+  // mailingAddress?: MailingAddressData;
   lesseeAddress?: LesseeAddressData;
-  trailerLocation?: TrailerLocationData;
+  // trailerLocation?: TrailerLocationData;
+  trailerStreet?: string;
+  trailerApt?: string;
+  trailerCity?: string;
+  trailerState?: string;
+  trailerZip?: string;
+  trailerCountry?: string;
+  mailingstreet?: string;
+  mailingpo?: string;
+  mailingstate?: string;
+  mailingzip?: string;
+  mailingcity?: string;
   lienHolder?: {
     name: string;
     eltNumber: string;
@@ -34,15 +47,20 @@ interface ProcessedFormData {
       state: string;
       zip: string;
     };
-    mailingAddress?: {
-      street: string;
-      poBox: string;
+    // mailingAddress?: {
+    //   street: string;
+    //   poBox: string;
+    //   city: string;
+    //   state: string;
+    //   zip: string;
+    // };
+  };
+  
+  street: string;
+      apt: string;
       city: string;
       state: string;
       zip: string;
-    };
-  };
-  
   vehicleYear: string;
   vehicleMileage: string;
   notActualMileage: boolean;
@@ -50,21 +68,14 @@ interface ProcessedFormData {
   odometerDiscrepancyExplanation?: string;
 }
 
-interface AddressData {
-  street: string;
-  apt: string;
-  city: string;
-  state: string;
-  zip: string;
-}
 
-interface MailingAddressData {
-  street: string;
-  poBox: string;
-  city: string;
-  state: string;
-  zip: string;
-}
+// interface MailingAddressData {
+//   street: string;
+//   poBox: string;
+//   city: string;
+//   state: string;
+//   zip: string;
+// }
 
 interface LesseeAddressData {
   street: string;
@@ -74,14 +85,14 @@ interface LesseeAddressData {
   zip: string;
 }
 
-interface TrailerLocationData {
-  street: string;
-  apt: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
-}
+// interface TrailerLocationData {
+//   street: string;
+//   apt: string;
+//   city: string;
+//   state: string;
+//   zip: string;
+//   country: string;
+// }
 
 export async function POST(request: Request) {
   try {
@@ -129,6 +140,18 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   const fieldNames = form.getFields().map(f => f.getName());
   console.log('Available PDF Fields:', JSON.stringify(fieldNames, null, 2));
   const fieldMapping = {
+
+    trailerStreet: ['County of residence', 'county residence or county where vehicle or vessel is princi.0'],
+    trailerCity: 'Trailer City',
+    trailerState: 'Trailer State',
+    trailerZip: 'Trailer ZIP Code',
+    trailerCountry: 'Trailer Country',
+
+    mailingstreet: '1 Mailing Address',
+      mailingpo: '1 Apt/Space Number-2',
+      mailingcity: '1 City-2',
+      mailingstate: '1 States2',
+      mailingzip: '1 Zip Code-2.0',
     
     owner1FullName:  [
       '1 True Full Name, Last',
@@ -168,25 +191,44 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       '1 DL/ID Number-2.6',
       '1 DL/ID Number-2.7',
     ],
-    owner2State: 'state.0',
+    owner2State: ['state.0','6 state'],
+
+
+    owner3FullName:'6 Name Last-2',
+    owner3LicenseNumber: [
+      '1 DL/ID Number-2.0',
+      '1 DL/ID Number-2.1',
+      '1 DL/ID Number-2.2',
+      '1 DL/ID Number-2.3',
+      '1 DL/ID Number-2.4',
+      '1 DL/ID Number-2.5',
+      '1 DL/ID Number-2.6',
+      '1 DL/ID Number-2.7',
+    ],
+    owner3State: 'state-2.8',
     
     isGift: 'Gift Box',
     isTrade: 'Gift Box1',
     
     address: {
-      street: '1 Residence or Business Address.0',
-      apt: '1 Apt/Space Number-1',
-      city: '1 City-1',
-      state: '1 States1',
-      zip: '1 Zip Code-1'
+      street: [
+        '1 Residence or Business Address.0', 
+        'Physical residence or business address.0', 
+        'physical residence or business address.0'
+      ],
+      apt: ['1 Apt/Space Number-1','6 Apt/Space Number-1'],
+      city: ['1 City-1','6 City-1'],
+      state: ['1 States1', '6 States1'],
+      zip: ['1 Zip Code-1','6 Zip Code-1']
     },
-    mailingAddress: {
-      street: '1 Mailing Address',
-      poBox: '1 Apt/Space Number-2',
-      city: '1 City-2',
-      state: '1 States2',
-      zip: '1 Zip Code-2.0'
-    },
+    
+    // mailingAddress: {
+    //   street: '1 Mailing Address',
+    //   poBox: '1 Apt/Space Number-2',
+    //   city: '1 City-2',
+    //   state: '1 States2',
+    //   zip: '1 Zip Code-2.0',
+    // },
     lesseeAddress: {
       street: 'Lessee Street Address',
       apt: 'Lessee Apt',
@@ -194,15 +236,16 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       state: 'Lessee State',
       zip: 'Lessee ZIP Code'
     },
-    trailerLocation: {
-      street: 'County of residence',
-      apt: 'Trailer Apt',
-      city: 'Trailer City',
-      state: 'Trailer State',
-      zip: 'Trailer ZIP Code',
-      country: 'Trailer Country'
+    // trailerLocation: {
+    // //   // street: ['County of residence','county residence or county where vehicle or vessle is princi.0'],
+    // //   street: 'County of residence',
+    // //   apt: 'Trailer Apt',
+    // //   city: 'Trailer City',
+    // //   state: 'Trailer State',
+    // //   zip: 'Trailer ZIP Code',
+    // //   country: 'Trailer Country'
 
-    },
+    // // },
 
     lienHolder: {
       name: ['Name of bank, finance company, or individual having a lien on this vehicle', '7 Name New Legal Owner'],
@@ -218,19 +261,19 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
         state: '2 States1',
         zip: '2 Zip Code'
       },
-      mailingAddress: {
-        street: 'Lien Mailing Street',
-        poBox: 'Lien Mailing PO Box',
-        city: 'Lien Mailing City',
-        state: 'Lien Mailing State',
-        zip: 'Lien Mailing ZIP'
-      }
+      // mailingAddress: {
+      //   street: 'Lien Mailing Street',
+      //   poBox: 'Lien Mailing PO Box',
+      //   city: 'Lien Mailing City',
+      //   state: 'Lien Mailing State',
+      //   zip: 'Lien Mailing ZIP'
+      // }
     },
 
     vehicleInformation: {
-      licensePlate: ['License Plate/CF Number1', 'License Plate/CF Number122'],
-    vin: ['Vehicle/Vessel ID/Number1', 'Vehicle/Vessel ID/Number211'],
-    year: ['Year/Make', 'Year/Make2'],
+      licensePlate: ['License Plate/CF Number122','License Plate/CF Number1'],
+      vin: ['Vehicle/Vessel ID/Number1', 'Vehicle/Vessel ID/Number211'],
+      year: ['Year/Make', 'Year/Make2'],
       make: 'Make',
       mileage: 'Odometer',
       notActualMileage: 'Not Actual Mileage Checkbox',
@@ -257,32 +300,31 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     owner1PurchaseValue: formatCurrency(primaryOwner.purchaseValue),
     isGift: primaryOwner.isGift || false,
     isTrade: primaryOwner.isTrade || false,
-    address: {
-      street: formData.address?.street || '',
-      apt: formData.address?.apt || '',
-      city: formData.address?.city || '',
-      state: formData.address?.state || '',
-      zip: formData.address?.zip || ''
-    }
+    owner2FullName: formData.owners[1] ? formatOwnerName(formData.owners[1]) : '',
+    owner2LicenseNumber: formData.owners[1]?.licenseNumber || '',
+    owner2State: formData.owners[1]?.state || '',
+    owner3FullName: formData.owners[2] ? formatOwnerName(formData.owners[2]) : '',
+    owner3LicenseNumber: formData.owners[2]?.licenseNumber || '',
+    owner3State: formData.owners[2]?.state || '',
+    street: formData.address?.street || '',
+    apt: formData.address?.apt || '',
+    city: formData.address?.city || '',
+    state: formData.address?.state || '',
+    zip: formData.address?.zip || '',
+    trailerStreet: formData.trailerLocation?.street || '',
+    trailerCity: formData.trailerLocation?.city || '',
+    trailerState: formData.trailerLocation?.state || '',
+    trailerZip: formData.trailerLocation?.zip || '',
+    trailerCountry: formData.trailerLocation?.country || '',
+    mailingstreet: formData.mailingAddress?.street || '',
+    mailingstate: formData.mailingAddress?.state || '',
+    mailingcity: formData.mailingAddress?.city || '',
+    mailingpo: formData.mailingAddress?.poBox || '',
+    mailingzip: formData.mailingAddress?.zip || '',
+    
+
   };
-try {
-  console.log('Setting License Plate Field:', processedData.vehicleLicensePlateNumber);
-  const licensePlateField = form.getTextField('License Plate/CF Number1');
-  licensePlateField.setText(processedData.vehicleLicensePlateNumber || '');
-} catch (err) {
-  console.error('Error setting vehicleLicensePlateNumber:', err);
-}
 
-console.log('Received formData:', JSON.stringify(formData, null, 2));
-
-
-try {
-  console.log('Setting VIN Field:', processedData.vehicleVinNumber);
-  const vinField = form.getTextField('Vehicle/Vessel ID/Number1');
-  vinField.setText(processedData.vehicleVinNumber || '');
-} catch (err) {
-  console.error('Error setting vehicleVinNumber:', err);
-}
 
 form.updateFieldAppearances();
 pdfDoc.catalog.set(PDFName.of('NeedAppearances'), PDFBool.True);
@@ -294,36 +336,36 @@ pdfDoc.catalog.set(PDFName.of('NeedAppearances'), PDFBool.True);
     processedData.owner2State = coOwner.state || '';
   }
 
-  if (formData.mailingAddressDifferent) {
-    processedData.mailingAddress = {
-      street: formData.mailingAddress?.street || '',
-      poBox: formData.mailingAddress?.poBox || '',
-      city: formData.mailingAddress?.city || '',
-      state: formData.mailingAddress?.state || '',
-      zip: formData.mailingAddress?.zip || ''
-    };
-  }
+  // if (formData.mailingAddressDifferent) {
+  //   processedData.mailingAddress = {
+  //     street: formData.mailingAddress?.street || '',
+  //     poBox: formData.mailingAddress?.poBox || '',
+  //     city: formData.mailingAddress?.city || '',
+  //     state: formData.mailingAddress?.state || '',
+  //     zip: formData.mailingAddress?.zip || ''
+  //   };
+  // }
 
-  if (formData.lesseeAddressDifferent) {
-    processedData.lesseeAddress = {
-      street: formData.lesseeAddress?.street || '',
-      apt: formData.lesseeAddress?.apt || '',
-      city: formData.lesseeAddress?.city || '',
-      state: formData.lesseeAddress?.state || '',
-      zip: formData.lesseeAddress?.zip || ''
-    };
-  }
+  // if (formData.lesseeAddressDifferent) {
+  //   processedData.lesseeAddress = {
+  //     street: formData.lesseeAddress?.street || '',
+  //     apt: formData.lesseeAddress?.apt || '',
+  //     city: formData.lesseeAddress?.city || '',
+  //     state: formData.lesseeAddress?.state || '',
+  //     zip: formData.lesseeAddress?.zip || ''
+  //   };
+  // }
 
-  if (formData.trailerLocationDifferent) {
-    processedData.trailerLocation = {
-      street: formData.trailerLocation?.street || '',
-      apt: formData.trailerLocation?.apt || '',
-      city: formData.trailerLocation?.city || '',
-      state: formData.trailerLocation?.state || '',
-      zip: formData.trailerLocation?.zip || '',
-      country: formData.trailerLocation?.country || ''
-    };
-  }
+  // if (formData.trailerLocationDifferent) {
+  //   processedData.trailerLocation = {
+  //     street: formData.trailerLocation?.street || '',
+  //     apt: formData.trailerLocation?.apt || '',
+  //     city: formData.trailerLocation?.city || '',
+  //     state: formData.trailerLocation?.state || '',
+  //     zip: formData.trailerLocation?.zip || '',
+  //     country: formData.trailerLocation?.country || ''
+  //   };
+  // }
 
   if (formData.lienHolder) {
     processedData.lienHolder = {
@@ -338,35 +380,49 @@ pdfDoc.catalog.set(PDFName.of('NeedAppearances'), PDFBool.True);
       }
     };
   
-    if (formData.lienHolder.mailingAddressDifferent) {
-      processedData.lienHolder.mailingAddress = {
-        street: formData.lienHolder.mailingAddress?.street || '',
-        poBox: formData.lienHolder.mailingAddress?.poBox || '',
-        city: formData.lienHolder.mailingAddress?.city || '',
-        state: formData.lienHolder.mailingAddress?.state || '',
-        zip: formData.lienHolder.mailingAddress?.zip || ''
-      };
-    }
+    // if (formData.lienHolder.mailingAddressDifferent) {
+    // //   processedData.lienHolder.mailingAddress = {
+    // //     street: formData.lienHolder.mailingAddress?.street || '',
+    // //     poBox: formData.lienHolder.mailingAddress?.poBox || '',
+    // //     city: formData.lienHolder.mailingAddress?.city || '',
+    // //     state: formData.lienHolder.mailingAddress?.state || '',
+    // //     zip: formData.lienHolder.mailingAddress?.zip || ''
+    // //   };
+    // // }
   }
 
 
 
-    const safeSetText = (fieldName: string | string[], value: string) => {
+  const safeSetText = (fieldNames: string | string[], value: string) => {
     try {
-      if (Array.isArray(fieldName)) {
-        fieldName.forEach((name) => {
+      if (Array.isArray(fieldNames)) {
+        fieldNames.forEach((name) => {
           const field = form.getTextField(name);
-          field.setText(value || '');
+          if (field) field.setText(value); 
         });
       } else {
-        const field = form.getTextField(fieldName);
-        field.setText(value || '');
+        const field = form.getTextField(fieldNames);
+        if (field) field.setText(value);
       }
     } catch (error) {
-      console.warn(`Field not found: ${fieldName}`);
     }
   };
+  
+  
 
+  // function splitStringAcrossFields(str: string, numberOfFields: number): string[] {
+  //   if (!str) return Array(numberOfFields).fill('');
+    
+  //   const chunks = [];
+  //   const chunkSize = Math.ceil(str.length / numberOfFields);
+    
+  //   for (let i = 0; i < numberOfFields; i++) {
+  //     const start = i * chunkSize;
+  //     chunks.push(str.slice(start, start + chunkSize));
+  //   }
+    
+  //   return chunks;
+  // }
   
 
   const safeSetCheckbox = (fieldName: string, value: boolean) => {
@@ -423,7 +479,43 @@ pdfDoc.catalog.set(PDFName.of('NeedAppearances'), PDFBool.True);
 
   safeSetText(fieldMapping.owner2FullName, processedData.owner2FullName || '');
   safeSetText(fieldMapping.owner2State, processedData.owner2State || '');
+  safeSetText(fieldMapping.address.street, processedData.street);
+  safeSetText(fieldMapping.address.apt, processedData.apt);
+  safeSetText(fieldMapping.address.city, processedData.city);
+  safeSetText(fieldMapping.address.zip, processedData.zip);
+
+  safeSetText(fieldMapping.address.state, processedData.state);
+
+
+  safeSetText(fieldMapping.trailerStreet, processedData.trailerStreet || '');
+  safeSetText(fieldMapping.trailerCity, processedData.trailerCity || '');
+  safeSetText(fieldMapping.trailerState, processedData.trailerState || '');
+  safeSetText(fieldMapping.trailerZip, processedData.trailerZip || '');
+  safeSetText(fieldMapping.trailerCountry, processedData.trailerCountry || '');
+
+
+  if (processedData.mailingstreet) {
+    safeSetText(fieldMapping.mailingstreet, processedData.mailingstreet);
+  }
+  if (processedData.mailingcity) {
+    safeSetText(fieldMapping.mailingcity, processedData.mailingcity);
+  }
+  if (processedData.mailingpo) {
+    safeSetText(fieldMapping.mailingpo, processedData.mailingpo);
+  }
+  if (processedData.mailingstate) {
+    safeSetText(fieldMapping.mailingstate, processedData.mailingstate);
+  }
+  if (processedData.mailingzip) {
+    safeSetText(fieldMapping.mailingzip, processedData.mailingzip);
+  }
+  console.log('Processed Data:', processedData);
   
+
+  safeSetText(fieldMapping.owner3FullName, processedData.owner3FullName || '');
+  safeSetText(fieldMapping.owner3LicenseNumber, processedData.owner3LicenseNumber || '');
+  safeSetText(fieldMapping.owner3State, processedData.owner3State || '');
+    
   if (processedData.odometerDiscrepancyExplanation) {
     safeSetText(fieldMapping.vehicleInformation.odometerExplanation, 
                processedData.odometerDiscrepancyExplanation);
@@ -451,6 +543,7 @@ pdfDoc.catalog.set(PDFName.of('NeedAppearances'), PDFBool.True);
     } else {
       safeSetText(pdfField, value as string);
     }
+    
   }
 
   const addressTypes = [

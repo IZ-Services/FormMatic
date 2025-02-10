@@ -1,5 +1,4 @@
 'use client';
-import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import Address from '../atoms/Address';
 import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
@@ -11,9 +10,19 @@ import SaveButton from '../atoms/savebutton';
 import { FormDataProvider } from '../../app/api/formDataContext/formDataContextProvider';
 import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
+import TypeContainer from '../atoms/TypesContainer';
+import React, { useEffect, useState } from 'react';
+interface SimpleTransferProps {
+  formData?: any;
+}
 
-export default function SimpleTransfer() {
 
+export default function SimpleTransfer({ formData }: SimpleTransferProps) {
+  const [formValues, setFormValues] = useState(formData || {});
+
+  useEffect(() => {
+    setFormValues(formData);
+  }, [formData]);
   const handleSaveSuccess = () => {
     console.log('Save completed successfully');
   };
@@ -23,7 +32,8 @@ export default function SimpleTransfer() {
       <ScenarioProvider>
         <div className="simpleTransferWrapper">
           <div className='wholeForm'>
-            <NewRegisteredOwners />
+            <TypeContainer />
+            <NewRegisteredOwners formData={formValues} />
             <Address />
             <NewLien />
             <VehicalInformation />

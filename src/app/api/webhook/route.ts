@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { initFirebase } from '../../../firebase-config';
-import { getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2024-06-20',
@@ -29,10 +29,39 @@ export async function POST(req: NextRequest) {
 
   try {
     switch (event.type) {
-      case 'invoice.payment_failed':
-      case 'payment_intent.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice | Stripe.PaymentIntent;
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
+
+        const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
+        const userId = customer.metadata.userId;
+        console.log('Received invoice.payment_failed event:', event);
+
+        if (userId) {
+          const userDocRef = doc(db, 'users', userId);
+
+          console.log(`Updating isSubscribed to false for user: ${userId}`);
+          await updateDoc(userDocRef, { isSubscribed: false });
+          console.log(`Update successful`);
+          
+
+          console.log(`Subscription payment failed for user: ${userId}`);
+
+         if (invoice.subscription) {
+    console.log(`Canceling subscription for user: ${userId}`);
+    await stripe.subscriptions.cancel(invoice.subscription as string);
+    console.log(`Subscription canceled`);
+}
+
+        } else {
+          console.error('Customer not found');
+        }
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId = subscription.customer as string;
 
         const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
         const userId = customer.metadata.userId;
@@ -43,8 +72,8 @@ export async function POST(req: NextRequest) {
           await updateDoc(userDocRef, {
             isSubscribed: false,
           });
-        } else {
-          console.error('Customer not found');
+
+          console.log(`Subscription canceled for user: ${userId}`);
         }
         break;
       }

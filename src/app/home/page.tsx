@@ -31,7 +31,7 @@ export default function Home() {
 
   const renderComponent = () => {
     switch (selectedSubsection) {
-      case 'Simple Transfer':
+      case 'Simple Transfer Without Title':
         return <SimpleTransfer />;
       default:
         return (
@@ -40,43 +40,11 @@ export default function Home() {
     }
   };
 
-  // const handleSave = async () => {
-  //   try {
-  //     const response = await fetch('/api/post', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({ ...formData, user_email }),
-  //     });
-  //     await response.json();
-  //     alert('Client Saved!');
-  //   } catch (error) {
-  //     console.error('Error in handleSave:', error);
-  //   }
-  // };
-
-  // const handleNext = async () => {
-  //   try {
-  //     // const response = await fetch('/api/pdfLoader', {
-  //     //   method: 'POST',
-  //     //   headers: {
-  //     //     'Content-Type': 'application/json',
-  //     //   },
-  //     //  body: JSON.stringify(formData),
-  //     // });
-  //     // const data = await response.json();
-  //     // setPdfData(data.pdfData);
-  //   } catch (error) {
-  //     console.error('Error navigating to the PDF page:', error);
-  //   }
-  // };
 
   return (
     <div className="homeContainer">
       {selectedSubsection && <h2 className="homeHeading">{selectedSubsection}</h2>}
       {renderComponent()}
-      {/* <button onClick={handleSave}>save</button> */}
     </div>
   );
 }

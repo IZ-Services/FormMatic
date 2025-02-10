@@ -27,11 +27,6 @@ export default function DownloadPDF() {
     return <Loading />;
   }
 
-  // useEffect(() => {
-  //   if (!pdfData) {
-  //     router.push('/home');
-  //   }
-  // }, [pdfData, router]);
 
   return (
     <div>

@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { UserAuth } from '../../context/AuthContext';
+import PreviewModal from './previewmodal.tsx';
+import './savebutton.css';
 
 interface SaveButtonProps {
   transactionType: string;
@@ -12,6 +14,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess }) =
   const { formData } = useFormContext();
   const { user } = UserAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleSave = async () => {
     if (!user || !transactionType) {
@@ -24,7 +27,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess }) =
     const dataToSave = {
       userId: user.uid,
       transactionType,
-      formData,
+      formData, 
     };
 
     try {
@@ -71,13 +74,28 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess }) =
   };
 
   return (
-    <button
-      onClick={handleSave}
-      disabled={isLoading}
-      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
-    >
-      {isLoading ? 'Saving...' : 'Save'}
-    </button>
+    <div className="saveButtonContainer">
+      <button
+        onClick={handleSave}
+        disabled={isLoading}
+        className={`saveButton ${isLoading ? 'disabled' : ''}`}
+      >
+        {isLoading ? <div className="spinner"></div> : 'Save'}
+      </button>
+
+      <button
+        onClick={() => setIsPreviewOpen(true)} 
+        className="nextButton"
+      >
+        Preview
+      </button>
+
+      <PreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        formData={formData} 
+      />
+    </div>
   );
 };
 

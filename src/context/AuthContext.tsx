@@ -1,34 +1,33 @@
-
-'use client';
-import React, { useContext, createContext, useState, useEffect, useCallback } from 'react';
+"use client";
+import React, { useContext, createContext, useState, useEffect } from 'react';
 import {
   setPersistence,
   signInWithEmailAndPassword,
-  signOut,
   onAuthStateChanged,
   User,
-  browserSessionPersistence,
+  // getIdToken,
+  browserLocalPersistence
 } from 'firebase/auth';
 import Loading from '../components/pages/Loading';
 import {
   doc,
-  collection,
-  deleteDoc,
   onSnapshot,
   getFirestore,
+  deleteDoc,
 } from 'firebase/firestore';
-import { auth, firestore, initFirebase, functions } from '../firebase-config';
+import { auth, firestore, initFirebase } from '../firebase-config';
 import { useRouter } from 'next/navigation';
-import { httpsCallable } from "firebase/functions";
+import axios from 'axios';
+import { deleteUser, getAuth } from "firebase/auth";
 
-
-const manageUserSessions = httpsCallable(functions, 'manageUserSessions');
 const app = initFirebase();
+
 export interface AuthContextType {
   user: User | null;
   emailSignIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isSubscribed: boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -37,120 +36,103 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [signInComplete, setSignInComplete] = useState<boolean>(false);
-
+  const [sessionChecked, setSessionChecked] = useState(false);
   const router = useRouter();
 
-  const logout = useCallback(async () => {
-    if (!user || !user.uid) {
-      console.log('No user found, returning from logout');
-      return;
-    }
-
+  const logout = async () => {
     try {
-      console.log('Attempting to log out user:', user.uid);
-      const sessionId = sessionStorage.getItem('sessionId');
-
-      if (sessionId) {
-        const sessionsRef = collection(firestore, 'users', user.uid, 'sessions');
-        await deleteDoc(doc(sessionsRef, sessionId));
-        console.log('Session deleted:', sessionId);
-        sessionStorage.removeItem('sessionId');
-
-      }
-
-      sessionStorage.removeItem('clientSecret');
-      sessionStorage.removeItem('customerId');
-      sessionStorage.removeItem('paymentClientSecret');
-
-      await signOut(auth);
-      console.log('Successfully signed out user:', user.uid);
-
+      await axios.post('/api/logout', {}, { withCredentials: true });
+      await auth.signOut();
       setUser(null);
-      setIsSubscribed(false);
-      setSignInComplete(false);
+      router.push('/');
     } catch (error) {
-      console.error('Error signing out: ', error);
-    }
-  }, [user]);
-
-
-  const emailSignIn = async (email: string, password: string) => {
-    try {
-      console.log('Starting email sign-in for:', email);
-      await setPersistence(auth, browserSessionPersistence);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log('Sign-in successful for:', userCredential.user.email);
-        
-      const response = await manageUserSessions();
-    
-      const sessionId = (response.data as { sessionId: string }).sessionId;
-      sessionStorage.setItem('sessionId', sessionId);
-
-      console.log('Session created with ID:', sessionId);
-    
-      setSignInComplete(true);  
-    } catch (error) {
-      console.error('Error signing in with email: ', error);
-      throw error;
+      console.error('Error during logout:', error);
     }
   };
 
-  useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
-      console.log('Auth state changed, current user:', currentUser);
-      if (currentUser) {
-        setUser(currentUser);
-        console.log('User set in state:', currentUser.uid);
-      } 
-      else {
-        await logout();
-        router.push('/');
-        console.log('No user found, redirecting to home');
-        setLoading(false);
-        return;
-      }
-    });
-    return () => {
-      unsubscribeAuth();
-    };
-  }, [logout, router, user]);
+  const emailSignIn = async (email: string, password: string) => {
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const token = await userCredential.user.getIdToken(true);
 
-  useEffect(() => {
-    const sessionId = sessionStorage.getItem('sessionId');
-
-    if (!signInComplete || !user?.uid || !sessionId) {
-      return;
-    }
-
-      const sessionRef = doc(firestore, 'users', user.uid, 'sessions', sessionId);
-    
-      const unsubscribeSnapshot = onSnapshot(sessionRef, (docSnapshot) => {
-        console.log('Session snapshot updated:', docSnapshot.exists());
-        if (!docSnapshot.exists()) {
-          console.log('Session no longer exists, logging out');
-          logout();
+      const response = await axios.post('/api/login', { token }, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
         }
       });
 
+      if (response.data.success) {
+        setUser(userCredential.user);
+        router.push('/home');
+      }
+    } catch (error) {
+      console.error('Error signing in:', error);
+      throw error;
+    }
+  };
+  useEffect(() => {
+    const checkSessionAndInitAuth = async () => {
+      try {
+        const sessionResponse = await axios.get('/api/checkSession', { 
+          withCredentials: true 
+        });
         
-    return () => {
-      unsubscribeSnapshot(); 
+        if (sessionResponse.data.user) {
+          if (auth.currentUser) {
+            setUser(auth.currentUser);
+          } else {
+            if (auth.currentUser) {
+              const token = await (auth.currentUser as User).getIdToken(true);
+              await axios.post('/api/login', { token }, { withCredentials: true });
+            }
+          }
+        }
+        
+        setSessionChecked(true);
+        
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: User | null) => {
+          if (firebaseUser && !user) {
+            try {
+              const token = await firebaseUser.getIdToken(true);
+              await axios.post('/api/login', { token }, { withCredentials: true });
+              setUser(firebaseUser);
+            } catch (error) {
+              console.error('Error syncing session:', error);
+              await logout();
+            }
+          } else if (!firebaseUser && user) {
+            await logout();
+          }
+          
+          setLoading(false);
+        });
+  
+        return unsubscribe;
+      } catch (error) {
+        console.error('Error in auth initialization:', error);
+        setUser(null);
+        setLoading(false);
+        return () => {};
+      }
     };
   
-  }, [logout, signInComplete, user]);
+    const unsubscribe = checkSessionAndInitAuth();
+    return () => {
+      unsubscribe.then(cleanup => cleanup());
+    };
+  }, []);
+  
+  
 
-  useEffect(()=>{
-    if(!user){
-      setLoading(false);
+  useEffect(() => {
+    if (!sessionChecked || !user?.uid) {
       return;
     }
+
     const creationTime = user.metadata?.creationTime;
-
-    if (!creationTime) {
-      setLoading(false);
-      return;
-    }
+    if (!creationTime) return;
 
     const userCreationDate = new Date(creationTime);
     const currentDate = new Date();
@@ -162,44 +144,47 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
 
     if (diffDays < 7) {
       setIsSubscribed(true);
-      setLoading(false);
       return;
     }
 
-    const unsubscribeSnapshot = onSnapshot(userRef, (userDoc) => {
-      console.log('User document snapshot:', userDoc.exists());
-
+    const unsubscribeSnapshot = onSnapshot(userRef, async (userDoc) => {
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        const subscribed = userData.isSubscribed;
-        console.log('User isSubscribed field:', subscribed);
-
-        if (!subscribed) {
-          router.push('/signUp');
-          setLoading(false);
+        
+        if (!userData.isSubscribed && diffDays >= 14) {
+          try {
+            await deleteDoc(userRef);
+            const currentUser = getAuth().currentUser;
+            if (currentUser) {
+              await deleteUser(currentUser);
+            }
+          } catch (error) {
+            console.error('Error deleting user:', error);
+          }
+          
+          await logout();
           return;
         }
-        setIsSubscribed(subscribed);
-      } 
-      else {
+
+        setIsSubscribed(userData.isSubscribed);
+        if (!userData.isSubscribed) {
+          router.push('/signUp');
+        }
+      } else {
         setIsSubscribed(false);
         router.push('/signUp');
       }
-      setLoading(false);
     });
 
-
-    return () => {
-      unsubscribeSnapshot();
-    };
-  },[router, user]);
+    return () => unsubscribeSnapshot();
+  }, [user, sessionChecked, router]);
 
   if (loading) {
     return <Loading />;
   }
 
   return (
-    <AuthContext.Provider value={{ user, emailSignIn, isSubscribed, logout }}>
+    <AuthContext.Provider value={{ user, emailSignIn, isSubscribed, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

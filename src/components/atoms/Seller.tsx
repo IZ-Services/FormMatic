@@ -214,10 +214,11 @@ const SellerSection = () => {
             />
           </div>
           <div className="sellerThirdItem">
-            <label className="sellerLabel">Date of Sale</label>
-            <input
-              className="sellerDateInput"
-              type="date"
+          <label className="registeredOwnerLabel">Date of Purchase</label>
+          <input
+              className="registeredDateInput"
+              type="text"
+              placeholder="MM/DD/YYYY"
               value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
               onChange={(e) => handleSellerChange(index, 'saleDate', e.target.value)}
             />

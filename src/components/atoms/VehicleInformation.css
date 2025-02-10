@@ -19,17 +19,18 @@
 }
 
 .formInput {
-  font-size: 14px;
+  width: 100%;
+  padding: 8px;
   border: 1px solid #ccc;
   border-radius: 2px;
-  padding: 10px;
+  font-size: 14px;
 }
 
 
 .checkboxGroup {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 10px;
   align-items: center;
 }
 
@@ -82,7 +83,11 @@
 }
 
 .mileageInput{
-  width: 148%;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 14px;
 }
 
 .odometerInput{

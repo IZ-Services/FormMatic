@@ -1,18 +1,18 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-interface Transaction extends Document {
+export interface ITransaction extends Document {
   userId: string;
   transactionType: string;
   formData: Record<string, any>;
   createdAt: Date;
 }
 
-const TransactionSchema = new Schema<Transaction>({
+const TransactionSchema = new Schema<ITransaction>({
   userId: { type: String, required: true },
   transactionType: { type: String, required: true },
   formData: { type: Object, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.models.Transaction ||
-  mongoose.model<Transaction>('Transaction', TransactionSchema);
+const Transaction = mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema);
+export default Transaction;
