@@ -19,29 +19,25 @@ const scenerios: Scenerio[] = [
   {
     transactionType: 'Transfers',
     subsections: [
-      'Simple Transfer With Title',
-      'Simple Transfer Without Title',
-      'Multiple Transfer With Title',
-      'Multiple Transfer Without Title',
+      'Simple Transfer',
+      'Multiple Transfer',
     ],
   },
     {
-    transactionType: 'Out of State Transfer',
+    transactionType: 'Registration & Renewal',
     subsections: [
       'Out-of-State Registration (Within 1 year)',
       'Out-of-State Registration (Over 1 year)',
+      'Renewal',
+      'Commercial Vehicle Registration',
+      'Salvage Title Registration'
     ],
   },
   {
-    transactionType: 'Renewal',
+    transactionType: 'Duplicate & Replacement',
     subsections: [
-      'Renewal Only',
-    ],
-  },
-  {
-    transactionType: 'Duplicate Title',
-    subsections: [
-      'Duplicate Title'
+      'Duplicate Title',
+      'Duplicate Plates/Stickers Base'
     ],
   },
   {
@@ -53,8 +49,7 @@ const scenerios: Scenerio[] = [
   {
     transactionType: 'Planned Non-Operation (PNO)',
     subsections: [
-      'Filing PNO (Registered)',
-      'Filing PNO (Not Registered)',
+      'Filing PNO',
       'PNO to Operational',
     ],
   },
@@ -66,13 +61,17 @@ const scenerios: Scenerio[] = [
     ],
   },
   {
-    transactionType: 'Other Unique Transactions',
+    transactionType: 'Address & Name Changes',
     subsections: [
       'Name Change/Correction on Title',
+      'Change of Address'
+    ],
+  },
+  {
+    transactionType: 'Specialty Transactions',
+    subsections: [
       'Disabled Person Placards/Plates',
       'Personalized Plates',
-      'Salvage Title Registration',
-      'Commercial Vehicle Registration + Conversion to Private Use',
     ],
   },
 ];

@@ -31,7 +31,7 @@ export default function Home() {
 
   const renderComponent = () => {
     switch (selectedSubsection) {
-      case 'Simple Transfer With Title':
+      case 'Simple Transfer':
         return <SimpleTransfer />;
       default:
         return (
