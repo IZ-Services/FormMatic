@@ -37,12 +37,6 @@ const scenerios: Scenerio[] = [
     transactionType: 'Duplicate & Replacement',
     subsections: [
       'Duplicate Title',
-      'Duplicate Plates/Stickers Base'
-    ],
-  },
-  {
-    transactionType: 'Duplicate Plates/Stickers',
-    subsections: [
       'Duplicate Plates/Stickers'
     ],
   },
