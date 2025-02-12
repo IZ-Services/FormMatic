@@ -24,7 +24,7 @@ interface ITransaction {
   createdAt: string;
 }
 const transactionComponents: Record<string, React.FC<{ formData: any }>> = {
-  'Simple Transfer Without Title': SimpleTransfer,
+  'Simple Transfer': SimpleTransfer,
 };
 
 

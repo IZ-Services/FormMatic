@@ -40,7 +40,7 @@ export default function SimpleTransfer({ formData }: SimpleTransferProps) {
             <Seller />
             <ResidentialAddress />
             <SaveButton 
-              transactionType="Simple Transfer Without Title"
+              transactionType="Simple Transfer"
               onSuccess={handleSaveSuccess}
             />
           </div>
