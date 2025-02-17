@@ -170,7 +170,7 @@ h2 {
   width: 100%;
   padding: 10px;
   margin-top: 15px;
-  background-color: #007bff;
+  background-color: #000000;
   color: white;
   border: none;
   cursor: pointer;
@@ -179,4 +179,6 @@ h2 {
 }
 
 .closeButton:hover {
-  background-color: #0056b300;}
+  background-color: #fff;
+  color: #000;
+}

@@ -10,17 +10,18 @@ body {
 }
 
 .sidebar {
-  display: flex;
-  position: fixed;
-  height: 100vh;
-  flex-direction: column;
-  width: 20rem;
-  flex-shrink: 0;
-  background: white;
-  left: 0;
-  top: 0;
-  /* box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); */
-  transition: transform 0.3s ease-in-out;
+  display: flex
+  ;
+      position: fixed;
+      height: 100vh;
+      flex-direction: column;
+      width: 18rem;
+      flex-shrink: 0;
+      background: white;
+      left: 0;
+      top: 0;
+      box-shadow: 1px 0 5px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3sease-in-out;
 }
 
 /* Sidebar Wrapper */
@@ -160,7 +161,7 @@ body {
 @media (max-width: 800px) {
   .sidebar {
     width: 80%;
-    max-width: 300px;
+    max-width: 270px;
     transform: translateX(-100%);
     position: fixed;
     top: 0;
@@ -245,7 +246,7 @@ body {
 .sidebarToggle {
   position: fixed;
   left: 0;
-  top: 50%;
+  top: 30%;
   transform: translateY(-50%);
   background-color: rgb(0 0 0 / 0%);
   color: #000000;
@@ -267,4 +268,13 @@ body {
   .close {
     display: none;
   }
+}
+
+.icon{
+  transition: transform 0.3s ease;
+  color: #fff;
+}
+
+.icon.open {
+  transform: rotate(180deg);
 }

@@ -13,4 +13,12 @@ body {
   margin: 0 auto;
   /* padding: 5% 15%; */
   background-color: white;
+  padding-right: 42%;
+}
+
+@media (max-width: 1200px) {
+
+  .simpleTransferWrapper{
+    padding-right: 0;
+  }
 }

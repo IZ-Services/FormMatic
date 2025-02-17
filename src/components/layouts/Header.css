@@ -35,7 +35,7 @@
   justify-content: center;
   align-items: center;
   padding: 8px;
-  z-index: 1100;
+  z-index: 0;
 }
 
 .headerLogo {
@@ -72,8 +72,16 @@
 
   }
 
+  accountLabel {
+    display: inline-block;
+  }
+
+  .dropdownMenuWrapper {
+    left: 0 !important;
+    width: 250px !important;  }
+
   .drawerOpen .linkActive {
-    margin-left: 15px; /* Increase the shift on mobile for visibility */
+    margin-left: 15px; 
   }
   .drawerOpen .navIcon {
     display: inline-block;
@@ -175,7 +183,8 @@
 
 .linkActive {
   color: black;
-  text-decoration: underline;
+    /* text-decoration: underline; */
+    font-weight: bold;
 }
 
 .linkRoute:hover {
@@ -185,7 +194,7 @@
 .dropdownMenuWrapper {
   position: absolute;
   top: 100%;  /* Ensures dropdown opens below "Account" */
-  left: 0;
+  left: -130px;
   width: 210px; /* Adjust based on layout */
   background-color: white;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
@@ -273,8 +282,11 @@
   display: none;
 }
 
-
-
+@media (min-width: 801px) {
+  .accountIcon {
+    display: inline-block !important; /* Show only account icon */
+  }
+}
 @media (min-width: 801px) and (max-width: 7680px) {
   .menuTitle {
     display: none;
@@ -282,6 +294,10 @@
 
   .headerDivider{
     display: none;
+  }
+
+  .drawerDivider{
+    display: none !important;
   }
 }
 
@@ -298,4 +314,20 @@
 /* Show dividers only when drawer is open */
 .drawerOpen .drawerDivider {
   display: block;
+}
+
+.accountIcon {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+}
+
+.accountLabel {
+  margin-left: 10px;
+}
+
+@media (min-width: 801px) {
+  .accountLabel {
+    display: none;
+  }
 }

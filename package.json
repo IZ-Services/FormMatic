@@ -10,7 +10,8 @@
     "lint:fix": "next lint --fix",
     "prettier": "prettier --write '**/*.{js,jsx,json,ts,tsx,scss,css,md}'",
     "prepare": "husky && husky install",
-    "test": "echo \"No tests specified\""
+    "test": "echo \"No tests specified\"",
+    "type": "module"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -41,12 +42,15 @@
     "react-icons": "^5.4.0",
     "react-spinners": "^0.14.1",
     "stripe": "^16.0.0",
-    "styled-components": "^6.1.11"
+    "styled-components": "^6.1.11",
+    "uuid": "^11.0.5",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/ws": "^8.5.14",
     "@typescript-eslint/eslint-plugin": "^7.13.0",
     "@typescript-eslint/parser": "^7.13.0",
     "eslint": "^8.57.0",

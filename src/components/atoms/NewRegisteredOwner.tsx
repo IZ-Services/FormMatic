@@ -89,12 +89,36 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
 
   const regRef = useRef<HTMLUListElement | null>(null);
   const howManyRef = useRef<HTMLUListElement | null>(null);
-
+  useEffect(() => {
+    if (!formData?.howMany) {
+      updateField('howMany', '1');
+    }
+  }, [formData]);
   useEffect(() => {
     if (formData?.owners) {
       setOwners(formData.owners);
     }
   }, [formData]);
+  useEffect(() => {
+    if (!formData?.owners || formData.owners.length === 0) {
+      setOwners([
+        {
+          firstName: '',
+          middleName: '',
+          lastName: '',
+          licenseNumber: '',
+          state: '',
+          phoneCode: '',
+          phoneNumber: '',
+          purchaseDate: '',
+          purchaseValue: '',
+          isGift: false,
+          isTrade: false,
+        },
+      ]);
+    }
+  }, [formData?.owners]);
+  
 
   const handleHowManyChange = (count: string) => {
     const newCount = parseInt(count);
@@ -156,7 +180,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
               onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
               className="howManyDropDown"
             >
-              {String(formData?.howMany ?? 'How Many')}
+{String(formData?.howMany ?? '1')}
               <ChevronDownIcon className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`} />
             </button>
 

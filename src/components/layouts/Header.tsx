@@ -7,13 +7,13 @@ import { ChevronDownIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outli
 import Image from 'next/image';
 import Logo from '../../../public/logo/logo.png';
 import Sidebaricon from '../../../public/icons/image.png';
+import UserIcon from '../../../public/icons/user.png';
+
 import {
   HomeIcon,
   MagnifyingGlassIcon,
-  DocumentTextIcon,
   PhoneIcon,
-  UserIcon,
-  CogIcon,
+  UserCircleIcon,
   CreditCardIcon,
   ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
@@ -30,22 +30,21 @@ export default function Header() {
   const menuRef = useRef<HTMLUListElement | null>(null);
 
   const links = [
-    { label: 'Home', route: '/home', icon: <HomeIcon className="navIcon" /> },
-    { label: 'Search Transactions', route: '/transactions', icon: <MagnifyingGlassIcon className="navIcon" /> },
-    { label: 'DMV Forms', route: '/dmvForms', icon: <DocumentTextIcon className="navIcon" /> },
-    { label: 'Contact Us', route: '/contactUs', icon: <PhoneIcon className="navIcon" /> },
+    { label: 'Home', route: '/home', icon: <HomeIcon className="navIcon" />, title: 'Go to Home' },
+    { label: 'Search Transactions', route: '/transactions', icon: <MagnifyingGlassIcon className="navIcon" />, title: 'Search your transactions' },
+    { label: 'Contact Us', route: '/contactUs', icon: <PhoneIcon className="navIcon" />, title: 'Contact support' },
     {
       label: 'Account',
-      icon: <UserIcon className="navIcon" />,
+      icon: <Image src={UserIcon} alt="User Icon" className="accountIcon" width={24} height={24} />,
+      title: 'Account settings',
       dropdown: [
-        { label: 'Account Settings', route: '/myAccount', icon: <CogIcon className="navIcon" /> },
-        { label: 'Payment Settings', route: '/payment', icon: <CreditCardIcon className="navIcon" /> },
+        { label: 'Account Settings', route: '/myAccount', icon: <UserCircleIcon className="navIcon" />, title: 'Manage account settings' },
+        { label: 'Payment Settings', route: '/payment', icon: <CreditCardIcon className="navIcon" />, title: 'Manage payment methods' },
+        { label: 'Logout', route: '/', icon: <ArrowRightOnRectangleIcon className="navIcon" />, title: 'Sign out of your account' },
       ],
     },
-    { label: 'Logout', route: '/', icon: <ArrowRightOnRectangleIcon className="navIcon" /> },
   ];
   
-
   useEffect(() => {
     setActiveRoute(pathname);
   }, [pathname]);
@@ -83,79 +82,82 @@ export default function Header() {
     }
   }, [logout, router]);
 
+  const renderAccountLink = (link: any) => (
+    <span
+      className="dropdownContainer"
+      title={link.title}
+      onClick={() => handleDropdownToggle(link.label)}
+    >
+      {link.icon}
+      {isDrawerOpen && <span className="accountLabel">{link.label}</span>}
+      {/* <ChevronDownIcon className={`chevronIcon ${dropdownVisibility[link.label] ? 'rotate' : ''}`} /> */}
+    </span>
+  );
+
   return (
     <header className="headerWrapper">
-     <div className='menuwrapper'>
-  <button className="menuIcon" onClick={handleDrawerToggle}>
-    {isDrawerOpen ? (
-      <span className="menuTitleWrapper">
-        <XMarkIcon className="iconSize" />
-        <span className="menuTitle">Formmatic</span>
-      </span>
-    ) : (
-<Image src={Sidebaricon} alt="Menu Icon" className="iconSize" />
-    )}
-  </button>
-</div>
+      <div className='menuwrapper'>
+        <button className="menuIcon" onClick={handleDrawerToggle}>
+          {isDrawerOpen ? (
+            <span className="menuTitleWrapper">
+              <XMarkIcon className="iconSize" />
+              <span className="menuTitle">Formmatic</span>
+            </span>
+          ) : (
+            <Image src={Sidebaricon} alt="Menu Icon" className="iconSize" />
+          )}
+        </button>
+      </div>
 
-<Link href="/home" className="logoContainer">
+      <Link href="/home" className="logoContainer">
         <Image src={Logo} alt="Logo" className="headerLogo" />
       </Link>
-{isDrawerOpen && <div className="drawerDivider"></div>}
+      {isDrawerOpen && <div className="drawerDivider"></div>}
 
-<ul className={`myLinks ${isDrawerOpen ? 'drawerOpen' : ''}`} ref={menuRef}>
-{isDrawerOpen && <div className="drawerDivider"></div>}
+      <ul className={`myLinks ${isDrawerOpen ? 'drawerOpen' : ''}`} ref={menuRef}>
+        {isDrawerOpen && <div className="drawerDivider"></div>}
 
-  {links.map((link, index) => (
-    
-    <li key={index} className={`linkLabel ${link.label === 'Logout' ? 'logoutButton' : ''}`}>
-      {link.route ? (
-        <Link
-          href={link.route}
-          className={activeRoute === link.route ? 'linkActive' : 'linkRoute'}
-          onClick={link.label === 'Logout' ? handleSignOut : handleDrawerToggle}
-        >
-          {isDrawerOpen && link.icon}
-          {link.label}
-        </Link>
-      ) : (
-        <span className="dropdownContainer" onClick={() => handleDropdownToggle(link.label)}>
-          {isDrawerOpen && link.icon}
-          {link.label}
-          <ChevronDownIcon className={`chevronIcon ${dropdownVisibility[link.label] ? 'rotate' : ''}`} />
-        </span>
-      )}
-      {link.dropdown && (
-        <div className={`dropdownMenuWrapper ${dropdownVisibility[link.label] ? 'showDropdown' : ''}`}>
-          <ul className="dropdownMenuList">
-            {link.dropdown.map((item) => (
-              <li key={item.label}>
-                <Link
-                  href={item.route}
-                  onClick={() => {
-                    setActiveRoute(item.route);
-                    setDropdownVisibility({});
-                    setIsDrawerOpen(false);
-                  }}
-                  className={activeRoute === item.route ? 'activeDropdownLink' : 'linkRoute'}
-                >
-                  {isDrawerOpen && item.icon}
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </li>
-  ))}
-</ul>
-
+        {links.map((link, index) => (
+          <li key={index} className={`linkLabel ${link.label === 'Logout' ? 'logoutButton' : ''}`}>
+            {link.label === 'Account' ? (
+              renderAccountLink(link)
+            ) : link.route ? (
+              <Link
+                href={link.route}
+                title={link.title}
+                className={activeRoute === link.route ? 'linkActive' : 'linkRoute'}
+                onClick={link.label === 'Logout' ? handleSignOut : handleDrawerToggle}
+              >
+                {isDrawerOpen && link.icon}
+                {link.label}
+              </Link>
+            ) : null}
+            {link.dropdown && (
+              <div className={`dropdownMenuWrapper ${dropdownVisibility[link.label] ? 'showDropdown' : ''}`}>
+                <ul className="dropdownMenuList">
+                  {link.dropdown.map((item) => (
+                    <li key={item.label}>
+                      <Link
+                        href={item.route}
+                        title={item.title}
+                        onClick={() => {
+                          setActiveRoute(item.route);
+                          setDropdownVisibility({});
+                          setIsDrawerOpen(false);
+                        }}
+                        className={activeRoute === item.route ? 'activeDropdownLink' : 'linkRoute'}
+                      >
+                        {isDrawerOpen && item.icon}
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
     </header>
   );
-  
-  
-  
-  
-
 }

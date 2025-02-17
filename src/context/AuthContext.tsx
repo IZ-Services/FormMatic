@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useContext, createContext, useState, useEffect } from 'react';
 import {
@@ -5,7 +6,6 @@ import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
   User,
-  // getIdToken,
   browserLocalPersistence
 } from 'firebase/auth';
 import Loading from '../components/pages/Loading';
@@ -19,7 +19,7 @@ import { auth, firestore, initFirebase } from '../firebase-config';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { deleteUser, getAuth } from "firebase/auth";
-
+import { getCookie } from '@/utils/cookie';
 const app = initFirebase();
 
 export interface AuthContextType {
@@ -37,7 +37,10 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false); // Add this flag
   const router = useRouter();
+
+
 
   const logout = async () => {
     try {
@@ -50,28 +53,61 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
     }
   };
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser && !user && !isLoggingIn) { // Check isLoggingIn flag
+        try {
+          const token = await firebaseUser.getIdToken(true);
+          await axios.post('/api/login', { token }, { withCredentials: true });
+          setUser(firebaseUser);
+        } catch (error) {
+          console.error('Error syncing session:', error);
+          await logout();
+        }
+      } else if (!firebaseUser && user) {
+        await logout();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user, isLoggingIn]);
+  
   const emailSignIn = async (email: string, password: string) => {
+    if (isLoggingIn) return; // Prevent duplicate login attempts
+    
     try {
-      await setPersistence(auth, browserLocalPersistence);
+      setIsLoggingIn(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const token = await userCredential.user.getIdToken(true);
 
       const response = await axios.post('/api/login', { token }, {
         withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
-        }
       });
 
       if (response.data.success) {
         setUser(userCredential.user);
+        
+        // Handle invalidated sessions
+        if (response.data.invalidatedSessionIds?.length > 0) {
+          const channel = new BroadcastChannel('session_management');
+          response.data.invalidatedSessionIds.forEach((invalidSessionId: string) => {
+            channel.postMessage({
+              type: 'SESSION_INVALIDATED',
+              sessionId: invalidSessionId
+            });
+          });
+        }
+        
         router.push('/home');
       }
     } catch (error) {
       console.error('Error signing in:', error);
       throw error;
+    } finally {
+      setIsLoggingIn(false);
     }
   };
+
   useEffect(() => {
     const checkSessionAndInitAuth = async () => {
       try {
@@ -125,6 +161,33 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   }, []);
   
   
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    const validateCurrentSession = async () => {
+      try {
+        const response = await axios.get('/api/validateSession');
+        if (!response.data.valid) {
+          await logout();
+        }
+      } catch (error) {
+        console.error('Session validation error:', error);
+        await logout();
+      }
+    };
+
+    if (user) {
+      // Check session validity every minute
+      validateCurrentSession(); // Initial check
+      intervalId = setInterval(validateCurrentSession, 60000); // Check every minute
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!sessionChecked || !user?.uid) {

@@ -23,10 +23,10 @@ interface ITransaction {
   transactionType: string;
   createdAt: string;
 }
+
 const transactionComponents: Record<string, React.FC<{ formData: any }>> = {
   'Simple Transfer': SimpleTransfer,
 };
-
 
 export default function Transactions() {
   const { transactions, setTransactions, setFormData } = useAppContext()!;
@@ -37,6 +37,7 @@ export default function Transactions() {
   const [selectedTransaction, setSelectedTransaction] = useState<ITransaction | null>(null);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [loading, setLoading] = useState(true);
+  const [noTransactions, setNoTransactions] = useState(false);
   const deferredSearchFor = useDeferredValue(searchFor);
 
   useEffect(() => {
@@ -53,12 +54,21 @@ export default function Transactions() {
     const fetchRecentTransactions = async () => {
       try {
         const res = await fetch(`/api/getRecent?userId=${user?.uid}`);
+
+        if (res.status === 404) {
+          setTransactions([]);
+          setNoTransactions(true);
+          return;
+        }
+
         const data = await res.json();
         setTransactions(Array.isArray(data) ? data : []);
+        setNoTransactions(false);
       } catch (error) {
         console.error('Error fetching recent transactions:', error);
       }
     };
+
     fetchRecentTransactions();
   }, [setTransactions, user?.uid]);
 
@@ -70,10 +80,18 @@ export default function Transactions() {
           : `/api/getRecent?userId=${user?.uid}`;
 
         const res = await fetch(endpoint);
+
+        if (res.status === 404) {
+          setTransactions([]);
+          setNoTransactions(true);
+          return;
+        }
+
         const data = await res.json();
 
         if (data.error) {
           setTransactions([]);
+          setNoTransactions(true);
         } else {
           setTransactions(
             data.sort(
@@ -81,6 +99,7 @@ export default function Transactions() {
                 new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             )
           );
+          setNoTransactions(false);
         }
       } catch (error) {
         console.error('Error fetching transactions:', error);
@@ -103,7 +122,7 @@ export default function Transactions() {
     }
 
     setFormData(clientToEdit);
-    setSelectedTransaction(clientToEdit); 
+    setSelectedTransaction(clientToEdit);
   };
 
   const handleDelete = async (clientId: string, user_id: string | undefined) => {
@@ -131,7 +150,7 @@ export default function Transactions() {
 
   if (selectedTransaction) {
     const Component = transactionComponents[selectedTransaction.transactionType] as React.FC<{ formData: any }>;
-  
+
     return (
       <div className="transaction-container">
         <h2 className="transaction-heading">Edit Transaction</h2>
@@ -139,10 +158,6 @@ export default function Transactions() {
       </div>
     );
   }
-  
-  
-  
-  
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -157,8 +172,10 @@ export default function Transactions() {
             />
           </div>
         </div>
-        {transactions.length === 0 ? (
-          <p className="noTransactionsMessage">No Transactions Found</p>
+        {noTransactions ? (
+          <p className="noTransactionsMessage">No transactions found.</p>
+        ) : transactions.length === 0 ? (
+          <Loading />
         ) : (
           <table className="transactionsTable">
             <thead>

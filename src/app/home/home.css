@@ -42,6 +42,14 @@ body {
 
   .homeContainer{
     margin-left: 50px;
+    margin-right: 50px;
+
+  }
+}
+
+@media (max-width: 1200px){
+  .homeContainer{
+    margin-right: 50px;
   }
 }
 

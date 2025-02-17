@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Sidebar.css';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/16/solid';
+import { ChevronDown } from 'lucide-react'; // Import the dropdown icon
 import { useScenarioContext } from '../../context/ScenarioContext';
 import { useAppContext } from '../../context/index';
 import { UserAuth } from '../../context/AuthContext';
@@ -70,9 +71,8 @@ export default function Sidebar() {
   return (
     <>
       <button className="sidebarToggle" onClick={toggleSidebar}>
-  <span>Transactions</span>
-</button>
-
+        <span>Transactions</span>
+      </button>
 
       <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebarWrapper">
@@ -95,6 +95,11 @@ export default function Sidebar() {
               <div key={index}>
                 <div className="pentagon" onClick={() => handleOpen(scenario.transactionType)}>
                   <h1 className="scenarioTitle">{scenario.transactionType}</h1>
+                  <ChevronDown
+                    className={`icon ${
+                      selectedTransactionType === scenario.transactionType ? 'open' : ''
+                    }`}
+                  />
                 </div>
                 <ul
                   style={{
@@ -111,7 +116,9 @@ export default function Sidebar() {
                       onClick={() => handleSelection(subsection)}
                     >
                       <div
-                        className={`${subsection === selectedSubsection ? 'subsectionActive' : 'subsectionEmpty'}`}
+                        className={`${
+                          subsection === selectedSubsection ? 'subsectionActive' : 'subsectionEmpty'
+                        }`}
                       />
                       <span>{subsection}</span>
                     </li>
