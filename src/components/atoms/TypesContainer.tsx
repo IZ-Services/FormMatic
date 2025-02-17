@@ -8,9 +8,9 @@ const TypeContainer: React.FC = () => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1200) {
-        setIsOpen(true); // Always open on large screens
+        setIsOpen(true); 
       } else {
-        setIsOpen(false); // Default to closed on smaller screens
+        setIsOpen(false); 
       }
     };
 
@@ -20,14 +20,11 @@ const TypeContainer: React.FC = () => {
 
   return (
     <div className={`type-container-wrapper ${isOpen ? "open" : ""}`}>
-      {/* Side tab only showing text */}
       <button className="side-tab" onClick={() => setIsOpen(true)}>
         <span>Add-ons</span>
       </button>
 
-      {/* Type Container */}
       <div className={`type-container ${isOpen ? "show" : ""}`}>
-        {/* Close icon on top-right inside the container */}
         <button className="close-button" onClick={() => setIsOpen(false)}>
           <XMarkIcon className="close-icon" />
         </button>

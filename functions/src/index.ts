@@ -1,5 +1,4 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-// import { initializeApp } from "firebase-admin/app";
 import { Timestamp, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { randomUUID } from "crypto";
 import { db } from "../../src/lib/firebaseAdmin";

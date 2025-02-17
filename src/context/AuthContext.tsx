@@ -1,12 +1,9 @@
-
 "use client";
-import React, { useContext, createContext, useState, useEffect } from 'react';
+import React, { useContext, createContext, useState, useEffect, useRef } from 'react';
 import {
-  setPersistence,
   signInWithEmailAndPassword,
   onAuthStateChanged,
   User,
-  browserLocalPersistence
 } from 'firebase/auth';
 import Loading from '../components/pages/Loading';
 import {
@@ -15,11 +12,12 @@ import {
   getFirestore,
   deleteDoc,
 } from 'firebase/firestore';
-import { auth, firestore, initFirebase } from '../firebase-config';
+import { auth, initFirebase } from '../firebase-config';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { deleteUser, getAuth } from "firebase/auth";
 import { getCookie } from '@/utils/cookie';
+
 const app = initFirebase();
 
 export interface AuthContextType {
@@ -37,44 +35,56 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false); // Add this flag
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const router = useRouter();
+  const pollInterval = useRef<NodeJS.Timeout>();
 
-
-
-  const logout = async () => {
+  const checkSession = async () => {
     try {
-      await axios.post('/api/logout', {}, { withCredentials: true });
-      await auth.signOut();
-      setUser(null);
-      router.push('/');
+      const response = await axios.get('/api/checkSession', { 
+        withCredentials: true 
+      });
+      
+      if (response.data.user && auth.currentUser) {
+        setUser(auth.currentUser);
+      } else if (auth.currentUser) {
+        console.log('Session invalid, logging out');
+        await logout();
+      }
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error('Session check error:', error);
+    } finally {
+      setSessionChecked(true);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser && !user && !isLoggingIn) { // Check isLoggingIn flag
-        try {
-          const token = await firebaseUser.getIdToken(true);
-          await axios.post('/api/login', { token }, { withCredentials: true });
-          setUser(firebaseUser);
-        } catch (error) {
-          console.error('Error syncing session:', error);
-          await logout();
-        }
-      } else if (!firebaseUser && user) {
-        await logout();
-      }
-    });
+    checkSession();
+  }, []);
 
-    return () => unsubscribe();
-  }, [user, isLoggingIn]);
-  
+  useEffect(() => {
+    if (pollInterval.current) {
+      clearInterval(pollInterval.current);
+    }
+
+    if (user) {
+      pollInterval.current = setInterval(() => {
+        checkSession();
+      }, 30000); 
+    }
+
+    return () => {
+      if (pollInterval.current) {
+        clearInterval(pollInterval.current);
+      }
+    };
+  }, [user]);
+
   const emailSignIn = async (email: string, password: string) => {
-    if (isLoggingIn) return; // Prevent duplicate login attempts
+    if (isLoggingIn) return;
     
+    setLoading(true);
     try {
       setIsLoggingIn(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -86,18 +96,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
 
       if (response.data.success) {
         setUser(userCredential.user);
-        
-        // Handle invalidated sessions
-        if (response.data.invalidatedSessionIds?.length > 0) {
-          const channel = new BroadcastChannel('session_management');
-          response.data.invalidatedSessionIds.forEach((invalidSessionId: string) => {
-            channel.postMessage({
-              type: 'SESSION_INVALIDATED',
-              sessionId: invalidSessionId
-            });
-          });
-        }
-        
         router.push('/home');
       }
     } catch (error) {
@@ -105,97 +103,65 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       throw error;
     } finally {
       setIsLoggingIn(false);
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      setLoading(true);
+      const currentSessionId = getCookie('sessionId');
+      
+      if (pollInterval.current) {
+        clearInterval(pollInterval.current);
+      }
+      
+      if (currentSessionId) {
+        await axios.post('/api/logout', { sessionId: currentSessionId }, { 
+          withCredentials: true 
+        });
+      }
+      
+      await auth.signOut();
+      setUser(null);
+      router.push('/');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const checkSessionAndInitAuth = async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
-        const sessionResponse = await axios.get('/api/checkSession', { 
-          withCredentials: true 
-        });
-        
-        if (sessionResponse.data.user) {
-          if (auth.currentUser) {
-            setUser(auth.currentUser);
-          } else {
-            if (auth.currentUser) {
-              const token = await (auth.currentUser as User).getIdToken(true);
-              await axios.post('/api/login', { token }, { withCredentials: true });
-            }
-          }
+        if (firebaseUser && !user && !isLoggingIn) {
+          setUser(firebaseUser);
+        } else if (!firebaseUser && user) {
+          setUser(null);
         }
-        
-        setSessionChecked(true);
-        
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: User | null) => {
-          if (firebaseUser && !user) {
-            try {
-              const token = await firebaseUser.getIdToken(true);
-              await axios.post('/api/login', { token }, { withCredentials: true });
-              setUser(firebaseUser);
-            } catch (error) {
-              console.error('Error syncing session:', error);
-              await logout();
-            }
-          } else if (!firebaseUser && user) {
-            await logout();
-          }
-          
-          setLoading(false);
-        });
-  
-        return unsubscribe;
       } catch (error) {
-        console.error('Error in auth initialization:', error);
-        setUser(null);
+        console.error('Error in auth state change:', error);
+      } finally {
         setLoading(false);
-        return () => {};
       }
-    };
-  
-    const unsubscribe = checkSessionAndInitAuth();
-    return () => {
-      unsubscribe.then(cleanup => cleanup());
-    };
-  }, []);
-  
-  
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    });
 
-    const validateCurrentSession = async () => {
-      try {
-        const response = await axios.get('/api/validateSession');
-        if (!response.data.valid) {
-          await logout();
-        }
-      } catch (error) {
-        console.error('Session validation error:', error);
-        await logout();
-      }
-    };
-
-    if (user) {
-      // Check session validity every minute
-      validateCurrentSession(); // Initial check
-      intervalId = setInterval(validateCurrentSession, 60000); // Check every minute
-    }
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [user]);
+    return () => unsubscribe();
+  }, [user, isLoggingIn]);
 
   useEffect(() => {
     if (!sessionChecked || !user?.uid) {
+      setLoading(false);
       return;
     }
 
+    setLoading(true);
     const creationTime = user.metadata?.creationTime;
-    if (!creationTime) return;
+    if (!creationTime) {
+      setLoading(false);
+      return;
+    }
 
     const userCreationDate = new Date(creationTime);
     const currentDate = new Date();
@@ -207,42 +173,44 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
 
     if (diffDays < 7) {
       setIsSubscribed(true);
+      setLoading(false);
       return;
     }
 
     const unsubscribeSnapshot = onSnapshot(userRef, async (userDoc) => {
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        
-        if (!userData.isSubscribed && diffDays >= 14) {
-          try {
+      try {
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          
+          if (!userData.isSubscribed && diffDays >= 14) {
             await deleteDoc(userRef);
             const currentUser = getAuth().currentUser;
             if (currentUser) {
               await deleteUser(currentUser);
             }
-          } catch (error) {
-            console.error('Error deleting user:', error);
+            await logout();
+            return;
           }
-          
-          await logout();
-          return;
-        }
 
-        setIsSubscribed(userData.isSubscribed);
-        if (!userData.isSubscribed) {
+          setIsSubscribed(userData.isSubscribed);
+          if (!userData.isSubscribed) {
+            router.push('/signUp');
+          }
+        } else {
+          setIsSubscribed(false);
           router.push('/signUp');
         }
-      } else {
-        setIsSubscribed(false);
-        router.push('/signUp');
+      } catch (error) {
+        console.error('Error in subscription check:', error);
+      } finally {
+        setLoading(false);
       }
     });
 
     return () => unsubscribeSnapshot();
   }, [user, sessionChecked, router]);
 
-  if (loading) {
+  if (!sessionChecked) {
     return <Loading />;
   }
 

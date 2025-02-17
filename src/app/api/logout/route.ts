@@ -1,27 +1,38 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { auth } from '@/lib/firebaseAdmin';
 import { removeSession } from '@/lib/sessionmanager';
+import connectDB from '@/lib/mongoDB';
+import { cookies } from 'next/headers';
 
-export async function POST() {
-  const cookieStore = await cookies();
-  const sessionId = cookieStore.get('sessionId')?.value;
-  const sessionCookie = cookieStore.get('session')?.value;
+export async function POST(request: Request) {
+  await connectDB();
 
-  if (sessionCookie && sessionId) {
-    try {
-      const decodedClaims = await auth.verifySessionCookie(sessionCookie);
-      await removeSession(decodedClaims.uid, sessionId);
-    } catch (error) {
-      console.error('Error removing session:', error);
+  try {
+    const { sessionId } = await request.json();
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('session');
+    if (sessionCookie && sessionId) {
+      await removeSession(sessionId);
     }
-  }
 
-  const response = NextResponse.json({ success: true });
-  
-  // Clear cookies
-  response.cookies.set('session', '', { maxAge: 0, path: '/' });
-  response.cookies.set('sessionId', '', { maxAge: 0, path: '/' });
-  
-  return response;
+    const response = NextResponse.json({ success: true });
+
+    response.cookies.set({
+      name: 'session',
+      value: '',
+      maxAge: 0,
+      path: '/'
+    });
+
+    response.cookies.set({
+      name: 'sessionId',
+      value: '',
+      maxAge: 0,
+      path: '/'
+    });
+
+    return response;
+  } catch (error) {
+    console.error('Error during logout:', error);
+    return NextResponse.json({ success: false, error: 'Internal server error' });
+  }
 }
