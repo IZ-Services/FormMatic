@@ -91,11 +91,16 @@ export default function Sidebar() {
           </div>
 
           <div className="transactionWrapper" ref={transactionRef}>
-            {filteredScenarios.map((scenario, index) => (
+            {filteredScenarios.map((scenario, index) => {
+              const isScenarioActive = selectedSubsection && scenario.subsections.includes(selectedSubsection);
+              return (
               <div key={index}>
-                <div className="pentagon" onClick={() => handleOpen(scenario.transactionType)}>
-                  <h1 className="scenarioTitle">{scenario.transactionType}</h1>
-                  <ChevronDown
+                <div
+                  className={`scenarioBase ${isScenarioActive ? 'activeScenario' : ''}`} 
+                  onClick={() => handleOpen(scenario.transactionType)}
+                >
+                <h1 className="scenarioTitle">{scenario.transactionType}</h1>
+                <ChevronDown
                     className={`icon ${
                       selectedTransactionType === scenario.transactionType ? 'open' : ''
                     }`}
@@ -107,25 +112,22 @@ export default function Sidebar() {
                       searchScenario || scenario.transactionType === selectedTransactionType
                         ? 'block'
                         : 'none',
+                      borderLeft: '2px solid #d3d3d3',
+                      marginLeft: '50px',                      
                   }}
                 >
                   {scenario.subsections.map((subsection, subsectionIndex) => (
                     <li
                       key={subsectionIndex}
-                      className="subsections"
+                      className={`subsections ${selectedSubsection === subsection ? 'active' : ''}`}
                       onClick={() => handleSelection(subsection)}
                     >
-                      <div
-                        className={`${
-                          subsection === selectedSubsection ? 'subsectionActive' : 'subsectionEmpty'
-                        }`}
-                      />
                       <span>{subsection}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-            ))}
+            );})}
           </div>
         </div>
       </div>

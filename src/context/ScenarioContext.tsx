@@ -17,31 +17,22 @@ const ScenarioContext = createContext<ScenarioContextType | null>(null);
 
 const scenerios: Scenerio[] = [
   {
-    transactionType: 'Transfers',
+    transactionType: 'Transfer & Renewal',
     subsections: [
-      'Simple Transfer',
-      'Multiple Transfer',
-    ],
-  },
-    {
-    transactionType: 'Registration & Renewal',
-    subsections: [
-      'Out-of-State Registration (Within 1 year)',
-      'Out-of-State Registration (Over 1 year)',
+      'Transfer',
       'Renewal',
-      'Commercial Vehicle Registration',
-      'Salvage Title Registration'
     ],
   },
   {
     transactionType: 'Duplicate & Replacement',
     subsections: [
       'Duplicate Title',
-      'Duplicate Plates/Stickers'
+      'Duplicate Plates/Stickers',
+      'Registration Replacement'
     ],
   },
   {
-    transactionType: 'Planned Non-Operation (PNO)',
+    transactionType: 'Planned Non-Operation',
     subsections: [
       'Filing PNO',
       'PNO to Operational',
