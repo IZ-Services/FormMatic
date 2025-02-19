@@ -1,5 +1,6 @@
 'use client';
 import { useSearchParams } from 'next/navigation';
+
 import Address from '../atoms/Address';
 import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
 import NewLien from '../atoms/NewLienHolder';
@@ -7,15 +8,16 @@ import VehicalInformation from '../atoms/VehicleInformation';
 import Seller from '../atoms/Seller';
 import ResidentialAddress from '../atoms/ResidentialAddress';
 import SaveButton from '../atoms/savebutton';
-import { FormDataProvider } from '../../app/api/formDataContext/formDataContextProvider';
+import { FormDataProvider, useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
 import TypeContainer from '../atoms/TypesContainer';
 import React, { useEffect, useState } from 'react';
+import ReleaseofOwnership from '../atoms/ReleaseOfOwnership';
+import TypeofVehicle from '../atoms/TypeOfVehicle';
 interface SimpleTransferProps {
   formData?: any;
 }
-
 
 export default function SimpleTransfer({ formData }: SimpleTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
@@ -23,27 +25,42 @@ export default function SimpleTransfer({ formData }: SimpleTransferProps) {
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
-  const handleSaveSuccess = () => {
-    console.log('Save completed successfully');
+
+  const FormContent = () => {
+    const { updateField } = useFormContext();
+
+    useEffect(() => {
+      if (formValues) {
+        Object.entries(formValues).forEach(([key, value]) => {
+          updateField(key, value);
+        });
+      }
+    }, [formValues]);
+
+    return (
+      <div className='wholeForm'>
+        <TypeContainer />
+        <NewRegisteredOwners formData={formValues} />
+        <Address formData={formValues} />
+        <NewLien formData={formValues} />
+        <VehicalInformation formData={formValues}/>
+        <Seller formData={formValues} />
+        <ResidentialAddress formData={formValues} />
+        <ReleaseofOwnership formData={formValues} />
+        <TypeofVehicle formData={formValues} />
+        <SaveButton 
+          transactionType="Simple Transfer"
+          onSuccess={() => console.log('Save completed successfully')}
+        />
+      </div>
+    );
   };
 
   return (
     <FormDataProvider>
       <ScenarioProvider>
         <div className="simpleTransferWrapper">
-          <div className='wholeForm'>
-            <TypeContainer />
-            <NewRegisteredOwners formData={formValues} />
-            <Address />
-            <NewLien />
-            <VehicalInformation />
-            <Seller />
-            <ResidentialAddress />
-            <SaveButton 
-              transactionType="Simple Transfer"
-              onSuccess={handleSaveSuccess}
-            />
-          </div>
+          <FormContent />
         </div>
       </ScenarioProvider>
     </FormDataProvider>

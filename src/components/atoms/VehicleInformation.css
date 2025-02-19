@@ -18,6 +18,10 @@
   margin-bottom: 5px;
 }
 
+.vehicleInformationWrapper .formInput.engineNumberInput {
+  width: 66.2%;
+}
+
 .formInput {
   width: 100%;
   padding: 8px;

@@ -12,6 +12,8 @@ interface Seller {
   state?: string;
   phone?: string;
   saleDate?: string;
+  relationshipWithGifter?: string;
+  giftValue?: string;               
 }
 
 interface SellerInfo {
@@ -29,13 +31,74 @@ interface FormContext {
   updateField: (field: string, value: any) => void;
 }
 
-const SellerSection = () => {
-  const { formData, updateField } = useFormContext() as FormContext;
+interface SellerSectionProps {
+  formData?: FormData;
+}
+
+const initialSeller: Seller = {
+  firstName: '',
+  middleName: '',
+  lastName: '',
+  licenseNumber: '',
+  state: '',
+  phone: '',
+  saleDate: '',
+  relationshipWithGifter: '',
+  giftValue: ''
+};
+
+const initialSellerInfo: SellerInfo = {
+  sellerCount: '1',
+  sellers: [{ ...initialSeller }]
+};
+
+const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData }) => {
+  const { formData: contextFormData, updateField } = useFormContext() as FormContext;
   const [openDropdown, setOpenDropdown] = useState<{ 
     type: 'count' | 'state', 
     index?: number 
   } | null>(null);
   const dropdownRef = useRef<HTMLUListElement>(null);
+
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
+
+  useEffect(() => {
+    if (!formData.sellerInfo) {
+      updateField('sellerInfo', initialSellerInfo);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (formData.sellerInfo?.sellerCount && (!formData.sellerInfo.sellers || formData.sellerInfo.sellers.length === 0)) {
+      const count = Number(formData.sellerInfo.sellerCount);
+      const newSellers = Array(count).fill(null).map(() => ({ ...initialSeller }));
+      updateField('sellerInfo', {
+        ...formData.sellerInfo,
+        sellers: newSellers
+      });
+    }
+  }, [formData.sellerInfo?.sellerCount]);
+
+  useEffect(() => {
+    if (formData.sellerInfo?.sellers) {
+      const currentCount = formData.sellerInfo.sellers.length;
+      const targetCount = Number(formData.sellerInfo.sellerCount || 1);
+      
+      if (currentCount !== targetCount) {
+        const newSellers = Array(targetCount)
+          .fill(null)
+          .map((_, i) => formData.sellerInfo?.sellers?.[i] || { ...initialSeller });
+        
+        updateField('sellerInfo', {
+          ...formData.sellerInfo,
+          sellers: newSellers
+        });
+      }
+    }
+  }, [formData.sellerInfo?.sellerCount]);
 
   const states = [
     { name: 'Alabama', abbreviation: 'AL' },
@@ -88,7 +151,7 @@ const SellerSection = () => {
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ];  
+  ];
 
   const handleSellerChange = (index: number, field: keyof Seller, value: string) => {
     const sellers = [...(formData.sellerInfo?.sellers || [])];
@@ -100,10 +163,10 @@ const SellerSection = () => {
   };
 
   const handleCountChange = (count: string) => {
-    const currentSellers = formData.sellerInfo?.sellers || [{}];
+    const currentSellers = formData.sellerInfo?.sellers || [{ ...initialSeller }];
     const newSellers = Array(Number(count))
-      .fill({})
-      .map((_, i) => currentSellers[i] || {});
+      .fill(null)
+      .map((_, i) => currentSellers[i] || { ...initialSeller });
     
     updateField('sellerInfo', {
       ...(formData.sellerInfo || {}),
@@ -124,7 +187,6 @@ const SellerSection = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
   const renderSellerForms = () => {
     const count = Number(formData.sellerInfo?.sellerCount || 1);
     return Array.from({ length: count }).map((_, index) => (
@@ -203,27 +265,51 @@ const SellerSection = () => {
         </div>
 
         <div className="sellerThirdGroup">
-          <div className="sellerThirdItem">
-            <label className="sellerLabel">Phone Number</label>
-            <input
-              className="sellerNumberInput"
-              type="text"
-              placeholder="Phone Number"
-              value={formData.sellerInfo?.sellers?.[index]?.phone || ''}
-              onChange={(e) => handleSellerChange(index, 'phone', e.target.value)}
-            />
-          </div>
-          <div className="sellerThirdItem">
-          <label className="registeredOwnerLabel">Date of Purchase</label>
-          <input
-              className="registeredDateInput"
-              type="text"
-              placeholder="MM/DD/YYYY"
-              value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
-              onChange={(e) => handleSellerChange(index, 'saleDate', e.target.value)}
-            />
-          </div>
-        </div>
+  <div className="sellerThirdItem">
+    <label className="sellerLabel">Phone Number</label>
+    <input
+      className="sellerNumberInput"
+      type="text"
+      placeholder="Phone Number"
+      value={formData.sellerInfo?.sellers?.[index]?.phone || ''}
+      onChange={(e) => handleSellerChange(index, 'phone', e.target.value)}
+    />
+  </div>
+  <div className="sellerThirdItem">
+    <label className="registeredOwnerLabel">Date of Purchase</label>
+    <input
+      className="registeredDateInput"
+      type="text"
+      placeholder="MM/DD/YYYY"
+      value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
+      onChange={(e) => handleSellerChange(index, 'saleDate', e.target.value)}
+    />
+  </div>
+</div>
+
+{/* Add the new gift-related fields */}
+<div className="sellerThirdGroup">
+  <div className="sellerThirdItem">
+    <label className="sellerLabel">Relationship with Gifter</label>
+    <input
+      className="sellerInput"
+      type="text"
+      placeholder="Enter Relationship"
+      value={formData.sellerInfo?.sellers?.[index]?.relationshipWithGifter || ''}
+      onChange={(e) => handleSellerChange(index, 'relationshipWithGifter', e.target.value)}
+    />
+  </div>
+  <div className="sellerThirdItem">
+    <label className="sellerLabel">Gift Value</label>
+    <input
+      className="sellerInput"
+      type="text"
+      placeholder="Enter Gift Value"
+      value={formData.sellerInfo?.sellers?.[index]?.giftValue || ''}
+      onChange={(e) => handleSellerChange(index, 'giftValue', e.target.value)}
+    />
+  </div>
+</div>
       </div>
     ));
   };

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { UserAuth } from '../../context/AuthContext';
-import PreviewModal from './previewmodal.tsx';
+import PreviewModal from './previewmodal';
 import './savebutton.css';
 
 interface SaveButtonProps {
@@ -28,10 +28,13 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess }) =
       userId: user.uid,
       transactionType,
       formData, 
+      transactionId: formData._id 
     };
 
     try {
-      const saveResponse = await fetch('/api/save', {
+      const endpoint = formData._id ? '/api/update' : '/api/save';
+
+      const saveResponse = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSave),

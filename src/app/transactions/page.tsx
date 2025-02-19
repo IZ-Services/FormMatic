@@ -111,18 +111,26 @@ export default function Transactions() {
 
   const handleEdit = (clientId: string, user_id: string | undefined) => {
     if (!user_id) return;
-
+  
     const clientToEdit = transactions.find(
       (transaction) => transaction._id === clientId && transaction.userId === user_id
     );
-
+  
     if (!clientToEdit) {
       alert('Transaction not found.');
       return;
     }
-
-    setFormData(clientToEdit);
-    setSelectedTransaction(clientToEdit);
+  
+    const formDataWithId = {
+      ...clientToEdit.formData,
+      _id: clientToEdit._id
+    };
+  
+    setFormData(formDataWithId);
+    setSelectedTransaction({
+      ...clientToEdit,
+      formData: formDataWithId
+    });
   };
 
   const handleDelete = async (clientId: string, user_id: string | undefined) => {

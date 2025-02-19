@@ -20,7 +20,7 @@ export default function HomeLayout({
     <>
       <Header />
       <Sidebar />
-      <main style={{ marginLeft: '20rem' }}>{children}</main>
+      <main style={{ marginLeft: '20rem', marginTop: '2rem' }}>{children}</main>
     </>
   );
 }

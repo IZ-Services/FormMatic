@@ -41,11 +41,84 @@ interface FormContext {
   updateField: (field: string, value: any) => void;
 }
 
-export default function ResidentialAddress() {
-  const { formData, updateField } = useFormContext() as FormContext;
+interface ResidentialAddressProps {
+  formData?: FormData;
+}
+
+const initialAddress: Address = {
+  street: '',
+  apt: '',
+  poBox: '',
+  city: '',
+  state: '',
+  zip: ''
+};
+
+const initialResidentialAddress: ResidentialAddressData = {
+  mailingAddressDifferent: false,
+  address: { ...initialAddress },
+  mailingAddress: { ...initialAddress }
+};
+
+const initialMissingTitleInfo: MissingTitleInfo = {
+  reason: '',
+  otherReason: ''
+};
+
+const initialPowerOfAttorneyInfo: PowerOfAttorneyInfo = {
+  type: '',
+  otherType: ''
+};
+
+export default function ResidentialAddress({ formData: propFormData }: ResidentialAddressProps) {
+  const { formData: contextFormData, updateField } = useFormContext() as FormContext;
   const regRef = useRef<HTMLUListElement>(null);
   const mailingRef = useRef<HTMLUListElement>(null);
   const [openDropdown, setOpenDropdown] = useState<'reg' | 'mailing' | null>(null);
+
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
+
+  useEffect(() => {
+    if (!formData.residentialAddress) {
+      updateField('residentialAddress', initialResidentialAddress);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!formData.missingTitleInfo) {
+      updateField('missingTitleInfo', initialMissingTitleInfo);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!formData.powerOfAttorneyInfo) {
+      updateField('powerOfAttorneyInfo', initialPowerOfAttorneyInfo);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (formData.residentialAddress) {
+      const updates: Partial<ResidentialAddressData> = {};
+      
+      if (!formData.residentialAddress.address) {
+        updates.address = initialAddress;
+      }
+      
+      if (formData.residentialAddress.mailingAddressDifferent && !formData.residentialAddress.mailingAddress) {
+        updates.mailingAddress = initialAddress;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        updateField('residentialAddress', {
+          ...formData.residentialAddress,
+          ...updates
+        });
+      }
+    }
+  }, [formData.residentialAddress?.mailingAddressDifferent]);
 
   const states = [
     { name: 'Alabama', abbreviation: 'AL' },
@@ -98,19 +171,11 @@ export default function ResidentialAddress() {
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ];  
+  ];
+
   const missingTitleOptions = ['Lost', 'Damaged', 'Never Received', 'Other'];
   const powerOfAttorneyOptions = ['General', 'Limited', 'Medical', 'Other'];
 
-  const handleClickOutside = (e: MouseEvent) => {
-    const target = e.target as Element;
-    if (openDropdown && 
-      ((openDropdown === 'reg' && regRef.current && !regRef.current.contains(target)) ||
-       (openDropdown === 'mailing' && mailingRef.current && !mailingRef.current.contains(target))) &&
-      !target.closest('.regStateDropDown')) {
-      setOpenDropdown(null);
-    }
-  };
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
@@ -148,6 +213,16 @@ export default function ResidentialAddress() {
       [field]: value,
       ...(field === 'type' && value !== 'Other' ? { otherType: '' } : {})
     });
+  };
+
+  const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as Element;
+    if (openDropdown && 
+      ((openDropdown === 'reg' && regRef.current && !regRef.current.contains(target)) ||
+       (openDropdown === 'mailing' && mailingRef.current && !mailingRef.current.contains(target))) &&
+      !target.closest('.regStateDropDown')) {
+      setOpenDropdown(null);
+    }
   };
 
   return (

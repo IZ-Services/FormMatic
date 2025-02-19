@@ -1,0 +1,58 @@
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+.relative {
+  position: relative;
+}
+
+.w-full {
+  width: 70%;
+}
+
+.max-w-2xl {
+  max-width: 42rem;
+}
+
+.menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  .lists {
+    padding: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #999999;
+  }
+  
+  .lists:hover {
+    background-color: #f3f4f6;
+  }
+  
+  .regIcon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.2s;
+  }
+  
+  .regIcon.rotate {
+    transform: rotate(180deg);
+  }

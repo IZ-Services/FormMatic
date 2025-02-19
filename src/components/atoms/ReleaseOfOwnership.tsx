@@ -1,129 +1,48 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
-import './NewLienHolder.css';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import './ReleaseOfOwnership.css';
 
 interface Address {
   street?: string;
   apt?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-}
-
-interface MailingAddress {
-  street?: string;
   poBox?: string;
   city?: string;
   state?: string;
   zip?: string;
 }
 
-interface LienHolder {
+interface ReleaseInformationType {
   name?: string;
-  eltNumber?: string;
-  mailingAddressDifferent?: boolean;
   address?: Address;
-  mailingAddress?: MailingAddress;
+  mailingAddress?: Address;
+  mailingAddressDifferent?: boolean;
 }
 
-interface FormContextType {
-  formData: {
-    lienHolder?: LienHolder;
-  };
-  updateField: (field: string, value: any) => void;
-}
-
-interface NewLienHolderProps {
+interface ReleaseInformationProps {
   formData?: {
-    lienHolder?: LienHolder;
+    releaseInformation?: ReleaseInformationType;
   };
 }
 
 const initialAddress: Address = {
   street: '',
   apt: '',
-  city: '',
-  state: '',
-  zip: ''
-};
-
-const initialMailingAddress: MailingAddress = {
-  street: '',
   poBox: '',
   city: '',
   state: '',
   zip: ''
 };
 
-const initialLienHolder: LienHolder = {
+const initialReleaseInformation: ReleaseInformationType = {
   name: '',
-  eltNumber: '',
-  mailingAddressDifferent: false,
   address: initialAddress,
-  mailingAddress: initialMailingAddress
+  mailingAddress: initialAddress,
+  mailingAddressDifferent: false
 };
 
-const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData }) => {
-  const [lienHolderData, setLienHolderData] = useState<LienHolder>(
-    propFormData?.lienHolder || initialLienHolder
-  );
-  const { updateField } = useFormContext() as FormContextType;
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const regRef = useRef<HTMLUListElement>(null);
-  const mailingRef = useRef<HTMLUListElement>(null);
-
-  useEffect(() => {
-    if (propFormData?.lienHolder) {
-      setLienHolderData(propFormData.lienHolder);
-    }
-  }, [propFormData]);
-
-  useEffect(() => {
-    if (!lienHolderData) {
-      setLienHolderData(initialLienHolder);
-      updateField('lienHolder', initialLienHolder);
-    }
-  }, []);
-
-  const handleClickOutside = (e: MouseEvent) => {
-    const target = e.target as Element;
-    if (openDropdown === 'reg' && regRef.current && !regRef.current.contains(target)) {
-      setOpenDropdown(null);
-    } else if (openDropdown === 'mailing' && mailingRef.current && !mailingRef.current.contains(target)) {
-      setOpenDropdown(null);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [openDropdown]);
-
-  const handleInputChange = (field: keyof LienHolder, value: any) => {
-    const newLienHolder = { ...lienHolderData, [field]: value };
-    setLienHolderData(newLienHolder);
-    updateField('lienHolder', newLienHolder);
-  };
-
-  const handleAddressChange = (addressType: 'address' | 'mailingAddress', field: string, value: string) => {
-    const newLienHolder = { ...lienHolderData };
-    newLienHolder[addressType] = {
-      ...(newLienHolder[addressType] || {}),
-      [field]: value
-    };
-    setLienHolderData(newLienHolder);
-    updateField('lienHolder', newLienHolder);
-  };
-
-  const handleStateChange = (dropdown: string, stateAbbreviation: string, isMailing = false) => {
-    const addressType = isMailing ? 'mailingAddress' : 'address';
-    handleAddressChange(addressType, 'state', stateAbbreviation);
-    setOpenDropdown(null);
-  };
-
-  const states = [
+const states = [
     { name: 'Alabama', abbreviation: 'AL' },
     { name: 'Alaska', abbreviation: 'AK' },
     { name: 'Arizona', abbreviation: 'AZ' },
@@ -176,96 +95,132 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData })
     { name: 'Wyoming', abbreviation: 'WY' },
   ];
 
+const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propFormData }) => {
+  const [releaseData, setReleaseData] = useState<ReleaseInformationType>(
+    propFormData?.releaseInformation || initialReleaseInformation
+  );
+  const { updateField } = useFormContext();
+  const [openDropdown, setOpenDropdown] = useState<'reg' | 'mailing' | null>(null);
+  const regRef = useRef<HTMLUListElement>(null);
+  const mailingRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    if (propFormData?.releaseInformation) {
+      setReleaseData(propFormData.releaseInformation);
+    }
+  }, [propFormData]);
+
+  const handleReleaseInfoChange = (field: keyof ReleaseInformationType, value: any) => {
+    const newData = { ...releaseData, [field]: value };
+    setReleaseData(newData);
+    updateField('releaseInformation', newData);
+  };
+
+  const handleAddressChange = (addressType: 'address' | 'mailingAddress', field: keyof Address, value: string) => {
+    const newData = { ...releaseData };
+    newData[addressType] = {
+      ...(newData[addressType] || {}),
+      [field]: value
+    };
+    setReleaseData(newData);
+    updateField('releaseInformation', newData);
+  };
+
+  const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as Element;
+    if (openDropdown && 
+      ((openDropdown === 'reg' && regRef.current && !regRef.current.contains(target)) ||
+       (openDropdown === 'mailing' && mailingRef.current && !mailingRef.current.contains(target))) &&
+      !target.closest('.regStateDropDown')) {
+      setOpenDropdown(null);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openDropdown]);
+
   return (
-    <div className="newLienHolderWrapper">
-      <div className="headingCheckboxWrapper">
-        <h3 className="newLienHolderHeading">New Lien Holder</h3>
-        <div className="mailingCheckboxWrapper">
-          <label className="mailingCheckboxLabel">
-            <input
-              type="checkbox"
-              className="mailingCheckboxInput"
-              checked={lienHolderData.mailingAddressDifferent || false}
-              onChange={(e) => handleInputChange('mailingAddressDifferent', e.target.checked)}
-            />
-            If mailing address is different
-          </label>
-        </div>
-      </div>
+    <div className="releaseWrapper">
 
-      <div className="formGroup maxWidthField">
-        <label className="formLabel">True Full Name or Bank/Finance Company or Individual</label>
+      <div className="headerRow">
+    <h3 className="releaseHeading">Release Of Ownership</h3>
+    <div className="checkboxSection">
+      <input
+        type="checkbox"
+        className="checkBoxAddress"
+        checked={releaseData.mailingAddressDifferent || false}
+        onChange={(e) => handleReleaseInfoChange('mailingAddressDifferent', e.target.checked)}
+      />
+      <p>If mailing address is different</p>
+    </div>
+  </div>
+      
+      <div className="releaseFormGroup">
+        <label className="releaseFormLabel">Name of Bank, Finance Company, or Individual(s) Having a Lien on this Vehicle</label>
         <input
-          className="formInput"
+          className="releaseFormInput"
           type="text"
-          placeholder="True Full Name or Bank/Finance Company or Individual"
-          value={lienHolderData.name || ''}
-          onChange={(e) => handleInputChange('name', e.target.value)}
+          placeholder="Name of Bank, Finance Company, or Individual(s)"
+          value={releaseData.name || ''}
+          onChange={(e) => handleReleaseInfoChange('name', e.target.value)}
         />
       </div>
 
-      <div className="formGroup maxWidthField">
-        <label className="formLabel">ELT Number</label>
-        <input
-          className="formInput"
-          type="text"
-          placeholder="ELT Number"
-          value={lienHolderData.eltNumber || ''}
-          onChange={(e) => handleInputChange('eltNumber', e.target.value)}
-        />
-      </div>
+      
 
+      {/* Main Address */}
       <div className="streetAptGroup">
         <div className="formGroup streetField">
           <label className="formLabel">Street</label>
           <input
-            className="formInput"
+            className="formInputt"
             type="text"
             placeholder="Street"
-            value={lienHolderData.address?.street || ''}
+            value={releaseData.address?.street || ''}
             onChange={(e) => handleAddressChange('address', 'street', e.target.value)}
           />
         </div>
         <div className="formGroup aptField">
           <label className="formLabel">APT./SPACE/STE.#</label>
           <input
-            className="formInput"
+            className="formInputt"
             type="text"
             placeholder="APT./SPACE/STE.#"
-            value={lienHolderData.address?.apt || ''}
+            value={releaseData.address?.apt || ''}
             onChange={(e) => handleAddressChange('address', 'apt', e.target.value)}
           />
         </div>
       </div>
 
-      <div className="cityStateZipGroup">
+      <div className="cityStateZipGroupp">
         <div className="cityFieldCustomWidth">
           <label className="formLabel">City</label>
           <input
             className="cityInputt"
             type="text"
             placeholder="City"
-            value={lienHolderData.address?.city || ''}
+            value={releaseData.address?.city || ''}
             onChange={(e) => handleAddressChange('address', 'city', e.target.value)}
           />
         </div>
-        
         <div className="regStateWrapper">
           <label className="registeredOwnerLabel">State</label>
           <button
             onClick={() => setOpenDropdown(openDropdown === 'reg' ? null : 'reg')}
             className="regStateDropDown"
           >
-            {lienHolderData.address?.state || 'State'}
+            {releaseData.address?.state || 'State'}
             <ChevronDownIcon className={`regIcon ${openDropdown === 'reg' ? 'rotate' : ''}`} />
           </button>
           {openDropdown === 'reg' && (
             <ul ref={regRef} className="regStateMenu">
               {states.map((state, index) => (
                 <li
-                  className="regStateLists"
                   key={index}
-                  onClick={() => handleStateChange('reg', state.abbreviation)}
+                  onClick={() => handleAddressChange('address', 'state', state.abbreviation)}
+                  className="regStateLists"
                 >
                   {state.name}
                 </li>
@@ -273,45 +228,44 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData })
             </ul>
           )}
         </div>
-
         <div className="formGroup zipCodeField">
           <label className="formLabel">ZIP Code</label>
           <input
-            className="formInput"
+            className="formInputt"
             type="text"
             placeholder="Zip Code"
-            value={lienHolderData.address?.zip || ''}
+            value={releaseData.address?.zip || ''}
             onChange={(e) => handleAddressChange('address', 'zip', e.target.value)}
           />
         </div>
       </div>
 
-      {lienHolderData.mailingAddressDifferent && (
+      {/* Mailing Address */}
+      {releaseData.mailingAddressDifferent && (
         <div className="addressWrapper">
           <h3 className="addressHeading">Mailing Address</h3>
           <div className="streetAptGroup">
             <div className="formGroup streetField">
               <label className="formLabel">Street</label>
               <input
-                className="formInputt streetInput"
+                className="formInputt"
                 type="text"
                 placeholder="Street"
-                value={lienHolderData.mailingAddress?.street || ''}
+                value={releaseData.mailingAddress?.street || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'street', e.target.value)}
               />
             </div>
             <div className="formGroup aptField">
               <label className="formLabel">PO Box No</label>
               <input
-                className="formInputt aptInput"
+                className="formInputt"
                 type="text"
                 placeholder="PO Box No"
-                value={lienHolderData.mailingAddress?.poBox || ''}
+                value={releaseData.mailingAddress?.poBox || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'poBox', e.target.value)}
               />
             </div>
           </div>
-
           <div className="cityStateZipGroupp">
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
@@ -319,18 +273,17 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData })
                 className="cityInputt"
                 type="text"
                 placeholder="City"
-                value={lienHolderData.mailingAddress?.city || ''}
+                value={releaseData.mailingAddress?.city || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'city', e.target.value)}
               />
             </div>
-
             <div className="regStateWrapper">
               <label className="registeredOwnerLabel">State</label>
               <button
                 onClick={() => setOpenDropdown(openDropdown === 'mailing' ? null : 'mailing')}
                 className="regStateDropDown"
               >
-                {lienHolderData.mailingAddress?.state || 'State'}
+                {releaseData.mailingAddress?.state || 'State'}
                 <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
               </button>
               {openDropdown === 'mailing' && (
@@ -338,7 +291,7 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData })
                   {states.map((state, index) => (
                     <li
                       key={index}
-                      onClick={() => handleStateChange('mailing', state.abbreviation, true)}
+                      onClick={() => handleAddressChange('mailingAddress', 'state', state.abbreviation)}
                       className="regStateLists"
                     >
                       {state.name}
@@ -347,14 +300,13 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData })
                 </ul>
               )}
             </div>
-
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
-                className="formInputt zipInput"
+                className="formInputt"
                 type="text"
                 placeholder="ZIP Code"
-                value={lienHolderData.mailingAddress?.zip || ''}
+                value={releaseData.mailingAddress?.zip || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'zip', e.target.value)}
               />
             </div>
@@ -365,4 +317,4 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData })
   );
 };
 
-export default NewLienHolder;
+export default ReleaseOfOwnership;

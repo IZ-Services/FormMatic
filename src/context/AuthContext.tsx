@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, createContext, useState, useEffect, useRef } from 'react';
+import React, { useContext, createContext, useState, useEffect } from 'react';
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
@@ -37,7 +37,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   const [sessionChecked, setSessionChecked] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const router = useRouter();
-  const pollInterval = useRef<NodeJS.Timeout>();
 
   const checkSession = async () => {
     try {
@@ -62,24 +61,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   useEffect(() => {
     checkSession();
   }, []);
-
-  useEffect(() => {
-    if (pollInterval.current) {
-      clearInterval(pollInterval.current);
-    }
-
-    if (user) {
-      pollInterval.current = setInterval(() => {
-        checkSession();
-      }, 30000); 
-    }
-
-    return () => {
-      if (pollInterval.current) {
-        clearInterval(pollInterval.current);
-      }
-    };
-  }, [user]);
 
   const emailSignIn = async (email: string, password: string) => {
     if (isLoggingIn) return;
@@ -111,10 +92,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
     try {
       setLoading(true);
       const currentSessionId = getCookie('sessionId');
-      
-      if (pollInterval.current) {
-        clearInterval(pollInterval.current);
-      }
       
       if (currentSessionId) {
         await axios.post('/api/logout', { sessionId: currentSessionId }, { 

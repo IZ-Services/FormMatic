@@ -1,11 +1,12 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './VehicleInformation.css';
 
 interface VehicleInformationType {
   licensePlate?: string;
   hullId?: string;
+  engineNumber?: string;  
   year?: string;
   make?: string;
   odometerDiscrepancyExplanation?: string;
@@ -14,8 +15,37 @@ interface VehicleInformationType {
   exceedsMechanicalLimit?: boolean;
 }
 
-const VehicleInformation = () => {
-  const { formData, updateField } = useFormContext();
+interface VehicleInformationProps {
+  formData?: {
+    vehicleInformation?: VehicleInformationType;
+  };
+}
+
+const initialVehicleInformation: VehicleInformationType = {
+  licensePlate: '',
+  hullId: '',
+  engineNumber: '',
+  year: '',
+  make: '',
+  odometerDiscrepancyExplanation: '',
+  mileage: '',
+  notActualMileage: false,
+  exceedsMechanicalLimit: false
+};
+
+const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propFormData }) => {
+  const { formData: contextFormData, updateField } = useFormContext();
+
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
+
+  useEffect(() => {
+    if (!formData.vehicleInformation) {
+      updateField('vehicleInformation', initialVehicleInformation);
+    }
+  }, []);
 
   const handleVehicleInfoChange = (field: keyof VehicleInformationType, value: string | boolean) => {
     const currentInfo = (formData.vehicleInformation || {}) as VehicleInformationType;
@@ -47,7 +77,16 @@ const VehicleInformation = () => {
           onChange={(e) => handleVehicleInfoChange('hullId', e.target.value)}
         />
       </div>
-
+      <div className="formGroup">
+  <label className="formLabel">Motorcycle Engine Number</label>
+  <input
+    className="formInput engineNumberInput"
+    type="text"
+    placeholder="Motorcycle Engine Number"
+    value={(formData.vehicleInformation as VehicleInformationType)?.engineNumber || ''}
+    onChange={(e) => handleVehicleInfoChange('engineNumber', e.target.value)}
+  />
+</div>
       <div className="vehicleFirstGroup">
         <div className="vehicleFormItem">
           <label className="yearlabel">Year of Vehicle</label>

@@ -24,12 +24,79 @@ interface FormData {
   trailerLocation?: AddressData;
 }
 
-export default function Address() {
-  const { formData, updateField } = useFormContext() as {
+interface AddressProps {
+  formData?: FormData;
+}
+
+const initialAddressData: AddressData = {
+  street: '',
+  apt: '',
+  city: '',
+  state: '',
+  zip: '',
+  poBox: '',
+  country: ''
+};
+
+export default function Address({ formData: propFormData }: AddressProps) {
+
+    const [addressData, setAddressData] = useState<FormData>(propFormData || {});
+
+  const { formData: contextFormData, updateField } = useFormContext() as {
+    
     formData: FormData;
     updateField: (section: string, value: any) => void;
   };
+
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
+  useEffect(() => {
+    if (propFormData) {
+      setAddressData(propFormData);
+    }
+  }, [propFormData]);
+  
+
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (!formData.address) {
+      updateField('address', { ...initialAddressData });
+    }
+  }, [formData.address]);
+
+  useEffect(() => {
+    if (formData.mailingAddressDifferent && !formData.mailingAddress) {
+      updateField('mailingAddress', { ...initialAddressData });
+    }
+  }, [formData.mailingAddressDifferent, formData.mailingAddress]);
+
+  useEffect(() => {
+    if (formData.lesseeAddressDifferent && !formData.lesseeAddress) {
+      updateField('lesseeAddress', { ...initialAddressData });
+    }
+  }, [formData.lesseeAddressDifferent, formData.lesseeAddress]);
+
+  useEffect(() => {
+    if (formData.trailerLocationDifferent && !formData.trailerLocation) {
+      updateField('trailerLocation', { ...initialAddressData });
+    }
+  }, [formData.trailerLocationDifferent, formData.trailerLocation]);
+
+  useEffect(() => {
+    if (formData.mailingAddressDifferent === undefined) {
+      updateField('mailingAddressDifferent', false);
+    }
+    if (formData.lesseeAddressDifferent === undefined) {
+      updateField('lesseeAddressDifferent', false);
+    }
+    if (formData.trailerLocationDifferent === undefined) {
+      updateField('trailerLocationDifferent', false);
+    }
+  }, []);
+
   const dropdownRefs = {
     reg: useRef<HTMLUListElement>(null),
     mailing: useRef<HTMLUListElement>(null),
@@ -88,22 +155,30 @@ export default function Address() {
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ];  
-
+  ];
   const handleDropdownClick = (dropdown: string) => {
     setOpenDropdown(prev => (prev === dropdown ? null : dropdown));
   };
 
   const handleAddressChange = (section: keyof FormData, field: keyof AddressData, value: string) => {
-    const currentData = (formData[section] ?? {}) as AddressData; 
-    updateField(section, { ...currentData, [field]: value });
+    const currentData = (addressData[section] ?? {}) as AddressData;
+    const newData = {
+      ...addressData,
+      [section]: { ...currentData, [field]: value }
+    };
+    
+    setAddressData(newData);  
+    updateField(section, newData[section]);  
   };
-  
 
   const handleCheckboxChange = (field: keyof FormData, checked: boolean) => {
-    updateField(field, checked);
+    const newData = {
+      ...addressData,
+      [field]: checked
+    };
+    setAddressData(newData);  
+    updateField(field, checked);  
   };
-
   const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as Element;
     if (
@@ -119,6 +194,8 @@ export default function Address() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown]);
+
+
 
   return (
     <div>
@@ -162,7 +239,7 @@ export default function Address() {
               className="formInputt"
               type="text"
               placeholder="Street"
-              value={formData.address?.street || ''}
+              value={addressData.address?.street || ''}
               onChange={(e) => handleAddressChange('address', 'street', e.target.value)}
             />
           </div>
@@ -172,7 +249,7 @@ export default function Address() {
               className="formInputt"
               type="text"
               placeholder="APT./SPACE/STE.#"
-              value={formData.address?.apt || ''}
+              value={addressData.address?.apt || ''}
               onChange={(e) => handleAddressChange('address', 'apt', e.target.value)}
             />
           </div>
@@ -184,7 +261,7 @@ export default function Address() {
               className="cityInputt"
               type="text"
               placeholder="City"
-              value={formData.address?.city || ''}
+              value={addressData.address?.city || ''}
               onChange={(e) => handleAddressChange('address', 'city', e.target.value)}
             />
           </div>
@@ -217,7 +294,7 @@ export default function Address() {
               className="formInputt"
               type="text"
               placeholder="Zip Code"
-              value={formData.address?.zip || ''}
+              value={addressData.address?.zip || ''}
               onChange={(e) => handleAddressChange('address', 'zip', e.target.value)}
             />
           </div>
