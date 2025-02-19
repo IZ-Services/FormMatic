@@ -43,14 +43,17 @@ body {
   flex-grow: 1;
   padding: 10px;
   margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 20px;
+  border-radius: 5px;
   position: relative;
+  background-color: #EEEEEE;
 }
 
 .scenarioInput {
   background-color: inherit;
   height: 40px;
   border: 0;
-  border-bottom: 1px solid black;
   padding-left: 35px;
   width: 80%;
   outline: none;
@@ -64,56 +67,68 @@ body {
   color: black;
 }
 
-/* Pentagon Button */
-.pentagon {
+
+/* scenarioBase Button */
+.scenarioBase {
   margin-left: 20px;
+  margin-right: 20px;
   margin-bottom: 20px;
   margin-top: 20px;
   position: relative;
-  width: 200px;
+  width: 240px;
   height: 50px;
-  background: black;
+  background: inherit;
   display: flex;
   align-items: center;
   cursor: pointer;
-}
-.pentagon:after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 0;
-  border-top: 25px solid transparent;
-  border-bottom: 25px solid transparent;
-  border-left: 25px solid black;
-  right: -25px;
-  top: 0px;
+  color: black;
+  transition: background-color 0.2s ease, color 0.2s ease;
+
 }
 
-.pentagon:hover {
-  background-color: #383428;
-  border-left: 1px solid #383428;
-  border-top: 1px solid #383428;
-  border-bottom: 1px solid #383428;
+
+.scenarioBase:hover {
+  background-color: black;
+  color: inherit;
+  border-radius: 5px;
 }
 
-.pentagon:hover:after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 0;
-  border-top: 25px solid transparent;
-  border-bottom: 25px solid transparent;
-  border-left: 25px solid #383428;
-  right: -25px;
-  top: -1px;
-}
-
-.pentagon:hover h1 {
+.scenarioBase:hover h1 {
   color: white;
+}
+
+.scenarioBase:hover .icon {
+  color: white;
+}
+
+
+.icon{
+  transition: transform 0.3s ease;
+  color: black;
+  margin-right: 20px;
+}
+
+.icon.open {
+  transform: rotate(180deg);
+}
+
+.scenarioBase.activeScenario {
+  background-color: black;
+  color: white;
+  border-radius: 5px;
+}
+
+.scenarioBase.activeScenario h1 {
+  color: white;
+}
+
+.scenarioBase.activeScenario .icon {
+  color: white;
+  
 }
 
 .scenarioTitle {
-  color: white;
+  color: black;
   display: flex;
   font-size: 15px;
   font-weight: 500;
@@ -123,39 +138,30 @@ body {
   flex: 1;
 }
 
-/* Subsection Items */
-.subsectionEmpty,
-.subsectionActive {
-  border: 1px solid black;
-  width: 10px;
-  height: 10px;
-  margin-left: 2px;
-  margin-right: 15px;
-  display: inline-block;
-}
-
-.subsectionEmpty {
-  background-color: white;
-}
-
-.subsectionActive {
-  background-color: black;
-}
-
 .subsections {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 400;
   padding-left: 20px;
   padding-right: 20px;
-  margin-bottom: 15px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin-right: 50px;
+  margin-left: 5px;
+  margin-top: 2px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
 }
 
 .subsections:hover {
-  color: gray;
+  background-color: #EEEEEE;
   transition: 0.3s;
   cursor: pointer;
+}
+
+.subsections.active {
+  font-weight: bold;
+  background-color: #EEEEEE;
 }
 
 @media (max-width: 800px) {
@@ -268,13 +274,4 @@ body {
   .close {
     display: none;
   }
-}
-
-.icon{
-  transition: transform 0.3s ease;
-  color: #fff;
-}
-
-.icon.open {
-  transform: rotate(180deg);
 }
