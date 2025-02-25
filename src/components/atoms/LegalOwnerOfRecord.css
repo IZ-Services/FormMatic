@@ -1,0 +1,132 @@
+.releaseWrapper {
+    font-family: Arial, sans-serif;
+    margin-bottom: 20px;
+}
+
+.headerRow {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 20px;
+}
+
+.releaseHeading {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.releaseFormGroup {
+    margin-bottom: 15px;
+}
+
+.releaseFormLabel {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #444;
+}
+
+.releaseFormInput {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    font-size: 14px;
+    width: 65.2%;
+}
+
+.streetAptGroup {
+    display: flex;
+    gap: 20px;
+}
+
+.formGroup {
+    flex: 1;
+}
+
+.streetField {
+    flex: 2;
+}
+
+.aptField {
+    flex: 1;
+}
+
+.formLabel {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #444;
+}
+
+.formInputt {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    font-size: 14px;
+}
+
+.cityStateZipGroupp {
+    display: flex;
+    gap: 20px;
+}
+
+.cityFieldCustomWidth {
+    flex: 2;
+}
+
+.regStateWrapper {
+    flex: 1;
+    position: relative;
+}
+
+.zipCodeField {
+    flex: 1;
+}
+
+.regStateDropDown {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    background-color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.regIcon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.2s ease;
+}
+
+.regIcon.rotate {
+    transform: rotate(180deg);
+}
+
+.regStateMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.regStateLists {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.regStateLists:hover {
+    background-color: #f5f5f5;
+}

@@ -1,0 +1,147 @@
+.smogWrapper {
+  font-family: Arial, sans-serif;
+  background-color: #ffffff;
+  /* padding: 20px; */
+  border-radius: 4px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+
+  }
+  
+  .smogHeader {
+    margin-bottom: 15px;
+  }
+  
+  .smogTitle {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+  }
+  
+  .smogSubtitle {
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 10px;
+  }
+  
+  .smogContent {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding-right: 190px;
+  }
+  
+  .dropdownContainer {
+    position: relative;
+    width: 100%;
+  }
+  
+  .dropdownLabel {
+    display: block;
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 5px;
+  }
+  
+  .dropdownButton {
+    width: 100%;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    transition: border-color 0.2s ease;
+  }
+  
+  .dropdownButton:hover {
+    border-color: #999;
+  }
+  
+  .dropdownIcon {
+    width: 20px;
+    height: 20px;
+    color: #666;
+    transition: transform 0.2s ease;
+  }
+  
+  .dropdownIcon.rotate {
+    transform: rotate(180deg);
+  }
+  
+  .dropdownMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-top: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .dropdownItem {
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .dropdownItem:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .inputContainer {
+    margin-top: 10px;
+  }
+  
+  .inputLabel {
+    display: block;
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 5px;
+  }
+  
+  .textInput {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+    transition: border-color 0.2s ease;
+  }
+  
+  .textInput:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  /* Scrollbar styling for dropdown menus */
+  .dropdownMenu::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .dropdownMenu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  .dropdownMenu::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+  
+  .dropdownMenu::-webkit-scrollbar-thumb:hover {
+    background: #666;
+  }

@@ -1,0 +1,149 @@
+.statementOfErrorWrapper {
+    font-family: Arial, sans-serif;
+    margin-bottom: 20px;
+    margin-top: 20px;
+  }
+  
+  .statementOfErrorHeader {
+    /* display: flex; */
+    align-items: center;
+    position: relative;
+    /* padding: 15px;
+    border-bottom: 1px solid #ccc; */
+  }
+  
+  .dmvLogo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-right: 20px;
+    background-color: #f0f0f0;
+    padding: 5px 10px;
+    border-radius: 3px;
+  }
+  
+  .statementOfErrorTitle {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    flex-grow: 1;
+    text-align: start;
+    margin-bottom: 20px;
+  }
+  
+  .vehicleLicenseField {
+    width: 300px;
+    margin-bottom: 10px;
+  }
+  
+  .vehicleInfoRow {
+    display: flex;
+  }
+  
+  .vehicleIdField {
+    flex: 1 1;
+    padding: 10px 10px 0px 0px;  }
+  
+  .vehicleMakeField {
+    width: 300px;
+    padding: 10px 0px 10px 0px;
+    
+  }
+  
+  .errorLabel {
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+  }
+  
+  .errorInput {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 14px;
+  }
+  
+  
+  
+  .statementContent {
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .statementContent p {
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0 0 15px 0;
+  }
+  
+  .certificateInput {
+    width: 200px;
+    padding: 5px;
+    margin: 0 5px;
+    border: none;
+    border-bottom: 1px solid #333;
+    background-color: transparent;
+    font-size: 14px;
+  }
+  
+  .reasonsSection {
+    padding-top: 15px;
+  }
+  
+  .reasonsLabel {
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .reasonsTextarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 120px;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .statementOfErrorHeader {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .dmvLogo {
+      margin-bottom: 10px;
+    }
+    
+    .statementOfErrorTitle {
+      text-align: left;
+      margin-bottom: 10px;
+    }
+    
+    .vehicleLicenseField {
+      width: 100%;
+      border-left: none;
+      padding-left: 0;
+      margin-top: 10px;
+    }
+    
+    .vehicleInfoRow {
+      flex-direction: column;
+    }
+    
+    .vehicleIdField {
+      border-right: none;
+      border-bottom: 1px solid #ccc;
+    }
+    
+    .vehicleMakeField {
+      width: auto;
+    }
+  }

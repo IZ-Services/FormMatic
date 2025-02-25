@@ -1,0 +1,89 @@
+/* Styling for Disabled Person Parking Form */
+.subHeadings {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+  }
+  
+  .dropdown {
+    position: relative;
+    width: 100%;
+    border: 1px solid #ccc;
+    padding: 8px;
+    cursor: pointer;
+  }
+  
+  .menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
+  }
+  
+  .lists {
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .lists:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .checkboxSection {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .checkBoxAddress {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    margin-right: 10px;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .checkBoxAddress:checked {
+    border-color: black;
+  }
+  
+  .checkBoxAddress:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background-color: black;
+    border-radius: 50%;
+  }
+  
+  .registeredDateInput {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+  }
+  
+  .regIcon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+  }
+  
+  .regIcon.rotate {
+    transform: rotate(180deg);
+  }

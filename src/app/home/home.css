@@ -15,13 +15,17 @@ body {
   border: none;
   border-radius: 12px;
   padding: 25px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12); /* Slightly stronger shadow */
-  background: #ffffff;  margin-right: 20px;
-  margin-left: 20px;
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.15), 
+              0 6px 15px rgba(0, 0, 0, 0.12); 
+  background: #ffffff;
+  margin-right: 20px;
+  /* margin-left: 20px; */
   max-width: 100%;
   padding: 20px;
   margin-bottom: 100px;
+  transition: box-shadow 0.3s ease-in-out;
 }
+
 
 .homeHeading {
   text-align: center;

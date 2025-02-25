@@ -173,7 +173,7 @@ export default function ResidentialAddress({ formData: propFormData }: Residenti
     { name: 'Wyoming', abbreviation: 'WY' },
   ];
 
-  const missingTitleOptions = ['Lost', 'Damaged', 'Never Received', 'Other'];
+  const missingTitleOptions = ['Lost', 'Stolen', 'Not Received From Prior Owner', 'Not Received From DMV (Allow 30 days from issue date)', 'Illegible/Mutilated (Attach old title)' ];
   const powerOfAttorneyOptions = ['General', 'Limited', 'Medical', 'Other'];
 
 

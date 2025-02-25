@@ -1,0 +1,91 @@
+.vehicle-information-wrapper {
+    font-family: Arial, sans-serif;
+    margin-bottom: 20px;
+  }
+
+  
+  .vehicle-type-section,
+  .question-section,
+  .trailer-coach-section,
+  .commercial-vehicle-section {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .vehicle-type-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  
+  .vehicle-type-label {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+  }
+  
+  .vehicle-type-label input {
+    margin-right: 5px;
+  }
+  
+  .radio-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+  }
+  
+  .radio-label {
+    display: flex;
+    align-items: center;
+  }
+  
+  .radio-label input {
+    margin-right: 5px;
+  }
+  
+  .important-note {
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .important-note p {
+    margin: 0;
+    font-size: 13px;
+    color: #555;
+  }
+  
+  .trailer-coach-dimensions,
+  .commercial-vehicle-section {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .input-group {
+    flex: 1;
+  }
+  
+  .input-label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    font-size: 14px;
+  }
+  
+  @media (max-width: 768px) {
+    .vehicle-type-options,
+    .radio-group,
+    .trailer-coach-dimensions,
+    .commercial-vehicle-section {
+      flex-direction: column;
+      gap: 10px;
+    }
+  }

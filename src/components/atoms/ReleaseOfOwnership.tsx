@@ -18,6 +18,10 @@ interface ReleaseInformationType {
   address?: Address;
   mailingAddress?: Address;
   mailingAddressDifferent?: boolean;
+  date?: string;
+  phoneNumber?: string;
+  authorizedAgentName?: string;
+  authorizedAgentTitle?: string;
 }
 
 interface ReleaseInformationProps {
@@ -39,7 +43,11 @@ const initialReleaseInformation: ReleaseInformationType = {
   name: '',
   address: initialAddress,
   mailingAddress: initialAddress,
-  mailingAddressDifferent: false
+  mailingAddressDifferent: false,
+  date: '',
+  phoneNumber: '',
+  authorizedAgentName: '',
+  authorizedAgentTitle: ''
 };
 
 const states = [
@@ -93,7 +101,7 @@ const states = [
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ];
+];
 
 const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propFormData }) => {
   const [releaseData, setReleaseData] = useState<ReleaseInformationType>(
@@ -143,19 +151,20 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
 
   return (
     <div className="releaseWrapper">
-
       <div className="headerRow">
-    <h3 className="releaseHeading">Release Of Ownership</h3>
-    <div className="checkboxSection">
-      <input
-        type="checkbox"
-        className="checkBoxAddress"
-        checked={releaseData.mailingAddressDifferent || false}
-        onChange={(e) => handleReleaseInfoChange('mailingAddressDifferent', e.target.checked)}
-      />
-      <p>If mailing address is different</p>
-    </div>
-  </div>
+        <h3 className="releaseHeading">Release Of Ownership</h3>
+        <div className="checkboxSection">
+          <input
+            type="checkbox"
+            className="checkBoxAddress"
+            checked={releaseData.mailingAddressDifferent || false}
+            onChange={(e) => handleReleaseInfoChange('mailingAddressDifferent', e.target.checked)}
+          />
+          <p>If mailing address is different</p>
+        </div>
+      </div>
+
+
       
       <div className="releaseFormGroup">
         <label className="releaseFormLabel">Name of Bank, Finance Company, or Individual(s) Having a Lien on this Vehicle</label>
@@ -168,9 +177,6 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
         />
       </div>
 
-      
-
-      {/* Main Address */}
       <div className="streetAptGroup">
         <div className="formGroup streetField">
           <label className="formLabel">Street</label>
@@ -239,8 +245,56 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
           />
         </div>
       </div>
+<div className='wrap'>
+      <div className="datePhoneGroup">
+        <div className="formGroup dateField">
+          <label className="releaseFormLabel">Date</label>
+          <input
+    className="registeredDateInput"
+    type="text"
+    placeholder="MM/DD/YYYY"
+    value={releaseData.date || ''}
+    onChange={(e) => handleReleaseInfoChange('date', e.target.value)}
+    maxLength={10}
+  />
+          
+        </div>
+        <div className="formGroup phoneField">
+          <label className="releaseFormLabel">Daytime Phone Number</label>
+          <input
+            className="formInputt"
+            type="tel"
+            placeholder="(XXX) XXX-XXXX"
+            value={releaseData.phoneNumber || ''}
+            onChange={(e) => handleReleaseInfoChange('phoneNumber', e.target.value)}
+          />
+        </div>
+      </div>
 
-      {/* Mailing Address */}
+      <div className="authorizedAgentGroup">
+        <div className="formGroup agentNameField">
+          <label className="releaseFormLabel">Printed Name of Authorized Agent</label>
+          <input
+            className="formInputt"
+            type="text"
+            placeholder="Full Name"
+            value={releaseData.authorizedAgentName || ''}
+            onChange={(e) => handleReleaseInfoChange('authorizedAgentName', e.target.value)}
+          />
+        </div>
+        <div className="formGroup agentTitleField">
+          <label className="releaseFormLabel">Title of Authorized Agent Signing for Company</label>
+          <input
+            className="formInputt"
+            type="text"
+            placeholder="Title"
+            value={releaseData.authorizedAgentTitle || ''}
+            onChange={(e) => handleReleaseInfoChange('authorizedAgentTitle', e.target.value)}
+          />
+        </div>
+      </div>
+</div>
+
       {releaseData.mailingAddressDifferent && (
         <div className="addressWrapper">
           <h3 className="addressHeading">Mailing Address</h3>

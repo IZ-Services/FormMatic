@@ -13,6 +13,10 @@ interface VehicleInformationType {
   mileage?: string;
   notActualMileage?: boolean;
   exceedsMechanicalLimit?: boolean;
+  vehicleUnder10001lbs?: boolean;
+  gvwCode?: string;
+  cgwCode?: string;
+  operationDate?: string;
 }
 
 interface VehicleInformationProps {
@@ -30,7 +34,10 @@ const initialVehicleInformation: VehicleInformationType = {
   odometerDiscrepancyExplanation: '',
   mileage: '',
   notActualMileage: false,
-  exceedsMechanicalLimit: false
+  exceedsMechanicalLimit: false,
+  gvwCode: '',
+  cgwCode: '',
+  operationDate: ''
 };
 
 const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propFormData }) => {
@@ -56,37 +63,40 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propF
     <div className="vehicleInformationWrapper">
       <h3 className="vehicleInformationHeading">Vehicle Information</h3>
       
-      <div className="formGroup">
-        <label className="formLabel">Vehicle License Plate or Vessel CF Number</label>
-        <input
-          className="formInput vehicleLicenseInput"
-          type="text"
-          placeholder="Vehicle License Plate or Vessel CF Number"
-          value={(formData.vehicleInformation as VehicleInformationType)?.licensePlate || ''}
-          onChange={(e) => handleVehicleInfoChange('licensePlate', e.target.value)}
-        />
-      </div>
     
-      <div className="formGroup">
-        <label className="formLabel">Vehicle/Hull Identification Number</label>
-        <input
-          className="formInput hullIdInput"
-          type="text"
-          placeholder="Vehicle/ Hull Identification Number"
-          value={(formData.vehicleInformation as VehicleInformationType)?.hullId || ''}
-          onChange={(e) => handleVehicleInfoChange('hullId', e.target.value)}
-        />
-      </div>
-      <div className="formGroup">
-  <label className="formLabel">Motorcycle Engine Number</label>
-  <input
-    className="formInput engineNumberInput"
-    type="text"
+   
+<div className="vehicleFirstGroup">
+        <div className="vehicleFormItem">
+          <label className="yearlabel">Motorcycle Engine Number</label>
+          <input
+            className="yearInput"
+            type="text"
     placeholder="Motorcycle Engine Number"
     value={(formData.vehicleInformation as VehicleInformationType)?.engineNumber || ''}
     onChange={(e) => handleVehicleInfoChange('engineNumber', e.target.value)}
-  />
-</div>
+          />
+        </div>
+        <div className="vehicleFormItem">
+          <label className="yearlabel">Vehicle/Hull Identification Number</label>
+          <input
+            className="makeInput"
+            type="text"
+          placeholder="Vehicle/ Hull Identification Number"
+          value={(formData.vehicleInformation as VehicleInformationType)?.hullId || ''}
+          onChange={(e) => handleVehicleInfoChange('hullId', e.target.value)}
+          />
+        </div>
+        <div className="vehicleFormItem">
+          <label className="yearlabel">Vehicle License Plate or Vessel CF Number</label>
+          <input
+            className="odometerInput"
+            type="text"
+            placeholder="Vehicle License Plate or Vessel CF Number"
+            value={(formData.vehicleInformation as VehicleInformationType)?.licensePlate || ''}
+            onChange={(e) => handleVehicleInfoChange('licensePlate', e.target.value)}
+          />
+        </div>
+      </div>
       <div className="vehicleFirstGroup">
         <div className="vehicleFormItem">
           <label className="yearlabel">Year of Vehicle</label>
@@ -121,16 +131,6 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propF
       </div>
     
       <div className="mileageGroup">
-        <div className="formGroup">
-          <label className="formLabel">Mileage of Vehicle</label>
-          <input
-            className="formInput mileageInput"
-            type="text"
-            placeholder="Mileage of Vehicle"
-            value={(formData.vehicleInformation as VehicleInformationType)?.mileage || ''}
-            onChange={(e) => handleVehicleInfoChange('mileage', e.target.value)}
-          />
-        </div>
         <div className="checkboxGroup">
           <label className="checkboxLabel">
             <input
@@ -150,8 +150,64 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propF
             />
             Mileage Exceeds Mechanical Limit
           </label>
+
+          <label className="checkboxLabel">
+            <input
+              type="checkbox"
+              checked={(formData.vehicleInformation as VehicleInformationType)?.vehicleUnder10001lbs || false}
+              onChange={(e) => handleVehicleInfoChange('vehicleUnder10001lbs', e.target.checked)}
+              className="checkboxInput"
+            />
+Vehicle Operated Under 10,001 lbs.          </label>
         </div>
       </div>
+
+
+      <div className="vehicleFirstGroup">
+        <div className="vehicleFormItem">
+          <label className="yearlabel">Mileage of Vehicle</label>
+          <input
+            className="yearInput"
+            type="text"
+            placeholder="Mileage of Vehicle"
+            value={(formData.vehicleInformation as VehicleInformationType)?.mileage || ''}
+            onChange={(e) => handleVehicleInfoChange('mileage', e.target.value)}
+          />
+        </div>
+        <div className="vehicleFormItem">
+          <label className="yearlabel">GVW Code</label>
+          <input
+            className="makeInput"
+            type="text"
+            placeholder="Enter GVW Code"
+            value={(formData.vehicleInformation as VehicleInformationType)?.gvwCode || ''}
+            onChange={(e) => handleVehicleInfoChange('gvwCode', e.target.value)}
+          />
+        </div>
+        <div className="vehicleFormItem">
+          <label className="yearlabel">CGW Code</label>
+          <input
+            className="odometerInput"
+            type="text"
+          placeholder="Enter CGW Code"
+          value={(formData.vehicleInformation as VehicleInformationType)?.cgwCode || ''}
+          onChange={(e) => handleVehicleInfoChange('cgwCode', e.target.value)}
+          />
+        </div>
+      </div>
+      
+
+      <div className="newRegThirdItem">
+              <label className="registeredOwnerLabel">Date Vehicle Will Be or Was Operated at This Weight</label>
+              <input
+                className="registeredDateInput"
+                type="text"
+                placeholder="MM/DD/YYYY"
+                value={(formData.vehicleInformation as VehicleInformationType)?.operationDate || ''}
+                onChange={(e) => handleVehicleInfoChange('operationDate', e.target.value)}
+              />
+            </div>
+      
     </div>
   );
 };

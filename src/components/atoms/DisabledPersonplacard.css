@@ -1,0 +1,38 @@
+.disabled-placard-wrapper {
+    font-family: Arial, sans-serif;
+    margin-bottom: 20px;
+  }
+  
+
+  .form-content {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .input-group {
+    flex: 1;
+  }
+  
+  .input-label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    color: #444;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+  
+  @media (max-width: 768px) {
+    .form-content {
+      flex-direction: column;
+      gap: 15px;
+    }
+  }

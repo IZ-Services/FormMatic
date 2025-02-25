@@ -1,0 +1,57 @@
+.section-one-container {
+    width: 100%;
+    font-family: Arial, sans-serif;
+  }
+  
+  .section-header {
+    padding-bottom: 15px ;
+    padding-top: 15px ;
+
+    text-align: start;
+  }
+  
+  .section-title {
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .input-group {
+    margin-bottom: 15px;
+  }
+  
+  .input-label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    color: #333;
+  }
+  
+  .standard-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+  
+  .standard-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+  }
+  
+  .initial-input {
+    width: 50px;
+  }
+  
+  @media (max-width: 600px) {
+    .form-content {
+      padding: 10px;
+    }
+  
+    .standard-input {
+      font-size: 12px;
+      padding: 6px;
+    }
+  }

@@ -1,0 +1,150 @@
+.purchaserOwnerWrapper {
+    background-color: #ffffff;
+    margin-bottom: 20px;
+    margin-top: 20px;
+  }
+  
+  .purchaserOwnerHeader {
+    display: flex
+    ;
+        justify-content: flex-start;
+        align-items: center;
+        /* background-color: #f9f9f9; */
+        /* border-bottom: 1px solid #ccc; */
+        /* padding: 8px; */
+        gap: 20px;
+        margin-bottom: 20px;
+        margin-top: 10px;
+  }
+  
+  .purchaserOwnerTitle {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+  }
+  
+  .sameAsOwnerLabel {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    /* font-weight: bold; */
+  }
+  
+  .sameAsOwnerCheckbox {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+  }
+/*   
+  .purchaserOwnerContent {
+    padding: 15px;
+  } */
+  
+  .personInfoColumns {
+    width: 100%;
+  }
+  
+  .personColumn {
+    flex: 1;
+  }
+  
+  
+  .ownerColumn {
+
+margin-top: 20px;}
+  
+  .ownerHeader {
+    margin-bottom: 15px;
+  }
+  
+  .ownerTitle {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0 0 10px 0;
+  }
+  
+  .ownerNote {
+    font-size: 14px;
+    font-weight: normal;
+    font-style: italic;
+  }
+  
+  .infoField {
+    margin-bottom: 15px;
+  }
+  
+  .infoLabel {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #444;
+  }
+  
+  .fieldNote {
+    font-weight: normal;
+    font-style: italic;
+  }
+  
+  .infoInput {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 14px;
+  }
+  
+  .infoInput:disabled {
+    background-color: #f0f0f0;
+    color: #666;
+    border: 1px solid #ddd;
+  }
+  
+  .cityStateZip {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .cityField {
+    flex: 2;
+  }
+  
+  .stateField {
+    flex: 1;
+  }
+  
+  .zipField {
+    flex: 1;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .purchaserOwnerHeader {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .sameAsOwnerLabel {
+      margin-top: 10px;
+    }
+    
+    .personInfoColumns {
+      flex-direction: column;
+    }
+    
+    .personColumn {
+      padding: 0;
+    }
+    
+    .purchaserColumn {
+      border-right: none;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .cityStateZip {
+      flex-direction: column;
+      gap: 15px;
+    }
+  }
