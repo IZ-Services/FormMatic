@@ -317,7 +317,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
   return (
     <div className="seller-section">
       <div className="sellerHeader">
-        <h3 className="sellerHeading">Seller(s)</h3>
+        <h3 className="sellerHeading">Registered Owner(s)</h3>
         <div className="howManyWrapper">
           <button
             onClick={() => setOpenDropdown(openDropdown?.type === 'count' ? null : { type: 'count' })}
