@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import "./TypesContainer.css";
+import "./TransactionsContainer.css";
 
 const TypeContainer: React.FC = () => {
   const [isOpen, setIsOpen] = useState(window.innerWidth >= 1200);
@@ -21,7 +21,7 @@ const TypeContainer: React.FC = () => {
   return (
     <div className={`type-container-wrapper ${isOpen ? "open" : ""}`}>
       <button className="side-tab" onClick={() => setIsOpen(true)}>
-        <span>Add-ons</span>
+        <span>Transactions</span>
       </button>
 
       <div className={`type-container ${isOpen ? "show" : ""}`}>

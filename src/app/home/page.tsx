@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useScenarioContext } from '../../context/ScenarioContext';
 import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import Loading from '../../components/pages/Loading';
+import TransactionsContainer from '@/components/atoms/TransactionsContainer';
 
 export default function Home() {
   const { selectedSubsection } = useScenarioContext()!;
@@ -35,7 +36,10 @@ export default function Home() {
         return <SimpleTransfer />;
       default:
         return (
-          <p className="scenarioSelect"> Welcome. Please select a transaction from the sidebar.</p>
+          <div>
+         <SimpleTransfer />;
+            <TransactionsContainer />
+          </div>
         );
     }
   };

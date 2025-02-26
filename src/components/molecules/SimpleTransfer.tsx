@@ -9,7 +9,7 @@ import SaveButton from '../atoms/savebutton';
 import { FormDataProvider, useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
-import TypeContainer from '../atoms/TypesContainer';
+import TypeContainer from '../atoms/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
 import ReleaseofOwnership from '../atoms/ReleaseOfOwnership';
 import TypeofVehicle from '../atoms/TypeOfVehicle';
