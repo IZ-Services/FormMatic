@@ -32,7 +32,9 @@ import SectionSix from '../atoms/NoticeOfChnageOfAddress/SectionSix';
 import VehicleInformationReg from '../atoms/VehicleInformationForTitleorReg';
 import LicensePlate from '../atoms/LicensePlate';
 import DisabledPersonPlacard from '../atoms/DisabledPersonplacard';
-import MultipleTransfer from '../../components/molecules/MultipleTransfer';
+import PlatesStickerDocRequests from '../atoms/PlatesStickerDocRequests';
+import SalvageCertificate from '../atoms/SalvageCertificate';
+import LicensePlateDisposition from '../atoms/LicensePlateDispsition';import MultipleTransfer from '../../components/molecules/MultipleTransfer';
 
 interface SimpleTransferProps {
   formData?: any;
@@ -85,7 +87,12 @@ export default function SimpleTransfer({ formData }: SimpleTransferProps) {
         <SectionSix formData={formValues} />
         <VehicleInformationReg formData={formValues} />
         <DisabledPersonPlacard formData={formValues} />
+        <PlatesStickerDocRequests formData={formValues} />
         <LicensePlate formData={formValues} />
+
+        <SalvageCertificate formData={formValues} />
+        <LicensePlateDisposition formData={formValues} />
+
        <MultipleTransfer />
         <SaveButton 
           transactionType="Simple Transfer"

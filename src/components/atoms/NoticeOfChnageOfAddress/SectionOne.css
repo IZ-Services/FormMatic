@@ -15,6 +15,10 @@
     font-weight: bold;
     text-transform: uppercase;
   }
+
+  .formcontent {
+
+display: block;  }
   
   .input-group {
     margin-bottom: 15px;

@@ -71,7 +71,7 @@ const SectionOne: React.FC<SectionOneProps> = ({ formData: propFormData }) => {
         <span className="section-title">PERSONAL OR BUSINESS INFORMATION</span>
       </div>
 
-      <div className="form-content">
+      <div className="formcontent">
         <div className="input-group">
           <label className="input-label">LAST NAME OR BUSINESS NAME</label>
           <input
