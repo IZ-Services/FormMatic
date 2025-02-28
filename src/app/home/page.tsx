@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation';
 import { useScenarioContext } from '../../context/ScenarioContext';
 import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import Loading from '../../components/pages/Loading';
-import TransactionsContainer from '@/components/atoms/TransactionsContainer';
+import TransactionsContainer from '@/components/layouts/TransactionsContainer';
+import MultipleTransfer from '../../components/molecules/MultipleTransfer';
 
 export default function Home() {
   const { selectedSubsection } = useScenarioContext()!;
@@ -37,8 +38,8 @@ export default function Home() {
       default:
         return (
           <div>
-         <SimpleTransfer />;
-            <TransactionsContainer />
+            <SimpleTransfer />
+            {/* <p className='Welcome'> Please select a transaction from the side. You can mix and match multiple options to fit your needs.</p> */}
           </div>
         );
     }
@@ -47,8 +48,10 @@ export default function Home() {
 
   return (
     <div className="homeContainer">
-      {selectedSubsection && <h2 className="homeHeading">{selectedSubsection}</h2>}
-      {renderComponent()}
+      <div className="componentWrapper">
+        {renderComponent()}
+      </div>
+      <TransactionsContainer />
     </div>
   );
 }

@@ -16,7 +16,6 @@ interface OwnerData {
   purchaseDate: string;
   purchaseValue: string;
   isGift: boolean;
-  isTrade: boolean;
 }
 
 interface NewRegisteredOwnersProps {
@@ -113,7 +112,6 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
           purchaseDate: '',
           purchaseValue: '',
           isGift: false,
-          isTrade: false,
         },
       ]);
     }
@@ -136,7 +134,6 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
         purchaseDate: '',
         purchaseValue: '',
         isGift: false,
-        isTrade: false,
       });
     }
 
@@ -327,15 +324,6 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
                   onChange={(e) => handleOwnerFieldChange(index, 'isGift', e.target.checked)}
                 />{' '}
                 Gift
-              </label>
-              <label className="checkboxLabel">
-                <input
-                  type="checkbox"
-                  className="checkboxInput"
-                  checked={owner.isTrade}
-                  onChange={(e) => handleOwnerFieldChange(index, 'isTrade', e.target.checked)}
-                />{' '}
-                Trade
               </label>
             </div>
         </div>
