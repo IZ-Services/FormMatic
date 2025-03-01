@@ -35,6 +35,7 @@ import DisabledPersonPlacard from '../atoms/DisabledPersonplacard';
 import PlatesStickerDocRequests from '../atoms/PlatesStickerDocRequests';
 import SalvageCertificate from '../atoms/SalvageCertificate';
 import LicensePlateDisposition from '../atoms/LicensePlateDispsition';
+import SellerAddress from '../atoms/SellerAdrress';
 interface SimpleTransferProps {
   formData?: any;
 }
@@ -65,6 +66,7 @@ export default function SimpleTransfer({ formData }: SimpleTransferProps) {
         <NewLien formData={formValues} />
         <VehicalInformation formData={formValues}/>
         <Seller formData={formValues} />
+        <SellerAddress formData={formValues} />
         <ResidentialAddress formData={formValues} />
         <ReleaseofOwnership formData={formValues} />
         <TypeofVehicle formData={formValues} />

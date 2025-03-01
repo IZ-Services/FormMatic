@@ -44,24 +44,32 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess }) =
         const saveResult = await saveResponse.json();
         const { transactionId } = saveResult;
 
-        const fillPdfResponse = await fetch('/api/fillPdf', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transactionId }),
-        });
+        // Open the Reg227 form
+        const openForm = async (formType:any) => {
+          const fillPdfResponse = await fetch('/api/fillPdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transactionId, formType }),
+          });
 
-        if (fillPdfResponse.ok) {
-          const pdfBlob = await fillPdfResponse.blob();
-          const pdfUrl = URL.createObjectURL(pdfBlob);
+          if (fillPdfResponse.ok) {
+            const pdfBlob = await fillPdfResponse.blob();
+            const pdfUrl = URL.createObjectURL(pdfBlob);
 
-          const pdfWindow = window.open(pdfUrl, '_blank');
-          if (!pdfWindow) {
-            alert('Please allow popups to view the PDF.');
+            const pdfWindow = window.open(pdfUrl, '_blank');
+            if (!pdfWindow) {
+              alert(`Please allow popups to view the ${formType} PDF.`);
+            }
+            return true;
+          } else {
+            const error = await fillPdfResponse.json();
+            throw new Error(error.error || `Failed to generate ${formType} PDF`);
           }
-        } else {
-          const error = await fillPdfResponse.json();
-          throw new Error(error.error || 'Failed to generate PDF');
-        }
+        };
+
+        // Open both forms
+        await openForm('Reg227');
+        await openForm('DMVREG262');
 
         onSuccess?.();
       } else {

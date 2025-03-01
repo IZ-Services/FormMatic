@@ -287,29 +287,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
   </div>
 </div>
 
-{/* Add the new gift-related fields */}
-<div className="sellerThirdGroup">
-  <div className="sellerThirdItem">
-    <label className="sellerLabel">Relationship with Gifter</label>
-    <input
-      className="sellerInput"
-      type="text"
-      placeholder="Enter Relationship"
-      value={formData.sellerInfo?.sellers?.[index]?.relationshipWithGifter || ''}
-      onChange={(e) => handleSellerChange(index, 'relationshipWithGifter', e.target.value)}
-    />
-  </div>
-  <div className="sellerThirdItem">
-    <label className="sellerLabel">Gift Value</label>
-    <input
-      className="sellerInput"
-      type="text"
-      placeholder="Enter Gift Value"
-      value={formData.sellerInfo?.sellers?.[index]?.giftValue || ''}
-      onChange={(e) => handleSellerChange(index, 'giftValue', e.target.value)}
-    />
-  </div>
-</div>
+
       </div>
     ));
   };

@@ -17,6 +17,8 @@ interface OwnerData {
   purchaseValue: string;
   isGift: boolean;
   isTrade: boolean;
+  relationshipWithGifter?: string;
+  giftValue?: string;
 }
 
 interface NewRegisteredOwnersProps {
@@ -114,6 +116,8 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
           purchaseValue: '',
           isGift: false,
           isTrade: false,
+          relationshipWithGifter: '',
+          giftValue: '',
         },
       ]);
     }
@@ -137,6 +141,8 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
         purchaseValue: '',
         isGift: false,
         isTrade: false,
+        relationshipWithGifter: '',
+        giftValue: '',
       });
     }
 
@@ -338,7 +344,33 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
                 Trade
               </label>
             </div>
-        </div>
+          </div>
+
+          {/* Show gift-related fields only if isGift is true */}
+          {owner.isGift && (
+            <div className="ownerGiftGroup">
+              <div className="ownerGiftItem">
+                <label className="registeredOwnerLabel">Relationship with Gifter</label>
+                <input
+                  className="registeredOwnerInput"
+                  type="text"
+                  placeholder="Enter Relationship"
+                  value={owner.relationshipWithGifter || ''}
+                  onChange={(e) => handleOwnerFieldChange(index, 'relationshipWithGifter', e.target.value)}
+                />
+              </div>
+              <div className="ownerGiftItem">
+                <label className="registeredOwnerLabel">Gift Value</label>
+                <input
+                  className="registeredOwnerInput"
+                  type="text"
+                  placeholder="Enter Gift Value"
+                  value={owner.giftValue || ''}
+                  onChange={(e) => handleOwnerFieldChange(index, 'giftValue', e.target.value)}
+                />
+              </div>
+            </div>
+          )}
         </div>
       ))}
     </div>
