@@ -14,7 +14,7 @@ interface VehicleInformationType {
   notActualMileage?: boolean;
   exceedsMechanicalLimit?: boolean;
   vehicleUnder10001lbs?: boolean;
-  isMotorcycle?: boolean; // Added motorcycle flag
+  isMotorcycle?: boolean;
   gvwCode?: string;
   cgwCode?: string;
   operationDate?: string;
@@ -23,6 +23,9 @@ interface VehicleInformationType {
 interface VehicleInformationProps {
   formData?: {
     vehicleInformation?: VehicleInformationType;
+    vehicleTransactionDetails?: {
+      isMotorcycle?: boolean;
+    };
   };
 }
 
@@ -37,7 +40,7 @@ const initialVehicleInformation: VehicleInformationType = {
   notActualMileage: false,
   exceedsMechanicalLimit: false,
   vehicleUnder10001lbs: false,
-  isMotorcycle: false, // Default to false
+  isMotorcycle: false,
   gvwCode: '',
   cgwCode: '',
   operationDate: ''
@@ -62,25 +65,16 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propF
     updateField('vehicleInformation', { ...currentInfo, [field]: value });
   };
 
+  const isMotorcycle = formData.vehicleTransactionDetails?.isMotorcycle === true;
+
   return (
     <div className="vehicleInformationWrapper">
-      {/* Title area with motorcycle checkbox */}
       <div className="vehicleHeaderContainer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <h3 className="vehicleInformationHeading">Vehicle Information</h3>
-        <label className="motorcycleCheckboxLabel" style={{ display: 'flex', alignItems: 'center' }}>
-          <input
-            type="checkbox"
-            checked={(formData.vehicleInformation as VehicleInformationType)?.isMotorcycle || false}
-            onChange={(e) => handleVehicleInfoChange('isMotorcycle', e.target.checked)}
-            className="checkboxInput"
-          />
-          <span style={{ marginLeft: '6px' }}>Motorcycle</span>
-        </label>
       </div>
       
-      {/* First group - show Motorcycle Engine Number only if isMotorcycle is true */}
       <div className="vehicleFirstGroup">
-        {(formData.vehicleInformation as VehicleInformationType)?.isMotorcycle && (
+        {isMotorcycle && (
           <div className="vehicleFormItem">
             <label className="yearlabel">Motorcycle Engine Number</label>
             <input

@@ -22,7 +22,16 @@ interface OwnerData {
 }
 
 interface NewRegisteredOwnersProps {
-  formData?: { owners?: OwnerData[]; howMany?: string };
+  formData?: { 
+    owners?: OwnerData[]; 
+    howMany?: string;
+    vehicleTransactionDetails?: {
+      isGift?: boolean;
+      withTitle?: boolean;
+      currentLienholder?: boolean;
+      isMotorcycle?: boolean;
+    };
+  };
 }
 
 const phoneCodes = ['+1', '+44', '+91', '+61', '+81'];
@@ -82,47 +91,61 @@ const states = [
 
 const howManyOptions = ['1', '2', '3'];
 
-const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) => {
-  const { updateField } = useFormContext();
+const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData: propFormData }) => {
+  const { formData: contextFormData, updateField } = useFormContext();
+  
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
+  
   const [owners, setOwners] = useState<OwnerData[]>([]);
   const [isRegMenuOpen, setIsRegMenuOpen] = useState(false);
   const [isHowManyMenuOpen, setIsHowManyMenuOpen] = useState(false);
   const [activeOwnerIndex, setActiveOwnerIndex] = useState(0);
+  
+  const isVehicleGift = formData?.vehicleTransactionDetails?.isGift === true;
 
   const regRef = useRef<HTMLUListElement | null>(null);
   const howManyRef = useRef<HTMLUListElement | null>(null);
+  
   useEffect(() => {
     if (!formData?.howMany) {
       updateField('howMany', '1');
     }
-  }, [formData]);
+  }, []);
+  
   useEffect(() => {
     if (formData?.owners) {
       setOwners(formData.owners);
     }
-  }, [formData]);
-  useEffect(() => {
-    if (!formData?.owners || formData.owners.length === 0) {
-      setOwners([
-        {
-          firstName: '',
-          middleName: '',
-          lastName: '',
-          licenseNumber: '',
-          state: '',
-          phoneCode: '',
-          phoneNumber: '',
-          purchaseDate: '',
-          purchaseValue: '',
-          isGift: false,
-          isTrade: false,
-          relationshipWithGifter: '',
-          giftValue: '',
-        },
-      ]);
-    }
   }, [formData?.owners]);
   
+  useEffect(() => {
+    if (!formData?.owners || formData.owners.length === 0) {
+      const initialOwner = {
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        licenseNumber: '',
+        state: '',
+        phoneCode: '',
+        phoneNumber: '',
+        purchaseDate: '',
+        purchaseValue: '',
+        isGift: false,
+        isTrade: false,
+        relationshipWithGifter: '',
+        giftValue: '',
+      };
+      setOwners([initialOwner]);
+      updateField('owners', [initialOwner]);
+    }
+  }, []);
+  
+  useEffect(() => {
+    console.log("Gift status in NewRegisteredOwners:", isVehicleGift);
+  }, [isVehicleGift]);
 
   const handleHowManyChange = (count: string) => {
     const newCount = parseInt(count);
@@ -177,6 +200,10 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
     document.addEventListener('mousedown', handleClickOutsideMenus);
     return () => document.removeEventListener('mousedown', handleClickOutsideMenus);
   }, []);
+  
+  useEffect(() => {
+  }, [JSON.stringify(formData?.vehicleTransactionDetails)]);
+  
   return (
     <div className="new-registered-owners">
       <div className="newRegHeader">
@@ -186,7 +213,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
               onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
               className="howManyDropDown"
             >
-{String(formData?.howMany ?? '1')}
+              {String(formData?.howMany ?? '1')}
               <ChevronDownIcon className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`} />
             </button>
 
@@ -273,7 +300,10 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
                     <li
                       className="regStateLists"
                       key={stateIndex}
-                      onClick={() => handleOwnerFieldChange(index, 'state', state.abbreviation)}
+                      onClick={() => {
+                        handleOwnerFieldChange(index, 'state', state.abbreviation);
+                        setIsRegMenuOpen(false);
+                      }}
                     >
                       {state.name}
                     </li>
@@ -325,7 +355,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
               />
             </div>
             <div className="newRegThirdItem checkboxWrapper">
-              <label className="checkboxLabel">
+              {/* <label className="checkboxLabel">
                 <input
                   type="checkbox"
                   className="checkboxInput"
@@ -333,7 +363,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
                   onChange={(e) => handleOwnerFieldChange(index, 'isGift', e.target.checked)}
                 />{' '}
                 Gift
-              </label>
+              </label> */}
               <label className="checkboxLabel">
                 <input
                   type="checkbox"
@@ -345,9 +375,9 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
               </label>
             </div>
           </div>
-
-          {/* Show gift-related fields only if isGift is true */}
-          {owner.isGift && (
+          
+          {/* Gift fields section - debugging output included */}
+          {isVehicleGift ? (
             <div className="ownerGiftGroup">
               <div className="ownerGiftItem">
                 <label className="registeredOwnerLabel">Relationship with Gifter</label>
@@ -369,8 +399,11 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ formData }) =
                   onChange={(e) => handleOwnerFieldChange(index, 'giftValue', e.target.value)}
                 />
               </div>
+              <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.5rem' }}>
+                Displayed because Vehicle is a Gift is checked
+              </div>
             </div>
-          )}
+          ) : null}
         </div>
       ))}
     </div>

@@ -44,7 +44,6 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess }) =
         const saveResult = await saveResponse.json();
         const { transactionId } = saveResult;
 
-        // Open the Reg227 form
         const openForm = async (formType:any) => {
           const fillPdfResponse = await fetch('/api/fillPdf', {
             method: 'POST',

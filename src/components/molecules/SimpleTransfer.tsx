@@ -34,7 +34,18 @@ import LicensePlate from '../atoms/LicensePlate';
 import DisabledPersonPlacard from '../atoms/DisabledPersonplacard';
 import PlatesStickerDocRequests from '../atoms/PlatesStickerDocRequests';
 import SalvageCertificate from '../atoms/SalvageCertificate';
-import LicensePlateDisposition from '../atoms/LicensePlateDispsition';import MultipleTransfer from '../../components/molecules/MultipleTransfer';
+import LicensePlateDisposition from '../atoms/LicensePlateDispsition';
+import MultipleTransfer from '../../components/molecules/MultipleTransfer';
+import VehicleTransactionDetails from '../atoms/Checkboxes';
+
+interface VehicleTransactionDetailsData {
+  currentLienholder?: boolean;
+}
+
+interface FormContextData {
+  vehicleTransactionDetails?: VehicleTransactionDetailsData;
+  [key: string]: any;
+}
 
 interface SimpleTransferProps {
   formData?: any;
@@ -48,6 +59,7 @@ export default function SimpleTransfer({ formData }: SimpleTransferProps) {
   }, [formData]);
 
   const FormContent = () => {
+    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
     const { updateField } = useFormContext();
 
     useEffect(() => {
@@ -58,15 +70,21 @@ export default function SimpleTransfer({ formData }: SimpleTransferProps) {
       }
     }, [formValues]);
 
+    const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
+
     return (
       <div className='wholeForm'>
         <TypeContainer />
+        <VehicleTransactionDetails formData={formValues} />
         <NewRegisteredOwners formData={formValues} />
         <Address formData={formValues} />
-        <NewLien formData={formValues} />
+        
+        {isCurrentLienholder && (
+          <NewLien formData={formValues} />
+        )}
+        
         <VehicalInformation formData={formValues}/>
         <Seller formData={formValues} />
-        <SellerAddress formData={formValues} />
         <ResidentialAddress formData={formValues} />
         <ReleaseofOwnership formData={formValues} />
         <TypeofVehicle formData={formValues} />
@@ -90,11 +108,10 @@ export default function SimpleTransfer({ formData }: SimpleTransferProps) {
         <DisabledPersonPlacard formData={formValues} />
         <PlatesStickerDocRequests formData={formValues} />
         <LicensePlate formData={formValues} />
-
         <SalvageCertificate formData={formValues} />
         <LicensePlateDisposition formData={formValues} />
 
-       <MultipleTransfer />
+        <MultipleTransfer />
         <SaveButton 
           transactionType="Simple Transfer"
           onSuccess={() => console.log('Save completed successfully')}
