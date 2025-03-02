@@ -135,16 +135,6 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propF
             onChange={(e) => handleVehicleInfoChange('make', e.target.value)}
           />
         </div>
-        <div className="vehicleFormItem">
-          <label className="yearlabel">Explain Odometer Discrepancy</label>
-          <input
-            className="odometerInput"
-            type="text"
-            placeholder="Explanation"
-            value={(formData.vehicleInformation as VehicleInformationType)?.odometerDiscrepancyExplanation || ''}
-            onChange={(e) => handleVehicleInfoChange('odometerDiscrepancyExplanation', e.target.value)}
-          />
-        </div>
       </div>
     
       <div className="mileageGroup">
@@ -186,7 +176,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propF
           <input
             className="yearInput"
             type="text"
-            placeholder="Mileage of Vehicle"
+            placeholder="Vehicle Mileage"
             value={(formData.vehicleInformation as VehicleInformationType)?.mileage || ''}
             onChange={(e) => handleVehicleInfoChange('mileage', e.target.value)}
           />

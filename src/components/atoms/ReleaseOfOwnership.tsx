@@ -152,7 +152,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
   return (
     <div className="releaseWrapper">
       <div className="headerRow">
-        <h3 className="releaseHeading">Release Of Ownership</h3>
+        <h3 className="releaseHeading">Lien Release</h3>
         <div className="checkboxSection">
           <input
             type="checkbox"

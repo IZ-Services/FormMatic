@@ -9,7 +9,7 @@ import SaveButton from '../atoms/savebutton';
 import { FormDataProvider, useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
-import TypeContainer from '../atoms/TypesContainer';
+import TypeContainer from '../layouts/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
 import ReleaseofOwnership from '../atoms/ReleaseOfOwnership';
 import TypeofVehicle from '../atoms/TypeOfVehicle';
@@ -34,8 +34,8 @@ import LicensePlate from '../atoms/LicensePlate';
 import DisabledPersonPlacard from '../atoms/DisabledPersonplacard';
 import PlatesStickerDocRequests from '../atoms/PlatesStickerDocRequests';
 import SalvageCertificate from '../atoms/SalvageCertificate';
-import LicensePlateDisposition from '../atoms/LicensePlateDispsition';
-import SellerAddress from '../atoms/SellerAdrress';
+import LicensePlateDisposition from '../atoms/LicensePlateDispsition';import MultipleTransfer from '../../components/molecules/MultipleTransfer';
+
 interface SimpleTransferProps {
   formData?: any;
 }
@@ -94,6 +94,7 @@ export default function SimpleTransfer({ formData }: SimpleTransferProps) {
         <SalvageCertificate formData={formValues} />
         <LicensePlateDisposition formData={formValues} />
 
+       <MultipleTransfer />
         <SaveButton 
           transactionType="Simple Transfer"
           onSuccess={() => console.log('Save completed successfully')}

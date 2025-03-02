@@ -1,10 +1,16 @@
 'use client';
 import React, { createContext, useState, useContext } from 'react';
 
+
+export interface Subsection {
+  name: string;
+  subOptions?: string[];
+}
+
 export interface Scenerio {
   _id?: string;
   transactionType: string;
-  subsections: string[];
+  subsections: (string | Subsection)[];
 }
 
 interface ScenarioContextType {
@@ -17,46 +23,76 @@ const ScenarioContext = createContext<ScenarioContextType | null>(null);
 
 const scenerios: Scenerio[] = [
   {
-    transactionType: 'Transfer & Renewal',
+    transactionType: 'Transfer',
     subsections: [
-      'Transfer',
-      'Renewal',
+      'Simple Transfer',
+      'Multiple Transfer',
+      'Family Transfer',
+      {
+        name: 'Out-of-State Title',
+        subOptions: [
+          'Purchased Over a Year Ago',
+          'Purchased Less Than a Year Ago'
+        ]
+      }
     ],
   },
   {
     transactionType: 'Duplicate & Replacement',
     subsections: [
       'Duplicate Title',
-      'Duplicate Plates/Stickers',
-      'Registration Replacement'
+      'Duplicate Registration',
+      {
+        name: 'Duplicate Stickers',
+        subOptions: [
+          'Month',
+          'Year'
+        ]
+      },
+      'Duplicate Plates & Stickers',
     ],
   },
-  {
-    transactionType: 'Planned Non-Operation',
+    {
+    transactionType: 'Lienholder',
     subsections: [
-      'Filing PNO',
-      'PNO to Operational',
-    ],
-  },
-  {
-    transactionType: 'Lienholder Changes',
-    subsections: [
-      'Lienholder Addition',
-      'Lienholder Removal'
+      'Add Lienholder',
+      'Remove Lienholder',
     ],
   },
   {
     transactionType: 'Address & Name Changes',
-    subsections: [
-      'Name Change/Correction on Title',
+     subsections: [
+      {
+        name: 'Name Change',
+        subOptions: [
+          'Name Correction',
+          'Legal Name Change',
+          'Name Discrepancy'
+        ]
+      },
       'Change of Address'
     ],
   },
-  {
-    transactionType: 'Specialty Transactions',
+{
+    transactionType: 'Planned Non-Operation',
     subsections: [
+      'Filing for Planned Non-Operation (PNO)',
+      'Restoring PNO Vehicle to Operational',
+    ],
+  },
+  {
+    transactionType: 'Specialty Plates & Placards',
+    subsections: [
+      {
+        name: 'Personalized Plates',
+        subOptions: [
+          'Order',
+          'Replace',
+          'Reassign/Retain',
+          'Exchange'
+        ]
+      },
       'Disabled Person Placards/Plates',
-      'Personalized Plates',
     ],
   },
 ];

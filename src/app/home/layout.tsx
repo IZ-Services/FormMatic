@@ -4,7 +4,6 @@ import type { Metadata } from 'next';
 
 import '../globals.css';
 import Header from '../../components/layouts/Header';
-import Sidebar from '../../components/layouts/Sidebar';
 
 export const metadata: Metadata = {
   title: 'FormMatic',
@@ -19,8 +18,7 @@ export default function HomeLayout({
   return (
     <>
       <Header />
-      <Sidebar />
-      <main style={{ marginLeft: '20rem', marginTop: '7rem' }}>{children}</main>
+      <main style={{ marginTop: '7rem' }}>{children}</main>
     </>
   );
 }

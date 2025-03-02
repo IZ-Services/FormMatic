@@ -276,7 +276,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
     />
   </div>
   <div className="sellerThirdItem">
-    <label className="registeredOwnerLabel">Date of Purchase</label>
+    <label className="registeredOwnerLabel">Date of Sale</label>
     <input
       className="registeredDateInput"
       type="text"
