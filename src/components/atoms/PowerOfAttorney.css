@@ -1,0 +1,105 @@
+.power-of-attorney-wrapper {
+    font-family: Arial, sans-serif;
+    margin-bottom: 20px;
+  }
+  
+
+  /* .power-of-attorney-content {
+    padding: 15px;
+  } */
+  
+  .power-of-attorney-description p {
+    margin: 10px 0;
+  }
+  
+  .name-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .print-names-input {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+  
+  .dates-section {
+    margin-top: 15px;
+  }
+  
+  .date-input-row {
+    margin-bottom: 15px;
+  }
+  
+  .date-label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+    color: #444;
+  }
+  
+  .signature-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .signature-placeholder {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+  }
+  
+  .date-input {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    max-width: 120px;
+  }
+  
+  .add-date-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .add-date-button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .add-icon {
+    width: 20px;
+    height: 20px;
+    color: #333;
+  }
+
+  
+  
+  @media (max-width: 768px) {
+    .name-input-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 5px;
+    }
+  
+    .signature-input-group {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+    }
+  
+    .date-input {
+      max-width: 100%;
+    }
+  }

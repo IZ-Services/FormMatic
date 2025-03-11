@@ -133,13 +133,15 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     setReleaseData(newData);
     updateField('releaseInformation', newData);
   };
+  
+  const handleStateSelect = (addressType: 'address' | 'mailingAddress', stateAbbreviation: string) => {     handleAddressChange(addressType, 'state', stateAbbreviation);     setOpenDropdown(null);
+  };
 
   const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as Element;
     if (openDropdown && 
-      ((openDropdown === 'reg' && regRef.current && !regRef.current.contains(target)) ||
-       (openDropdown === 'mailing' && mailingRef.current && !mailingRef.current.contains(target))) &&
-      !target.closest('.regStateDropDown')) {
+      ((openDropdown === 'reg' && regRef.current && !regRef.current.contains(target) && !target.closest('.reg-dropdown-button')) ||
+       (openDropdown === 'mailing' && mailingRef.current && !mailingRef.current.contains(target) && !target.closest('.mailing-dropdown-button')))) {
       setOpenDropdown(null);
     }
   };
@@ -215,7 +217,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
           <label className="registeredOwnerLabel">State</label>
           <button
             onClick={() => setOpenDropdown(openDropdown === 'reg' ? null : 'reg')}
-            className="regStateDropDown"
+            className="regStateDropDown reg-dropdown-button"
           >
             {releaseData.address?.state || 'State'}
             <ChevronDownIcon className={`regIcon ${openDropdown === 'reg' ? 'rotate' : ''}`} />
@@ -225,7 +227,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
               {states.map((state, index) => (
                 <li
                   key={index}
-                  onClick={() => handleAddressChange('address', 'state', state.abbreviation)}
+                  onClick={() => handleStateSelect('address', state.abbreviation)}
                   className="regStateLists"
                 >
                   {state.name}
@@ -335,7 +337,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
               <label className="registeredOwnerLabel">State</label>
               <button
                 onClick={() => setOpenDropdown(openDropdown === 'mailing' ? null : 'mailing')}
-                className="regStateDropDown"
+                className="regStateDropDown mailing-dropdown-button"
               >
                 {releaseData.mailingAddress?.state || 'State'}
                 <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
@@ -345,7 +347,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
                   {states.map((state, index) => (
                     <li
                       key={index}
-                      onClick={() => handleAddressChange('mailingAddress', 'state', state.abbreviation)}
+                      onClick={() => handleStateSelect('mailingAddress', state.abbreviation)}
                       className="regStateLists"
                     >
                       {state.name}

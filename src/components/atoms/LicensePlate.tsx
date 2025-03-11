@@ -27,9 +27,7 @@ const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) =
 
   const handleLicensePlateChange = (field: keyof LicensePlateData, value: boolean) => {
     const newData = { 
-      ...licensePlateData,
-      // Ensure only one checkbox can be selected
-      oneMissingPlate: field === 'oneMissingPlate' ? value : false,
+      ...licensePlateData,       oneMissingPlate: field === 'oneMissingPlate' ? value : false,
       twoMissingPlates: field === 'twoMissingPlates' ? value : false
     };
     setLicensePlateData(newData);

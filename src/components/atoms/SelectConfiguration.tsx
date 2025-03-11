@@ -64,15 +64,9 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
 
   const handleChange = (field: keyof SelectConfigurationType, value: any) => {
     const currentInfo = (formData.selectConfiguration || {}) as SelectConfigurationType;
-    const newData = { ...currentInfo, [field]: value };
-
-    // If switching to Sequential, clear personalized details
-    if (field === 'plateType' && value === 'Sequential') {
+    const newData = { ...currentInfo, [field]: value };     if (field === 'plateType' && value === 'Sequential') {
       newData.personalized = initialSelectConfiguration.personalized;
-    }
-
-    // If switching to Personalized, clear sequential details
-    if (field === 'plateType' && value === 'Personalized') {
+    }     if (field === 'plateType' && value === 'Personalized') {
       newData.currentLicensePlate = '';
       newData.fullVehicleId = '';
     }
@@ -82,7 +76,9 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
 
   const handlePersonalizedChange = (field: string, value: any) => {
     const currentInfo = (formData.selectConfiguration || {}) as SelectConfigurationType;
-    const personalized = { ...(currentInfo.personalized || {}) };
+    const personalized = { ...(currentInfo.personalized || {}) };     if (field.includes('Meaning') && typeof value === 'string') {
+      value = value.charAt(0).toUpperCase() + value.slice(1);
+    }
     
     // @ts-ignore - Using string as key
     personalized[field] = value;
@@ -98,6 +94,11 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
   const vehicleTypes = ['Automobile', 'Commercial', 'Trailer', 'Motorcycle'];
   const kidsSymbols = ['Heart', 'Star', 'Hand', 'Plus'];
   const pickupLocations = ['DMV Office', 'Auto Club'];
+
+  const handleCityChange = (value: string) => {
+    const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+    handleChange('locationCity', capitalizedValue);
+  };
 
   return (
     <div className="configWrapper" style={{ margin: '15px 0' }}>
@@ -206,11 +207,12 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
               </label>
             </div>
             
+            {/* Properly styled symbols with appropriate spacing */}
             <div className="kidsPlateOption">
               <span className="kidsPlateText">KIDS PLATE: Circle choice of symbol</span>
-              <div className="kidsPlateSymbols">
+              <div className="kidsPlateSymbols" style={{ display: 'flex', alignItems: 'center', gap: '30px', marginTop: '10px' }}>
                 {kidsSymbols.map((symbol) => (
-                  <label key={symbol} className="symbolLabel">
+                  <label key={symbol} className="symbolLabel" style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100px' }}>
                     <input
                       type="radio"
                       name="kidsPlateSymbol"
@@ -218,7 +220,18 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
                       onChange={() => handlePersonalizedChange('kidsPlateSymbol', symbol)}
                       className="symbolRadio"
                     />
-                    <span className={`symbolIcon symbol${symbol}`}>{symbol}</span>
+                    <div 
+                      className={`symbol${symbol}`} 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px', 
+                        display: 'inline-block',
+                        backgroundSize: 'contain',
+                        backgroundRepeat: 'no-repeat',
+                        verticalAlign: 'middle'
+                      }}
+                    ></div>
+                    <span style={{ marginLeft: '5px' }}>{symbol}</span>
                   </label>
                 ))}
               </div>
@@ -348,7 +361,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
                     type="text"
                     className="textInput locationText"
                     value={(formData.selectConfiguration as SelectConfigurationType)?.locationCity || ''}
-                    onChange={(e) => handleChange('locationCity', e.target.value)}
+                    onChange={(e) => handleCityChange(e.target.value)}
                   />
                 </label>
               </div>

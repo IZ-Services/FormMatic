@@ -60,33 +60,34 @@ const NameStatement: React.FC<NameStatementProps> = ({ formData: propFormData })
 
   const handleSamePersonChange = (field: 'firstPerson' | 'secondPerson', value: string) => {
     const currentInfo = (formData.nameStatement || {}) as NameStatementType;
-    const currentSamePerson = currentInfo.samePerson || { firstPerson: '', secondPerson: '' };
+    const currentSamePerson = currentInfo.samePerson || { firstPerson: '', secondPerson: '' };     const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
     
     updateField('nameStatement', { 
       ...currentInfo, 
       samePerson: { 
         ...currentSamePerson, 
-        [field]: value 
+        [field]: capitalizedValue 
       } 
     });
   };
 
   const handleNameChangeChange = (field: 'fromName' | 'toName', value: string) => {
     const currentInfo = (formData.nameStatement || {}) as NameStatementType;
-    const currentNameChange = currentInfo.nameChange || { fromName: '', toName: '' };
+    const currentNameChange = currentInfo.nameChange || { fromName: '', toName: '' };     const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
     
     updateField('nameStatement', { 
       ...currentInfo, 
       nameChange: { 
         ...currentNameChange, 
-        [field]: value 
+        [field]: capitalizedValue 
       } 
     });
   };
 
   const handleMisspelledNameChange = (value: string) => {
-    const currentInfo = (formData.nameStatement || {}) as NameStatementType;
-    updateField('nameStatement', { ...currentInfo, misspelledNameCorrection: value });
+    const currentInfo = (formData.nameStatement || {}) as NameStatementType;     const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+    
+    updateField('nameStatement', { ...currentInfo, misspelledNameCorrection: capitalizedValue });
   };
 
   return (

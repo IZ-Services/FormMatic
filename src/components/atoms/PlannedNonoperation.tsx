@@ -48,15 +48,9 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
 
   const handleEntryChange = (index: number, field: keyof VehicleEntryType, value: string) => {
     const currentInfo = { ...(formData.plannedNonOperation || initialPlannedNonOperation) };
-    const updatedEntries = [...currentInfo.entries];
-    
-    // Ensure entry exists
-    if (!updatedEntries[index]) {
+    const updatedEntries = [...currentInfo.entries];     if (!updatedEntries[index]) {
       updatedEntries[index] = { ...initialVehicleEntry };
-    }
-    
-    // Update the field
-    updatedEntries[index] = { 
+    }     updatedEntries[index] = { 
       ...updatedEntries[index], 
       [field]: value 
     };

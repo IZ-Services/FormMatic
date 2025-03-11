@@ -1,7 +1,6 @@
 'use client';
 import React, { createContext, useState, useContext } from 'react';
 
-
 export interface Subsection {
   name: string;
   subOptions?: string[];
@@ -17,6 +16,10 @@ interface ScenarioContextType {
   scenarios: Scenerio[];
   selectedSubsection: string | null;
   setSelectedSubsection: React.Dispatch<React.SetStateAction<string | null>>;
+  activeScenarios: Record<string, boolean>;
+  setActiveScenarios: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  activeSubOptions: Record<string, boolean>;
+  setActiveSubOptions: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
 const ScenarioContext = createContext<ScenarioContextType | null>(null);
@@ -26,9 +29,7 @@ const scenerios: Scenerio[] = [
     transactionType: 'Transfer',
     subsections: [
       'Simple Transfer',
-      'Multiple Transfer',
-      'Family Transfer',
-      {
+      'Multiple Transfer',       {
         name: 'Out-of-State Title',
         subOptions: [
           'Purchased Over a Year Ago',
@@ -52,7 +53,7 @@ const scenerios: Scenerio[] = [
       'Duplicate Plates & Stickers',
     ],
   },
-    {
+  {
     transactionType: 'Lienholder',
     subsections: [
       'Add Lienholder',
@@ -61,7 +62,7 @@ const scenerios: Scenerio[] = [
   },
   {
     transactionType: 'Address & Name Changes',
-     subsections: [
+    subsections: [
       {
         name: 'Name Change',
         subOptions: [
@@ -73,7 +74,7 @@ const scenerios: Scenerio[] = [
       'Change of Address'
     ],
   },
-{
+  {
     transactionType: 'Planned Non-Operation',
     subsections: [
       'Filing for Planned Non-Operation (PNO)',
@@ -99,10 +100,20 @@ const scenerios: Scenerio[] = [
 
 export function ScenarioProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [selectedSubsection, setSelectedSubsection] = useState<string | null>(null);
+  const [activeScenarios, setActiveScenarios] = useState<Record<string, boolean>>({});
+  const [activeSubOptions, setActiveSubOptions] = useState<Record<string, boolean>>({});
 
   return (
     <ScenarioContext.Provider
-      value={{ scenarios: scenerios, selectedSubsection, setSelectedSubsection }}
+      value={{ 
+        scenarios: scenerios, 
+        selectedSubsection, 
+        setSelectedSubsection,
+        activeScenarios,
+        setActiveScenarios,
+        activeSubOptions,
+        setActiveSubOptions
+      }}
     >
       {children}
     </ScenarioContext.Provider>

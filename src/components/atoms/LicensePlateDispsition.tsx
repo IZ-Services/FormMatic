@@ -28,7 +28,7 @@ const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({ formD
   const { updateField } = useFormContext();
 
   useEffect(() => {
-    // Merge provided data with default values
+ 
     const mergedData: LicensePlateDispositionData = {
       beingSurrendered: false,
       haveLost: false,

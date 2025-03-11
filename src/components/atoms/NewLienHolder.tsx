@@ -38,7 +38,7 @@ interface FormContextType {
 interface NewLienHolderProps {
   formData?: {
     lienHolder?: LienHolder;
-  };
+  };   onChange?: (data: LienHolder) => void;
 }
 
 const initialAddress: Address = {
@@ -65,10 +65,11 @@ const initialLienHolder: LienHolder = {
   mailingAddress: initialMailingAddress
 };
 
-const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData }) => {
+const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, onChange }) => {
   const [lienHolderData, setLienHolderData] = useState<LienHolder>(
     propFormData?.lienHolder || initialLienHolder
   );
+  const [eltError, setEltError] = useState<string>('');
   const { updateField } = useFormContext() as FormContextType;
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const regRef = useRef<HTMLUListElement>(null);
@@ -82,8 +83,11 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData })
 
   useEffect(() => {
     if (!lienHolderData) {
-      setLienHolderData(initialLienHolder);
-      updateField('lienHolder', initialLienHolder);
+      const defaultData = initialLienHolder;
+      setLienHolderData(defaultData);
+      updateField('lienHolder', defaultData);       if (onChange) {
+        onChange(defaultData);
+      }
     }
   }, []);
 
@@ -104,7 +108,20 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData })
   const handleInputChange = (field: keyof LienHolder, value: any) => {
     const newLienHolder = { ...lienHolderData, [field]: value };
     setLienHolderData(newLienHolder);
-    updateField('lienHolder', newLienHolder);
+    updateField('lienHolder', newLienHolder);     if (onChange) {
+      onChange(newLienHolder);
+    }
+  };
+
+  const handleEltChange = (value: string) => {     const digitsOnly = value.replace(/\D/g, '');     const truncatedValue = digitsOnly.slice(0, 3);     if (value !== truncatedValue) {
+      setEltError('ELT Number must be exactly 3 digits');
+    } else if (truncatedValue.length > 0 && truncatedValue.length < 3) {
+      setEltError('ELT Number must be exactly 3 digits');
+    } else {
+      setEltError('');
+    }
+    
+    handleInputChange('eltNumber', truncatedValue);
   };
 
   const handleAddressChange = (addressType: 'address' | 'mailingAddress', field: string, value: string) => {
@@ -114,7 +131,9 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData })
       [field]: value
     };
     setLienHolderData(newLienHolder);
-    updateField('lienHolder', newLienHolder);
+    updateField('lienHolder', newLienHolder);     if (onChange) {
+      onChange(newLienHolder);
+    }
   };
 
   const handleStateChange = (dropdown: string, stateAbbreviation: string, isMailing = false) => {
@@ -193,26 +212,36 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData })
         </div>
       </div>
 
-      <div className="formGroup maxWidthField">
-        <label className="formLabel">True Full Name or Bank/Finance Company or Individual</label>
-        <input
-          className="formInput"
-          type="text"
-          placeholder="True Full Name or Bank/Finance Company or Individual"
-          value={lienHolderData.name || ''}
-          onChange={(e) => handleInputChange('name', e.target.value)}
-        />
-      </div>
+      {/* Name and ELT in one row */}
+      <div className="nameEltGroup" style={{ display: 'flex', gap: '1rem' }}>
+        <div className="formGroup" style={{ flex: '3' }}>
+          <label className="formLabel">True Full Name or Bank/Finance Company or Individual</label>
+          <input
+            className="formInput"
+            type="text"
+            placeholder="True Full Name or Bank/Finance Company or Individual"
+            value={lienHolderData.name || ''}
+            onChange={(e) => handleInputChange('name', e.target.value)}
+          />
+        </div>
 
-      <div className="formGroup maxWidthField">
-        <label className="formLabel">ELT Number</label>
-        <input
-          className="formInput"
-          type="text"
-          placeholder="ELT Number"
-          value={lienHolderData.eltNumber || ''}
-          onChange={(e) => handleInputChange('eltNumber', e.target.value)}
-        />
+        <div className="formGroup" style={{ flex: '1' }}>
+          <label className="formLabel">ELT Number (3 digits)</label>
+          <input
+            className="formInput"
+            type="text"
+            placeholder="ELT Number"
+            value={lienHolderData.eltNumber || ''}
+            onChange={(e) => handleEltChange(e.target.value)}
+            maxLength={3}
+            style={{ borderColor: eltError ? 'red' : '' }}
+          />
+          {eltError && (
+            <div className="errorMessage" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
+              {eltError}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="streetAptGroup">

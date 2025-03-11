@@ -1,40 +1,46 @@
 import connectDB from '@/lib/mongoDB';
-import Client from '@/models/clientSchema';
+import Client from '@/models/transaction';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   await connectDB();
   const { searchParams } = new URL(request.url);
   let searchFor = searchParams.get('searchFor');
-  const user_id = searchParams.get('user_id');
+  const userId = searchParams.get('userId');
+  
   try {
-    if (!searchFor || !user_id) {
+    if (!searchFor || !userId) {
       return NextResponse.json(
-        { error: 'Search parameter "searchFor" and "user_id" are required' },
+        { error: 'Search parameters "searchFor" and "userId" are required' },
         { status: 400 },
       );
     }
-    searchFor = searchFor.replace(/[.*+?^${}()|[\]     s\\]/g, '\\$&');
-
+    
+    searchFor = searchFor.replace(/[.*+?^${}()|[\]\\s]/g, '\\$&');
     const searchRegex = new RegExp(searchFor, 'i');
-    const client = await Client.find({
-      user_id,
+    
+    const transactions = await Client.find({
+      userId,
       $or: [
-        { firstName1: { $regex: searchRegex } },
-        { lastName1: { $regex: searchRegex } },
-        { vehicleVinNumber: { $regex: searchRegex } },
-        { firstName2: { $regex: searchRegex } },
-        { lastName2: { $regex: searchRegex } },
-        { firstName3: { $regex: searchRegex } },
-        { lastName3: { $regex: searchRegex } },
+        { transactionType: { $regex: searchRegex } },
+        { 'formData.firstName1': { $regex: searchRegex } },
+        { 'formData.lastName1': { $regex: searchRegex } },
+        { 'formData.vehicleVinNumber': { $regex: searchRegex } },
+        { 'formData.firstName2': { $regex: searchRegex } },
+        { 'formData.lastName2': { $regex: searchRegex } },
+        { 'formData.firstName3': { $regex: searchRegex } },
+        { 'formData.lastName3': { $regex: searchRegex } },
       ],
     });
 
-    if (client.length === 0) {
-      return NextResponse.json({ error: 'Client not found' });
+    if (transactions.length === 0) {
+      return NextResponse.json(
+        { error: 'No transactions found' },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(client);
+    return NextResponse.json(transactions);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: error }, { status: 500 });

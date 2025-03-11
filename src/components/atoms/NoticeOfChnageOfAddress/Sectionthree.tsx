@@ -121,10 +121,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
     const newData = {
       ...sectionData,
       mailingAddressDifferent: !sectionData.mailingAddressDifferent
-    };
-    
-    // Reset mailing address if unchecked
-    if (!newData.mailingAddressDifferent) {
+    };     if (!newData.mailingAddressDifferent) {
       newData.mailingAddress = { ...initialAddress };
     }
     

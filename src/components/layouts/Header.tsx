@@ -101,7 +101,7 @@ export default function Header() {
           {isDrawerOpen ? (
             <span className="menuTitleWrapper">
               <XMarkIcon className="iconSize" />
-              <span className="menuTitle">Formmatic</span>
+              <span className="menuTitle">FormMatic</span>
             </span>
           ) : (
             <Image src={Sidebaricon} alt="Menu Icon" className="iconSize" />

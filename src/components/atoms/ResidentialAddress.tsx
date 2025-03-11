@@ -189,6 +189,9 @@ export default function ResidentialAddress({ formData: propFormData }: Residenti
       [section]: { ...current, [field]: value }
     });
   };
+  
+  const handleStateSelect = (section: 'address' | 'mailingAddress', stateAbbreviation: string) => {     handleAddressChange(section, 'state', stateAbbreviation);     setOpenDropdown(null);
+  };
 
   const handleCheckboxChange = (field: keyof ResidentialAddressData, checked: boolean) => {
     updateField('residentialAddress', {
@@ -218,9 +221,8 @@ export default function ResidentialAddress({ formData: propFormData }: Residenti
   const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as Element;
     if (openDropdown && 
-      ((openDropdown === 'reg' && regRef.current && !regRef.current.contains(target)) ||
-       (openDropdown === 'mailing' && mailingRef.current && !mailingRef.current.contains(target))) &&
-      !target.closest('.regStateDropDown')) {
+      ((openDropdown === 'reg' && regRef.current && !regRef.current.contains(target) && !target.closest('.reg-dropdown-button')) ||
+       (openDropdown === 'mailing' && mailingRef.current && !mailingRef.current.contains(target) && !target.closest('.mailing-dropdown-button')))) {
       setOpenDropdown(null);
     }
   };
@@ -277,7 +279,7 @@ export default function ResidentialAddress({ formData: propFormData }: Residenti
             <label className="registeredOwnerLabel">State</label>
             <button
               onClick={() => setOpenDropdown(openDropdown === 'reg' ? null : 'reg')}
-              className="regStateDropDown"
+              className="regStateDropDown reg-dropdown-button"
             >
               {formData.residentialAddress?.address?.state || 'State'}
               <ChevronDownIcon className={`regIcon ${openDropdown === 'reg' ? 'rotate' : ''}`} />
@@ -287,7 +289,7 @@ export default function ResidentialAddress({ formData: propFormData }: Residenti
                 {states.map((state, index) => (
                   <li
                     key={index}
-                    onClick={() => handleAddressChange('address', 'state', state.abbreviation)}
+                    onClick={() => handleStateSelect('address', state.abbreviation)}
                     className="regStateLists"
                   >
                     {state.name}
@@ -349,7 +351,7 @@ export default function ResidentialAddress({ formData: propFormData }: Residenti
               <label className="registeredOwnerLabel">State</label>
               <button
                 onClick={() => setOpenDropdown(openDropdown === 'mailing' ? null : 'mailing')}
-                className="regStateDropDown"
+                className="regStateDropDown mailing-dropdown-button"
               >
                 {formData.residentialAddress?.mailingAddress?.state || 'State'}
                 <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
@@ -359,7 +361,7 @@ export default function ResidentialAddress({ formData: propFormData }: Residenti
                   {states.map((state, index) => (
                     <li
                       key={index}
-                      onClick={() => handleAddressChange('mailingAddress', 'state', state.abbreviation)}
+                      onClick={() => handleStateSelect('mailingAddress', state.abbreviation)}
                       className="regStateLists"
                     >
                       {state.name}

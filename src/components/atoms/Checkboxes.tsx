@@ -7,18 +7,62 @@ interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
   isMotorcycle?: boolean;
   isGift?: boolean;
+  isFamilyTransfer?: boolean;
+}
+
+interface OwnerData {
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  licenseNumber?: string;
+  state?: string;
+  phoneCode?: string;
+  phoneNumber?: string;
+  purchaseDate?: string;
+  purchaseValue?: string;
+  marketValue?: string;
+  isGift?: boolean;
+  isTrade?: boolean;
+  relationshipWithGifter?: string;
+  giftValue?: string;
+  relationshipType?: 'AND' | 'OR';
+}
+
+interface VehicleInformationType {
+  licensePlate?: string;
+  hullId?: string;
+  engineNumber?: string;  
+  year?: string;
+  make?: string;
+  odometerDiscrepancyExplanation?: string;
+  mileage?: string;
+  notActualMileage?: boolean;
+  exceedsMechanicalLimit?: boolean;
+  vehicleUnder10001lbs?: boolean;
+  isMotorcycle?: boolean;
+  gvwCode?: string;
+  cgwCode?: string;
+  operationDate?: string;
+}
+
+interface FormDataType {
+  vehicleTransactionDetails?: VehicleTransactionDetailsData;
+  vehicleInformation?: VehicleInformationType;
+  owners?: OwnerData[];
 }
 
 interface VehicleTransactionDetailsProps {
-  formData?: {
-    vehicleTransactionDetails?: VehicleTransactionDetailsData;
-  };
+  formData?: FormDataType;
+  onChange?: (data: VehicleTransactionDetailsData) => void;
 }
 
-const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({ formData: propFormData }) => {
+const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({ 
+  formData: propFormData,
+  onChange 
+}) => {
   const { formData: contextFormData, updateField } = useFormContext();
   
-  const combinedFormData = {
+  const combinedFormData: FormDataType = {
     ...contextFormData,
     ...propFormData
   };
@@ -27,7 +71,8 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({ f
     withTitle: false,
     currentLienholder: false,
     isMotorcycle: false,
-    isGift: false
+    isGift: false,
+    isFamilyTransfer: false
   });
 
   useEffect(() => {
@@ -36,6 +81,7 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({ f
       currentLienholder: false,
       isMotorcycle: false,
       isGift: false,
+      isFamilyTransfer: false,
       ...combinedFormData?.vehicleTransactionDetails
     };
     setTransactionData(mergedData);
@@ -47,24 +93,62 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({ f
     const newData = { 
       ...transactionData,
       [field]: newValue
-    };
-
-    if (field === 'withTitle' && !newValue) {
+    };     if (field === 'withTitle' && !newValue) {
       newData.currentLienholder = false;
+    }     if (field === 'isGift' && newValue) {
+      newData.isFamilyTransfer = false;
+    }     if (field === 'isFamilyTransfer' && newValue) {
+      newData.isGift = false;
+    }     if (field === 'currentLienholder' && !newValue) {
+      updateField('legalOwnerInformation', {
+        name: 'NONE',
+        address: {
+          street: '',
+          apt: '',
+          city: '',
+          state: '',
+          zip: ''
+        },
+        date: '',
+        phoneNumber: '',
+        authorizedAgentName: '',
+        authorizedAgentTitle: ''
+      });
+    }     if (field === 'isMotorcycle' && !newValue) {
+      const currentVehicleInfo = combinedFormData.vehicleInformation || {};
+      if (currentVehicleInfo.engineNumber) {
+        updateField('vehicleInformation', {
+          ...currentVehicleInfo,
+          engineNumber: ''
+        });
+      }
+    }     if (field === 'isGift' && !newValue) {
+      const currentOwners = combinedFormData.owners || [];
+      if (currentOwners.length > 0) {
+        const updatedOwners = currentOwners.map((owner: OwnerData) => ({
+          ...owner,
+          relationshipWithGifter: '',
+          giftValue: ''
+        }));
+        updateField('owners', updatedOwners);
+      }
     }
 
     console.log(`Changing ${field} to:`, newValue);
     console.log("New transaction data:", newData);
 
     setTransactionData(newData);
-    
     updateField('vehicleTransactionDetails', newData);
+    
+    if (onChange) {
+      onChange(newData);
+    }
   };
 
   return (
     <div className="releaseWrapper">
       <div className="headerRow">
-        <h3 className="releaseHeading">Vehicle Transaction Details</h3>
+        <h3 className="releaseHeading">Transaction Details</h3>
       </div>
 
       <div className="checkbox-container">
@@ -108,13 +192,21 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({ f
               type="checkbox"
               checked={transactionData.isGift || false}
               onChange={() => handleCheckboxChange('isGift')}
+              disabled={transactionData.isFamilyTransfer}
             />
             Vehicle is a Gift
-            {transactionData.isGift && (
-              <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem', color: '#666' }}>
-                (Gift details will appear in Owner Information)
-              </span>
-            )}
+          </label>
+        </div>
+
+        <div className="checkbox-section">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={transactionData.isFamilyTransfer || false}
+              onChange={() => handleCheckboxChange('isFamilyTransfer')}
+              disabled={transactionData.isGift}
+            />
+            Family Transfer
           </label>
         </div>
       </div>

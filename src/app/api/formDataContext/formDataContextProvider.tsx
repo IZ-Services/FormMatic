@@ -12,8 +12,14 @@ type FormContextType = {
 
 const FormContext = createContext<FormContextType | undefined>(undefined);
 
-export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [formData, setFormData] = useState<FormData>({});
+interface FormDataProviderProps {
+  children: React.ReactNode;
+  initialData?: FormData; }
+
+export const FormDataProvider: React.FC<FormDataProviderProps> = ({ 
+  children, 
+  initialData = {} }) => {
+  const [formData, setFormData] = useState<FormData>(initialData);
   const [transactionType, setTransactionType] = useState<string>('');
 
   const updateField = (key: string, value: unknown) => {
@@ -40,4 +46,3 @@ export const useFormContext = () => {
   }
   return context;
 };
-

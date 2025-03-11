@@ -14,7 +14,7 @@ import React, { useEffect, useState } from 'react';
 import LegalOwnerOfRecord from '../atoms/LegalOwnerOfRecord';
 
 import VehicleTransactionDetails from '../atoms/Checkboxes';
-import PowerOfAttorney from '../atoms/PowerOfAttorney';
+import MissingTitle from '../atoms/MissingTitle';
 import SellerAddress from '../atoms/SellerAdrress';
 
 interface VehicleTransactionDetailsData {
@@ -26,18 +26,13 @@ interface FormContextData {
   [key: string]: any;
 }
 
-interface SimpleTransferProps {
+interface DuplicateTitleTransferProps {
   formData?: any;
-  onDataChange?: (data: any) => void;
-
 }
 
-export default function SimpleTransfer({ formData, onDataChange }: SimpleTransferProps) {
+export default function DuplicateTitleTransfer({ formData }: DuplicateTitleTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
-  useEffect(() => {
-    if (onDataChange) {
-      onDataChange(formData);     }
-  }, [formData]);
+
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
@@ -64,15 +59,46 @@ export default function SimpleTransfer({ formData, onDataChange }: SimpleTransfe
         <VehicalInformation formData={formValues}/>
         <Seller formData={formValues} />
         <SellerAddress formData={formValues} />
+        <MissingTitle formData={formValues} />
         {isCurrentLienholder && (
           <LegalOwnerOfRecord formData={formValues} />
         )}
-        <NewRegisteredOwners formData={formValues} />
+        {/* <NewRegisteredOwners formData={formValues} />
         <Address formData={formValues} />
         <NewLien formData={formValues} />
+        <PowerOfAttorney formData={formValues} /> */}
+
+        {/* <VehicleTransactionDetails formData={formValues} /> */}
+        
+        {/* <ResidentialAddress formData={formValues} /> */}
+        {/* <ReleaseofOwnership formData={formValues} />
+        <TypeofVehicle formData={formValues} />
+        <SmogExemption formData={formValues} />
+        
+        <NameStatement formData={formValues} />
+        <StatementOfFacts formData={formValues} />
+        <PlateSelection formData={formValues} />
+        <SelectConfiguration formData={formValues} />
+        <ReplacementSection formData={formValues} />
+        <PlatePurchaserOwner formData={formValues} />
+        <StatementOfError formData={formValues} />
+        <PlannedNonOperation formData={formValues} />
+        <DisabledPersonParkingForm formData={formValues} />
+        <SectionOne formData={formValues} />
+        <SectionTwo formData={formValues} />
+        <SectionThree formData={formValues} />
+        <SectionFive formData={formValues} />
+        <SectionSix formData={formValues} />
+        <VehicleInformationReg formData={formValues} />
+        <DisabledPersonPlacard formData={formValues} />
+        <PlatesStickerDocRequests formData={formValues} />
+        <LicensePlate formData={formValues} />
+        <SalvageCertificate formData={formValues} />
+        <LicensePlateDisposition formData={formValues} />
         <PowerOfAttorney formData={formValues} />
+        <MultipleTransfer /> */}
         <SaveButton 
-          transactionType="Simple Transfer"
+          transactionType="Duplicate Title Transfer"
           onSuccess={() => console.log('Save completed successfully')}
         />
       </div>

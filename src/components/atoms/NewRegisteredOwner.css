@@ -184,6 +184,11 @@ body {
   color: #999;
 }
 
+.ownerGiftItem {
+  margin-bottom: 15px;
+
+}
+
 .wrap{
   padding-right: 190px;
 }
@@ -314,4 +319,97 @@ body {
   padding: 0px 0px;
   box-sizing: border-box;
   height: 34px;
+}
+
+
+/* Additional CSS for form validation */
+
+.error-input {
+  border: 2px solid #ff0000 !important;
+  background-color: #fffafa;
+}
+
+.validation-message {
+  color: #ff0000;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.validation-warning {
+  background-color: #ffeeee;
+  border: 1px solid #ff0000;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 4px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.warning-title {
+  color: #ff0000;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.warning-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.continue-button {
+  padding: 8px 12px;
+  background-color: #ff0000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.continue-button:hover {
+  background-color: #cc0000;
+}
+
+.fix-button {
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.fix-button:hover {
+  background-color: #e5e5e5;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* For shake animation on invalid fields */
+.shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%, 50%, 70% {
+    transform: translate3d(-2px, 0, 0);
+  }
+  40%, 60% {
+    transform: translate3d(2px, 0, 0);
+  }
 }

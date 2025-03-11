@@ -8,6 +8,12 @@
   margin-bottom: 15px;
 }
 
+.vehicleHeaderContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .formGroup {
   margin-bottom: 15px;
 }
@@ -30,13 +36,11 @@
   font-size: 14px;
 }
 
-
 .checkboxGroup {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
-  margin-bottom: 20px;
 }
 
 .checkboxLabel {
@@ -44,13 +48,13 @@
   align-items: center;
   font-size: 14px;
   gap: 5px;
+  white-space: nowrap;
 }
 
 .checkboxInput {
   width: 15px;
   height: 15px;
 }
-
 
 .vehicleInformationWrapper .formInput.vehicleLicenseInput {
   width: 66.2%;
@@ -62,8 +66,8 @@
 
 .vehicleFirstGroup {
   display: flex;
-      justify-content: space-between;
-      margin-bottom: 15px;             
+  justify-content: space-between;
+  margin-bottom: 15px;             
 }
 
 .yearInput {
@@ -79,15 +83,38 @@
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 2px;
-  font-size: 14px}
+  font-size: 14px;
+}
 
-.mileageGroup{
+/* New combined mileage and checkboxes row */
+.mileageRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.mileageField {
+  flex: 0 0 200px;
+  min-width: 150px;
+}
+
+.mileageCheckboxes {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+}
+
+.mileageGroup {
   display: flex;
   justify-content: flex-start;
   gap: 12%;
 }
 
-.mileageInput{
+.mileageInput {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
@@ -95,21 +122,39 @@
   font-size: 14px;
 }
 
-.odometerInput{
+.odometerInput {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 2px;
-  font-size: 14px}
-
-.vehicleFormItem{
-  flex: 1 1;
-    margin-right: 10px
+  font-size: 14px;
 }
 
-.yearlabel{
+.vehicleFormItem {
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.yearlabel {
   display: block;
   margin-bottom: 5px;
   font-size: 14px;
   font-weight: 400;
+}
+
+/* Media query for responsive design */
+@media (max-width: 768px) {
+  .mileageRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .mileageField {
+    width: 100%;
+    flex: auto;
+  }
+  
+  .mileageCheckboxes {
+    margin-top: 10px;
+  }
 }

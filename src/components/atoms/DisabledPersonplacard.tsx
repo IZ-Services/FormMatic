@@ -34,21 +34,13 @@ const DisabledPersonPlacard: React.FC<DisabledPersonPlacardProps> = ({ formData:
     updateField('disabledPersonPlacard', newData);
   };
 
-  const formatBirthDate = (value: string) => {
-    // Remove non-digit characters
-    const digitsOnly = value.replace(/\D/g, '');
-    
-    // Format as MM/DD/YYYY
-    let formatted = digitsOnly;
+  const formatBirthDate = (value: string) => {     const digitsOnly = value.replace(/\D/g, '');     let formatted = digitsOnly;
     if (formatted.length > 2) {
       formatted = `${formatted.slice(0, 2)}/${formatted.slice(2)}`;
     }
     if (formatted.length > 5) {
       formatted = `${formatted.slice(0, 5)}/${formatted.slice(5)}`;
-    }
-    
-    // Limit to 10 characters (MM/DD/YYYY)
-    return formatted.slice(0, 10);
+    }     return formatted.slice(0, 10);
   };
 
   return (

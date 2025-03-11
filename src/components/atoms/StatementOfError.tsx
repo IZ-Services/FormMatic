@@ -37,11 +37,15 @@ const StatementOfError: React.FC<StatementOfErrorProps> = ({ formData: propFormD
     if (!formData.statementOfError) {
       updateField('statementOfError', initialStatementOfError);
     }
-  }, []);
+  }, []);   const capitalizeFirstLetter = (value: string): string => {
+    if (!value) return value;
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  };
 
   const handleChange = (field: keyof StatementOfErrorType, value: string) => {
-    const currentInfo = (formData.statementOfError || {}) as StatementOfErrorType;
-    updateField('statementOfError', { ...currentInfo, [field]: value });
+    const currentInfo = (formData.statementOfError || {}) as StatementOfErrorType;     const capitalizedValue = capitalizeFirstLetter(value);
+    
+    updateField('statementOfError', { ...currentInfo, [field]: capitalizedValue });
   };
 
   return (

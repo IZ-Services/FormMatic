@@ -24,7 +24,10 @@ interface LegalOwnerType {
 interface LegalOwnerProps {
   formData?: {
     legalOwnerInformation?: LegalOwnerType;
-  };
+    vehicleTransactionDetails?: {
+      currentLienholder?: boolean;
+    };
+  };   onChange?: (data: LegalOwnerType) => void;
 }
 
 const initialAddress: Address = {
@@ -97,13 +100,40 @@ const states = [
     { name: 'Wyoming', abbreviation: 'WY' },
   ];
 
-const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData }) => {
+const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData, onChange }) => {
   const [legalOwnerData, setLegalOwnerData] = useState<LegalOwnerType>(
     propFormData?.legalOwnerInformation || initialLegalOwner
   );
   const { updateField } = useFormContext();
   const [openDropdown, setOpenDropdown] = useState<'reg' | null>(null);
-  const regRef = useRef<HTMLUListElement>(null);
+  const regRef = useRef<HTMLUListElement>(null);   useEffect(() => {
+    if (!propFormData?.legalOwnerInformation) {
+      const initialData = { ...initialLegalOwner };
+      updateField('legalOwnerInformation', initialData);       if (onChange) {
+        onChange(initialData);
+      }
+    }
+  }, []);
+
+useEffect(() => {
+  const hasCurrentLienholder = propFormData?.vehicleTransactionDetails?.currentLienholder === true;   if (!hasCurrentLienholder && 
+      legalOwnerData && 
+      (legalOwnerData.name || 
+       legalOwnerData.address?.street || 
+       legalOwnerData.address?.city || 
+       legalOwnerData.address?.state || 
+       legalOwnerData.address?.zip || 
+       legalOwnerData.address?.apt ||
+       legalOwnerData.date ||
+       legalOwnerData.phoneNumber ||
+       legalOwnerData.authorizedAgentName ||
+       legalOwnerData.authorizedAgentTitle)) {     const resetData = { ...initialLegalOwner };
+    setLegalOwnerData(resetData);
+    updateField('legalOwnerInformation', resetData);     if (onChange) {
+      onChange(resetData);
+    }
+  }
+}, [propFormData?.vehicleTransactionDetails?.currentLienholder]); 
 
   useEffect(() => {
     if (propFormData?.legalOwnerInformation) {
@@ -114,7 +144,9 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData 
   const handleInfoChange = (field: keyof LegalOwnerType, value: any) => {
     const newData = { ...legalOwnerData, [field]: value };
     setLegalOwnerData(newData);
-    updateField('legalOwnerInformation', newData);
+    updateField('legalOwnerInformation', newData);     if (onChange) {
+      onChange(newData);
+    }
   };
 
   const handleAddressChange = (field: keyof Address, value: string) => {
@@ -124,7 +156,12 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData 
       [field]: value
     };
     setLegalOwnerData(newData);
-    updateField('legalOwnerInformation', newData);
+    updateField('legalOwnerInformation', newData);     if (onChange) {
+      onChange(newData);
+    }
+  };
+  
+  const handleStateSelect = (stateAbbreviation: string) => {     handleAddressChange('state', stateAbbreviation);     setOpenDropdown(null);
   };
 
   const handleClickOutside = (e: MouseEvent) => {
@@ -132,7 +169,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData 
     if (openDropdown && 
       regRef.current && 
       !regRef.current.contains(target) &&
-      !target.closest('.regStateDropDown')) {
+      !target.closest('.state-dropdown-button')) {
       setOpenDropdown(null);
     }
   };
@@ -198,7 +235,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData 
           <label className="registeredOwnerLabel">State</label>
           <button
             onClick={() => setOpenDropdown(openDropdown === 'reg' ? null : 'reg')}
-            className="regStateDropDown"
+            className="regStateDropDown state-dropdown-button"
           >
             {legalOwnerData.address?.state || 'State'}
             <ChevronDownIcon className={`regIcon ${openDropdown === 'reg' ? 'rotate' : ''}`} />
@@ -208,7 +245,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData 
               {states.map((state, index) => (
                 <li
                   key={index}
-                  onClick={() => handleAddressChange('state', state.abbreviation)}
+                  onClick={() => handleStateSelect(state.abbreviation)}
                   className="regStateLists"
                 >
                   {state.name}
@@ -228,8 +265,6 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData 
           />
         </div>
       </div>
-
-
     </div>
   );
 };

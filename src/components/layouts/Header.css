@@ -282,9 +282,10 @@
   display: none;
 }
 
-@media (min-width: 801px) {
+@media (max-width: 801px) {
   .accountIcon {
-    display: inline-block !important; /* Show only account icon */
+    display: inline-block !important;
+    margin-bottom: 13px;
   }
 }
 @media (min-width: 801px) and (max-width: 7680px) {
@@ -320,11 +321,13 @@
   width: 24px;
   height: 24px;
   display: inline-block;
+  vertical-align: middle;
+  /* margin-bottom: 13px; */
 }
 
 .accountLabel {
   margin-left: 10px;
-}
+  margin-bottom: 10px;}
 
 @media (min-width: 801px) {
   .accountLabel {

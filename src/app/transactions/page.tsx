@@ -174,10 +174,10 @@ export default function Transactions() {
           <div className="search-input-wrapper">
             <MagnifyingGlassIcon className="searchIcon" />
             <input
-              className="transactionSearch"
-              placeholder="Search Transactions"
-              onChange={(e) => setSearchFor(e.target.value)}
-            />
+  className="transactionSearch"
+  placeholder="Search by transaction type..." 
+  onChange={(e) => setSearchFor(e.target.value)}
+/>
           </div>
         </div>
         {noTransactions ? (

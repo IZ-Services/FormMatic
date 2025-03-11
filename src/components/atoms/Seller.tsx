@@ -32,7 +32,8 @@ interface FormContext {
 }
 
 interface SellerSectionProps {
-  formData?: FormData;
+  formData?: FormData;   
+  onChange?: (sellerInfo: SellerInfo) => void;
 }
 
 const initialSeller: Seller = {
@@ -52,13 +53,17 @@ const initialSellerInfo: SellerInfo = {
   sellers: [{ ...initialSeller }]
 };
 
-const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData }) => {
+const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, onChange }) => {
   const { formData: contextFormData, updateField } = useFormContext() as FormContext;
   const [openDropdown, setOpenDropdown] = useState<{ 
     type: 'count' | 'state', 
     index?: number 
   } | null>(null);
   const dropdownRef = useRef<HTMLUListElement>(null);
+  const stateDropdownRefs = useRef<(HTMLUListElement | null)[]>([]);
+  
+  // Add state to track the synchronized sale date
+  const [syncedSaleDate, setSyncedSaleDate] = useState<string>('');
 
   const formData = {
     ...contextFormData,
@@ -67,7 +72,11 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
 
   useEffect(() => {
     if (!formData.sellerInfo) {
-      updateField('sellerInfo', initialSellerInfo);
+      const newSellerInfo = initialSellerInfo;
+      updateField('sellerInfo', newSellerInfo);       
+      if (onChange) {
+        onChange(newSellerInfo);
+      }
     }
   }, []);
 
@@ -75,10 +84,15 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
     if (formData.sellerInfo?.sellerCount && (!formData.sellerInfo.sellers || formData.sellerInfo.sellers.length === 0)) {
       const count = Number(formData.sellerInfo.sellerCount);
       const newSellers = Array(count).fill(null).map(() => ({ ...initialSeller }));
-      updateField('sellerInfo', {
+      const newSellerInfo = {
         ...formData.sellerInfo,
         sellers: newSellers
-      });
+      };
+      
+      updateField('sellerInfo', newSellerInfo);       
+      if (onChange) {
+        onChange(newSellerInfo);
+      }
     }
   }, [formData.sellerInfo?.sellerCount]);
 
@@ -92,12 +106,57 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
           .fill(null)
           .map((_, i) => formData.sellerInfo?.sellers?.[i] || { ...initialSeller });
         
-        updateField('sellerInfo', {
+        const newSellerInfo = {
           ...formData.sellerInfo,
           sellers: newSellers
-        });
+        };
+        
+        updateField('sellerInfo', newSellerInfo);         
+        if (onChange) {
+          onChange(newSellerInfo);
+        }
       }
     }
+    
+    // Initialize synced sale date from first seller if it exists
+    if (formData.sellerInfo?.sellers?.[0]?.saleDate) {
+      setSyncedSaleDate(formData.sellerInfo.sellers[0].saleDate);
+    }
+  }, [formData.sellerInfo?.sellerCount, formData.sellerInfo?.sellers]);
+
+  // Effect to synchronize sale date across all sellers
+  useEffect(() => {
+    if (syncedSaleDate && formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 1) {
+      const newSellers = [...formData.sellerInfo.sellers];
+      let hasChanges = false;
+      
+      // Start from index 1 (second seller) and update sale dates
+      for (let i = 1; i < newSellers.length; i++) {
+        if (newSellers[i]?.saleDate !== syncedSaleDate) {
+          newSellers[i] = { ...newSellers[i], saleDate: syncedSaleDate };
+          hasChanges = true;
+        }
+      }
+      
+      if (hasChanges) {
+        const newSellerInfo = {
+          ...formData.sellerInfo,
+          sellers: newSellers
+        };
+        
+        updateField('sellerInfo', newSellerInfo);
+        
+        if (onChange) {
+          onChange(newSellerInfo);
+        }
+      }
+    }
+  }, [syncedSaleDate]);   
+
+  useEffect(() => {
+    stateDropdownRefs.current = Array(Number(formData.sellerInfo?.sellerCount || 1))
+      .fill(null)
+      .map((_, i) => stateDropdownRefs.current[i] || null);
   }, [formData.sellerInfo?.sellerCount]);
 
   const states = [
@@ -156,42 +215,85 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
   const handleSellerChange = (index: number, field: keyof Seller, value: string) => {
     const sellers = [...(formData.sellerInfo?.sellers || [])];
     sellers[index] = { ...sellers[index], [field]: value };
-    updateField('sellerInfo', { 
+    
+    // If changing sale date for the first seller, update the synced value
+    if (index === 0 && field === 'saleDate') {
+      setSyncedSaleDate(value);
+    }
+    
+    const newSellerInfo = { 
       ...(formData.sellerInfo || {}), 
       sellers 
-    });
+    };
+    
+    updateField('sellerInfo', newSellerInfo);     
+    if (onChange) {
+      onChange(newSellerInfo);
+    }
+  };
+
+  const handleStateSelect = (index: number, stateAbbreviation: string) => {     
+    handleSellerChange(index, 'state', stateAbbreviation);     
+    setOpenDropdown(null);
   };
 
   const handleCountChange = (count: string) => {
     const currentSellers = formData.sellerInfo?.sellers || [{ ...initialSeller }];
+    const currentSaleDate = currentSellers[0]?.saleDate || '';
+    
     const newSellers = Array(Number(count))
       .fill(null)
-      .map((_, i) => currentSellers[i] || { ...initialSeller });
+      .map((_, i) => {
+        if (i === 0) {
+          return currentSellers[0] || { ...initialSeller };
+        } else {
+          // For new sellers, populate with the synchronized sale date
+          return currentSellers[i] || { 
+            ...initialSeller, 
+            saleDate: currentSaleDate 
+          };
+        }
+      });
     
-    updateField('sellerInfo', {
+    const newSellerInfo = {
       ...(formData.sellerInfo || {}),
       sellerCount: count,
       sellers: newSellers
-    });
+    };
+    
+    updateField('sellerInfo', newSellerInfo);     
+    if (onChange) {
+      onChange(newSellerInfo);
+    }
+    
     setOpenDropdown(null);
   };
 
   const handleClickOutside = (e: MouseEvent) => {
-    const target = e.target as Element;
-    if (dropdownRef.current && !dropdownRef.current.contains(target)) {
-      setOpenDropdown(null);
+    const target = e.target as Element;     
+    if (openDropdown?.type === 'count') {
+      if (dropdownRef.current && !dropdownRef.current.contains(target) && !target.closest('.howManyDropDown')) {
+        setOpenDropdown(null);
+      }
+    }     
+    if (openDropdown?.type === 'state' && typeof openDropdown.index === 'number') {
+      const stateRef = stateDropdownRefs.current[openDropdown.index];
+      if (stateRef && !stateRef.contains(target) && !target.closest(`.state-dropdown-button-${openDropdown.index}`)) {
+        setOpenDropdown(null);
+      }
     }
   };
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [openDropdown]);
+  
   const renderSellerForms = () => {
     const count = Number(formData.sellerInfo?.sellerCount || 1);
     return Array.from({ length: count }).map((_, index) => (
       <div key={index} className="seller-form-section">
-        <h4 className="seller-number">Seller {index + 1}</h4>
+        <h4 className="seller-number">Registered Owner {index + 1}</h4>
         
         <div className="sellerFirstGroup">
           <div className="sellerFormItem">
@@ -201,7 +303,11 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
               type="text"
               placeholder="First Name"
               value={formData.sellerInfo?.sellers?.[index]?.firstName || ''}
-              onChange={(e) => handleSellerChange(index, 'firstName', e.target.value)}
+              onChange={(e) => {                 
+                const value = e.target.value;
+                const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+                handleSellerChange(index, 'firstName', capitalizedValue);
+              }}
             />
           </div>
           <div className="sellerFormItem">
@@ -211,7 +317,11 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
               type="text"
               placeholder="Middle Name"
               value={formData.sellerInfo?.sellers?.[index]?.middleName || ''}
-              onChange={(e) => handleSellerChange(index, 'middleName', e.target.value)}
+              onChange={(e) => {                 
+                const value = e.target.value;
+                const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+                handleSellerChange(index, 'middleName', capitalizedValue);
+              }}
             />
           </div>
           <div className="sellerFormItem">
@@ -221,27 +331,44 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
               type="text"
               placeholder="Last Name"
               value={formData.sellerInfo?.sellers?.[index]?.lastName || ''}
-              onChange={(e) => handleSellerChange(index, 'lastName', e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+                handleSellerChange(index, 'lastName',capitalizedValue);
+              }}
             />
           </div>
         </div>
-
         <div className="driverState">
           <div className="driverLicenseField">
             <label className="formLabel">Driver License Number</label>
             <input
               className="formInput"
               type="text"
-              placeholder="Driver License Number"
+              placeholder="Driver License Number (8 digits)"
               value={formData.sellerInfo?.sellers?.[index]?.licenseNumber || ''}
-              onChange={(e) => handleSellerChange(index, 'licenseNumber', e.target.value)}
+              onChange={(e) =>{ 
+                const value = e.target.value;
+                if (/^\d{0,8}$/.test(value)) {
+                  handleSellerChange(index, 'licenseNumber', e.target.value);
+                }
+              }}
+              maxLength={8}
+              inputMode="numeric"
+              pattern="\d{8}"
             />
+            {formData.sellerInfo?.sellers?.[index]?.licenseNumber && formData.sellerInfo?.sellers?.[index]?.licenseNumber.length < 8 && (
+              <p className="validation-message" style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px' }}>
+                License number must be 8 digits
+              </p>
+            )}
           </div>
+
           <div className="regStateWrapper">
             <label className="registeredOwnerLabel">State</label>
             <button
               onClick={() => setOpenDropdown({ type: 'state', index })}
-              className="regStateDropDown"
+              className={`regStateDropDown state-dropdown-button-${index}`}
             >
               {formData.sellerInfo?.sellers?.[index]?.state || 'State'}
               <ChevronDownIcon
@@ -249,12 +376,17 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
               />
             </button>
             {openDropdown?.type === 'state' && openDropdown?.index === index && (
-              <ul ref={dropdownRef} className="regStateMenu">
+              <ul 
+                ref={(el) => {
+                  stateDropdownRefs.current[index] = el;
+                }}
+                className="regStateMenu"
+              >
                 {states.map((state, i) => (
                   <li
                     className="regStateLists"
                     key={i}
-                    onClick={() => handleSellerChange(index, 'state', state.abbreviation)}
+                    onClick={() => handleStateSelect(index, state.abbreviation)}
                   >
                     {state.name}
                   </li>
@@ -265,29 +397,32 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData })
         </div>
 
         <div className="sellerThirdGroup">
-  <div className="sellerThirdItem">
-    <label className="sellerLabel">Phone Number</label>
-    <input
-      className="sellerNumberInput"
-      type="text"
-      placeholder="Phone Number"
-      value={formData.sellerInfo?.sellers?.[index]?.phone || ''}
-      onChange={(e) => handleSellerChange(index, 'phone', e.target.value)}
-    />
-  </div>
-  <div className="sellerThirdItem">
-    <label className="registeredOwnerLabel">Date of Sale</label>
-    <input
-      className="registeredDateInput"
-      type="text"
-      placeholder="MM/DD/YYYY"
-      value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
-      onChange={(e) => handleSellerChange(index, 'saleDate', e.target.value)}
-    />
-  </div>
-</div>
-
-
+          <div className="sellerThirdItem">
+            <label className="sellerLabel">Phone Number</label>
+            <input
+              className="sellerNumberInput"
+              type="text"
+              placeholder="Phone Number"
+              value={formData.sellerInfo?.sellers?.[index]?.phone || ''}
+              onChange={(e) => handleSellerChange(index, 'phone', e.target.value)}
+            />
+          </div>
+          <div className="sellerThirdItem">
+            <label className="registeredOwnerLabel">
+              Date of Sale
+              {index > 0 && <span className="synced-field-indicator" style={{ marginLeft: '4px', fontSize: '12px', color: '#666' }}>(synced)</span>}
+            </label>
+            <input
+              className="registeredDateInput"
+              type="text"
+              placeholder="MM/DD/YYYY"
+              value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
+              onChange={(e) => handleSellerChange(index, 'saleDate', e.target.value)}
+              // Disable input for all sellers except the first one
+              disabled={index > 0}
+            />
+          </div>
+        </div>
       </div>
     ));
   };

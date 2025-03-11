@@ -53,27 +53,16 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData 
 
   const handleChange = (field: keyof PlateSelectionType, value: any) => {
     const currentInfo = (formData.plateSelection || {}) as PlateSelectionType;
-    const newData = { ...currentInfo, [field]: value };
-    
-    // Reset dependent fields if needed
-    if (field === 'plateType') {
-      // Determine plate category based on selection
-      if (['Breast Cancer Awareness', 'California Arts Council', 'California Agricultural (CalAg)', 
+    const newData = { ...currentInfo, [field]: value };     if (field === 'plateType') {       if (['Breast Cancer Awareness', 'California Arts Council', 'California Agricultural (CalAg)', 
           'California Memorial', 'California Museums (Snoopy)', 'Collegiate (only UCLA is available)', 
           'Kids - Child Health and Safety Funds', 'Pet Lovers', 'Veterans\' Organization'].includes(value)) {
         newData.plateCategory = 'characters2to6';
       } else if (['Environmental License Plate (ELP)', 'California Coastal Commission (Whale Tail)', 
                 'Lake Tahoe Conservancy', 'Yosemite Foundation', 'California 1960s Legacy'].includes(value)) {
         newData.plateCategory = 'characters2to7';
-      }
-      
-      // Reset organization code for Veterans' Organization
-      if (value !== 'Veterans\' Organization') {
+      }       if (value !== 'Veterans\' Organization') {
         delete newData.organizationalCode;
-      }
-      
-      // Reset duplicate decal number
-      if (value !== 'Duplicate Decal') {
+      }       if (value !== 'Duplicate Decal') {
         delete newData.duplicateDecalNumber;
       }
     }
@@ -133,7 +122,6 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData 
           </div>
         )}
         
-        {/* Option to also use a dropdown instead of checkboxes */}
         <div 
           className="dropdownContainer"
           ref={setRef('plate')}

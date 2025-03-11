@@ -110,10 +110,12 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Element;
       if (
         openDropdown === 'purchaserState' && 
         purchaserStateRef.current && 
-        !purchaserStateRef.current.contains(e.target as Node)
+        !purchaserStateRef.current.contains(target) &&
+        !target.closest('.purchaser-state-button')
       ) {
         setOpenDropdown(null);
       }
@@ -121,7 +123,8 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
       if (
         openDropdown === 'ownerState' && 
         ownerStateRef.current && 
-        !ownerStateRef.current.contains(e.target as Node)
+        !ownerStateRef.current.contains(target) &&
+        !target.closest('.owner-state-button')
       ) {
         setOpenDropdown(null);
       }
@@ -142,36 +145,36 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
     }
     
     updateField('platePurchaserOwner', currentInfo);
+  };   const capitalizeFirstLetter = (value: string): string => {
+    if (!value) return value;
+    return value.charAt(0).toUpperCase() + value.slice(1);
   };
 
   const handlePurchaserChange = (field: keyof PersonInfoType, value: string) => {
-    const currentInfo = { ...(formData.platePurchaserOwner || initialPlatePurchaserOwner) };
-    currentInfo.purchaser = { ...currentInfo.purchaser, [field]: value };
+    const currentInfo = { ...(formData.platePurchaserOwner || initialPlatePurchaserOwner) };     const capitalizedValue = field === 'state' ? value : capitalizeFirstLetter(value);
     
-    // If sameAsOwner is checked, update owner info as well
-    if (currentInfo.sameAsOwner) {
+    currentInfo.purchaser = { ...currentInfo.purchaser, [field]: capitalizedValue };     if (currentInfo.sameAsOwner) {
       currentInfo.owner = { ...currentInfo.purchaser };
     }
     
     updateField('platePurchaserOwner', currentInfo);
-    setOpenDropdown(null);
   };
 
   const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
-    const currentInfo = { ...(formData.platePurchaserOwner || initialPlatePurchaserOwner) };
+    const currentInfo = { ...(formData.platePurchaserOwner || initialPlatePurchaserOwner) };     const capitalizedValue = field === 'state' ? value : capitalizeFirstLetter(value);
     
     if (!currentInfo.owner) {
       currentInfo.owner = { ...initialPersonInfo };
     }
     
-    currentInfo.owner = { ...currentInfo.owner, [field]: value };
+    currentInfo.owner = { ...currentInfo.owner, [field]: capitalizedValue };
     updateField('platePurchaserOwner', currentInfo);
-    setOpenDropdown(null);
   };
-
-  const getStateName = (abbreviation: string) => {
-    const state = states.find(s => s.abbreviation === abbreviation);
-    return state ? state.name : abbreviation;
+  
+  const handlePurchaserStateSelect = (abbreviation: string) => {     handlePurchaserChange('state', abbreviation);     setOpenDropdown(null);
+  };
+  
+  const handleOwnerStateSelect = (abbreviation: string) => {     handleOwnerChange('state', abbreviation);     setOpenDropdown(null);
   };
 
   return (
@@ -230,32 +233,30 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
               </div>
               
               <div className="stateField">
-  <label className="infoLabel">State</label>
-  <div className="regStateWrapper">
-    <button
-      onClick={() => setOpenDropdown(openDropdown === 'purchaserState' ? null : 'purchaserState')}
-      className="regStateDropDown"
-    >
-      {(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.state 
-        ? getStateName((formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.state || '') 
-        : 'State'}
-      <ChevronDownIcon className={`regIcon ${openDropdown === 'purchaserState' ? 'rotate' : ''}`} />
-    </button>
-    {openDropdown === 'purchaserState' && (
-      <ul ref={purchaserStateRef} className="regStateMenu">
-        {states.map((state, index) => (
-          <li
-            key={index}
-            onClick={() => handlePurchaserChange('state', state.abbreviation)}
-            className="regStateLists"
-          >
-            {state.name}
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-</div>
+                <label className="infoLabel">State</label>
+                <div className="regStateWrapper">
+                  <button
+                    onClick={() => setOpenDropdown(openDropdown === 'purchaserState' ? null : 'purchaserState')}
+                    className="regStateDropDown purchaser-state-button"
+                  >
+                    {(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.state || 'State'}
+                    <ChevronDownIcon className={`regIcon ${openDropdown === 'purchaserState' ? 'rotate' : ''}`} />
+                  </button>
+                  {openDropdown === 'purchaserState' && (
+                    <ul ref={purchaserStateRef} className="regStateMenu">
+                      {states.map((state, index) => (
+                        <li
+                          key={index}
+                          onClick={() => handlePurchaserStateSelect(state.abbreviation)}
+                          className="regStateLists"
+                        >
+                          {state.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
               
               <div className="zipField">
                 <label className="infoLabel">ZIP Code</label>
@@ -315,34 +316,32 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
               </div>
               
               <div className="stateField">
-  <label className="infoLabel">State</label>
-  <div className="regStateWrapper">
-    <button
-      onClick={() => !((formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner) && 
-        setOpenDropdown(openDropdown === 'ownerState' ? null : 'ownerState')}
-      className="regStateDropDown"
-      disabled={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
-    >
-      {(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.state 
-        ? getStateName((formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.state || '') 
-        : 'State'}
-      <ChevronDownIcon className={`regIcon ${openDropdown === 'ownerState' ? 'rotate' : ''}`} />
-    </button>
-    {openDropdown === 'ownerState' && (
-      <ul ref={ownerStateRef} className="regStateMenu">
-        {states.map((state, index) => (
-          <li
-            key={index}
-            onClick={() => handleOwnerChange('state', state.abbreviation)}
-            className="regStateLists"
-          >
-            {state.name}
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-</div>
+                <label className="infoLabel">State</label>
+                <div className="regStateWrapper">
+                  <button
+                    onClick={() => !((formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner) && 
+                      setOpenDropdown(openDropdown === 'ownerState' ? null : 'ownerState')}
+                    className="regStateDropDown owner-state-button"
+                    disabled={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
+                  >
+                    {(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.state || 'State'}
+                    <ChevronDownIcon className={`regIcon ${openDropdown === 'ownerState' ? 'rotate' : ''}`} />
+                  </button>
+                  {openDropdown === 'ownerState' && (
+                    <ul ref={ownerStateRef} className="regStateMenu">
+                      {states.map((state, index) => (
+                        <li
+                          key={index}
+                          onClick={() => handleOwnerStateSelect(state.abbreviation)}
+                          className="regStateLists"
+                        >
+                          {state.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
               
               <div className="zipField">
                 <label className="infoLabel">ZIP Code</label>

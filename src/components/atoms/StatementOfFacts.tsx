@@ -44,14 +44,17 @@ const StatementOfFacts: React.FC<StatementOfFactsProps> = ({ formData: propFormD
       </div>
       
       <div className="statementTextareaContainer">
-        <textarea
-          className="statementTextarea"
-          placeholder="Enter your statement of facts..."
-          value={(formData.statementOfFacts as StatementOfFactsType)?.statement || ''}
-          onChange={(e) => handleStatementChange(e.target.value)}
-          rows={6}
-        />
-      </div>
+  <textarea
+    className="statementTextarea"
+    placeholder="Enter your statement of facts..."
+    value={(formData.statementOfFacts as StatementOfFactsType)?.statement || ''}
+    onChange={(e) => {       const value = e.target.value;
+      const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+      handleStatementChange(capitalizedValue);
+    }}
+    rows={6}
+  />
+</div>
     </div>
   );
 };

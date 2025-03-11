@@ -34,33 +34,28 @@ const SectionOne: React.FC<SectionOneProps> = ({ formData: propFormData }) => {
     if (propFormData?.personalBusinessInfo) {
       setFormState(propFormData.personalBusinessInfo);
     }
-  }, [propFormData]);
+  }, [propFormData]);   const capitalizeFirstLetter = (value: string): string => {
+    if (!value) return value;
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  };
 
-  const handleInputChange = (field: keyof SectionOneData, value: string) => {
-    // Convert to uppercase
-    const upperValue = value.toUpperCase();
+  const handleInputChange = (field: keyof SectionOneData, value: string) => {     const capitalizedValue = capitalizeFirstLetter(value);
     
     const newData = { 
       ...formState, 
-      [field]: upperValue 
+      [field]: capitalizedValue 
     };
     setFormState(newData);
     updateField('personalBusinessInfo', newData);
   };
 
   const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, '');
-    
-    // Automatically format as MM/DD/YYYY
-    if (value.length > 2) {
+    let value = e.target.value.replace(/\D/g, '');     if (value.length > 2) {
       value = value.slice(0, 2) + '/' + value.slice(2);
     }
     if (value.length > 5) {
       value = value.slice(0, 5) + '/' + value.slice(5);
-    }
-    
-    // Limit to 10 characters (MM/DD/YYYY)
-    value = value.slice(0, 10);
+    }     value = value.slice(0, 10);
 
     handleInputChange('birthDate', value);
   };
