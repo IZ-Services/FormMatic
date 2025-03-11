@@ -37,187 +37,149 @@ export async function POST(request: Request) {
     console.log('Complete formData:', JSON.stringify(formData));
 
     if (isMultipleTransfer) {
-      console.log('Multiple transfer structure detected, restructuring data...');
-      
-      try {
-        const restructuredData = {
-          owners: [],
-          vehicleInformation: {},
-          sellerInfo: { sellers: [] },
-          sellerAddress: {},
-          sellerMailingAddress: {},
-          sellerMailingAddressDifferent: false,
-          legalOwnerInformation: {},
-          address: {},
-          vehicleTransactionDetails: {},
-          lienHolder: {},
-          mailingAddress: {},
-          lesseeAddress: {},
-          trailerLocation: {},
-          powerOfAttorney: {},
-          mailingAddressDifferent: false,
-          lesseeAddressDifferent: false,
-          trailerLocationDifferent: false,
-          itemRequested: {}
-        };
-        
-        if (formData?.newOwners?.owners) {
-          restructuredData.owners = formData.newOwners.owners;
-        } else if (formData?.owners) {
-          restructuredData.owners = formData.owners;
-        }
-        
-        if (formData?.powerOfAttorney) {
-          restructuredData.powerOfAttorney = formData.powerOfAttorney;
-        }
-        
-        if (formData?.seller?.sellers) {
-          restructuredData.sellerInfo.sellers = formData.seller.sellers;
-        } else if (formData?.sellerInfo?.sellers) {
-          restructuredData.sellerInfo.sellers = formData.sellerInfo.sellers;
-        }
-        
-        if (formData?.address?.address) {
-          restructuredData.address = formData.address.address;
-        } else if (formData?.address && !formData.address.address) {
-          restructuredData.address = formData.address;
-        }
-        
-        if (formData?.address) {
-          restructuredData.mailingAddressDifferent = 
-            formData.address.mailingAddressDifferent !== undefined 
-              ? formData.address.mailingAddressDifferent 
-              : (formData.mailingAddressDifferent || false);
-              
-          restructuredData.lesseeAddressDifferent = 
-            formData.address.lesseeAddressDifferent !== undefined
-              ? formData.address.lesseeAddressDifferent
-              : (formData.lesseeAddressDifferent || false);
-              
-          restructuredData.trailerLocationDifferent = 
-            formData.address.trailerLocationDifferent !== undefined
-              ? formData.address.trailerLocationDifferent
-              : (formData.trailerLocationDifferent || false);
-          
-          if (formData.address.mailingAddress) {
-            restructuredData.mailingAddress = formData.address.mailingAddress;
-          }
-          
-          if (formData.address.lesseeAddress) {
-            restructuredData.lesseeAddress = formData.address.lesseeAddress;
-          }
-          
-          if (formData.address.trailerLocation) {
-            restructuredData.trailerLocation = formData.address.trailerLocation;
-          }
-        }
-        
-        if (formData?.sellerAddress?.sellerAddress) {
-          restructuredData.sellerAddress = formData.sellerAddress.sellerAddress;
-        } else if (formData?.sellerAddress && !formData.sellerAddress.sellerAddress) {
-          restructuredData.sellerAddress = formData.sellerAddress;
-        }
-        
-        if (formData?.sellerAddress) {
-          restructuredData.sellerMailingAddressDifferent = 
-            formData.sellerAddress.sellerMailingAddressDifferent !== undefined 
-              ? formData.sellerAddress.sellerMailingAddressDifferent 
-              : (formData.sellerMailingAddressDifferent || false);
-          
-          console.log('Source sellerMailingAddressDifferent value:', 
-                      formData.sellerAddress.sellerMailingAddressDifferent, 
-                      formData.sellerMailingAddressDifferent);
-          
-          if (formData.sellerAddress.sellerMailingAddress) {
-            restructuredData.sellerMailingAddress = formData.sellerAddress.sellerMailingAddress;
-            console.log('Using nested sellerMailingAddress');
-          } else if (formData.sellerMailingAddress) {
-            restructuredData.sellerMailingAddress = formData.sellerMailingAddress;
-            console.log('Using top-level sellerMailingAddress');
-          }
-        }
-        
-        if (restructuredData.sellerMailingAddressDifferent && 
-            (!restructuredData.sellerMailingAddress || 
-             Object.keys(restructuredData.sellerMailingAddress).length === 0)) {
-          restructuredData.sellerMailingAddress = {
-            street: '',
-            apt: '',
-            city: '',
-            state: '',
-            zip: '',
-            poBox: '',
-            country: ''
-          };
-          console.log('Initialized empty sellerMailingAddress');
-        }
-        
-        if (formData?.vehicleInformation) {
-          restructuredData.vehicleInformation = formData.vehicleInformation;
-        }
-        
-        if (formData?.legalOwner) {
-          restructuredData.legalOwnerInformation = formData.legalOwner;
-        } else if (formData?.legalOwnerInformation) {
-          restructuredData.legalOwnerInformation = formData.legalOwnerInformation;
-        }
-        
-        if (formData?.vehicleTransactionDetails) {
-          restructuredData.vehicleTransactionDetails = formData.vehicleTransactionDetails;
-        }
-        
-        if (formData?.newLien) {
-          restructuredData.lienHolder = formData.newLien;
-        } else if (formData?.lienHolder) {
-          restructuredData.lienHolder = formData.lienHolder;
-        }
-        
-        if (formData?.itemRequested) {
-          restructuredData.itemRequested = formData.itemRequested;
-        }
-        
-        formData = restructuredData;
-        
-        console.log('Data restructured. New structure:');
-        console.log('- owners array length:', formData.owners.length);
-        console.log('- sellers array length:', (formData.sellerInfo?.sellers || []).length);
-        console.log('- mailingAddressDifferent:', formData.mailingAddressDifferent);
-        console.log('- lesseeAddressDifferent:', formData.lesseeAddressDifferent);
-        console.log('- trailerLocationDifferent:', formData.trailerLocationDifferent);
-        console.log('- sellerMailingAddressDifferent:', formData.sellerMailingAddressDifferent);
-        console.log('- sellerAddress exists:', !!formData.sellerAddress);
-        console.log('- sellerMailingAddress exists:', !!formData.sellerMailingAddress);
-        console.log('- itemRequested exists:', !!formData.itemRequested);
-        
-        if (formData.owners.length > 0) {
-          console.log('- First owner:', formData.owners[0]?.firstName, formData.owners[0]?.lastName);
-        }
-        if (formData.sellerInfo?.sellers?.length > 0) {
-          console.log('- First seller:', formData.sellerInfo.sellers[0]?.firstName, formData.sellerInfo.sellers[0]?.lastName);
-        }
-      } catch (error) {
-        console.error('Error restructuring data:', error);
-        formData = {
-          owners: [],
-          vehicleInformation: {},
-          sellerInfo: { sellers: [] },
-          sellerAddress: {},
-          sellerMailingAddress: {},
-          sellerMailingAddressDifferent: false,
-          legalOwnerInformation: {},
-          address: {},
-          vehicleTransactionDetails: {},
-          lienHolder: {},
-          mailingAddress: {},
-          lesseeAddress: {},
-          trailerLocation: {},
-          powerOfAttorney: {},
-          mailingAddressDifferent: false,
-          lesseeAddressDifferent: false,
-          trailerLocationDifferent: false,
-          itemRequested: {}
-        };
-      }
+      console.log('Multiple transfer structure detected, restructuring data...'); try {
+  const restructuredData = {
+    owners: [],
+    vehicleInformation: {},
+    sellerInfo: { sellers: [] },
+    sellerAddress: {},
+    sellerMailingAddress: {},
+    sellerMailingAddressDifferent: false,
+    legalOwnerInformation: {},
+    address: {},
+    vehicleTransactionDetails: {},
+    lienHolder: {},
+    mailingAddress: {},
+    lesseeAddress: {},
+    trailerLocation: {},
+    powerOfAttorney: {},
+    mailingAddressDifferent: false,
+    lesseeAddressDifferent: false,
+    trailerLocationDifferent: false,
+    itemRequested: {}
+  };   if (formData?.newOwners?.owners && Array.isArray(formData.newOwners.owners)) {
+    restructuredData.owners = formData.newOwners.owners;
+    console.log('Using newOwners.owners array, length:', formData.newOwners.owners.length);
+  } else if (formData?.owners && Array.isArray(formData.owners)) {
+    restructuredData.owners = formData.owners;
+    console.log('Using top-level owners array, length:', formData.owners.length);
+  } else {
+    console.warn('No owners data found in expected locations');
+    restructuredData.owners = [];
+  }   if (formData?.vehicleInformation) {
+    restructuredData.vehicleInformation = formData.vehicleInformation;
+    console.log('Vehicle info keys:', Object.keys(formData.vehicleInformation));
+  }   if (formData?.seller) {
+    if (formData.seller.sellers && Array.isArray(formData.seller.sellers)) {       restructuredData.sellerInfo.sellers = formData.seller.sellers;
+      console.log('Using seller.sellers array');
+    } else if (typeof formData.seller === 'object' && !Array.isArray(formData.seller)) { restructuredData.sellerInfo = { 
+  sellers: Array.isArray(formData.seller.sellers) 
+    ? formData.seller.sellers 
+    : [formData.seller].filter(Boolean) 
+}; if (formData.seller) {   restructuredData.sellerInfo = restructuredData.sellerInfo || { sellers: [] };   restructuredData.sellerInfo.sellers = Array.isArray(formData.seller.sellers)
+    ? formData.seller.sellers
+    : [formData.seller].filter(Boolean);
+}
+      console.log('Converting single seller object to array');
+    }
+  } else if (formData?.sellerInfo?.sellers && Array.isArray(formData.sellerInfo.sellers)) {
+    restructuredData.sellerInfo.sellers = formData.sellerInfo.sellers;
+    console.log('Using sellerInfo.sellers array directly');
+  }   if (formData?.address) {
+    if (formData.address.address) {       restructuredData.address = formData.address.address;
+      console.log('Using nested address.address');
+    } else {       restructuredData.address = formData.address;
+      console.log('Using flat address structure');
+    }     restructuredData.mailingAddressDifferent = 
+      typeof formData.address.mailingAddressDifferent === 'boolean' 
+        ? formData.address.mailingAddressDifferent 
+        : Boolean(formData.mailingAddressDifferent || false);
+    
+    restructuredData.lesseeAddressDifferent = 
+      typeof formData.address.lesseeAddressDifferent === 'boolean'
+        ? formData.address.lesseeAddressDifferent
+        : Boolean(formData.lesseeAddressDifferent || false);
+    
+    restructuredData.trailerLocationDifferent = 
+      typeof formData.address.trailerLocationDifferent === 'boolean'
+        ? formData.address.trailerLocationDifferent
+        : Boolean(formData.trailerLocationDifferent || false);     if (formData.address.mailingAddress) {
+      restructuredData.mailingAddress = formData.address.mailingAddress;
+      console.log('Using nested mailingAddress');
+    }     if (formData.address.lesseeAddress) {
+      restructuredData.lesseeAddress = formData.address.lesseeAddress;
+    }
+    
+    if (formData.address.trailerLocation) {
+      restructuredData.trailerLocation = formData.address.trailerLocation;
+    }
+  }   if (formData?.sellerAddress) {
+    if (formData.sellerAddress.sellerAddress) {
+      restructuredData.sellerAddress = formData.sellerAddress.sellerAddress;
+      console.log('Using nested sellerAddress.sellerAddress');
+    } else {
+      restructuredData.sellerAddress = formData.sellerAddress;
+      console.log('Using flat sellerAddress structure');
+    }
+    
+    restructuredData.sellerMailingAddressDifferent = 
+      typeof formData.sellerAddress.sellerMailingAddressDifferent === 'boolean' 
+        ? formData.sellerAddress.sellerMailingAddressDifferent 
+        : Boolean(formData.sellerMailingAddressDifferent || false);
+    
+    if (formData.sellerAddress.sellerMailingAddress) {
+      restructuredData.sellerMailingAddress = formData.sellerAddress.sellerMailingAddress;
+      console.log('Using nested sellerMailingAddress');
+    } else if (formData.sellerMailingAddress) {
+      restructuredData.sellerMailingAddress = formData.sellerMailingAddress;
+      console.log('Using top-level sellerMailingAddress');
+    }
+  }   if (formData?.legalOwner) {
+    restructuredData.legalOwnerInformation = formData.legalOwner;
+  } else if (formData?.legalOwnerInformation) {
+    restructuredData.legalOwnerInformation = formData.legalOwnerInformation;
+  }
+  
+  if (formData?.vehicleTransactionDetails) {
+    restructuredData.vehicleTransactionDetails = formData.vehicleTransactionDetails;
+  }
+  
+  if (formData?.newLien) {
+    restructuredData.lienHolder = formData.newLien;
+  } else if (formData?.lienHolder) {
+    restructuredData.lienHolder = formData.lienHolder;
+  }
+  
+  if (formData?.powerOfAttorney) {
+    restructuredData.powerOfAttorney = formData.powerOfAttorney;
+  }
+  
+  if (formData?.itemRequested) {
+    restructuredData.itemRequested = formData.itemRequested;
+  }   formData = restructuredData;
+  
+} catch (error) {
+  console.error('Error restructuring data:', error);   formData = {
+    owners: [],
+    vehicleInformation: {},
+    sellerInfo: { sellers: [] },
+    sellerAddress: {},
+    sellerMailingAddress: {},
+    sellerMailingAddressDifferent: false,
+    legalOwnerInformation: {},
+    address: {},
+    vehicleTransactionDetails: {},
+    lienHolder: {},
+    mailingAddress: {},
+    lesseeAddress: {},
+    trailerLocation: {},
+    powerOfAttorney: {},
+    mailingAddressDifferent: false,
+    lesseeAddressDifferent: false,
+    trailerLocationDifferent: false,
+    itemRequested: {}
+  };
+}
     }
 
  
@@ -2016,21 +1978,14 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   console.log(JSON.stringify(formData, null, 2));
   console.log('=============================');
   
-  // Check for transaction type in different places
-  let transactionType = formData.transactionType || formData.type || "Duplicate Stickers";
-  console.log(`Original transaction type from data: "${transactionType}"`);
+  if (!formData.transactionType) {
+    formData.transactionType = "Duplicate Stickers";
+  }
   
-  // Check for "plates" in the transaction type string to ensure "Duplicate Plates & Stickers" is detected
-  const isDuplicatePlatesAndStickers = 
-    transactionType === "Duplicate Plates & Stickers" || 
-    (transactionType.toLowerCase().includes("plates") && 
-     transactionType.toLowerCase().includes("stickers"));
+  const isDuplicateStickers = formData.transactionType === "Duplicate Stickers";
+  const isDuplicatePlatesAndStickers = formData.transactionType === "Duplicate Plates & Stickers";
   
-  const isDuplicateStickers = 
-    transactionType === "Duplicate Stickers" && 
-    !isDuplicatePlatesAndStickers;
-  
-  console.log(`Processed transaction type: isDuplicateStickers: ${isDuplicateStickers}, isDuplicatePlatesAndStickers: ${isDuplicatePlatesAndStickers}`);
+  console.log(`Transaction type: "${formData.transactionType}", isDuplicateStickers: ${isDuplicateStickers}, isDuplicatePlatesAndStickers: ${isDuplicatePlatesAndStickers}`);
   
   const fieldMapping = {
     "Vehicle license plate": "vehicleInformation.licensePlate",
@@ -2323,17 +2278,8 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     } catch (error) {
       console.error(`Error applying checkbox mapping for field ${pdfField}:`, error);
     }
-  }
-  
-  // Handle transaction-specific checkbox settings
-  if (isDuplicateStickers) {
-    console.log('Processing Duplicate Stickers transaction type');
-    
-    // No license plates for duplicate stickers only
-    safeSetCheckbox("License plates", false);
-    
-    // Check month/year based on form data
-    const monthChecked = dataToUse.duplicateStickers && 'month' in dataToUse.duplicateStickers
+  }   if (isDuplicateStickers) {
+    console.log('Processing Duplicate Stickers transaction type');     safeSetCheckbox("License plates", false);     const monthChecked = dataToUse.duplicateStickers && 'month' in dataToUse.duplicateStickers
       ? dataToUse.duplicateStickers.month
       : (dataToUse.activeSubOptions && dataToUse.activeSubOptions["Duplicate Stickers-Month"] === true);
     
@@ -2346,9 +2292,7 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     safeSetCheckbox("license month", monthChecked);
     safeSetCheckbox("license year", yearChecked);
   } 
-  else if (isDuplicatePlatesAndStickers) {
-    // For "Duplicate Plates & Stickers" ALWAYS check all three checkboxes
-    console.log('Processing Duplicate Plates & Stickers transaction type - ALWAYS checking all three options');
+  else if (isDuplicatePlatesAndStickers) {     console.log('Processing Duplicate Plates & Stickers transaction type - ALWAYS checking all three options');
     safeSetCheckbox("License plates", true);
     safeSetCheckbox("license month", true);
     safeSetCheckbox("license year", true);

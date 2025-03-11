@@ -234,25 +234,31 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       alert('User ID and Transaction Type are required.');
       return;
     }
-
+  
     setShowValidationDialog(false);
     setIsLoading(true);
-
+  
     try {
       if (multipleTransferData?.isMultipleTransfer) {
         const { transfersData, numberOfTransfers } = multipleTransferData;
         const allTransactionIds = [];
-        const allPdfBlobs = [];         for (let i = 0; i < numberOfTransfers; i++) {
-          let transferData = transfersData[i];
-          
-          transferData = prepareTransferData(transferData);
-          
-          console.log(`Saving transfer ${i + 1} of ${numberOfTransfers}:`, transferData);
+        const allPdfBlobs = [];         for (let i = 0; i < numberOfTransfers; i++) {           let transferData = JSON.parse(JSON.stringify(transfersData[i]));           transferData = prepareTransferData(transferData);           console.log(`Saving transfer ${i + 1} of ${numberOfTransfers}:`, JSON.stringify({
+            owners: transferData.owners?.length || 0,
+            vehicleInfo: Boolean(transferData.vehicleInformation),
+            sellerInfo: Boolean(transferData.seller),
+            address: Boolean(transferData.address)
+          }));            const normalizedData = {
+            ...transferData,             owners: transferData.owners || (transferData.newOwners?.owners || []),
+            vehicleInformation: transferData.vehicleInformation || {},
+            sellerInfo: { 
+              sellers: transferData.seller?.sellers || [transferData.seller].filter(Boolean) || [] 
+            },             address: transferData.address || {},
+            mailingAddressDifferent: Boolean(transferData.mailingAddressDifferent),           };
           
           const dataToSave = {
             userId: user.uid,
             transactionType: `Multiple Transfer ${i + 1} of ${numberOfTransfers}`,
-            formData: transferData,
+            formData: normalizedData,
             transferIndex: i,
             totalTransfers: numberOfTransfers,
             isPartOfMultipleTransfer: true
@@ -292,6 +298,8 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
                 blob,
                 title: `Transfer ${i + 1} - ${formType}`
               });
+            } else {
+              console.error(`Failed to generate ${formType} for transfer ${i + 1}`);
             }
           }
         }         if (allTransactionIds.length > 0) {
@@ -310,24 +318,26 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
               blob,
               title: 'Vehicle Registration Application (Reg101)'
             });
+          } else {
+            console.error('Failed to generate Reg101 form');
           }
-        }
-        
-        if (allPdfBlobs.length > 0) {           const mergedPdfBlob = await mergePDFs(allPdfBlobs);           const pdfUrl = URL.createObjectURL(mergedPdfBlob);
-          window.open(pdfUrl, '_blank');           setTimeout(() => {
+        }         if (allPdfBlobs.length > 0) {
+          const mergedPdfBlob = await mergePDFs(allPdfBlobs);
+          const pdfUrl = URL.createObjectURL(mergedPdfBlob);           window.open(pdfUrl, '_blank');           setTimeout(() => {
             URL.revokeObjectURL(pdfUrl);
           }, 5000);
         } else {
           throw new Error('No PDFs were generated successfully');
-        }
-        
-        updateField('_showValidationErrors', false);
+        }         updateField('_showValidationErrors', false);
         onSuccess?.();
         
       } else if (isDuplicatePlatesOrStickers) {
-        console.log(`Handling save for ${transactionType}`);         const enhancedFormData = {
+        console.log(`Handling save for ${transactionType}`);
+        
+        const enhancedFormData = {
           ...formData,
-          transactionType         };
+          transactionType
+        };
         
         const dataToSave = {
           userId: user.uid,
@@ -359,9 +369,10 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
             body: JSON.stringify({ 
               transactionId, 
               formType: 'Reg156',
-              transactionType             }),
+              transactionType
+            }),
           });
-
+  
           if (fillPdfResponse.ok) {
             const pdfBlob = await fillPdfResponse.blob();
             const pdfUrl = URL.createObjectURL(pdfBlob);
@@ -385,11 +396,12 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
           const error = await saveResponse.json();
           throw new Error(error.error || 'Failed to save transaction');
         }
-      } else {
+      } else {         const standardizedFormData = prepareTransferData(formData);
+        
         const dataToSave = {
           userId: user.uid,
           transactionType,
-          formData,
+          formData: standardizedFormData,
           transactionId: formData._id
         };
         
@@ -422,7 +434,6 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       setIsLoading(false);
     }
   };
-
   const openMergedPdfs = async (transactionId: string) => {
     try {
       const formTypes = ['Reg227', 'DMVREG262'];
