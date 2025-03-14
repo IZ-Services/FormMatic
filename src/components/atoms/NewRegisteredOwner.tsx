@@ -109,7 +109,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
   const [isRegMenuOpen, setIsRegMenuOpen] = useState(false);
   const [isHowManyMenuOpen, setIsHowManyMenuOpen] = useState(false);
   const [activeOwnerIndex, setActiveOwnerIndex] = useState(0);
-  // Track owner1's purchase date to sync with other owners
+
   const [syncedPurchaseDate, setSyncedPurchaseDate] = useState<string>('');
   
   const isVehicleGift = formData?.vehicleTransactionDetails?.isGift === true;
@@ -139,7 +139,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     if (formData?.owners) {
       setOwners(formData.owners);
       
-      // Initialize synced purchase date from owner 1 if it exists
+
       if (formData.owners.length > 0 && formData.owners[0].purchaseDate) {
         setSyncedPurchaseDate(formData.owners[0].purchaseDate);
       }
@@ -182,12 +182,12 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     console.log("Gift status in NewRegisteredOwners:", isVehicleGift);
   }, [isVehicleGift]);
 
-  // Effect to synchronize purchase date from owner 1 to other owners
+
   useEffect(() => {
     if (syncedPurchaseDate && owners.length > 1) {
       const newOwners = [...owners];
       
-      // Start from index 1 (second owner) and update purchase dates
+
       for (let i = 1; i < newOwners.length; i++) {
         if (newOwners[i].purchaseDate !== syncedPurchaseDate) {
           newOwners[i] = { ...newOwners[i], purchaseDate: syncedPurchaseDate };
@@ -220,7 +220,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
         state: '',
         phoneCode: '',
         phoneNumber: '',
-        purchaseDate: currentPurchaseDate, // Use synchronized purchase date for new owners
+        purchaseDate: currentPurchaseDate,
         purchaseValue: '',
         marketValue: '',
         isGift: false,
@@ -253,7 +253,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     const newOwners = [...owners];
     newOwners[index] = { ...newOwners[index], [field]: value };
     
-    // If changing purchase date for the first owner, update the synced value
+
     if (index === 0 && field === 'purchaseDate') {
       setSyncedPurchaseDate(value);
     }
@@ -516,7 +516,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
                 placeholder="MM/DD/YYYY"
                 value={owner.purchaseDate}
                 onChange={(e) => handleOwnerFieldChange(index, 'purchaseDate', e.target.value)}
-                // Disable input for all owners except the first one
+
                 disabled={index > 0}
               />
               {shouldShowValidationError(index, 'purchaseDate') && (

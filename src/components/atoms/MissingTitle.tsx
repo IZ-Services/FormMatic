@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './MissingTitle.css';
 
 interface MissingTitleInfo {
@@ -12,15 +13,15 @@ interface MissingTitleProps {
   formData?: {
     missingTitleInfo?: MissingTitleInfo;
   };
-  onChange?: (data: MissingTitleInfo) => void;
 }
 
-const MissingTitle: React.FC<MissingTitleProps> = ({ formData, onChange }) => {
+const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) => {
   const [titleData, setTitleData] = useState<MissingTitleInfo>(
-    formData?.missingTitleInfo || {}
+    propFormData?.missingTitleInfo || {}
   );
   const [openDropdown, setOpenDropdown] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const { updateField } = useFormContext();
 
   const missingTitleOptions = [
     'Lost', 
@@ -30,6 +31,12 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData, onChange }) => {
     'Illegible/Mutilated (Attach old title)',
     'Other'
   ];
+
+  useEffect(() => {
+    if (propFormData?.missingTitleInfo) {
+      setTitleData(propFormData.missingTitleInfo);
+    }
+  }, [propFormData]);
 
   const handleClickOutside = (e: MouseEvent) => {
     if (openDropdown && !dropdownRef.current?.contains(e.target as Node)) {
@@ -50,7 +57,7 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData, onChange }) => {
     }
 
     setTitleData(newData);
-    onChange?.(newData);
+    updateField('missingTitleInfo', newData);
     
     if (field === 'reason') {
       setOpenDropdown(false);
@@ -90,20 +97,6 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData, onChange }) => {
             </ul>
           )}
         </div>
-
-        {/* Other Reason Input (Conditional) */}
-        {titleData.reason === 'Other' && (
-          <div className="inputContainer">
-            <label className="inputLabel">Specify other reason:</label>
-            <input
-              type="text"
-              className="textInput"
-              value={titleData.otherReason || ''}
-              onChange={(e) => handleChange('otherReason', e.target.value)}
-              placeholder="Enter the reason"
-            />
-          </div>
-        )}
       </div>
     </div>
   );

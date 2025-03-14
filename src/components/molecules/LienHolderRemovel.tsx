@@ -9,17 +9,18 @@ import { FormDataProvider, useFormContext } from '../../app/api/formDataContext/
 import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
 import TypeContainer from '../layouts/TransactionsContainer';
+import MissingTitle from '../atoms/MissingTitle';
 import React, { useEffect, useState } from 'react';
-
+import TitleStatus from '../atoms/TitleStatus';
+import ReleaseOfOwnership from '../atoms/ReleaseOfOwnership';
 import LegalOwnerOfRecord from '../atoms/LegalOwnerOfRecord';
-import SmogExemption from '../atoms/SmogExemption';
+
 import VehicleTransactionDetails from '../atoms/Checkboxes';
 import PowerOfAttorney from '../atoms/PowerOfAttorney';
 import SellerAddress from '../atoms/SellerAdrress';
 
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
-  isSmogExempt?: boolean;
 }
 
 interface FormContextData {
@@ -27,12 +28,13 @@ interface FormContextData {
   [key: string]: any;
 }
 
-interface SimpleTransferProps {
+interface LienHolderRemovalProps {
   formData?: any;
   onDataChange?: (data: any) => void;
+
 }
 
-export default function SimpleTransfer({ formData, onDataChange }: SimpleTransferProps) {
+export default function LienHolderRemovalTransfer({ formData, onDataChange }: LienHolderRemovalProps) {
   const [formValues, setFormValues] = useState(formData || {});
   useEffect(() => {
     if (onDataChange) {
@@ -55,28 +57,20 @@ export default function SimpleTransfer({ formData, onDataChange }: SimpleTransfe
     }, [formValues]);
 
     const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
-    const isSmogExempt = contextFormData?.vehicleTransactionDetails?.isSmogExempt === true;
 
     return (
       <div className='wholeForm'>
         <TypeContainer />
-        <VehicleTransactionDetails formData={formValues} />
+        {/* <VehicleTransactionDetails formData={formValues} /> */}
+        <TitleStatus formData={formValues}/>
 
         <VehicalInformation formData={formValues}/>
         <Seller formData={formValues} />
         <SellerAddress formData={formValues} />
-        {isCurrentLienholder && (
-          <LegalOwnerOfRecord formData={formValues} />
-        )}
-        <NewRegisteredOwners formData={formValues} />
-        <Address formData={formValues} />
-        <NewLien formData={formValues} />
-        <PowerOfAttorney formData={formValues} />
-         {isSmogExempt && (
-          <SmogExemption formData={formValues} />
-        )}
+        <MissingTitle formData={formValues} />
+        <ReleaseOfOwnership formData={formValues} />
         <SaveButton 
-          transactionType="Simple Transfer"
+          transactionType="Lien Holder Removal"
           onSuccess={() => console.log('Save completed successfully')}
         />
       </div>

@@ -86,47 +86,81 @@
     flex: 1;
 }
 
-.regStateDropDown {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 2px;
-    background-color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    font-size: 14px;
-}
+/* LegalOwnerOfRecord.css */
 
-.regIcon {
+/* Keep existing styles and add/update these */
+
+/* Dropdown container */
+.regStateWrapper {
+    position: relative;
+    z-index: 5;
+  }
+  
+  /* Dropdown button */
+  .regStateDropDown {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 12px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #666;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  
+  /* Dropdown icon */
+  .regIcon {
     width: 20px;
     height: 20px;
     transition: transform 0.2s ease;
-}
-
-.regIcon.rotate {
+  }
+  
+  .regIcon.rotate {
     transform: rotate(180deg);
-}
-
-.regStateMenu {
+  }
+  
+  /* Dropdown menu */
+  .regStateMenu {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 2px);
     left: 0;
-    right: 0;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
     background-color: white;
     border: 1px solid #ccc;
-    border-radius: 2px;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-}
-
-.regStateLists {
-    padding: 8px;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 10;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  
+  /* Dropdown list items */
+  .regStateLists {
+    padding: 12px 16px;
+    color: rgb(150 148 148);
+    font-size: 15px;
+    border-bottom: 1px solid #f5f5f5;
     cursor: pointer;
-}
-
-.regStateLists:hover {
+    transition: background-color 0.2s ease;
+  }
+  
+  .regStateLists:hover {
     background-color: #f5f5f5;
-}
+  }
+  
+  /* Fix parent containers */
+  .cityStateZipGroupp {
+    position: relative;
+    overflow: visible;
+  }
+  
+  .releaseWrapper {
+    position: relative;
+    overflow: visible;
+  }

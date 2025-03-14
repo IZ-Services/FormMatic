@@ -8,9 +8,9 @@ import TypeContainer from '../layouts/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
 import SellerAddress from '../atoms/SellerAdrress';
 import LicensePlate from '../atoms/LicensePlate';
-import VehicalInformation from '../atoms/VehicleInformation';
+import VehicleInformation from '../atoms/VehicleInformation';
 import ItemRequested from '../atoms/ItemRequested';
-
+import TitleField from '../atoms/TitleCompany';
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
 }
@@ -50,10 +50,14 @@ export default function DuplicatePlatesAndStickersTransfer({ formData }: Duplica
         <TypeContainer />
         {/* <VehicleTransactionDetails formData={formValues} /> */}
 
-        <VehicalInformation formData={formValues}/>
-        <Seller formData={formValues} />
+        <VehicleInformation 
+          formData={formValues}
+          isDuplicateRegistrationMode={true}
+        />        <Seller formData={formValues} />
         <SellerAddress formData={formValues} />
         <ItemRequested formData={formValues}/>
+        <TitleField formData={formData} />
+
         <LicensePlate formData={formData} />
         {/* <MissingTitle formData={formValues} />
         {isCurrentLienholder && (

@@ -26,7 +26,9 @@ interface VehicleInformationProps {
     vehicleTransactionDetails?: {
       isMotorcycle?: boolean;
     };
-  };   onChange?: (data: VehicleInformationType) => void;
+  };
+  onChange?: (data: VehicleInformationType) => void;
+  isDuplicateRegistrationMode?: boolean;
 }
 
 const initialVehicleInformation: VehicleInformationType = {
@@ -46,7 +48,11 @@ const initialVehicleInformation: VehicleInformationType = {
   operationDate: ''
 };
 
-const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propFormData, onChange }) => {
+const VehicleInformation: React.FC<VehicleInformationProps> = ({ 
+  formData: propFormData, 
+  onChange,
+  isDuplicateRegistrationMode = false
+}) => {
   const { formData: contextFormData, updateField } = useFormContext();
 
   const formData = {
@@ -57,7 +63,8 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propF
   useEffect(() => {
     if (!formData.vehicleInformation) {
       const newData = initialVehicleInformation;
-      updateField('vehicleInformation', newData);       if (onChange) {
+      updateField('vehicleInformation', newData);
+      if (onChange) {
         onChange(newData);
       }
     }
@@ -67,11 +74,13 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propF
     const isCurrentlyMotorcycle = formData.vehicleTransactionDetails?.isMotorcycle === true;
     const currentInfo = (formData.vehicleInformation || {}) as VehicleInformationType;
     
-  
     if (!isCurrentlyMotorcycle && currentInfo.engineNumber) {
       const newInfo = {
         ...currentInfo,
-        engineNumber: ''       };       updateField('vehicleInformation', newInfo);       if (onChange) {
+        engineNumber: ''
+      };
+      updateField('vehicleInformation', newInfo);
+      if (onChange) {
         onChange(newInfo);
       }
     }
@@ -79,18 +88,26 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propF
 
   const handleVehicleInfoChange = (field: keyof VehicleInformationType, value: string | boolean) => {
     const currentInfo = (formData.vehicleInformation || {}) as VehicleInformationType;
-    let newInfo: VehicleInformationType;     if (field === 'notActualMileage' && value === true) {       newInfo = { 
+    let newInfo: VehicleInformationType;
+    
+    if (field === 'notActualMileage' && value === true) {
+      newInfo = { 
         ...currentInfo, 
         [field]: value, 
         exceedsMechanicalLimit: false 
       };
-    } else if (field === 'exceedsMechanicalLimit' && value === true) {       newInfo = { 
+    } else if (field === 'exceedsMechanicalLimit' && value === true) {
+      newInfo = { 
         ...currentInfo, 
         [field]: value, 
         notActualMileage: false 
       };
-    } else {       newInfo = { ...currentInfo, [field]: value };
-    }     updateField('vehicleInformation', newInfo);     if (onChange) {
+    } else {
+      newInfo = { ...currentInfo, [field]: value };
+    }
+    
+    updateField('vehicleInformation', newInfo);
+    if (onChange) {
       onChange(newInfo);
     }
   };
@@ -160,60 +177,52 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({ formData: propF
         </div>
       </div>
 
-
-<div className="mileageRow">
-  <div className="mileageField">
-    <label className="yearlabel">Mileage of Vehicle</label>
-    <input
-      className="yearInput"
-      type="text"
-      placeholder="Vehicle Mileage"
-      value={(formData.vehicleInformation as VehicleInformationType)?.mileage || ''}
-      onChange={(e) => {
-        const value = e.target.value;
-        const numericValue = value.replace(/[^0-9]/g, '');
-        const limitedValue = numericValue.slice(0, 6);
-        
-        handleVehicleInfoChange('mileage', limitedValue);
-      }}
-      maxLength={6}
-    />
-  </div>
-  
-  <div className="mileageCheckboxes">
-    <label className="checkboxLabel">
-      <input
-        type="checkbox"
-        checked={(formData.vehicleInformation as VehicleInformationType)?.notActualMileage || false}
-        onChange={(e) => handleVehicleInfoChange('notActualMileage', e.target.checked)}
-        className="checkboxInput"
-        disabled={(formData.vehicleInformation as VehicleInformationType)?.exceedsMechanicalLimit || false}
-      />
-      NOT Actual Mileage
-    </label>
-    
-    <label className="checkboxLabel">
-      <input
-        type="checkbox"
-        checked={(formData.vehicleInformation as VehicleInformationType)?.exceedsMechanicalLimit || false}
-        onChange={(e) => handleVehicleInfoChange('exceedsMechanicalLimit', e.target.checked)}
-        className="checkboxInput"
-        disabled={(formData.vehicleInformation as VehicleInformationType)?.notActualMileage || false}
-      />
-      Mileage Exceeds Mechanical Limit
-    </label>
-  </div>
-</div>
-      {/* <div className="newRegThirdItem">
-        <label className="registeredOwnerLabel">Date Vehicle Will Be or Was Operated at This Weight</label>
-        <input
-          className="registeredDateInput"
-          type="text"
-          placeholder="MM/DD/YYYY"
-          value={(formData.vehicleInformation as VehicleInformationType)?.operationDate || ''}
-          onChange={(e) => handleVehicleInfoChange('operationDate', e.target.value)}
-        />
-      </div> */}
+      {/* Only show mileage fields if NOT in Duplicate Registration mode */}
+      {!isDuplicateRegistrationMode && (
+        <div className="mileageRow">
+          <div className="mileageField">
+            <label className="yearlabel">Mileage of Vehicle</label>
+            <input
+              className="yearInput"
+              type="text"
+              placeholder="Vehicle Mileage"
+              value={(formData.vehicleInformation as VehicleInformationType)?.mileage || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                const numericValue = value.replace(/[^0-9]/g, '');
+                const limitedValue = numericValue.slice(0, 6);
+                
+                handleVehicleInfoChange('mileage', limitedValue);
+              }}
+              maxLength={6}
+            />
+          </div>
+          
+          <div className="mileageCheckboxes">
+            <label className="checkboxLabel">
+              <input
+                type="checkbox"
+                checked={(formData.vehicleInformation as VehicleInformationType)?.notActualMileage || false}
+                onChange={(e) => handleVehicleInfoChange('notActualMileage', e.target.checked)}
+                className="checkboxInput"
+                disabled={(formData.vehicleInformation as VehicleInformationType)?.exceedsMechanicalLimit || false}
+              />
+              NOT Actual Mileage
+            </label>
+            
+            <label className="checkboxLabel">
+              <input
+                type="checkbox"
+                checked={(formData.vehicleInformation as VehicleInformationType)?.exceedsMechanicalLimit || false}
+                onChange={(e) => handleVehicleInfoChange('exceedsMechanicalLimit', e.target.checked)}
+                className="checkboxInput"
+                disabled={(formData.vehicleInformation as VehicleInformationType)?.notActualMileage || false}
+              />
+              Mileage Exceeds Mechanical Limit
+            </label>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { UserAuth } from '../../context/AuthContext';
 import PreviewModal from './previewmodal';
-import './savebutton.css';  import { PDFDocument } from 'pdf-lib';
+import './savebutton.css';
+import { PDFDocument } from 'pdf-lib';
 
 interface SaveButtonProps {
   transactionType: string;
@@ -50,6 +51,8 @@ interface FormData {
     currentLienholder?: boolean;
     isMotorcycle?: boolean;
     isFamilyTransfer?: boolean;
+    isSmogExempt?: boolean;
+
   };
   mailingAddressDifferent?: boolean;
   lesseeAddressDifferent?: boolean;
@@ -91,7 +94,9 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
         poBox: '',
         county: ''
       };
-    }     if (preparedData.mailingAddressDifferent && !preparedData.mailingAddress) {
+    }
+    
+    if (preparedData.mailingAddressDifferent && !preparedData.mailingAddress) {
       preparedData.mailingAddress = {
         street: '',
         apt: '',
@@ -219,14 +224,46 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
     }
     
     handleSave();
-  };   const mergePDFs = async (pdfBlobs: { blob: Blob, title: string }[]): Promise<Blob> => {
-    const mergedPdf = await PDFDocument.create();
-    
-    for (const pdfData of pdfBlobs) {       const arrayBuffer = await pdfData.blob.arrayBuffer();       const pdfDoc = await PDFDocument.load(arrayBuffer);       const pages = await pdfDoc.getPages();       for (let i = 0; i < pages.length; i++) {
-        const [copiedPage] = await mergedPdf.copyPages(pdfDoc, [i]);
-        mergedPdf.addPage(copiedPage);
+  };
+
+
+  const mergePDFs = async (pdfBlobs: { blob: Blob, title: string }[]): Promise<Blob> => {
+    try {
+      const mergedPdf = await PDFDocument.create();
+      
+      for (const pdfData of pdfBlobs) {
+        try {
+          console.log(`Merging PDF: ${pdfData.title}, size: ${pdfData.blob.size} bytes`);
+          const arrayBuffer = await pdfData.blob.arrayBuffer();
+          
+
+          const pdfDoc = await PDFDocument.load(arrayBuffer, { 
+            ignoreEncryption: true 
+          });
+          
+          const pages = await pdfDoc.getPages();
+          console.log(`Successfully loaded PDF with ${pages.length} pages`);
+          
+          for (let i = 0; i < pages.length; i++) {
+            const [copiedPage] = await mergedPdf.copyPages(pdfDoc, [i]);
+            mergedPdf.addPage(copiedPage);
+            console.log(`Added page ${i+1} from ${pdfData.title}`);
+          }
+        } catch (error) {
+          console.error(`Error processing PDF ${pdfData.title}:`, error);
+
+        }
       }
-    }     const mergedPdfBytes = await mergedPdf.save();     return new Blob([mergedPdfBytes], { type: 'application/pdf' });
+      
+      console.log('Creating final merged PDF...');
+      const mergedPdfBytes = await mergedPdf.save();
+      console.log(`Merged PDF created, size: ${mergedPdfBytes.length} bytes`);
+      
+      return new Blob([mergedPdfBytes], { type: 'application/pdf' });
+    } catch (error:any) {
+      console.error('Error merging PDFs:', error);
+      throw new Error(`Failed to merge PDFs: ${error.message}`);
+    }
   };
 
   const handleSave = async () => {
@@ -242,18 +279,28 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       if (multipleTransferData?.isMultipleTransfer) {
         const { transfersData, numberOfTransfers } = multipleTransferData;
         const allTransactionIds = [];
-        const allPdfBlobs = [];         for (let i = 0; i < numberOfTransfers; i++) {           let transferData = JSON.parse(JSON.stringify(transfersData[i]));           transferData = prepareTransferData(transferData);           console.log(`Saving transfer ${i + 1} of ${numberOfTransfers}:`, JSON.stringify({
+        const allPdfBlobs = [];
+        
+        for (let i = 0; i < numberOfTransfers; i++) {
+          let transferData = JSON.parse(JSON.stringify(transfersData[i]));
+          transferData = prepareTransferData(transferData);
+          console.log(`Saving transfer ${i + 1} of ${numberOfTransfers}:`, JSON.stringify({
             owners: transferData.owners?.length || 0,
             vehicleInfo: Boolean(transferData.vehicleInformation),
             sellerInfo: Boolean(transferData.seller),
             address: Boolean(transferData.address)
-          }));            const normalizedData = {
-            ...transferData,             owners: transferData.owners || (transferData.newOwners?.owners || []),
+          }));
+          
+          const normalizedData = {
+            ...transferData,
+            owners: transferData.owners || (transferData.newOwners?.owners || []),
             vehicleInformation: transferData.vehicleInformation || {},
             sellerInfo: { 
               sellers: transferData.seller?.sellers || [transferData.seller].filter(Boolean) || [] 
-            },             address: transferData.address || {},
-            mailingAddressDifferent: Boolean(transferData.mailingAddressDifferent),           };
+            },
+            address: transferData.address || {},
+            mailingAddressDifferent: Boolean(transferData.mailingAddressDifferent),
+          };
           
           const dataToSave = {
             userId: user.uid,
@@ -281,7 +328,9 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
             const error = await saveResponse.json();
             throw new Error(error.error || `Failed to save transfer ${i + 1}`);
           }
-        }         for (let i = 0; i < allTransactionIds.length; i++) {
+        }
+        
+        for (let i = 0; i < allTransactionIds.length; i++) {
           const transactionId = allTransactionIds[i];
           const transferForms = [`Reg227`, `DMVREG262`];
           
@@ -302,7 +351,9 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
               console.error(`Failed to generate ${formType} for transfer ${i + 1}`);
             }
           }
-        }         if (allTransactionIds.length > 0) {
+        }
+        
+        if (allTransactionIds.length > 0) {
           const response = await fetch('/api/fillPdf', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -321,14 +372,20 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
           } else {
             console.error('Failed to generate Reg101 form');
           }
-        }         if (allPdfBlobs.length > 0) {
+        }
+        
+        if (allPdfBlobs.length > 0) {
           const mergedPdfBlob = await mergePDFs(allPdfBlobs);
-          const pdfUrl = URL.createObjectURL(mergedPdfBlob);           window.open(pdfUrl, '_blank');           setTimeout(() => {
+          const pdfUrl = URL.createObjectURL(mergedPdfBlob);
+          window.open(pdfUrl, '_blank');
+          setTimeout(() => {
             URL.revokeObjectURL(pdfUrl);
           }, 5000);
         } else {
           throw new Error('No PDFs were generated successfully');
-        }         updateField('_showValidationErrors', false);
+        }
+        
+        updateField('_showValidationErrors', false);
         onSuccess?.();
         
       } else if (isDuplicatePlatesOrStickers) {
@@ -396,7 +453,8 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
           const error = await saveResponse.json();
           throw new Error(error.error || 'Failed to save transaction');
         }
-      } else {         const standardizedFormData = prepareTransferData(formData);
+      } else {
+        const standardizedFormData = prepareTransferData(formData);
         
         const dataToSave = {
           userId: user.uid,
@@ -434,41 +492,95 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       setIsLoading(false);
     }
   };
-  const openMergedPdfs = async (transactionId: string) => {
-    try {
-      const formTypes = ['Reg227', 'DMVREG262'];
+
+const openMergedPdfs = async (transactionId: string) => {
+  try {
+    let formTypes = [];
+    
+    console.log('Opening PDFs for transaction type:', transactionType);
+    
+
+    if (transactionType === "Lien Holder Addition") {
+      formTypes = ['Reg227'];
+    } else if (transactionType === "Lien Holder Removal") {
+
+      formTypes = ['Reg227', 'DMVReg166']; 
+      console.log('Lien Holder Removal: Using both Reg227 and DMVReg166 forms');
+    } else if (transactionType === "Duplicate Title Transfer") {
+
+      formTypes = ['Reg227'];
+      console.log('Duplicate Title Transfer: Using Reg227 form');
+    } else if (transactionType === "Duplicate Registration Transfer") {
+
+      formTypes = ['Reg156'];
+      console.log('Duplicate Registration Transfer: Using Reg156 form');
+    } else {
+      formTypes = ['Reg227', 'DMVREG262'];
       
-      if (formData.vehicleTransactionDetails?.isFamilyTransfer || formData.vehicleTransactionDetails?.isGift) {
+
+      if (formData.vehicleTransactionDetails?.isFamilyTransfer || 
+          formData.vehicleTransactionDetails?.isGift ||
+          formData.vehicleTransactionDetails?.isSmogExempt) {
         formTypes.push('Reg256');
+        console.log('Including Reg256 form due to family transfer, gift, or smog exemption');
       }
+    }
+    
+    const pdfBlobs: { blob: Blob, title: string }[] = [];
+    
+
+    for (const formType of formTypes) {
+      console.log(`Requesting PDF for form type: ${formType}`);
       
-      const pdfBlobs: { blob: Blob, title: string }[] = [];
-      
-      for (const formType of formTypes) {
+      try {
         const fillPdfResponse = await fetch('/api/fillPdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             transactionId, 
             formType,
-            transactionType           }),
+            transactionType
+          }),
         });
-
+    
         if (fillPdfResponse.ok) {
           const pdfBlob = await fillPdfResponse.blob();
-          pdfBlobs.push({ 
-            blob: pdfBlob, 
-            title: formType 
-          });
+          console.log(`Successfully received PDF for ${formType}, size: ${pdfBlob.size} bytes`);
+          
+
+          if (pdfBlob.size > 0) {
+            pdfBlobs.push({ 
+              blob: pdfBlob, 
+              title: formType 
+            });
+          } else {
+            console.warn(`PDF for ${formType} has zero size, skipping`);
+          }
         } else {
-          const error = await fillPdfResponse.json();
-          console.error(`Error fetching ${formType}:`, error);
+          let errorText = 'Unknown error';
+          try {
+            const errorJson = await fillPdfResponse.json();
+            errorText = errorJson.error || 'Unknown error';
+          } catch (err) {
+            errorText = await fillPdfResponse.text();
+          }
+          console.error(`Error fetching ${formType} (${fillPdfResponse.status}):`, errorText);
         }
+      } catch (error) {
+        console.error(`Exception while fetching ${formType}:`, error);
       }
-      
-      if (pdfBlobs.length === 0) {
-        throw new Error('No PDFs were generated successfully');
-      }       const mergedPdfBlob = await mergePDFs(pdfBlobs);       const pdfUrl = URL.createObjectURL(mergedPdfBlob);
+    }
+    
+    if (pdfBlobs.length === 0) {
+      throw new Error('No PDFs were generated successfully');
+    }
+    
+    console.log(`Successfully received ${pdfBlobs.length} PDFs, merging them...`);
+    
+
+    if (pdfBlobs.length === 1) {
+      console.log('Only one PDF available, opening directly without merging');
+      const pdfUrl = URL.createObjectURL(pdfBlobs[0].blob);
       const pdfWindow = window.open(pdfUrl, '_blank');
       
       if (!pdfWindow) {
@@ -480,13 +592,28 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       }, 5000);
       
       return true;
-    } catch (error: any) {
-      console.error('Error opening PDFs:', error);
-      alert(`Error opening PDFs: ${error.message}`);
-      return false;
     }
-  };
+    
 
+    const mergedPdfBlob = await mergePDFs(pdfBlobs);
+    const pdfUrl = URL.createObjectURL(mergedPdfBlob);
+    const pdfWindow = window.open(pdfUrl, '_blank');
+    
+    if (!pdfWindow) {
+      alert('Please allow popups to view the PDF forms.');
+    }
+    
+    setTimeout(() => {
+      URL.revokeObjectURL(pdfUrl);
+    }, 5000);
+    
+    return true;
+  } catch (error: any) {
+    console.error('Error opening PDFs:', error);
+    alert(`Error opening PDFs: ${error.message}`);
+    return false;
+  }
+};
   return (
     <div className="saveButtonContainer">
       <button

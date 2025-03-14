@@ -8,6 +8,7 @@ interface VehicleTransactionDetailsData {
   isMotorcycle?: boolean;
   isGift?: boolean;
   isFamilyTransfer?: boolean;
+  isSmogExempt?: boolean;
 }
 
 interface OwnerData {
@@ -72,7 +73,8 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     currentLienholder: false,
     isMotorcycle: false,
     isGift: false,
-    isFamilyTransfer: false
+    isFamilyTransfer: false,
+    isSmogExempt: false
   });
 
   useEffect(() => {
@@ -82,6 +84,7 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
       isMotorcycle: false,
       isGift: false,
       isFamilyTransfer: false,
+      isSmogExempt: false,
       ...combinedFormData?.vehicleTransactionDetails
     };
     setTransactionData(mergedData);
@@ -133,6 +136,8 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
         updateField('owners', updatedOwners);
       }
     }
+    
+
 
     console.log(`Changing ${field} to:`, newValue);
     console.log("New transaction data:", newData);
@@ -207,6 +212,17 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
               disabled={transactionData.isGift}
             />
             Family Transfer
+          </label>
+        </div>
+
+        <div className="checkbox-section">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={transactionData.isSmogExempt || false}
+              onChange={() => handleCheckboxChange('isSmogExempt')}
+            />
+            Smog Exemption
           </label>
         </div>
       </div>

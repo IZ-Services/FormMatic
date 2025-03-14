@@ -11,11 +11,11 @@ import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import MultipleTransfer from '../../components/molecules/MultipleTransfer';
 // import OutOfStateTitle from '../../components/scenarios/OutOfStateTitle';
 import DuplicateTitle from '../../components/molecules/DuplicateTitle';
-// import DuplicateRegistration from '../../components/scenarios/DuplicateRegistration';
+import DuplicateRegistration from '../../components/molecules/DuplicateRegistration';
 import DuplicateStickers from '../../components/molecules/DuplicateStickersOnly';
 import DuplicatePlatesStickers from '../../components/molecules/DuplicatePlatesAndSticklers';
-// import AddLienholder from '../../components/scenarios/AddLienholder';
-// import RemoveLienholder from '../../components/scenarios/RemoveLienholder';
+import AddLienholder from '../../components/molecules/LienHolderAddition';
+import RemoveLienholder from '../../components/molecules/LienHolderRemovel';
 // import NameChange from '../../components/scenarios/NameChange';
 // import ChangeOfAddress from '../../components/scenarios/ChangeOfAddress';
 // import PlannedNonOperation from '../../components/scenarios/PlannedNonOperation';
@@ -54,10 +54,10 @@ export default function Home() {
     if (activeScenarios["Simple Transfer"]) components.push(<SimpleTransfer key="simple-transfer" />);
     if (activeScenarios["Multiple Transfer"]) components.push(<MultipleTransfer key="multiple-transfer" />);
     if (activeScenarios["Duplicate Title"]) components.push(<DuplicateTitle key="duplicate-title" />);
-    // if (activeScenarios["Duplicate Registration"]) components.push(<DuplicateRegistration key="duplicate-registration" />);
+    if (activeScenarios["Duplicate Registration"]) components.push(<DuplicateRegistration key="duplicate-registration" />);
     if (activeScenarios["Duplicate Plates & Stickers"]) components.push(<DuplicatePlatesStickers key="duplicate-plates-stickers" />);
-    // if (activeScenarios["Add Lienholder"]) components.push(<AddLienholder key="add-lienholder" />);
-    // if (activeScenarios["Remove Lienholder"]) components.push(<RemoveLienholder key="remove-lienholder" />);
+    if (activeScenarios["Add Lienholder"]) components.push(<AddLienholder key="add-lienholder" />);
+    if (activeScenarios["Remove Lienholder"]) components.push(<RemoveLienholder key="remove-lienholder" />);
     // if (activeScenarios["Change of Address"]) components.push(<ChangeOfAddress key="change-of-address" />);
     // if (activeScenarios["Filing for Planned Non-Operation (PNO)"]) components.push(<PlannedNonOperation key="planned-non-operation" />);
     // if (activeScenarios["Restoring PNO Vehicle to Operational"]) components.push(<RestoringPNO key="restoring-pno" />);
@@ -75,8 +75,6 @@ export default function Home() {
     if (activeScenarios["Duplicate Stickers"]) {
       components.push(<DuplicateStickers 
         key="duplicate-stickers"
-        month={activeSubOptions["Duplicate Stickers-Month"]}
-        year={activeSubOptions["Duplicate Stickers-Year"]}
       />);
     }
     

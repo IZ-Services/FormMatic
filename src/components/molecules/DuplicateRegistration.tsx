@@ -10,11 +10,7 @@ import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
 import TypeContainer from '../layouts/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
-
-import LegalOwnerOfRecord from '../atoms/LegalOwnerOfRecord';
-
-import VehicleTransactionDetails from '../atoms/Checkboxes';
-import MissingTitle from '../atoms/MissingTitle';
+import ItemRequested from '../atoms/ItemRequested';
 import SellerAddress from '../atoms/SellerAdrress';
 
 interface VehicleTransactionDetailsData {
@@ -26,11 +22,11 @@ interface FormContextData {
   [key: string]: any;
 }
 
-interface DuplicateTitleTransferProps {
+interface DuplicateRegistrationTransferProps {
   formData?: any;
 }
 
-export default function DuplicateTitleTransfer({ formData }: DuplicateTitleTransferProps) {
+export default function DuplicateRegistrationTransfer({ formData }: DuplicateRegistrationTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
 
   useEffect(() => {
@@ -95,38 +91,17 @@ export default function DuplicateTitleTransfer({ formData }: DuplicateTitleTrans
       <div className='wholeForm'>
         <TypeContainer />
         
-        {/* Current Lienholder Checkbox */}
-        <div className="lienholderCheckboxWrapper">
-          <div className="headerRow">
-            <h3 className="releaseHeading">Current Lienholder</h3>
-          </div>
-          <div className="checkbox-container">
-            <div className="checkbox-section">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={hasLienholder}
-                  onChange={handleLienholderChange}
-                />
-                There is a Current Lienholder
-              </label>
-            </div>
-          </div>
-        </div>
 
         <VehicleInformation 
           formData={formValues}
           isDuplicateRegistrationMode={true}
-        />
-                <Seller formData={formValues} />
+        />        <Seller formData={formValues} />
         <SellerAddress formData={formValues} />
-        <MissingTitle formData={formValues} />
-        {hasLienholder && (
-          <LegalOwnerOfRecord formData={formValues} />
-        )}
-
-        <SaveButton 
-          transactionType="Duplicate Title Transfer"
+        <ItemRequested
+          formData={formValues}
+          isDuplicateRegistrationMode={true}
+        />        <SaveButton 
+          transactionType="Duplicate Registration Transfer"
           onSuccess={() => console.log('Save completed successfully')}
         />
       </div>

@@ -9,17 +9,17 @@ import { FormDataProvider, useFormContext } from '../../app/api/formDataContext/
 import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
 import TypeContainer from '../layouts/TransactionsContainer';
+import MissingTitle from '../atoms/MissingTitle';
 import React, { useEffect, useState } from 'react';
-
 import LegalOwnerOfRecord from '../atoms/LegalOwnerOfRecord';
-import SmogExemption from '../atoms/SmogExemption';
 import VehicleTransactionDetails from '../atoms/Checkboxes';
 import PowerOfAttorney from '../atoms/PowerOfAttorney';
 import SellerAddress from '../atoms/SellerAdrress';
+import TitleStatus from '../atoms/TitleStatus';
 
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
-  isSmogExempt?: boolean;
+  withTitle?: boolean;
 }
 
 interface FormContextData {
@@ -27,17 +27,20 @@ interface FormContextData {
   [key: string]: any;
 }
 
-interface SimpleTransferProps {
+interface LienHolderAdditionProps {
   formData?: any;
   onDataChange?: (data: any) => void;
 }
 
-export default function SimpleTransfer({ formData, onDataChange }: SimpleTransferProps) {
+export default function LienHolderAdditionTransfer({ formData, onDataChange }: LienHolderAdditionProps) {
   const [formValues, setFormValues] = useState(formData || {});
+  
   useEffect(() => {
     if (onDataChange) {
-      onDataChange(formData);     }
+      onDataChange(formData);
+    }
   }, [formData]);
+  
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
@@ -54,29 +57,33 @@ export default function SimpleTransfer({ formData, onDataChange }: SimpleTransfe
       }
     }, [formValues]);
 
+
+    useEffect(() => {
+      if (!contextFormData.vehicleTransactionDetails) {
+        updateField('vehicleTransactionDetails', {});
+      }
+    }, []);
+
     const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
-    const isSmogExempt = contextFormData?.vehicleTransactionDetails?.isSmogExempt === true;
+    const withTitle = contextFormData?.vehicleTransactionDetails?.withTitle === true;
 
     return (
       <div className='wholeForm'>
         <TypeContainer />
-        <VehicleTransactionDetails formData={formValues} />
-
+        
+        {/* Add the new TitleStatus component */}
+        <TitleStatus formData={formValues} />
+        
         <VehicalInformation formData={formValues}/>
         <Seller formData={formValues} />
         <SellerAddress formData={formValues} />
-        {isCurrentLienholder && (
-          <LegalOwnerOfRecord formData={formValues} />
-        )}
-        <NewRegisteredOwners formData={formValues} />
-        <Address formData={formValues} />
+        
+        {/* Only show MissingTitle component when "Without Title" is selected */}
+        {!withTitle && <MissingTitle formData={formValues} />}
+        
         <NewLien formData={formValues} />
-        <PowerOfAttorney formData={formValues} />
-         {isSmogExempt && (
-          <SmogExemption formData={formValues} />
-        )}
         <SaveButton 
-          transactionType="Simple Transfer"
+          transactionType="Lien Holder Addition"
           onSuccess={() => console.log('Save completed successfully')}
         />
       </div>

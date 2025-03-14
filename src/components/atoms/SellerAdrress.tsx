@@ -282,30 +282,7 @@ const handleAddressChange = (section: keyof FormData, field: keyof Address, valu
               onChange={(e) => handleAddressChange('sellerAddress', 'city', e.target.value)}
             />
           </div>
-          <div className="regStateWrapper">
-            <label className="registeredOwnerLabel">State</label>
-            <button
-              type="button"
-              onClick={() => handleDropdownClick('seller')}
-              className="regStateDropDown sellerDropdownButton"
-            >
-              {addressData.sellerAddress?.state || 'State'}
-              <ChevronDownIcon className={`regIcon ${openDropdown === 'seller' ? 'rotate' : ''}`} />
-            </button>
-            {openDropdown === 'seller' && (
-              <ul ref={dropdownRefs.seller} className="regStateMenu">
-                {states.map((state, index) => (
-                  <li
-                    key={index}
-                    onClick={() => handleStateSelect('sellerAddress', state.abbreviation)}
-                    className="regStateLists"
-                  >
-                    {state.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+       
           <div className="formGroup zipCodeField">
             <label className="formLabel">ZIP Code</label>
             <input

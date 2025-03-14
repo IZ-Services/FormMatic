@@ -37,152 +37,58 @@ export async function POST(request: Request) {
     console.log('Complete formData:', JSON.stringify(formData));
 
     if (isMultipleTransfer) {
-      console.log('Multiple transfer structure detected, restructuring data...'); try {
-  const restructuredData = {
-    owners: [],
-    vehicleInformation: {},
-    sellerInfo: { sellers: [] },
-    sellerAddress: {},
-    sellerMailingAddress: {},
-    sellerMailingAddressDifferent: false,
-    legalOwnerInformation: {},
-    address: {},
-    vehicleTransactionDetails: {},
-    lienHolder: {},
-    mailingAddress: {},
-    lesseeAddress: {},
-    trailerLocation: {},
-    powerOfAttorney: {},
-    mailingAddressDifferent: false,
-    lesseeAddressDifferent: false,
-    trailerLocationDifferent: false,
-    itemRequested: {}
-  };   if (formData?.newOwners?.owners && Array.isArray(formData.newOwners.owners)) {
-    restructuredData.owners = formData.newOwners.owners;
-    console.log('Using newOwners.owners array, length:', formData.newOwners.owners.length);
-  } else if (formData?.owners && Array.isArray(formData.owners)) {
-    restructuredData.owners = formData.owners;
-    console.log('Using top-level owners array, length:', formData.owners.length);
-  } else {
-    console.warn('No owners data found in expected locations');
-    restructuredData.owners = [];
-  }   if (formData?.vehicleInformation) {
-    restructuredData.vehicleInformation = formData.vehicleInformation;
-    console.log('Vehicle info keys:', Object.keys(formData.vehicleInformation));
-  }   if (formData?.seller) {
-    if (formData.seller.sellers && Array.isArray(formData.seller.sellers)) {       restructuredData.sellerInfo.sellers = formData.seller.sellers;
-      console.log('Using seller.sellers array');
-    } else if (typeof formData.seller === 'object' && !Array.isArray(formData.seller)) { restructuredData.sellerInfo = { 
-  sellers: Array.isArray(formData.seller.sellers) 
-    ? formData.seller.sellers 
-    : [formData.seller].filter(Boolean) 
-}; if (formData.seller) {   restructuredData.sellerInfo = restructuredData.sellerInfo || { sellers: [] };   restructuredData.sellerInfo.sellers = Array.isArray(formData.seller.sellers)
-    ? formData.seller.sellers
-    : [formData.seller].filter(Boolean);
-}
-      console.log('Converting single seller object to array');
-    }
-  } else if (formData?.sellerInfo?.sellers && Array.isArray(formData.sellerInfo.sellers)) {
-    restructuredData.sellerInfo.sellers = formData.sellerInfo.sellers;
-    console.log('Using sellerInfo.sellers array directly');
-  }   if (formData?.address) {
-    if (formData.address.address) {       restructuredData.address = formData.address.address;
-      console.log('Using nested address.address');
-    } else {       restructuredData.address = formData.address;
-      console.log('Using flat address structure');
-    }     restructuredData.mailingAddressDifferent = 
-      typeof formData.address.mailingAddressDifferent === 'boolean' 
-        ? formData.address.mailingAddressDifferent 
-        : Boolean(formData.mailingAddressDifferent || false);
-    
-    restructuredData.lesseeAddressDifferent = 
-      typeof formData.address.lesseeAddressDifferent === 'boolean'
-        ? formData.address.lesseeAddressDifferent
-        : Boolean(formData.lesseeAddressDifferent || false);
-    
-    restructuredData.trailerLocationDifferent = 
-      typeof formData.address.trailerLocationDifferent === 'boolean'
-        ? formData.address.trailerLocationDifferent
-        : Boolean(formData.trailerLocationDifferent || false);     if (formData.address.mailingAddress) {
-      restructuredData.mailingAddress = formData.address.mailingAddress;
-      console.log('Using nested mailingAddress');
-    }     if (formData.address.lesseeAddress) {
-      restructuredData.lesseeAddress = formData.address.lesseeAddress;
-    }
-    
-    if (formData.address.trailerLocation) {
-      restructuredData.trailerLocation = formData.address.trailerLocation;
-    }
-  }   if (formData?.sellerAddress) {
-    if (formData.sellerAddress.sellerAddress) {
-      restructuredData.sellerAddress = formData.sellerAddress.sellerAddress;
-      console.log('Using nested sellerAddress.sellerAddress');
-    } else {
-      restructuredData.sellerAddress = formData.sellerAddress;
-      console.log('Using flat sellerAddress structure');
-    }
-    
-    restructuredData.sellerMailingAddressDifferent = 
-      typeof formData.sellerAddress.sellerMailingAddressDifferent === 'boolean' 
-        ? formData.sellerAddress.sellerMailingAddressDifferent 
-        : Boolean(formData.sellerMailingAddressDifferent || false);
-    
-    if (formData.sellerAddress.sellerMailingAddress) {
-      restructuredData.sellerMailingAddress = formData.sellerAddress.sellerMailingAddress;
-      console.log('Using nested sellerMailingAddress');
-    } else if (formData.sellerMailingAddress) {
-      restructuredData.sellerMailingAddress = formData.sellerMailingAddress;
-      console.log('Using top-level sellerMailingAddress');
-    }
-  }   if (formData?.legalOwner) {
-    restructuredData.legalOwnerInformation = formData.legalOwner;
-  } else if (formData?.legalOwnerInformation) {
-    restructuredData.legalOwnerInformation = formData.legalOwnerInformation;
-  }
-  
-  if (formData?.vehicleTransactionDetails) {
-    restructuredData.vehicleTransactionDetails = formData.vehicleTransactionDetails;
-  }
-  
-  if (formData?.newLien) {
-    restructuredData.lienHolder = formData.newLien;
-  } else if (formData?.lienHolder) {
-    restructuredData.lienHolder = formData.lienHolder;
-  }
-  
-  if (formData?.powerOfAttorney) {
-    restructuredData.powerOfAttorney = formData.powerOfAttorney;
-  }
-  
-  if (formData?.itemRequested) {
-    restructuredData.itemRequested = formData.itemRequested;
-  }   formData = restructuredData;
-  
-} catch (error) {
-  console.error('Error restructuring data:', error);   formData = {
-    owners: [],
-    vehicleInformation: {},
-    sellerInfo: { sellers: [] },
-    sellerAddress: {},
-    sellerMailingAddress: {},
-    sellerMailingAddressDifferent: false,
-    legalOwnerInformation: {},
-    address: {},
-    vehicleTransactionDetails: {},
-    lienHolder: {},
-    mailingAddress: {},
-    lesseeAddress: {},
-    trailerLocation: {},
-    powerOfAttorney: {},
-    mailingAddressDifferent: false,
-    lesseeAddressDifferent: false,
-    trailerLocationDifferent: false,
-    itemRequested: {}
-  };
-}
+      console.log('Multiple transfer structure detected, restructuring data...');
+      try {
+        const restructuredData = {
+          owners: [],
+          vehicleInformation: {},
+          sellerInfo: { sellers: [] },
+          sellerAddress: {},
+          sellerMailingAddress: {},
+          sellerMailingAddressDifferent: false,
+          legalOwnerInformation: {},
+          address: {},
+          vehicleTransactionDetails: {},
+          lienHolder: {},
+          mailingAddress: {},
+          lesseeAddress: {},
+          trailerLocation: {},
+          powerOfAttorney: {},
+          mailingAddressDifferent: false,
+          lesseeAddressDifferent: false,
+          trailerLocationDifferent: false,
+          itemRequested: {}
+        };
+        
+
+        
+        formData = restructuredData;
+      } catch (error) {
+        console.error('Error restructuring data:', error);
+        formData = {
+          owners: [],
+          vehicleInformation: {},
+          sellerInfo: { sellers: [] },
+          sellerAddress: {},
+          sellerMailingAddress: {},
+          sellerMailingAddressDifferent: false,
+          legalOwnerInformation: {},
+          address: {},
+          vehicleTransactionDetails: {},
+          lienHolder: {},
+          mailingAddress: {},
+          lesseeAddress: {},
+          trailerLocation: {},
+          powerOfAttorney: {},
+          mailingAddressDifferent: false,
+          lesseeAddressDifferent: false,
+          trailerLocationDifferent: false,
+          itemRequested: {}
+        };
+      }
     }
 
- 
+
     formData.owners = formData.owners || [];
     formData.vehicleInformation = formData.vehicleInformation || {};
     formData.sellerInfo = formData.sellerInfo || { sellers: [] };
@@ -190,8 +96,9 @@ export async function POST(request: Request) {
     formData.sellerAddress = formData.sellerAddress || {};
     formData.sellerMailingAddress = formData.sellerMailingAddress || {};
     formData.itemRequested = formData.itemRequested || {};
+    formData.vehicleTransactionDetails = formData.vehicleTransactionDetails || {};
     
- 
+
     formData.mailingAddressDifferent = !!formData.mailingAddressDifferent;
     formData.lesseeAddressDifferent = !!formData.lesseeAddressDifferent;
     formData.trailerLocationDifferent = !!formData.trailerLocationDifferent;
@@ -227,6 +134,8 @@ export async function POST(request: Request) {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg256.pdf');
       } else if (formType === 'Reg156') { 
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg156.pdf');
+      } else if (formType === 'DMVReg166') {
+        pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'DMVReg166.pdf');
       } else {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg227.pdf');
       }
@@ -246,6 +155,8 @@ export async function POST(request: Request) {
         modifiedPdfBytes = await modifyReg256Pdf(existingPdfBytes, formData);
       } else if (formType === 'Reg156') { 
         modifiedPdfBytes = await modifyReg156Pdf(existingPdfBytes, formData);
+      } else if (formType === 'DMVReg166') {
+        modifiedPdfBytes = await modifyDMVReg166Pdf(existingPdfBytes, formData);
       } else {
         modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData);
       }
@@ -267,6 +178,8 @@ export async function POST(request: Request) {
         pdfUrl = `${baseUrl}/pdfs/Reg256.pdf`;
       } else if (formType === 'Reg156') {
         pdfUrl = `${baseUrl}/pdfs/Reg156.pdf`;
+      } else if (formType === 'DMVReg166') {
+        pdfUrl = `${baseUrl}/pdfs/DMVReg166.pdf`;
       } else {
         pdfUrl = `${baseUrl}/pdfs/Reg227.pdf`;
       }
@@ -286,6 +199,8 @@ export async function POST(request: Request) {
         modifiedPdfBytes = await modifyReg256Pdf(existingPdfBytes, formData);
       } else if (formType === 'Reg156') {
         modifiedPdfBytes = await modifyReg156Pdf(existingPdfBytes, formData);
+      } else if (formType === 'DMVReg166') {
+        modifiedPdfBytes = await modifyDMVReg166Pdf(existingPdfBytes, formData);
       } else {
         modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData);
       }
@@ -303,7 +218,186 @@ export async function POST(request: Request) {
   }
 }
 
+async function modifyDMVReg166Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
+  try {
+    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
+    
 
+    if (!pdfDoc) {
+      console.error('Failed to load PDF document');
+      throw new Error('Failed to load PDF document');
+    }
+    
+    const form = pdfDoc.getForm();
+    
+
+    if (!form) {
+      console.error('Failed to get form from PDF');
+      throw new Error('Failed to get form from PDF');
+    }
+    
+    try {
+      const fieldNames = form.getFields().map(f => f.getName());
+      console.log('Available DMVReg166 PDF Fields:', JSON.stringify(fieldNames, null, 2));
+    } catch (error) {
+      console.error('Error getting field names:', error);
+
+    }
+    
+    console.log('===== COMPLETE FORM DATA =====');
+    console.log(JSON.stringify(formData, null, 2));
+    console.log('=============================');
+    
+
+    const fieldMapping = {
+
+      "Year Model": "vehicleInformation.year",
+      "Lic Plate/CF No": "vehicleInformation.licensePlate",
+      "Veh/Ves ID No": "vehicleInformation.hullId",
+      "Make/Builder": "vehicleInformation.make",
+      
+
+      "Name Bank, Finance Co": "releaseInformation.name",
+      "Business/Res Address": "releaseInformation.address.street",
+      "Apt/Sp/Ste No.0": "releaseInformation.address.apt",
+      "City.0": "releaseInformation.address.city",
+      "state.0": "releaseInformation.address.state",
+      "Zip Code.0": "releaseInformation.address.zip",
+      
+
+      "Mailing address": "releaseInformation.mailingAddress.street",
+      "Apt/Sp/Ste No.1": "releaseInformation.mailingAddress.poBox",
+      "City.1": "releaseInformation.mailingAddress.city",
+      "state.1": "releaseInformation.mailingAddress.state",
+      "Zip Code.1": "releaseInformation.mailingAddress.zip",
+      
+
+      "Title of Agent": "releaseInformation.authorizedAgentTitle",
+      "Printed Name": "releaseInformation.authorizedAgentName",
+      "Date": "releaseInformation.date",
+      
+
+      "Reg Onwer-Last Name": "sellerInfo.sellers.0.lastName",
+      "Reg Onwer-First Name": "sellerInfo.sellers.0.firstName",
+      "Reg Onwer-Middle Name": "sellerInfo.sellers.0.middleName"
+    };
+    
+    const safeSetText = (fieldName: string, value: string) => {
+      try {
+        const field = form.getTextField(fieldName);
+        if (field) {
+          const maxLength = field.getMaxLength();
+          
+          const finalValue = maxLength !== undefined && maxLength > 0 && value.length > maxLength 
+            ? value.substring(0, maxLength) 
+            : value;
+          
+          field.setText(finalValue);
+          console.log(`Successfully filled field: ${fieldName}`);
+        } else {
+          console.warn(`Field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error filling field ${fieldName}:`, error);
+      }
+    };
+    
+
+    const getNestedProperty = (obj: any, path: string): any => {
+      if (!obj || !path) return undefined;
+      
+      const parts = path.split('.');
+      let current = obj;
+      
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        
+        if (part.match(/^\d+$/) && Array.isArray(current)) {
+          const index = parseInt(part);
+          current = current[index];
+        } else {
+          current = current[part];
+        }
+        
+        if (current === undefined || current === null) {
+          return undefined;
+        }
+      }
+      
+      return current;
+    };
+    
+
+    for (const [pdfField, formField] of Object.entries(fieldMapping)) {
+      try {
+        const value = getNestedProperty(formData, formField) || '';
+        console.log(`Setting field ${pdfField} to value: "${value}" from path: ${formField}`);
+        safeSetText(pdfField, String(value));
+      } catch (error) {
+        console.error(`Error applying mapping for field ${pdfField}:`, error);
+      }
+    }
+    
+
+    try {
+      const phoneNumber = getNestedProperty(formData, "releaseInformation.phoneNumber") || '';
+      if (phoneNumber) {
+
+        const cleanedPhone = phoneNumber.replace(/\D/g, '');
+        
+
+        if (cleanedPhone.length >= 3) {
+          const areaCode = cleanedPhone.substring(0, 3);
+          const mainNumber = cleanedPhone.substring(3);
+          
+          safeSetText("area code", areaCode);
+          safeSetText("Daytime Phone No", mainNumber);
+          console.log(`Set phone fields - Area code: ${areaCode}, Main: ${mainNumber}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error setting phone fields:', error);
+    }
+    
+
+    if (!getNestedProperty(formData, "releaseInformation.date")) {
+      const currentDate = new Date();
+      const formattedDate = `${String(currentDate.getMonth() + 1).padStart(2, '0')}/${String(currentDate.getDate()).padStart(2, '0')}/${currentDate.getFullYear()}`;
+      console.log('Using current date:', formattedDate);
+      
+      try {
+        safeSetText("Date", formattedDate);
+      } catch (error) {
+        console.warn('Could not set Date field:', error);
+      }
+    }
+    
+
+    try {
+
+      try {
+        form.updateFieldAppearances();
+      } catch (e) {
+        console.warn('Error updating field appearances, continuing anyway:', e);
+      }
+      
+      return await pdfDoc.save({
+        useObjectStreams: false,
+        addDefaultPage: false,
+        updateFieldAppearances: false
+      });
+    } catch (error: any) {
+      console.error('Error saving PDF:', error);
+      throw new Error('Failed to save PDF: ' + error.message);
+    }
+  } catch (error) {
+    console.error('Error in modifyDMVReg166Pdf:', error);
+    
+
+    const emptyPdf = await PDFDocument.create();
+    return await emptyPdf.save();
+  }
+}
 
 async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
@@ -475,7 +569,18 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     owner2AndCheckbox: 'And Box.0',
     owner2OrCheckbox: 'And Box.1',
     owner3AndCheckbox: 'And Box1.0',
-    owner3OrCheckbox: 'And Box1.1'
+    owner3OrCheckbox: 'And Box1.1',
+
+    lostCheckbox: "Check Box1",
+    stolenCheckbox: "Check Box2",
+    mutilatedCheckbox: "Check Box6",
+    notReceivedFromOwnerCheckbox: "Check Box4",
+    notReceivedFromDmvCheckbox: "Check Box5",
+
+    sellerNamePrint: '3 Print Name Legal Owner.0',
+    sellerPhoneArea: 'area code.0',
+    sellerPhoneMain: '3 Daytime Phone Number',
+    sellerDate: '3 Date.0'
   };
   
   const safeSetText = (fieldName: string, value: string) => {
@@ -646,6 +751,17 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     safeSetText(fieldMapping.seller1Name, formatSellerName(seller1));
     safeSetText(fieldMapping.seller1NamePrint, formatOwnerNamePrint(seller1));
     safeSetText(fieldMapping.seller1State, seller1.state || '');
+    safeSetText(fieldMapping.sellerNamePrint, formatOwnerNamePrint(seller1));
+    if (seller1.phone) {
+      const { areaCode, mainNumber } = formatPhone(seller1.phone);
+      safeSetText(fieldMapping.sellerPhoneArea, areaCode);
+      safeSetText(fieldMapping.sellerPhoneMain, mainNumber);
+    }
+    
+    const sellerDate = seller1.saleDate || '';
+    if (sellerDate) {
+      safeSetText(fieldMapping.sellerDate, formatDate(sellerDate));
+    }
     
     if (seller1.licenseNumber) {
       fillCharacterFields(fieldMapping.seller1License, seller1.licenseNumber);
@@ -743,6 +859,31 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       safeSetCheckbox(fieldMapping.owner3AndCheckbox, true);
     } else if (owner3.relationshipType === 'OR') {
       safeSetCheckbox(fieldMapping.owner3OrCheckbox, true);
+    }
+  }
+
+  if (formData.missingTitleInfo && formData.missingTitleInfo.reason) {
+    const reason = formData.missingTitleInfo.reason;
+    
+    switch(reason) {
+      case 'Lost':
+        safeSetCheckbox(fieldMapping.lostCheckbox, true);
+        console.log("it is lostttt");
+        break;
+      case 'Stolen':
+        safeSetCheckbox(fieldMapping.stolenCheckbox, true);
+        break;
+      case 'Illegible/Mutilated (Attach old title)':
+        safeSetCheckbox(fieldMapping.mutilatedCheckbox, true);
+        break;
+      case 'Not Received From Prior Owner':
+        safeSetCheckbox(fieldMapping.notReceivedFromOwnerCheckbox, true);
+        break;
+      case 'Not Received From DMV (Allow 30 days from issue date)':
+        safeSetCheckbox(fieldMapping.notReceivedFromDmvCheckbox, true);
+        break;
+      case 'Other':
+        break;
     }
   }
   
@@ -1448,11 +1589,7 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   console.log('Available Reg256 PDF Fields:', JSON.stringify(fieldNames, null, 2));
   
   const fieldMapping = {
-    ownerName: 'owner_name_field',
-    ownerAddress: 'owner_address_field',
-    ownerCity: 'owner_city_field',
-    ownerState: 'owner_state_field',
-    ownerZip: 'owner_zip_field',
+
     
     vehicleLicensePlate: 'License Plate/CF Number', 
     vehicleVin: 'Veh/Vessel ID Number', 
@@ -1473,6 +1610,20 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     ownerPhoneNumber: 'App sign phone no',
     
     signatureDate: 'Signature date',
+    
+
+    biennialSmogBox: 'Biennial Smog cert box',
+    poweredByBox: 'Powered by box',
+    poweredByElectricityBox: 'Powered by electricity box',
+    poweredByDieselBox: 'Powered by diesel box',
+    poweredByOtherBox: 'Powered by other box',
+    poweredByOtherText: 'Powered by other 2',
+    outsideCaliforniaBox: 'Paren, grandparent, etc box', 
+    familyTransferRelationshipBox: 'Paren, grandparent, etc box',
+    leasingCompanyBox: 'Companies leasing vehicle box',
+    lessorLesseeBox: 'Lessor/Lessee of vehicle box',
+    lessorOperatorBox: 'Lessor/lessee operator box',
+    individualAddedBox: 'Individual(s) being added as registered owner(s).*'
   };
   
   const safeSetText = (fieldName: string, value: string) => {
@@ -1548,8 +1699,9 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   
   const isGift = formData.vehicleTransactionDetails?.isGift === true;
   const isFamilyTransfer = formData.vehicleTransactionDetails?.isFamilyTransfer === true;
+  const isSmogExempt = formData.vehicleTransactionDetails?.isSmogExempt === true;
   
-  console.log(`Transaction type: ${isGift ? 'Gift' : isFamilyTransfer ? 'Family Transfer' : 'Other'}`);
+  console.log(`Transaction type: ${isGift ? 'Gift' : isFamilyTransfer ? 'Family Transfer' : isSmogExempt ? 'Smog Exempt' : 'Other'}`);
   
   if (Object.keys(owner).length > 0) {
     const ownerName = [
@@ -1558,7 +1710,6 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       owner.lastName?.trim() || ''
     ].filter(Boolean).join(' ');
     
-    safeSetText(fieldMapping.ownerName, ownerName);
   }
   
   const owners = formData.owners || [];
@@ -1580,10 +1731,7 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     }
   }
   
-  safeSetText(fieldMapping.ownerAddress, addressData.street || '');
-  safeSetText(fieldMapping.ownerCity, addressData.city || '');
-  safeSetText(fieldMapping.ownerState, addressData.state || '');
-  safeSetText(fieldMapping.ownerZip, addressData.zip || '');
+
   
   safeSetText(fieldMapping.vehicleLicensePlate, vehicleInfo.licensePlate || '');
   safeSetText(fieldMapping.vehicleVin, vehicleInfo.vin || vehicleInfo.hullId || '');
@@ -1599,6 +1747,52 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     safeSetCheckbox(fieldMapping.familyTransferBox, true);
     safeSetCheckbox(fieldMapping.giftBox, false);
     console.log('Family transfer box checked');
+  }
+  
+
+  if (isSmogExempt && formData.smogExemption) {
+    const smogData = formData.smogExemption;
+    const exemptionReasons = smogData.exemptionReasons || {};
+    console.log('Processing smog exemption data:', JSON.stringify(exemptionReasons));
+    
+
+    safeSetCheckbox(fieldMapping.biennialSmogBox, exemptionReasons.lastSmogCertification || false);
+    
+
+    if (exemptionReasons.alternativeFuel) {
+      safeSetCheckbox(fieldMapping.poweredByBox, true);
+      
+      const powerSource = smogData.powerSource || {};
+      safeSetCheckbox(fieldMapping.poweredByElectricityBox, powerSource.electricity || false);
+      safeSetCheckbox(fieldMapping.poweredByDieselBox, powerSource.diesel || false);
+      
+      if (powerSource.other) {
+        safeSetCheckbox(fieldMapping.poweredByOtherBox, true);
+        safeSetText(fieldMapping.poweredByOtherText, smogData.powerSourceOther || '');
+      }
+    }
+    
+
+    safeSetCheckbox(fieldMapping.outsideCaliforniaBox, exemptionReasons.outsideCalifornia || false);
+    
+
+    if (exemptionReasons.familyTransfer) {
+      safeSetCheckbox(fieldMapping.familyTransferRelationshipBox, true);
+    }
+    
+
+    safeSetCheckbox(fieldMapping.leasingCompanyBox, exemptionReasons.leasingCompany || false);
+    
+
+    safeSetCheckbox(fieldMapping.lessorLesseeBox, exemptionReasons.lessorLessee || false);
+    
+
+    safeSetCheckbox(fieldMapping.lessorOperatorBox, exemptionReasons.lessorOperator || false);
+    
+
+    if (fieldMapping.individualAddedBox) {
+      safeSetCheckbox(fieldMapping.individualAddedBox, exemptionReasons.addingOwners || false);
+    }
   }
   
   const applicationDate = owner.applicationDate || '';
@@ -1978,14 +2172,37 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   console.log(JSON.stringify(formData, null, 2));
   console.log('=============================');
   
-  if (!formData.transactionType) {
-    formData.transactionType = "Duplicate Stickers";
+
+  let transactionType = null;
+  
+
+  if (formData.transactionType) {
+    transactionType = formData.transactionType;
+    console.log(`Found transaction type in formData.transactionType: "${transactionType}"`);
+  } else if (formData.type) {
+    transactionType = formData.type;
+    console.log(`Found transaction type in formData.type: "${transactionType}"`);
+  } else if (formData.formData && formData.formData.transactionType) {
+    transactionType = formData.formData.transactionType;
+    console.log(`Found transaction type in formData.formData.transactionType: "${transactionType}"`);
+  } else if (formData.formData && formData.formData.type) {
+    transactionType = formData.formData.type;
+    console.log(`Found transaction type in formData.formData.type: "${transactionType}"`);
+  } else {
+
+    transactionType = "Duplicate Registration Transfer";
+    console.log(`No transaction type found anywhere, using default: "Duplicate Registration Transfer"`);
   }
   
-  const isDuplicateStickers = formData.transactionType === "Duplicate Stickers";
-  const isDuplicatePlatesAndStickers = formData.transactionType === "Duplicate Plates & Stickers";
+
+  formData.transactionType = transactionType;
   
-  console.log(`Transaction type: "${formData.transactionType}", isDuplicateStickers: ${isDuplicateStickers}, isDuplicatePlatesAndStickers: ${isDuplicatePlatesAndStickers}`);
+  const isDuplicateStickers = transactionType === "Duplicate Stickers";
+  const isDuplicatePlatesAndStickers = transactionType === "Duplicate Plates & Stickers";
+  const isDuplicateTitleTransfer = transactionType === "Duplicate Title Transfer";
+  const isDuplicateRegistrationTransfer = transactionType === "Duplicate Registration Transfer";
+  
+  console.log(`Transaction type: "${transactionType}", isDuplicateStickers: ${isDuplicateStickers}, isDuplicatePlatesAndStickers: ${isDuplicatePlatesAndStickers}, isDuplicateTitleTransfer: ${isDuplicateTitleTransfer}, isDuplicateRegistrationTransfer: ${isDuplicateRegistrationTransfer}`);
   
   const fieldMapping = {
     "Vehicle license plate": "vehicleInformation.licensePlate",
@@ -2023,6 +2240,11 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     "City2": "sellerMailingAddress.city",
     "state2": "sellerMailingAddress.state",
     "zip code2": "sellerMailingAddress.zip",
+    
+    "area code": "sellerInfo.sellers.0.phoneNumber.areaCode",
+    "telephone number": "sellerInfo.sellers.0.phoneNumber.number",
+    
+    "title": "title",
     
     "date": "", 
     "certification": "", 
@@ -2200,6 +2422,33 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
         continue;
       }
       
+
+      if (pdfField === "area code" || pdfField === "telephone number") {
+        let phoneValue = '';
+        
+
+        const phoneFromStructured = getNestedProperty(dataToUse, formField);
+        const phoneFromField = getNestedProperty(dataToUse, "sellerInfo.sellers.0.phone") || 
+                               getNestedProperty(dataToUse, "sellerInfo.sellers.0.phoneNumber");
+        
+        if (phoneFromStructured) {
+
+          phoneValue = phoneFromStructured;
+        } else if (phoneFromField) {
+
+          const fullPhone = phoneFromField.toString().replace(/\D/g, '');
+          
+          if (pdfField === "area code" && fullPhone.length >= 3) {
+            phoneValue = fullPhone.substring(0, 3);
+          } else if (pdfField === "telephone number" && fullPhone.length > 3) {
+            phoneValue = fullPhone.substring(3);
+          }
+        }
+        
+        safeSetText(pdfField, String(phoneValue));
+        continue;
+      }
+      
       const value = getNestedProperty(dataToUse, formField) || '';
       
       safeSetText(pdfField, String(value));
@@ -2215,6 +2464,28 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     if (seller1.licenseNumber) {
       const licenseFields = ["DL1", "DL2", "DL3", "DL4", "DL5", "DL6", "DL7", "DL8"];
       fillCharacterFields(licenseFields, seller1.licenseNumber);
+    }
+    
+
+    if (!seller1.phoneNumber?.areaCode && !seller1.phoneNumber?.number) {
+      try {
+        const phoneNumber = seller1.phone || seller1.phoneNumber || '';
+        if (phoneNumber) {
+
+          const cleanPhone = phoneNumber.toString().replace(/\D/g, '');
+          
+          if (cleanPhone.length >= 10) {
+            const areaCode = cleanPhone.substring(0, 3);
+            const number = cleanPhone.substring(3);
+            
+            console.log(`Parsed phone number: (${areaCode}) ${number}`);
+            safeSetText("area code", areaCode);
+            safeSetText("telephone number", number);
+          }
+        }
+      } catch (error) {
+        console.error("Error processing phone number:", error);
+      }
     }
   }
   
@@ -2252,13 +2523,7 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       }
       
       if (pdfField === "other") {
-        const isOtherChecked = getNestedProperty(dataToUse, formField) || false;
-        safeSetCheckbox(pdfField, isOtherChecked);
-        
-        if (isOtherChecked) {
-          const explanation = getNestedProperty(dataToUse, "itemRequested.otherExplanation") || '';
-          safeSetText("Explanation", explanation);
-        }
+
         continue;
       }
       
@@ -2278,8 +2543,15 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     } catch (error) {
       console.error(`Error applying checkbox mapping for field ${pdfField}:`, error);
     }
-  }   if (isDuplicateStickers) {
-    console.log('Processing Duplicate Stickers transaction type');     safeSetCheckbox("License plates", false);     const monthChecked = dataToUse.duplicateStickers && 'month' in dataToUse.duplicateStickers
+  }
+  
+
+  if (isDuplicateStickers) {
+    console.log('Processing Duplicate Stickers transaction type');
+    
+    safeSetCheckbox("License plates", false);
+    
+    const monthChecked = dataToUse.duplicateStickers && 'month' in dataToUse.duplicateStickers
       ? dataToUse.duplicateStickers.month
       : (dataToUse.activeSubOptions && dataToUse.activeSubOptions["Duplicate Stickers-Month"] === true);
     
@@ -2291,17 +2563,73 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     
     safeSetCheckbox("license month", monthChecked);
     safeSetCheckbox("license year", yearChecked);
+    
+
+    const isOtherChecked = getNestedProperty(dataToUse, "itemRequested.other") || false;
+    safeSetCheckbox("other", isOtherChecked);
+    
+    if (isOtherChecked) {
+      const explanation = getNestedProperty(dataToUse, "itemRequested.otherExplanation") || '';
+      safeSetText("Explanation", explanation);
+    }
   } 
-  else if (isDuplicatePlatesAndStickers) {     console.log('Processing Duplicate Plates & Stickers transaction type - ALWAYS checking all three options');
+  else if (isDuplicatePlatesAndStickers) {
+    console.log('Processing Duplicate Plates & Stickers transaction type - ALWAYS checking all three options');
+    
     safeSetCheckbox("License plates", true);
     safeSetCheckbox("license month", true);
     safeSetCheckbox("license year", true);
-  } 
+    
+
+    const isOtherChecked = getNestedProperty(dataToUse, "itemRequested.other") || false;
+    safeSetCheckbox("other", isOtherChecked);
+    
+    if (isOtherChecked) {
+      const explanation = getNestedProperty(dataToUse, "itemRequested.otherExplanation") || '';
+      safeSetText("Explanation", explanation);
+    }
+  }
+  else if (isDuplicateTitleTransfer) {
+    console.log('Processing Duplicate Title Transfer transaction type');
+    
+
+    safeSetCheckbox("License plates", false);
+    safeSetCheckbox("license month", false);
+    safeSetCheckbox("license year", false);
+    safeSetCheckbox("Reg Card", true);
+    
+
+    safeSetCheckbox("other", true);
+    safeSetText("Explanation", "Requesting a duplicate title");
+  }
+  else if (isDuplicateRegistrationTransfer) {
+    console.log('Processing Duplicate Registration Transfer transaction type');
+    
+
+    safeSetCheckbox("License plates", false);
+    safeSetCheckbox("license month", false);
+    safeSetCheckbox("license year", false);
+    safeSetCheckbox("Reg Card", true);
+    
+
+    safeSetCheckbox("other", true);
+    safeSetText("Explanation", "Requesting a duplicate registration card");
+  }
   else {
     console.log('Processing other transaction type');
+    
     safeSetCheckbox("License plates", true);
     safeSetCheckbox("license month", true);
     safeSetCheckbox("license year", true);
+    
+
+    const isOtherChecked = getNestedProperty(dataToUse, "itemRequested.other") || false;
+    safeSetCheckbox("other", isOtherChecked);
+    
+    if (isOtherChecked) {
+      const explanation = getNestedProperty(dataToUse, "itemRequested.otherExplanation") || '';
+      safeSetText("Explanation", explanation);
+    }
   }
   
   const currentDate = getCurrentDate();

@@ -1,8 +1,58 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, CSSProperties } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import './ReleaseOfOwnership.css';
+
+
+const dropdownStyles: Record<string, CSSProperties> = {
+  dropdownWrapper: {
+    position: 'relative',
+    zIndex: 5,
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 'calc(100% + 2px)',
+    left: 0,
+    width: '100%',
+    maxHeight: '200px',
+    overflowY: 'auto',
+    backgroundColor: 'white',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+    zIndex: 9999,
+    padding: 0,
+    margin: 0,
+    listStyle: 'none',
+  },
+  dropdownItem: {
+    padding: '12px 16px',
+    cursor: 'pointer',
+    color:'rgb(150 148 148)',
+    fontSize: '15px',
+    borderBottom: '1px solid #f5f5f5',
+    transition: 'background-color 0.2s ease',
+  },
+  button: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    padding: '8px 12px',
+    backgroundColor: 'white',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    color: '#666',
+    fontSize: '15px',
+    cursor: 'pointer'
+  },
+  chevron: {
+    width: '20px',
+    height: '20px',
+    transition: 'transform 0.2s ease'
+  }
+};
 
 interface Address {
   street?: string;
@@ -108,15 +158,46 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     propFormData?.releaseInformation || initialReleaseInformation
   );
   const { updateField } = useFormContext();
-  const [openDropdown, setOpenDropdown] = useState<'reg' | 'mailing' | null>(null);
-  const regRef = useRef<HTMLUListElement>(null);
-  const mailingRef = useRef<HTMLUListElement>(null);
+  
+
+  const [showRegStateDropdown, setShowRegStateDropdown] = useState(false);
+  const [showMailingStateDropdown, setShowMailingStateDropdown] = useState(false);
+  
+
+  const regStateDropdownRef = useRef<HTMLDivElement>(null);
+  const mailingStateDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (propFormData?.releaseInformation) {
       setReleaseData(propFormData.releaseInformation);
     }
   }, [propFormData]);
+
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (regStateDropdownRef.current && !regStateDropdownRef.current.contains(target)) {
+        setShowRegStateDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (mailingStateDropdownRef.current && !mailingStateDropdownRef.current.contains(target)) {
+        setShowMailingStateDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleReleaseInfoChange = (field: keyof ReleaseInformationType, value: any) => {
     const newData = { ...releaseData, [field]: value };
@@ -134,25 +215,39 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     updateField('releaseInformation', newData);
   };
   
-  const handleStateSelect = (addressType: 'address' | 'mailingAddress', stateAbbreviation: string) => {     handleAddressChange(addressType, 'state', stateAbbreviation);     setOpenDropdown(null);
-  };
-
-  const handleClickOutside = (e: MouseEvent) => {
-    const target = e.target as Element;
-    if (openDropdown && 
-      ((openDropdown === 'reg' && regRef.current && !regRef.current.contains(target) && !target.closest('.reg-dropdown-button')) ||
-       (openDropdown === 'mailing' && mailingRef.current && !mailingRef.current.contains(target) && !target.closest('.mailing-dropdown-button')))) {
-      setOpenDropdown(null);
+  const handleStateSelect = (addressType: 'address' | 'mailingAddress', stateAbbreviation: string) => {
+    handleAddressChange(addressType, 'state', stateAbbreviation);
+    
+    if (addressType === 'address') {
+      setShowRegStateDropdown(false);
+    } else {
+      setShowMailingStateDropdown(false);
     }
   };
 
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [openDropdown]);
+  const toggleRegStateDropdown = () => {
+    setShowRegStateDropdown(!showRegStateDropdown);
+    setShowMailingStateDropdown(false);
+  };
+  
+  const toggleMailingStateDropdown = () => {
+    setShowMailingStateDropdown(!showMailingStateDropdown);
+    setShowRegStateDropdown(false);
+  };
+
+
+  const containerStyle: CSSProperties = { 
+    position: 'relative', 
+    overflow: 'visible' 
+  };
+  
+  const cityStateZipStyle: CSSProperties = { 
+    position: 'relative', 
+    overflow: 'visible' 
+  };
 
   return (
-    <div className="releaseWrapper">
+    <div className="releaseWrapper" style={containerStyle}>
       <div className="headerRow">
         <h3 className="releaseHeading">Lien Release</h3>
         <div className="checkboxSection">
@@ -166,8 +261,6 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
         </div>
       </div>
 
-
-      
       <div className="releaseFormGroup">
         <label className="releaseFormLabel">Name of Bank, Finance Company, or Individual(s) Having a Lien on this Vehicle</label>
         <input
@@ -202,7 +295,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
         </div>
       </div>
 
-      <div className="cityStateZipGroupp">
+      <div className="cityStateZipGroupp" style={cityStateZipStyle}>
         <div className="cityFieldCustomWidth">
           <label className="formLabel">City</label>
           <input
@@ -213,22 +306,33 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
             onChange={(e) => handleAddressChange('address', 'city', e.target.value)}
           />
         </div>
-        <div className="regStateWrapper">
+        <div className="regStateWrapper" ref={regStateDropdownRef} style={dropdownStyles.dropdownWrapper}>
           <label className="registeredOwnerLabel">State</label>
           <button
-            onClick={() => setOpenDropdown(openDropdown === 'reg' ? null : 'reg')}
-            className="regStateDropDown reg-dropdown-button"
+            type="button"
+            onClick={toggleRegStateDropdown}
+            className="regStateDropDown"
+            style={dropdownStyles.button}
           >
             {releaseData.address?.state || 'State'}
-            <ChevronDownIcon className={`regIcon ${openDropdown === 'reg' ? 'rotate' : ''}`} />
+            <ChevronDownIcon 
+              className={`regIcon ${showRegStateDropdown ? 'rotate' : ''}`} 
+              style={dropdownStyles.chevron} 
+            />
           </button>
-          {openDropdown === 'reg' && (
-            <ul ref={regRef} className="regStateMenu">
+          {showRegStateDropdown && (
+            <ul style={dropdownStyles.dropdownMenu}>
               {states.map((state, index) => (
                 <li
                   key={index}
                   onClick={() => handleStateSelect('address', state.abbreviation)}
-                  className="regStateLists"
+                  style={dropdownStyles.dropdownItem}
+                  onMouseEnter={(e) => {
+                    (e.target as HTMLLIElement).style.backgroundColor = '#f5f5f5';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.target as HTMLLIElement).style.backgroundColor = 'white';
+                  }}
                 >
                   {state.name}
                 </li>
@@ -247,58 +351,58 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
           />
         </div>
       </div>
-<div className='wrap'>
-      <div className="datePhoneGroup">
-        <div className="formGroup dateField">
-          <label className="releaseFormLabel">Date</label>
-          <input
-    className="registeredDateInput"
-    type="text"
-    placeholder="MM/DD/YYYY"
-    value={releaseData.date || ''}
-    onChange={(e) => handleReleaseInfoChange('date', e.target.value)}
-    maxLength={10}
-  />
-          
+      
+      <div className='wrap'>
+        <div className="datePhoneGroup">
+          <div className="formGroup dateField">
+            <label className="releaseFormLabel">Date</label>
+            <input
+              className="registeredDateInput"
+              type="text"
+              placeholder="MM/DD/YYYY"
+              value={releaseData.date || ''}
+              onChange={(e) => handleReleaseInfoChange('date', e.target.value)}
+              maxLength={10}
+            />
+          </div>
+          <div className="formGroup phoneField">
+            <label className="releaseFormLabel">Daytime Phone Number</label>
+            <input
+              className="formInputt"
+              type="tel"
+              placeholder="(XXX) XXX-XXXX"
+              value={releaseData.phoneNumber || ''}
+              onChange={(e) => handleReleaseInfoChange('phoneNumber', e.target.value)}
+            />
+          </div>
         </div>
-        <div className="formGroup phoneField">
-          <label className="releaseFormLabel">Daytime Phone Number</label>
-          <input
-            className="formInputt"
-            type="tel"
-            placeholder="(XXX) XXX-XXXX"
-            value={releaseData.phoneNumber || ''}
-            onChange={(e) => handleReleaseInfoChange('phoneNumber', e.target.value)}
-          />
-        </div>
-      </div>
 
-      <div className="authorizedAgentGroup">
-        <div className="formGroup agentNameField">
-          <label className="releaseFormLabel">Printed Name of Authorized Agent</label>
-          <input
-            className="formInputt"
-            type="text"
-            placeholder="Full Name"
-            value={releaseData.authorizedAgentName || ''}
-            onChange={(e) => handleReleaseInfoChange('authorizedAgentName', e.target.value)}
-          />
-        </div>
-        <div className="formGroup agentTitleField">
-          <label className="releaseFormLabel">Title of Authorized Agent Signing for Company</label>
-          <input
-            className="formInputt"
-            type="text"
-            placeholder="Title"
-            value={releaseData.authorizedAgentTitle || ''}
-            onChange={(e) => handleReleaseInfoChange('authorizedAgentTitle', e.target.value)}
-          />
+        <div className="authorizedAgentGroup">
+          <div className="formGroup agentNameField">
+            <label className="releaseFormLabel">Printed Name of Authorized Agent</label>
+            <input
+              className="formInputt"
+              type="text"
+              placeholder="Full Name"
+              value={releaseData.authorizedAgentName || ''}
+              onChange={(e) => handleReleaseInfoChange('authorizedAgentName', e.target.value)}
+            />
+          </div>
+          <div className="formGroup agentTitleField">
+            <label className="releaseFormLabel">Title of Authorized Agent Signing for Company</label>
+            <input
+              className="formInputt"
+              type="text"
+              placeholder="Title"
+              value={releaseData.authorizedAgentTitle || ''}
+              onChange={(e) => handleReleaseInfoChange('authorizedAgentTitle', e.target.value)}
+            />
+          </div>
         </div>
       </div>
-</div>
 
       {releaseData.mailingAddressDifferent && (
-        <div className="addressWrapper">
+        <div className="addressWrapper" style={containerStyle}>
           <h3 className="addressHeading">Mailing Address</h3>
           <div className="streetAptGroup">
             <div className="formGroup streetField">
@@ -322,7 +426,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
               />
             </div>
           </div>
-          <div className="cityStateZipGroupp">
+          <div className="cityStateZipGroupp" style={cityStateZipStyle}>
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
@@ -333,22 +437,33 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
                 onChange={(e) => handleAddressChange('mailingAddress', 'city', e.target.value)}
               />
             </div>
-            <div className="regStateWrapper">
+            <div className="regStateWrapper" ref={mailingStateDropdownRef} style={dropdownStyles.dropdownWrapper}>
               <label className="registeredOwnerLabel">State</label>
               <button
-                onClick={() => setOpenDropdown(openDropdown === 'mailing' ? null : 'mailing')}
-                className="regStateDropDown mailing-dropdown-button"
+                type="button"
+                onClick={toggleMailingStateDropdown}
+                className="regStateDropDown"
+                style={dropdownStyles.button}
               >
                 {releaseData.mailingAddress?.state || 'State'}
-                <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
+                <ChevronDownIcon 
+                  className={`regIcon ${showMailingStateDropdown ? 'rotate' : ''}`} 
+                  style={dropdownStyles.chevron} 
+                />
               </button>
-              {openDropdown === 'mailing' && (
-                <ul ref={mailingRef} className="regStateMenu">
+              {showMailingStateDropdown && (
+                <ul style={dropdownStyles.dropdownMenu}>
                   {states.map((state, index) => (
                     <li
                       key={index}
                       onClick={() => handleStateSelect('mailingAddress', state.abbreviation)}
-                      className="regStateLists"
+                      style={dropdownStyles.dropdownItem}
+                      onMouseEnter={(e) => {
+                        (e.target as HTMLLIElement).style.backgroundColor = '#f5f5f5';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.target as HTMLLIElement).style.backgroundColor = 'white';
+                      }}
                     >
                       {state.name}
                     </li>

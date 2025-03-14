@@ -62,7 +62,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
   const dropdownRef = useRef<HTMLUListElement>(null);
   const stateDropdownRefs = useRef<(HTMLUListElement | null)[]>([]);
   
-  // Add state to track the synchronized sale date
+
   const [syncedSaleDate, setSyncedSaleDate] = useState<string>('');
 
   const formData = {
@@ -118,19 +118,19 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
       }
     }
     
-    // Initialize synced sale date from first seller if it exists
+
     if (formData.sellerInfo?.sellers?.[0]?.saleDate) {
       setSyncedSaleDate(formData.sellerInfo.sellers[0].saleDate);
     }
   }, [formData.sellerInfo?.sellerCount, formData.sellerInfo?.sellers]);
 
-  // Effect to synchronize sale date across all sellers
+
   useEffect(() => {
     if (syncedSaleDate && formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 1) {
       const newSellers = [...formData.sellerInfo.sellers];
       let hasChanges = false;
       
-      // Start from index 1 (second seller) and update sale dates
+
       for (let i = 1; i < newSellers.length; i++) {
         if (newSellers[i]?.saleDate !== syncedSaleDate) {
           newSellers[i] = { ...newSellers[i], saleDate: syncedSaleDate };
@@ -216,7 +216,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     const sellers = [...(formData.sellerInfo?.sellers || [])];
     sellers[index] = { ...sellers[index], [field]: value };
     
-    // If changing sale date for the first seller, update the synced value
+
     if (index === 0 && field === 'saleDate') {
       setSyncedSaleDate(value);
     }
@@ -247,7 +247,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
         if (i === 0) {
           return currentSellers[0] || { ...initialSeller };
         } else {
-          // For new sellers, populate with the synchronized sale date
+
           return currentSellers[i] || { 
             ...initialSeller, 
             saleDate: currentSaleDate 
@@ -418,7 +418,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
               placeholder="MM/DD/YYYY"
               value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
               onChange={(e) => handleSellerChange(index, 'saleDate', e.target.value)}
-              // Disable input for all sellers except the first one
+
               disabled={index > 0}
             />
           </div>
