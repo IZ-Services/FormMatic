@@ -62,7 +62,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
   const dropdownRef = useRef<HTMLUListElement>(null);
   const stateDropdownRefs = useRef<(HTMLUListElement | null)[]>([]);
   
-
   const [syncedSaleDate, setSyncedSaleDate] = useState<string>('');
 
   const formData = {
@@ -118,19 +117,16 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
       }
     }
     
-
     if (formData.sellerInfo?.sellers?.[0]?.saleDate) {
       setSyncedSaleDate(formData.sellerInfo.sellers[0].saleDate);
     }
   }, [formData.sellerInfo?.sellerCount, formData.sellerInfo?.sellers]);
-
 
   useEffect(() => {
     if (syncedSaleDate && formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 1) {
       const newSellers = [...formData.sellerInfo.sellers];
       let hasChanges = false;
       
-
       for (let i = 1; i < newSellers.length; i++) {
         if (newSellers[i]?.saleDate !== syncedSaleDate) {
           newSellers[i] = { ...newSellers[i], saleDate: syncedSaleDate };
@@ -216,7 +212,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     const sellers = [...(formData.sellerInfo?.sellers || [])];
     sellers[index] = { ...sellers[index], [field]: value };
     
-
     if (index === 0 && field === 'saleDate') {
       setSyncedSaleDate(value);
     }
@@ -247,7 +242,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
         if (i === 0) {
           return currentSellers[0] || { ...initialSeller };
         } else {
-
           return currentSellers[i] || { 
             ...initialSeller, 
             saleDate: currentSaleDate 
@@ -407,21 +401,22 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
               onChange={(e) => handleSellerChange(index, 'phone', e.target.value)}
             />
           </div>
-          <div className="sellerThirdItem">
-            <label className="registeredOwnerLabel">
-              Date of Sale
-              {index > 0 && <span className="synced-field-indicator" style={{ marginLeft: '4px', fontSize: '12px', color: '#666' }}>(synced)</span>}
-            </label>
-            <input
-              className="registeredDateInput"
-              type="text"
-              placeholder="MM/DD/YYYY"
-              value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
-              onChange={(e) => handleSellerChange(index, 'saleDate', e.target.value)}
-
-              disabled={index > 0}
-            />
-          </div>
+          
+          {/* Only show Date of Sale field for the first seller */}
+          {index === 0 && (
+            <div className="sellerThirdItem">
+              <label className="registeredOwnerLabel">
+                Date of Sale
+              </label>
+              <input
+                className="registeredDateInput"
+                type="text"
+                placeholder="MM/DD/YYYY"
+                value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
+                onChange={(e) => handleSellerChange(index, 'saleDate', e.target.value)}
+              />
+            </div>
+          )}
         </div>
       </div>
     ));

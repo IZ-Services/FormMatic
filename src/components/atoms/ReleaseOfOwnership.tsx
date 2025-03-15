@@ -352,7 +352,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
         </div>
       </div>
       
-      <div className='wrap'>
+      <div className="wrap">
         <div className="datePhoneGroup">
           <div className="formGroup dateField">
             <label className="releaseFormLabel">Date</label>
@@ -366,18 +366,15 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
             />
           </div>
           <div className="formGroup phoneField">
-            <label className="releaseFormLabel">Daytime Phone Number</label>
+            <label className="releaseFormLabel">Phone Number</label>
             <input
               className="formInputt"
               type="tel"
-              placeholder="(XXX) XXX-XXXX"
+              placeholder="Phone Number"
               value={releaseData.phoneNumber || ''}
               onChange={(e) => handleReleaseInfoChange('phoneNumber', e.target.value)}
             />
           </div>
-        </div>
-
-        <div className="authorizedAgentGroup">
           <div className="formGroup agentNameField">
             <label className="releaseFormLabel">Printed Name of Authorized Agent</label>
             <input
@@ -388,6 +385,9 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
               onChange={(e) => handleReleaseInfoChange('authorizedAgentName', e.target.value)}
             />
           </div>
+        </div>
+
+        <div className="authorizedAgentGroup">
           <div className="formGroup agentTitleField">
             <label className="releaseFormLabel">Title of Authorized Agent Signing for Company</label>
             <input

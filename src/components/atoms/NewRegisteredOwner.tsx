@@ -139,7 +139,6 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     if (formData?.owners) {
       setOwners(formData.owners);
       
-
       if (formData.owners.length > 0 && formData.owners[0].purchaseDate) {
         setSyncedPurchaseDate(formData.owners[0].purchaseDate);
       }
@@ -187,7 +186,6 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     if (syncedPurchaseDate && owners.length > 1) {
       const newOwners = [...owners];
       
-
       for (let i = 1; i < newOwners.length; i++) {
         if (newOwners[i].purchaseDate !== syncedPurchaseDate) {
           newOwners[i] = { ...newOwners[i], purchaseDate: syncedPurchaseDate };
@@ -210,6 +208,8 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     const newCount = parseInt(count);
     let newOwners = [...owners];
     const currentPurchaseDate = owners.length > 0 ? owners[0].purchaseDate : '';
+    const currentPurchaseValue = owners.length > 0 ? owners[0].purchaseValue : '';
+    const currentMarketValue = owners.length > 0 ? owners[0].marketValue : '';
 
     while (newOwners.length < newCount) {
       newOwners.push({
@@ -221,8 +221,8 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
         phoneCode: '',
         phoneNumber: '',
         purchaseDate: currentPurchaseDate,
-        purchaseValue: '',
-        marketValue: '',
+        purchaseValue: currentPurchaseValue, 
+        marketValue: currentMarketValue, 
         isGift: false,
         isTrade: false,
         relationshipWithGifter: '',
@@ -253,9 +253,16 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     const newOwners = [...owners];
     newOwners[index] = { ...newOwners[index], [field]: value };
     
-
+ 
     if (index === 0 && field === 'purchaseDate') {
       setSyncedPurchaseDate(value);
+    }
+    
+ 
+    if (index === 0 && (field === 'purchaseValue' || field === 'marketValue')) {
+      for (let i = 1; i < newOwners.length; i++) {
+        newOwners[i] = { ...newOwners[i], [field]: value };
+      }
     }
     
     setOwners(newOwners);
@@ -295,6 +302,34 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       setIsHowManyMenuOpen(false);
     }
   };
+
+useEffect(() => {
+  if (owners.length > 0) {
+    const newOwners = [...owners];
+    
+    if (isVehicleGift) {
+      newOwners.forEach(owner => {
+        owner.purchaseValue = '';
+      });
+    } else {
+      newOwners.forEach(owner => {
+        owner.relationshipWithGifter = '';
+        owner.giftValue = '';
+        owner.marketValue = '';
+      });
+    }
+    
+    setOwners(newOwners);
+    updateField('owners', newOwners);
+    
+    if (onChange) {
+      onChange({ 
+        owners: newOwners,
+        howMany: formData?.howMany || '1' 
+      });
+    }
+  }
+}, [isVehicleGift]);
 
   useEffect(() => {     
     if (!isVehicleGift && owners.length > 0) {
@@ -441,7 +476,8 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
                 value={owner.licenseNumber}
                 onChange={(e) => {
                   const value = e.target.value;
-                  if (/^\d{0,8}$/.test(value)) {
+                 
+                  if (/^[a-zA-Z0-9]*$/.test(value)) {
                     handleOwnerFieldChange(index, 'licenseNumber', value);
                   }
                 }}
@@ -505,52 +541,39 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
                 <p className="validation-message">Phone number is required</p>
               )}
             </div>
-            <div className="newRegThirdItem">
-              <label className="registeredOwnerLabel">
-                Date of Purchase
-                {index > 0 && <span className="synced-field-indicator" style={{ marginLeft: '4px', fontSize: '12px', color: '#666' }}>(synced)</span>}
-              </label>
-              <input
-                className={`registeredDateInput ${shouldShowValidationError(index, 'purchaseDate') ? 'validation-error' : ''}`}
-                type="text"
-                placeholder="MM/DD/YYYY"
-                value={owner.purchaseDate}
-                onChange={(e) => handleOwnerFieldChange(index, 'purchaseDate', e.target.value)}
-
-                disabled={index > 0}
-              />
-              {shouldShowValidationError(index, 'purchaseDate') && (
-                <p className="validation-message">Purchase date is required</p>
-              )}
-            </div>
-            <div className="newRegThirdItem">
-              <label className="registeredOwnerLabel">
-                {isVehicleGift ? 'Market Value' : 'Purchase Price/Value'}
-              </label>
-              <input
-                className={`registeredValueInput ${
-                  isVehicleGift 
-                    ? shouldShowValidationError(index, 'marketValue') ? 'validation-error' : '' 
-                    : shouldShowValidationError(index, 'purchaseValue') ? 'validation-error' : ''
-                }`}
-                type="text"
-                placeholder={isVehicleGift ? "Enter Market Value" : "Enter Amount"}
-                value={isVehicleGift ? (owner.marketValue || '') : (owner.purchaseValue || '')}
-                onChange={(e) => handleOwnerFieldChange(
-                  index, 
-                  isVehicleGift ? 'marketValue' : 'purchaseValue', 
-                  e.target.value
+            
+            {/* Only show Purchase Price/Market Value field for the first owner */}
+            {index === 0 && (
+              <div className="newRegThirdItem">
+                <label className="registeredOwnerLabel">
+                  {isVehicleGift ? 'Market Value' : 'Purchase Price/Value'}
+                </label>
+                <input
+                  className={`registeredValueInput ${
+                    isVehicleGift 
+                      ? shouldShowValidationError(index, 'marketValue') ? 'validation-error' : '' 
+                      : shouldShowValidationError(index, 'purchaseValue') ? 'validation-error' : ''
+                  }`}
+                  type="text"
+                  placeholder={isVehicleGift ? "Enter Market Value" : "Enter Amount"}
+                  value={isVehicleGift ? (owner.marketValue || '') : (owner.purchaseValue || '')}
+                  onChange={(e) => handleOwnerFieldChange(
+                    index, 
+                    isVehicleGift ? 'marketValue' : 'purchaseValue', 
+                    e.target.value
+                  )}
+                />
+                {isVehicleGift && shouldShowValidationError(index, 'marketValue') && (
+                  <p className="validation-message">Market value is required</p>
                 )}
-              />
-              {isVehicleGift && shouldShowValidationError(index, 'marketValue') && (
-                <p className="validation-message">Market value is required</p>
-              )}
-              {!isVehicleGift && shouldShowValidationError(index, 'purchaseValue') && (
-                <p className="validation-message">Purchase value is required</p>
-              )}
-            </div>
+                {!isVehicleGift && shouldShowValidationError(index, 'purchaseValue') && (
+                  <p className="validation-message">Purchase value is required</p>
+                )}
+              </div>
+            )}
           </div>
           
+      
           {isVehicleGift && index === 0 ? (
             <div className="ownerGiftGroup">
               <div className="ownerGiftItem">

@@ -1,159 +1,220 @@
 .releaseWrapper {
-    font-family: Arial, sans-serif;
-    margin-bottom: 20px;
-  }
-  
+  font-family: Arial, sans-serif;
+  margin-bottom: 20px;
+}
 
-  
-  .releaseFormGroup {
-    margin-bottom: 15px;
-  }
-  
-  .releaseFormLabel {
-    display: block;
-    font-size: 14px;
-    margin-bottom: 5px;
-    color: #444;
-  }
-  
-  .headerRow {
-    display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        margin-bottom: 15px;
-        margin-top: 20px;
-  }
-  
-  .releaseHeading {
-    margin: 0;
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-  }
-  
-  .checkboxSection {
-    font-size: 14px;
-    display: flex
-;
-    align-items: center;
-    margin-left: 20px;
-    gap: 4px;
-    margin-bottom: 12px;
-  }
-  
-  .checkBoxAddress {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-  }
-  .releaseFormInput {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 2px;
-    font-size: 14px;
-    width: 65.2%;
-  }
-  
-  .releaseFormInput:focus {
-    border-color: #007bff;
-    outline: none;
-  }
-  
+.releaseFormGroup {
+  margin-bottom: 15px;
+}
 
-  
-  .releaseCheckboxGroup {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: center;
-    margin-top: 30px;
-  }
-  
-  .releaseCheckboxLabel {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    gap: 8px;
-    cursor: pointer;
-  }
-  
-  .releaseCheckboxInput {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-  }
-  
-  .releaseFieldGroup {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    gap: 20px;
-  }
-  
-  .releaseFormItem {
-    flex: 1;
-  }
-  
-  .releaseYearInput,
-  .releaseMakeInput,
-  .releaseOdometerInput {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: border-color 0.3s ease;
-  }
-  
-  .releaseYearInput:focus,
-  .releaseMakeInput:focus,
-  .releaseOdometerInput:focus {
-    border-color: #007bff;
-    outline: none;
-  }
-  
-  .releaseMileageGroup {
-    display: flex;
-    align-items: flex-start;
-    gap: 12%;
-  }
-  
-  .releaseMileageInput {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: border-color 0.3s ease;
-  }
-  
-  .releaseMileageInput:focus {
-    border-color: #007bff;
-    outline: none;
-  }
-  
-  .releaseLabel {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 14px;
-    font-weight: 400;
-    color: #444;
-  }
-  
-  /* Hover effects */
-  .releaseFormInput:hover,
-  .releaseYearInput:hover,
-  .releaseMakeInput:hover,
-  .releaseOdometerInput:hover,
-  .releaseMileageInput:hover {
-    border-color: #666;
-  }
-  
-  /* Placeholder styling */
-  .releaseFormInput::placeholder,
-  .releaseYearInput::placeholder,
-  .releaseMakeInput::placeholder,
-  .releaseOdometerInput::placeholder,
-  .releaseMileageInput::placeholder {
-    color: #999;
-  }
+.releaseFormLabel {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #444;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 15px;
+  margin-top: 20px;
+}
+
+.releaseHeading {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.checkboxSection {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.checkBoxAddress {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.releaseFormInput {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 14px;
+  width: 65.2%;
+}
+
+.releaseFormInput:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.releaseCheckboxGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.releaseCheckboxLabel {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.releaseCheckboxInput {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.releaseFieldGroup {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+.releaseFormItem {
+  flex: 1;
+}
+
+.releaseYearInput,
+.releaseMakeInput,
+.releaseOdometerInput {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.releaseYearInput:focus,
+.releaseMakeInput:focus,
+.releaseOdometerInput:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.releaseMileageGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 12%;
+}
+
+.releaseMileageInput {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.releaseMileageInput:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.releaseLabel {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #444;
+}
+
+/* Make city field the same size as street field */
+.cityFieldCustomWidth {
+  flex: 1;
+  width: 100%;
+}
+
+.cityInputt {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 14px;
+  height: 35px; /* Match height with street field */
+}
+
+/* Arrange date, phone, and agent name in one row */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.datePhoneGroup {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.dateField {
+  flex: 1;
+}
+
+.phoneField {
+  flex: 1;
+}
+
+.authorizedAgentGroup {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+}
+
+.agentNameField {
+  flex: 2;
+}
+
+.agentTitleField {
+  flex: 1;
+}
+
+.registeredDateInput {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 14px;
+}
+
+/* Hover effects */
+.releaseFormInput:hover,
+.releaseYearInput:hover,
+.releaseMakeInput:hover,
+.releaseOdometerInput:hover,
+.releaseMileageInput:hover,
+.cityInputt:hover,
+.registeredDateInput:hover {
+  border-color: #666;
+}
+
+/* Placeholder styling */
+.releaseFormInput::placeholder,
+.releaseYearInput::placeholder,
+.releaseMakeInput::placeholder,
+.releaseOdometerInput::placeholder,
+.releaseMileageInput::placeholder,
+.cityInputt::placeholder,
+.registeredDateInput::placeholder {
+  color: #999;
+}

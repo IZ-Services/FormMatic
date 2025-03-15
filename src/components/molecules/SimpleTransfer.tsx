@@ -70,7 +70,6 @@ export default function SimpleTransfer({ formData, onDataChange }: SimpleTransfe
         )}
         <NewRegisteredOwners formData={formValues} />
         <Address formData={formValues} />
-        <NewLien formData={formValues} />
         <PowerOfAttorney formData={formValues} />
          {isSmogExempt && (
           <SmogExemption formData={formValues} />

@@ -3,6 +3,7 @@ import TransactionModel from '../../../models/transaction';
 import { NextResponse } from 'next/server';
 import { PDFDocument, PDFName, PDFBool } from 'pdf-lib';
 import {  StandardFonts, rgb } from 'pdf-lib';
+import VehicleTransactionDetails from '@/components/atoms/Checkboxes';
 
 export async function POST(request: Request) {
   try {
@@ -158,7 +159,7 @@ export async function POST(request: Request) {
       } else if (formType === 'DMVReg166') {
         modifiedPdfBytes = await modifyDMVReg166Pdf(existingPdfBytes, formData);
       } else {
-        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData);
+        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, transaction.transactionType);
       }
 
       return new Response(modifiedPdfBytes, {
@@ -202,7 +203,7 @@ export async function POST(request: Request) {
       } else if (formType === 'DMVReg166') {
         modifiedPdfBytes = await modifyDMVReg166Pdf(existingPdfBytes, formData);
       } else {
-        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData);
+        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, transaction.transactionType);
       }
 
       return new Response(modifiedPdfBytes, {
@@ -274,7 +275,7 @@ async function modifyDMVReg166Pdf(fileBytes: ArrayBuffer, formData: any): Promis
 
       "Title of Agent": "releaseInformation.authorizedAgentTitle",
       "Printed Name": "releaseInformation.authorizedAgentName",
-      "Date": "releaseInformation.date",
+      "Date": "sellerInfo.sellers.0.saleDate", 
       
 
       "Reg Onwer-Last Name": "sellerInfo.sellers.0.lastName",
@@ -360,10 +361,12 @@ async function modifyDMVReg166Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     }
     
 
-    if (!getNestedProperty(formData, "releaseInformation.date")) {
+ 
+    const dateField = getNestedProperty(formData, "sellerInfo.sellers.0.saleDate");
+    if (!dateField) {
       const currentDate = new Date();
       const formattedDate = `${String(currentDate.getMonth() + 1).padStart(2, '0')}/${String(currentDate.getDate()).padStart(2, '0')}/${currentDate.getFullYear()}`;
-      console.log('Using current date:', formattedDate);
+      console.log('Using current date as fallback:', formattedDate);
       
       try {
         safeSetText("Date", formattedDate);
@@ -399,7 +402,7 @@ async function modifyDMVReg166Pdf(fileBytes: ArrayBuffer, formData: any): Promis
   }
 }
 
-async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
+async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactionType: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
   
   const form = pdfDoc.getForm();
@@ -558,7 +561,7 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     vehicleLicensePlate1: 'License Plate/CF Number1',
     vehicleHullId1: 'Vehicle/Vessel ID/Number1',
     vehicleYear1: 'Year/Make',
-    
+    appForCheckbox: "App for",
     appFor2Checkbox: 'App for2',
     
     giftCheckbox: 'Gift Box',
@@ -699,9 +702,10 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   
   const formatOwnerNamePrint = (owner: any) => {
     return [
+     
+      owner.lastName?.trim() || '',
       owner.firstName?.trim() || '',
       owner.middleName?.trim() || '',
-      owner.lastName?.trim() || ''
     ].filter(Boolean).join(' ');
   };
   
@@ -811,8 +815,11 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       safeSetText(fieldMapping.owner1PhoneArea, areaCode);
       safeSetText(fieldMapping.owner1PhoneMain, mainNumber);
     }
+
+    const isGift = formData.vehicleTransactionDetails?.isGift === true;
+
     
-    if (!seller1.isGift && owner1.isGift) {
+    if (isGift) {
       safeSetCheckbox(fieldMapping.giftCheckbox, true);
     }
     if (!seller1.isTrade && owner1.isTrade) {
@@ -837,7 +844,7 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     if (owner2.relationshipType === 'AND') {
       safeSetCheckbox(fieldMapping.owner2AndCheckbox, true);
     } else if (owner2.relationshipType === 'OR') {
-      safeSetCheckbox(fieldMapping.owner2OrCheckbox, true);
+      safeSetCheckbox(fieldMapping.owner3AndCheckbox, true);
     }
   }
   
@@ -856,7 +863,7 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     }
     
     if (owner3.relationshipType === 'AND') {
-      safeSetCheckbox(fieldMapping.owner3AndCheckbox, true);
+      safeSetCheckbox(fieldMapping.owner2OrCheckbox, true);
     } else if (owner3.relationshipType === 'OR') {
       safeSetCheckbox(fieldMapping.owner3OrCheckbox, true);
     }
@@ -939,46 +946,36 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     safeSetText(fieldMapping.trailerAddressDescription, trailerLocationFormatted);
   }
   
-  const purchaseDate = owner1.purchaseDate || seller1.saleDate || '';
+ 
+  const purchaseDate = seller1.saleDate || '';
   const formattedDate = formatDate(purchaseDate);
   
   const dateComponents = extractDateComponents(purchaseDate);
   
   if (purchaseDate) {
+ 
     safeSetText(fieldMapping.owner1Date, formattedDate);
     safeSetText(fieldMapping.owner1DateField1, formattedDate);
+    safeSetText(fieldMapping.owner2Date, formattedDate);
+    safeSetText(fieldMapping.owner2DateField, formattedDate);
+    safeSetText(fieldMapping.owner3DateField, formattedDate);
+    safeSetText(fieldMapping.sellerDate, formattedDate);
     
     safeSetText(fieldMapping.purchaseDateMonth, dateComponents.month); 
     safeSetText(fieldMapping.purchaseDateDay, dateComponents.day);
     safeSetText(fieldMapping.acquiredYearField, dateComponents.year);
   }
   
-  if (owner2Exists) {
-    const owner2Date = owner2.purchaseDate || seller2.saleDate || purchaseDate;
-    if (owner2Date) {
-      const formattedDate2 = formatDate(owner2Date);
-      safeSetText(fieldMapping.owner2Date, formattedDate2);
-      safeSetText(fieldMapping.owner2DateField, formattedDate2);
-    }
-  }
-  
-  if (owner3Exists) {
-    const owner3Date = owner3.purchaseDate || purchaseDate;
-    if (owner3Date) {
-      safeSetText(fieldMapping.owner3DateField, formatDate(owner3Date));
-    }
-  }
-  
   const purchaseValue = owner1.purchaseValue || '';
   
   const hasMarketValue = formData.marketValue || owner1.marketValue;
   
-  let isGift = seller1.isGift || owner1.isGift;
+ 
   
-  if (hasMarketValue) {
-    isGift = true;
-    safeSetCheckbox(fieldMapping.giftCheckbox, true);
-  }
+ 
+ 
+ 
+ 
   
   if(hasMarketValue) {
     safeSetText(fieldMapping.marketValueField, hasMarketValue);
@@ -1029,9 +1026,20 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   safeSetText(fieldMapping.vehicleLicensePlate2, vehicleInfo.licensePlate || '');
   safeSetText(fieldMapping.vehicleHullId2, vehicleInfo.hullId || '');
   safeSetText(fieldMapping.vehicleYear2, yearMakeValue);
+
+  console.log('Transaction Type:', formData.transactionType);
   
+  if (transactionType === "Lien Holder Removal" || 
+    transactionType === "Lien Holder Addition" || 
+    transactionType === "Duplicate Title Transfer") {
+  console.log('Setting checkbox for App for');
+  safeSetCheckbox(fieldMapping.appForCheckbox, true);
+} else {
+  console.log('Setting checkbox for App for2');
   safeSetCheckbox(fieldMapping.appFor2Checkbox, true);
-  
+}
+
+
   form.updateFieldAppearances();
   pdfDoc.catalog.set(PDFName.of('NeedAppearances'), PDFBool.True);
   
@@ -1040,26 +1048,12 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
 
 async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
-  const form = pdfDoc.getForm();[{
-    "resource": "/Users/saneha/FormMatic/src/app/api/fillPdf/route.ts",
-    "owner": "typescript",
-    "code": "2304",
-    "severity": 8,
-    "message": "Cannot find name 'PDFCheckBox'.",
-    "source": "ts",
-    "startLineNumber": 595,
-    "startColumn": 33,
-    "endLineNumber": 595,
-    "endColumn": 44
-  }]
+  const form = pdfDoc.getForm();
   const fieldNames = form.getFields().map(f => f.getName());
   console.log('Available Reg262 PDF Fields:', JSON.stringify(fieldNames, null, 2));
   const pages = pdfDoc.getPages();
   const firstPage = pages[0];
 
-
-  
- 
   try {
     const purchaseField = form.getTextField('Text7');
     if (purchaseField) {
@@ -1084,67 +1078,6 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
   } catch (error) {
     console.error('Error setting purchase value:', error);
   }
-  try {
-    const sellerInfo = formData.sellerInfo || {};
-    const sellers = sellerInfo.sellers
-    if (sellers && sellers.length > 0 && sellers[0].saleDate) {
-      const purchaseDate = new Date(sellers[0].saleDate);
-      
-      if (!isNaN(purchaseDate.getTime())) {
-        const month = String(purchaseDate.getMonth() + 1).padStart(2, '0'); 
-        const day = String(purchaseDate.getDate()).padStart(2, '0');
-        const year = String(purchaseDate.getFullYear());
-        
-        console.log(`Formatting date: ${month}/${day}/${year}`);
-        
-        try {
-          const text1Field = form.getTextField('Text1');
-          if (text1Field) {
-            text1Field.setText(month);
-            console.log('Successfully set month in Text1 field:', month);
-          } else {
-            console.warn('Text1 field not found for month');
-          }
-        } catch (e) {
-          console.error('Error setting Text1 field (month):', e);
-        }
-        
-        try {
-          const text2Field = form.getTextField('Text2');
-          if (text2Field) {
-            text2Field.setText(day);
-            console.log('Successfully set day in Text2 field:', day);
-          } else {
-            console.warn('Text2 field not found for day');
-          }
-        } catch (e) {
-          console.error('Error setting Text2 field (day):', e);
-        }
-        
-        for (let i = 0; i < year.length; i++) {
-          try {
-            const fieldName = `Text${3 + i}`;
-            const textField = form.getTextField(fieldName);
-            if (textField) {
-              textField.setText(year[i]);
-              console.log(`Successfully set ${fieldName} field to year digit:`, year[i]);
-            } else {
-              console.warn(`${fieldName} field not found for year digit ${i+1}`);
-            }
-          } catch (e) {
-            console.error(`Error setting Text${3+i} field (year digit ${i+1}):`, e);
-          }
-        }
-      } else {
-        console.warn('Invalid purchase date format:', sellers[0].saleDate);
-      }
-    } else {
-      console.warn('No purchase date found for owner');
-    }
-  } catch (error) {
-    console.error('Error processing purchase date:', error);
-  }
-
   
   try {
     const checkbox = form.getCheckBox('Group1');
@@ -1161,13 +1094,104 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
       console.log('Successfully set checkbox state for Group1');
     } else {
       console.warn('Group1 field not found, falling back to drawing method');
-      
     }
   } catch (error) {
     console.error('Error setting checkbox:', error);
   }
-  console.log("Attempting to draw text directly on the PDF...");
+  
+  console.log("Drawing text directly on the PDF...");
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  
+ 
+  const sellerInfo = formData.sellerInfo || {};
+  const sellers = sellerInfo.sellers || [];
+  let dateText = '';
+  
+  if (sellers && sellers.length > 0 && sellers[0].saleDate) {
+    const purchaseDate = new Date(sellers[0].saleDate);
+    
+    if (!isNaN(purchaseDate.getTime())) {
+      const month = String(purchaseDate.getMonth() + 1).padStart(2, '0'); 
+      const day = String(purchaseDate.getDate()).padStart(2, '0');
+      const year = String(purchaseDate.getFullYear());
+      
+      console.log(`Formatting date: ${month}/${day}/${year}`);
+      
+ 
+      firstPage.drawText(month[0], {
+        x: 310, 
+        y: 603, 
+        size: 12,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      firstPage.drawText(month[1], {
+        x: 315, 
+        y: 603, 
+        size: 12,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+ 
+      firstPage.drawText(day[0], {
+        x: 330, 
+        y: 603, 
+        size: 12,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      firstPage.drawText(day[1], {
+        x: 336, 
+        y: 603, 
+        size: 12,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+ 
+      for (let i = 0; i < year.length; i++) {
+        firstPage.drawText(year[i], {
+          x: 350 + (i * 12), 
+          y: 603, 
+          size: 12,
+          font: font,
+          color: rgb(0, 0, 0),
+        });
+      }
+      
+      dateText = `${month}/${day}/${year}`;
+    } else {
+      console.warn('Invalid purchase date format:', sellers[0].saleDate);
+    }
+  } else {
+    console.warn('No purchase date found for owner');
+  }
+  
+ 
+  const vehicleInfo = formData.vehicleInformation || {};
+  const mileage = vehicleInfo.mileage || '';
+  
+  if (mileage) {
+    const mileageString = mileage.toString().padStart(6, '0');
+    
+    for (let i = 0; i < 6; i++) {
+      const xPositions = [160, 185, 210, 250, 275, 300]; 
+      const y = 486;
+      
+      if (i < mileageString.length) {
+        firstPage.drawText(mileageString[i], {
+          x: xPositions[i],
+          y: y,
+          size: 12,
+          font: font,
+          color: rgb(0, 0, 0),
+        });
+      }
+    }
+  }
   
   const textPositions = {
     'IDENTIFICATION NUMBER': { x: 100, y: 665 },
@@ -1208,11 +1232,9 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     'APPOINTEE': { x: 435, y: 105 },
     'POA DATE 1': { x: 435, y: 60 },
     'POA DATE 2': { x: 435, y: 37 },
-
   };
 
   const powerOfAttorneyData = formData.powerOfAttorney || {};
-
 
   const formatFullName = (person: any) => {
     if (!person) return '';
@@ -1249,10 +1271,10 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     }
   };
   
-  const vehicleInfo = formData.vehicleInformation || {};
-  const sellerInfo = formData.sellerInfo || {};
-  const sellers = sellerInfo.sellers || [];
   const owners = formData.owners || [];
+  
+ 
+  const seller1SaleDate = sellers.length > 0 ? sellers[0].saleDate : '';
   
   const buyerMailingAddressDifferent = formData.mailingAddressDifferent || false;
   const buyerRegularAddress = formData.address || {};
@@ -1264,55 +1286,16 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
   console.log("Buyer regular address:", JSON.stringify(buyerRegularAddress));
   console.log("Buyer mailing address:", JSON.stringify(buyerMailingAddress));
 
-                            const sellerMailingAddressDifferent = formData.sellerMailingAddressDifferent || false;
-                            const sellerRegularAddress = formData.sellerAddress || {};
-                            const sellerMailingAddress = sellerMailingAddressDifferent ? 
-                                                       (formData.sellerMailingAddress || {}) : 
-                                                       sellerRegularAddress;
+  const sellerMailingAddressDifferent = formData.sellerMailingAddressDifferent || false;
+  const sellerRegularAddress = formData.sellerAddress || {};
+  const sellerMailingAddress = sellerMailingAddressDifferent ? 
+                               (formData.sellerMailingAddress || {}) : 
+                               sellerRegularAddress;
                             
-                            console.log("Seller mailing address different?", sellerMailingAddressDifferent);
-                            console.log("Seller regular address:", JSON.stringify(sellerRegularAddress));
-                            console.log("Seller mailing address:", JSON.stringify(sellerMailingAddress));
-                  
-    try {
-      const mileage = vehicleInfo.mileage || '';
-      if (mileage) {
- 
-        const mileageString = mileage.toString().padStart(6, '0');
-        
- 
-        for (let i = 0; i < 6; i++) {
-          const textFieldName = `Text${9 + i}`;
-          const textField = form.getTextField(textFieldName);
-          
-          if (textField) {
- 
-            const digit = i < mileageString.length ? mileageString[i] : '';
-            textField.setText(digit);
-            console.log(`Successfully set ${textFieldName} to ${digit}`);
-          } else {
-            console.warn(`${textFieldName} field not found, falling back to drawing method`);
-            
- 
- 
-            const xPositions = [200, 220, 240, 260, 280, 300]; 
-            const y = 500; 
-            
-            if (i < mileageString.length) {
-              firstPage.drawText(mileageString[i], {
-                x: xPositions[i],
-                y: y,
-                size: 10,
-                font: font,
-                color: rgb(0, 0, 0),
-              });
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error setting mileage values:', error);
-    }
+  console.log("Seller mailing address different?", sellerMailingAddressDifferent);
+  console.log("Seller regular address:", JSON.stringify(sellerRegularAddress));
+  console.log("Seller mailing address:", JSON.stringify(sellerMailingAddress));
+  
   for (const [label, position] of Object.entries(textPositions)) {
     let value = '';
     
@@ -1322,34 +1305,26 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     else if (label === 'LICENSE PLATE/CF NO') value = vehicleInfo.licensePlate || '';
     else if (label === 'MOTORCYCLE ENGINE NUMBER') value = vehicleInfo.engineNumber || '';
  
- 
     else if (label === 'POA DATE 1') {
  
-      if (powerOfAttorneyData.date) {
-        value = powerOfAttorneyData.date || '';
-        console.log(`Found power of attorney date: ${value}`);
-      } 
- 
-      else if (powerOfAttorneyData.dates && powerOfAttorneyData.dates.length > 0) {
-        value = powerOfAttorneyData.dates[0] || '';
-        console.log(`Found power of attorney date (legacy format): ${value}`);
-      }
-    }
-    else if (label === 'POA DATE 2') {
-      if (Array.isArray(owners) && owners.length > 2) {
-        if (powerOfAttorneyData.date) {
-          value = powerOfAttorneyData.date || '';
-          console.log(`Setting power of attorney date for third owner: ${value}`);
-        } else if (powerOfAttorneyData.dates && powerOfAttorneyData.dates.length > 0) {
-          value = powerOfAttorneyData.dates[0] || '';
-          console.log(`Setting legacy power of attorney date for third owner: ${value}`);
-        }
+      if (sellerInfo && sellerInfo.sellers && sellerInfo.sellers.length > 0 && sellerInfo.sellers[0].saleDate) {
+        value = sellerInfo.sellers[0].saleDate || '';
+        console.log(`Found seller's sale date for POA DATE 1: ${value}`);
       } else {
-        console.log('No third owner found, leaving POA DATE 2 empty');
+        console.log('No seller sale date found for POA DATE 1, leaving empty');
         value = '';
       }
     }
-    
+    else if (label === 'POA DATE 2') {
+ 
+      if (sellerInfo && sellerInfo.sellers && sellerInfo.sellers.length > 1 && sellerInfo.sellers[1].saleDate) {
+        value = sellerInfo.sellers[1].saleDate || '';
+        console.log(`Found second seller's sale date for POA DATE 2: ${value}`);
+      } else {
+        console.log('No second seller sale date found for POA DATE 2, leaving empty');
+        value = '';
+      }
+    }
     if (powerOfAttorneyData.dates && powerOfAttorneyData.dates.length > 2) {
       console.warn(`Note: Power of Attorney has ${powerOfAttorneyData.dates.length} dates, but only the first 2 will be displayed on the form.`);
     }  
@@ -1358,7 +1333,6 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
       console.log(`Found appointer value: ${value}`);
     }
     
- 
     else if (label === 'APPOINTEE') {
       value = powerOfAttorneyData.appointee || '';
       console.log(`Found appointee value: ${value}`);
@@ -1427,41 +1401,11 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
       }
     }
     
-    else if (label === 'BUYER 1 DOP') {
-      if (Array.isArray(owners) && owners.length > 0) {
-        value = formatDate(owners[0].purchaseDate || '');
-        console.log(`Found buyer 1 DOP: ${value}`);
-      }
-    }
-    else if (label === 'BUYER 2 DOP') {
-      if (Array.isArray(owners) && owners.length > 1) {
-        value = formatDate(owners[1].purchaseDate || '');
-        console.log(`Found buyer 2 DOP: ${value}`);
-      }
-    }
-    else if (label === 'BUYER 3 DOP') {
-      if (Array.isArray(owners) && owners.length > 2) {
-        value = formatDate(owners[2].purchaseDate || '');
-        console.log(`Found buyer 3 DOP: ${value}`);
-      }
-    }
-    else if (label === 'SELLER 1 DOP') {
-      if (Array.isArray(sellers) && sellers.length > 0) {
-        value = formatDate(sellers[0].saleDate || sellers[0].purchaseDate || '');
-        console.log(`Found seller 1 DOP: ${value}`);
-      }
-    }
-    else if (label === 'SELLER 2 DOP') {
-      if (Array.isArray(sellers) && sellers.length > 1) {
-        value = formatDate(sellers[1].saleDate || sellers[1].purchaseDate || '');
-        console.log(`Found seller 2 DOP: ${value}`);
-      }
-    }
-    else if (label === 'SELLER 3 DOP') {
-      if (Array.isArray(sellers) && sellers.length > 2) {
-        value = formatDate(sellers[2].saleDate || sellers[2].purchaseDate || '');
-        console.log(`Found seller 3 DOP: ${value}`);
-      }
+ 
+    else if (label === 'BUYER 1 DOP' || label === 'BUYER 2 DOP' || label === 'BUYER 3 DOP' || 
+             label === 'SELLER 1 DOP' || label === 'SELLER 2 DOP' || label === 'SELLER 3 DOP') {
+      value = formatDate(seller1SaleDate);
+      console.log(`Using seller1's sale date for ${label}: ${value}`);
     }
     
     else if (label === 'BUYER 1 LICENSE') {
@@ -1544,27 +1488,6 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
       }
     }
 
-
-  if (vehicleInfo.notActualMileage) {
-    firstPage.drawText('X', {
-      x: 38,
-      y: 442,
-      size: 12,
-      font: font,
-      color: rgb(0, 0, 0),
-    });
-  }
-  if (vehicleInfo.exceedsMechanicalLimit) {
-    firstPage.drawText('X', {
-      x: 312,
-      y: 442,
-      size: 12,
-      font: font,
-      color: rgb(0, 0, 0),
-    });
-  }
-
-    
     if (value) {
       console.log(`Drawing text for ${label} at (${position.x}, ${position.y}): "${value}"`);
       
@@ -1578,9 +1501,29 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     }
   }
   
+ 
+  if (vehicleInfo.notActualMileage) {
+    firstPage.drawText('X', {
+      x: 38,
+      y: 442,
+      size: 12,
+      font: font,
+      color: rgb(0, 0, 0),
+    });
+  }
+  
+  if (vehicleInfo.exceedsMechanicalLimit) {
+    firstPage.drawText('X', {
+      x: 312,
+      y: 442,
+      size: 12,
+      font: font,
+      color: rgb(0, 0, 0),
+    });
+  }
+  
   return await pdfDoc.save();
 }
-
 async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
   
@@ -1589,8 +1532,6 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   console.log('Available Reg256 PDF Fields:', JSON.stringify(fieldNames, null, 2));
   
   const fieldMapping = {
-
-    
     vehicleLicensePlate: 'License Plate/CF Number', 
     vehicleVin: 'Veh/Vessel ID Number', 
     vehicleYearMake: 'Year/Make2', 
@@ -1611,7 +1552,6 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     
     signatureDate: 'Signature date',
     
-
     biennialSmogBox: 'Biennial Smog cert box',
     poweredByBox: 'Powered by box',
     poweredByElectricityBox: 'Powered by electricity box',
@@ -1692,6 +1632,15 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     return { areaCode, mainNumber };
   };
   
+ 
+  const sellerInfo = formData.sellerInfo || {};
+  const sellers = sellerInfo.sellers || [];
+  const seller1SaleDate = sellers.length > 0 ? sellers[0].saleDate || '' : '';
+  const formattedSeller1SaleDate = formatDate(seller1SaleDate);
+  
+ 
+  console.log(`Using seller's sale date for all date fields: ${formattedSeller1SaleDate}`);
+  
   const ownerInfo = formData.ownerInfo || {};
   const owner = ownerInfo.owner || {};
   const vehicleInfo = formData.vehicleInformation || {};
@@ -1709,7 +1658,6 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       owner.middleName?.trim() || '',
       owner.lastName?.trim() || ''
     ].filter(Boolean).join(' ');
-    
   }
   
   const owners = formData.owners || [];
@@ -1731,8 +1679,6 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     }
   }
   
-
-  
   safeSetText(fieldMapping.vehicleLicensePlate, vehicleInfo.licensePlate || '');
   safeSetText(fieldMapping.vehicleVin, vehicleInfo.vin || vehicleInfo.hullId || '');
   
@@ -1749,16 +1695,13 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     console.log('Family transfer box checked');
   }
   
-
   if (isSmogExempt && formData.smogExemption) {
     const smogData = formData.smogExemption;
     const exemptionReasons = smogData.exemptionReasons || {};
     console.log('Processing smog exemption data:', JSON.stringify(exemptionReasons));
     
-
     safeSetCheckbox(fieldMapping.biennialSmogBox, exemptionReasons.lastSmogCertification || false);
     
-
     if (exemptionReasons.alternativeFuel) {
       safeSetCheckbox(fieldMapping.poweredByBox, true);
       
@@ -1772,42 +1715,26 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       }
     }
     
-
     safeSetCheckbox(fieldMapping.outsideCaliforniaBox, exemptionReasons.outsideCalifornia || false);
     
-
     if (exemptionReasons.familyTransfer) {
       safeSetCheckbox(fieldMapping.familyTransferRelationshipBox, true);
     }
     
-
     safeSetCheckbox(fieldMapping.leasingCompanyBox, exemptionReasons.leasingCompany || false);
-    
-
     safeSetCheckbox(fieldMapping.lessorLesseeBox, exemptionReasons.lessorLessee || false);
-    
-
     safeSetCheckbox(fieldMapping.lessorOperatorBox, exemptionReasons.lessorOperator || false);
     
-
     if (fieldMapping.individualAddedBox) {
       safeSetCheckbox(fieldMapping.individualAddedBox, exemptionReasons.addingOwners || false);
     }
   }
   
-  const applicationDate = owner.applicationDate || '';
-  if (applicationDate) {
-    safeSetText(fieldMapping.applicationDate, formatDate(applicationDate));
-  }
-  
-  const sellerInfo = formData.sellerInfo || {};
-  const sellers = sellerInfo.sellers || [];
-  if (Array.isArray(sellers) && sellers.length > 0) {
-    const saleDate = sellers[0].saleDate || '';
-    if (saleDate) {
-      safeSetText(fieldMapping.signatureDate, formatDate(saleDate));
-      console.log(`Set signature date to seller's sale date: ${formatDate(saleDate)}`);
-    }
+ 
+  if (seller1SaleDate) {
+    safeSetText(fieldMapping.applicationDate, formattedSeller1SaleDate);
+    safeSetText(fieldMapping.signatureDate, formattedSeller1SaleDate);
+    console.log(`Set application and signature dates to seller's sale date: ${formattedSeller1SaleDate}`);
   }
   
   form.updateFieldAppearances();
@@ -1820,19 +1747,15 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
  
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
   
- 
   const form = pdfDoc.getForm();
   
- 
   const fieldNames = form.getFields().map(f => f.getName());
   console.log('Available Reg101 PDF Fields:', JSON.stringify(fieldNames, null, 2));
   
- 
   console.log('===== COMPLETE FORM DATA =====');
   console.log(JSON.stringify(formData, null, 2));
   console.log('=============================');
   
- 
   const fieldMapping = {
     licensePlate: "vehicle license plate or vessel CF Number",
     hullId: "vehicle/hull id number",
@@ -1841,7 +1764,6 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     newOwner2Name: "last, first and middle name.1",
     newOwner3Name: "last, first and middle name.2",
     
- 
     newOwner1License: [
       "CA DL or ID number.0.0.0",
       "CA DL or ID number.0.0.1",
@@ -1853,7 +1775,6 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       "CA DL or ID number.0.2.1"
     ],
     
- 
     newOwner2License: [
       "CA DL or ID number.0.2.2",
       "CA DL or ID number.0.3.0",
@@ -1865,7 +1786,6 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       "CA DL or ID number.0.5.0"
     ],
     
- 
     newOwner3License: [
       "CA DL or ID number.0.5.1",
       "CA DL or ID number.0.5.2",
@@ -1877,7 +1797,6 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       "CA DL or ID number.0.7.2"
     ],
     
- 
     purchaseDate: "purchase date",
     purchasePrice: "purchase price",
     regOwnerAddress: "reg owner address",
@@ -1889,11 +1808,9 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     regOwnerAndOr3: "reg owner and/or3",
     regOwnerAndOr4: "reg owner and/or4",
     
- 
     leaseVehicleOnly: "lease vehicle only",
     vesselsOnly: "vessels only",
     
- 
     lienHolderName: "lien holder",
     lienHolderAddress: "lien holder address",
     lienHolderCity: "lien holder city",
@@ -1951,14 +1868,11 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     try {
       const radioGroup = form.getRadioGroup(fieldName);
       if (radioGroup) {
- 
         const options = radioGroup.getOptions();
         console.log(`Radio group options for ${fieldName}:`, options);
         
- 
         const normalizedValue = value.toLowerCase();
         
- 
         if (options.includes(normalizedValue)) {
           radioGroup.select(normalizedValue);
           console.log(`Successfully selected radio option ${normalizedValue} for ${fieldName}`);
@@ -1984,7 +1898,6 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     });
   };
   
- 
   const formatOwnerNamePrint = (owner: any) => {
     return [
       owner.firstName?.trim() || '',
@@ -1996,7 +1909,6 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     
- 
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
       return dateString;
     }
@@ -2018,58 +1930,66 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   };
   
  
+  let seller1SaleDate = '';
+  if (formData.sellerInfo && formData.sellerInfo.sellers && formData.sellerInfo.sellers.length > 0) {
+    seller1SaleDate = formData.sellerInfo.sellers[0].saleDate || '';
+    console.log("Found seller1's sale date:", seller1SaleDate);
+  }
+
  
-  let dataToUse = formData;
+  const formattedSeller1SaleDate = formatDate(seller1SaleDate);
   
  
+  let dataToUse = formData;
   if (formData.isMultipleTransfer && formData.transfersData && formData.transfersData.length > 0) {
     dataToUse = formData.transfersData[0];
     console.log('Using data from first transfer in multiple transfer set');
+    
+ 
+    if (!seller1SaleDate && dataToUse.sellerInfo && dataToUse.sellerInfo.sellers && dataToUse.sellerInfo.sellers.length > 0) {
+      seller1SaleDate = dataToUse.sellerInfo.sellers[0].saleDate || '';
+      console.log("Found seller1's sale date from transfer data:", seller1SaleDate);
+    }
   }
   
-  
- 
   let owners: any[] = [];
   if (dataToUse.newOwners && dataToUse.newOwners.owners) {
     owners = dataToUse.newOwners.owners || [];
   } 
   
- 
   const owner1 = owners[0] || {};
   const owner2 = owners[1] || {};
   const owner3 = owners[2] || {};
   
- 
   const addressData = dataToUse.address || {};
   
- 
   const vehicleInfo = dataToUse.vehicleInformation || {};
   
- 
   const vehicleTransactionDetails = dataToUse.vehicleTransactionDetails || {};
   const hasCurrentLienholder = vehicleTransactionDetails.currentLienholder === true;
   
- 
   const legalOwnerInfo = dataToUse.legalOwner || {};
   const legalOwnerAddress = legalOwnerInfo.address || {};
   
- 
   safeSetText(fieldMapping.licensePlate, vehicleInfo.licensePlate || '');
   safeSetText(fieldMapping.hullId, vehicleInfo.hullId || vehicleInfo.vinNumber || '');
   safeSetText(fieldMapping.make, vehicleInfo.make || '');
   
- 
   if (Object.keys(owner1).length > 0) {
     safeSetText(fieldMapping.newOwner1Name, formatOwnerNamePrint(owner1));
     
- 
     if (owner1.licenseNumber) {
       fillCharacterFields(fieldMapping.newOwner1License, owner1.licenseNumber);
     }
     
  
-    if (owner1.purchaseDate) {
+    if (seller1SaleDate) {
+      safeSetText(fieldMapping.purchaseDate, formattedSeller1SaleDate);
+      console.log(`Using seller1's sale date for purchase date: ${formattedSeller1SaleDate}`);
+    } else if (owner1.purchaseDate) {
+ 
       safeSetText(fieldMapping.purchaseDate, formatDate(owner1.purchaseDate));
+      console.log(`Using owner1's purchase date as fallback: ${formatDate(owner1.purchaseDate)}`);
     }
     
     if (owner1.purchaseValue) {
@@ -2077,45 +1997,37 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     }
   }
   
- 
   safeSetText(fieldMapping.regOwnerAddress, addressData.street || '');
   safeSetText(fieldMapping.regOwnerCity, addressData.city || '');
   safeSetText(fieldMapping.regOwnerState, addressData.state || '');
   safeSetText(fieldMapping.regOwnerZip, addressData.zip || '');
   
- 
   if (Object.keys(owner2).length > 0) {
     safeSetText(fieldMapping.newOwner2Name, formatOwnerNamePrint(owner2));
     
- 
     if (owner2.licenseNumber) {
       fillCharacterFields(fieldMapping.newOwner2License, owner2.licenseNumber);
     }
     
- 
     if (owner2.relationshipType) {
       safeSetRadioGroup(fieldMapping.regOwnerAndOr, owner2.relationshipType);
       safeSetRadioGroup(fieldMapping.regOwnerAndOr2, owner2.relationshipType);
     }
   }
   
- 
   if (Object.keys(owner3).length > 0) {
     safeSetText(fieldMapping.newOwner3Name, formatOwnerNamePrint(owner3));
     
- 
     if (owner3.licenseNumber) {
       fillCharacterFields(fieldMapping.newOwner3License, owner3.licenseNumber);
     }
     
- 
     if (owner3.relationshipType) {      
       safeSetRadioGroup(fieldMapping.regOwnerAndOr3, owner3.relationshipType);
       safeSetRadioGroup(fieldMapping.regOwnerAndOr4, owner3.relationshipType);
     }
   }
   
- 
   if (hasCurrentLienholder && Object.keys(legalOwnerInfo).length > 0) {
     safeSetText(fieldMapping.lienHolderName, legalOwnerInfo.name || '');
     safeSetText(fieldMapping.lienHolderAddress, legalOwnerAddress.street || '');
@@ -2123,7 +2035,6 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     safeSetText(fieldMapping.lienHolderState, legalOwnerAddress.state || '');
     safeSetText(fieldMapping.lienHolderZip, legalOwnerAddress.zip || '');
   } else {
- 
     safeSetText(fieldMapping.lienHolderName, "NONE");
   }
 
@@ -2150,15 +2061,13 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     safeSetText(fieldMapping.lienHolderZip2, "");
   }
   
- 
   form.updateFieldAppearances();
   
- 
   pdfDoc.catalog.set(PDFName.of('NeedAppearances'), PDFBool.True);
   
- 
   return await pdfDoc.save();
 }
+
 
 async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
@@ -2172,10 +2081,8 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   console.log(JSON.stringify(formData, null, 2));
   console.log('=============================');
   
-
   let transactionType = null;
   
-
   if (formData.transactionType) {
     transactionType = formData.transactionType;
     console.log(`Found transaction type in formData.transactionType: "${transactionType}"`);
@@ -2189,12 +2096,10 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     transactionType = formData.formData.type;
     console.log(`Found transaction type in formData.formData.type: "${transactionType}"`);
   } else {
-
     transactionType = "Duplicate Registration Transfer";
     console.log(`No transaction type found anywhere, using default: "Duplicate Registration Transfer"`);
   }
   
-
   formData.transactionType = transactionType;
   
   const isDuplicateStickers = transactionType === "Duplicate Stickers";
@@ -2208,6 +2113,8 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     "Vehicle license plate": "vehicleInformation.licensePlate",
     "Make": "vehicleInformation.make",
     "VIN": "vehicleInformation.hullId", 
+    "Engine number": "vehicleInformation.engineNumber",
+
 
     "True full name": "sellerInfo.sellers.0", 
     "DL1": "sellerInfo.sellers.0.licenseNumber.0",
@@ -2415,6 +2322,16 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   const seller1 = sellers[0] || {};
   const seller2 = sellers[1] || {};
   
+ 
+  let seller1SaleDate = '';
+  if (seller1 && seller1.saleDate) {
+    seller1SaleDate = seller1.saleDate;
+    console.log(`Found seller1's sale date: ${seller1SaleDate}`);
+  }
+  
+ 
+  const formattedSellerSaleDate = formatDate(seller1SaleDate);
+  
   for (const [pdfField, formField] of Object.entries(fieldMapping)) {
     try {
       if (pdfField === "True full name" || pdfField === "Co owner" || 
@@ -2422,20 +2339,16 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
         continue;
       }
       
-
       if (pdfField === "area code" || pdfField === "telephone number") {
         let phoneValue = '';
         
-
         const phoneFromStructured = getNestedProperty(dataToUse, formField);
         const phoneFromField = getNestedProperty(dataToUse, "sellerInfo.sellers.0.phone") || 
                                getNestedProperty(dataToUse, "sellerInfo.sellers.0.phoneNumber");
         
         if (phoneFromStructured) {
-
           phoneValue = phoneFromStructured;
         } else if (phoneFromField) {
-
           const fullPhone = phoneFromField.toString().replace(/\D/g, '');
           
           if (pdfField === "area code" && fullPhone.length >= 3) {
@@ -2466,12 +2379,10 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       fillCharacterFields(licenseFields, seller1.licenseNumber);
     }
     
-
     if (!seller1.phoneNumber?.areaCode && !seller1.phoneNumber?.number) {
       try {
         const phoneNumber = seller1.phone || seller1.phoneNumber || '';
         if (phoneNumber) {
-
           const cleanPhone = phoneNumber.toString().replace(/\D/g, '');
           
           if (cleanPhone.length >= 10) {
@@ -2507,45 +2418,46 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     safeSetText("zip code2", dataToUse.sellerAddress.zip || '');
   }
   
-  for (const [pdfField, formField] of Object.entries(checkboxMapping)) {
-    try {
-      if (pdfField === "one" || pdfField === "Two") {
-        if (!getNestedProperty(dataToUse, "itemRequested.surrendered")) {
+ 
+  if (!isDuplicateRegistrationTransfer) {
+    for (const [pdfField, formField] of Object.entries(checkboxMapping)) {
+      try {
+        if (pdfField === "one" || pdfField === "Two") {
+          if (!getNestedProperty(dataToUse, "itemRequested.surrendered")) {
+            continue;
+          }
+          
+          const numberOfPlatesSurrendered = getNestedProperty(dataToUse, "itemRequested.numberOfPlatesSurrendered");
+          const shouldCheck = (pdfField === "one" && numberOfPlatesSurrendered === "One") ||
+                              (pdfField === "Two" && numberOfPlatesSurrendered === "Two");
+          
+          safeSetCheckbox(pdfField, shouldCheck);
           continue;
         }
         
-        const numberOfPlatesSurrendered = getNestedProperty(dataToUse, "itemRequested.numberOfPlatesSurrendered");
-        const shouldCheck = (pdfField === "one" && numberOfPlatesSurrendered === "One") ||
-                            (pdfField === "Two" && numberOfPlatesSurrendered === "Two");
+        if (pdfField === "other") {
+          continue;
+        }
         
-        safeSetCheckbox(pdfField, shouldCheck);
-        continue;
-      }
-      
-      if (pdfField === "other") {
-
-        continue;
-      }
-      
-      if (pdfField === "Two plates") {
+        if (pdfField === "Two plates") {
+          const value = getNestedProperty(dataToUse, formField) || false;
+          console.log(`Setting "${pdfField}" checkbox to: ${value}`, {
+            path: formField,
+            rawValue: getNestedProperty(dataToUse, formField),
+            finalValue: value
+          });
+          safeSetCheckbox(pdfField, value);
+          continue;
+        }
+        
         const value = getNestedProperty(dataToUse, formField) || false;
-        console.log(`Setting "${pdfField}" checkbox to: ${value}`, {
-          path: formField,
-          rawValue: getNestedProperty(dataToUse, formField),
-          finalValue: value
-        });
         safeSetCheckbox(pdfField, value);
-        continue;
+      } catch (error) {
+        console.error(`Error applying checkbox mapping for field ${pdfField}:`, error);
       }
-      
-      const value = getNestedProperty(dataToUse, formField) || false;
-      safeSetCheckbox(pdfField, value);
-    } catch (error) {
-      console.error(`Error applying checkbox mapping for field ${pdfField}:`, error);
     }
   }
   
-
   if (isDuplicateStickers) {
     console.log('Processing Duplicate Stickers transaction type');
     
@@ -2564,7 +2476,6 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     safeSetCheckbox("license month", monthChecked);
     safeSetCheckbox("license year", yearChecked);
     
-
     const isOtherChecked = getNestedProperty(dataToUse, "itemRequested.other") || false;
     safeSetCheckbox("other", isOtherChecked);
     
@@ -2580,7 +2491,6 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     safeSetCheckbox("license month", true);
     safeSetCheckbox("license year", true);
     
-
     const isOtherChecked = getNestedProperty(dataToUse, "itemRequested.other") || false;
     safeSetCheckbox("other", isOtherChecked);
     
@@ -2592,27 +2502,29 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   else if (isDuplicateTitleTransfer) {
     console.log('Processing Duplicate Title Transfer transaction type');
     
-
     safeSetCheckbox("License plates", false);
     safeSetCheckbox("license month", false);
     safeSetCheckbox("license year", false);
     safeSetCheckbox("Reg Card", true);
     
-
     safeSetCheckbox("other", true);
     safeSetText("Explanation", "Requesting a duplicate title");
   }
   else if (isDuplicateRegistrationTransfer) {
     console.log('Processing Duplicate Registration Transfer transaction type');
     
-
+ 
     safeSetCheckbox("License plates", false);
     safeSetCheckbox("license month", false);
     safeSetCheckbox("license year", false);
     safeSetCheckbox("Reg Card", true);
     
-
+ 
+ 
     safeSetCheckbox("other", true);
+    
+ 
+ 
     safeSetText("Explanation", "Requesting a duplicate registration card");
   }
   else {
@@ -2622,7 +2534,6 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     safeSetCheckbox("license month", true);
     safeSetCheckbox("license year", true);
     
-
     const isOtherChecked = getNestedProperty(dataToUse, "itemRequested.other") || false;
     safeSetCheckbox("other", isOtherChecked);
     
@@ -2632,9 +2543,15 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     }
   }
   
-  const currentDate = getCurrentDate();
-  console.log(`Setting current date: ${currentDate}`);
-  safeSetText("date", currentDate);
+ 
+  if (seller1SaleDate) {
+    console.log(`Using seller1's sale date: ${formattedSellerSaleDate}`);
+    safeSetText("date", formattedSellerSaleDate);
+  } else {
+    const currentDate = getCurrentDate();
+    console.log(`No seller sale date found, using current date: ${currentDate}`);
+    safeSetText("date", currentDate);
+  }
   
   if (seller1) {
     const seller1Name = `${seller1.firstName || ''} ${seller1.middleName || ''} ${seller1.lastName || ''}`.trim();

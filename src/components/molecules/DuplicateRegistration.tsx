@@ -1,7 +1,5 @@
 'use client';
 import Address from '../atoms/Address';
-import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
-import NewLien from '../atoms/NewLienHolder';
 import VehicleInformation from '../atoms/VehicleInformation';
 import Seller from '../atoms/Seller';
 import SaveButton from '../atoms/savebutton';
@@ -10,15 +8,16 @@ import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
 import TypeContainer from '../layouts/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
-import ItemRequested from '../atoms/ItemRequested';
 import SellerAddress from '../atoms/SellerAdrress';
 
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
+  isMotorcycle?: boolean;
 }
 
 interface FormContextData {
   vehicleTransactionDetails?: VehicleTransactionDetailsData;
+  vehicleInformation?: any;
   [key: string]: any;
 }
 
@@ -47,43 +46,36 @@ export default function DuplicateRegistrationTransfer({ formData }: DuplicateReg
       }
     }, [formValues]);
 
-    const [hasLienholder, setHasLienholder] = useState<boolean>(
-      contextFormData?.vehicleTransactionDetails?.currentLienholder || false
+    const [isMotorcycle, setIsMotorcycle] = useState<boolean>(
+      contextFormData?.vehicleTransactionDetails?.isMotorcycle || false
     );
 
     useEffect(() => {
-      if (contextFormData?.vehicleTransactionDetails?.currentLienholder !== undefined) {
-        setHasLienholder(contextFormData.vehicleTransactionDetails.currentLienholder);
+      if (contextFormData?.vehicleTransactionDetails?.isMotorcycle !== undefined) {
+        setIsMotorcycle(contextFormData.vehicleTransactionDetails.isMotorcycle);
       }
-    }, [contextFormData?.vehicleTransactionDetails?.currentLienholder]);
+    }, [contextFormData?.vehicleTransactionDetails?.isMotorcycle]);
 
-    const handleLienholderChange = () => {
-      const newValue = !hasLienholder;
-      setHasLienholder(newValue);
+    const handleMotorcycleChange = () => {
+      const newValue = !isMotorcycle;
+      setIsMotorcycle(newValue);
       
-
+ 
       const currentDetails = contextFormData?.vehicleTransactionDetails || {};
       updateField('vehicleTransactionDetails', {
         ...currentDetails,
-        currentLienholder: newValue
+        isMotorcycle: newValue
       });
       
-
+ 
       if (!newValue) {
-        updateField('legalOwnerInformation', {
-          name: 'NONE',
-          address: {
-            street: '',
-            apt: '',
-            city: '',
-            state: '',
-            zip: ''
-          },
-          date: '',
-          phoneNumber: '',
-          authorizedAgentName: '',
-          authorizedAgentTitle: ''
-        });
+        const currentVehicleInfo = contextFormData.vehicleInformation || {};
+        if (currentVehicleInfo.engineNumber) {
+          updateField('vehicleInformation', {
+            ...currentVehicleInfo,
+            engineNumber: ''
+          });
+        }
       }
     };
 
@@ -91,16 +83,35 @@ export default function DuplicateRegistrationTransfer({ formData }: DuplicateReg
       <div className='wholeForm'>
         <TypeContainer />
         
+        {/* Motorcycle checkbox directly in the component */}
+        <div className="releaseWrapper">
+          <div className="headerRow">
+            <h3 className="releaseHeading">Vehicle Type</h3>
+          </div>
+
+          <div className="checkbox-container">
+            <div className="checkbox-section">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={isMotorcycle}
+                  onChange={handleMotorcycleChange}
+                />
+                Is the vehicle a Motorcycle
+              </label>
+            </div>
+          </div>
+        </div>
 
         <VehicleInformation 
           formData={formValues}
           isDuplicateRegistrationMode={true}
-        />        <Seller formData={formValues} />
+        />
+        
+        <Seller formData={formValues} />
         <SellerAddress formData={formValues} />
-        <ItemRequested
-          formData={formValues}
-          isDuplicateRegistrationMode={true}
-        />        <SaveButton 
+        
+        <SaveButton 
           transactionType="Duplicate Registration Transfer"
           onSuccess={() => console.log('Save completed successfully')}
         />

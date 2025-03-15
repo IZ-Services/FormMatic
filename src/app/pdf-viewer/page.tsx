@@ -153,7 +153,7 @@ const PdfViewerPage = () => {
     );
   }
 
-  // Calculate the height for each PDF container based on number of PDFs
+ 
   const pdfContainerHeight = `calc(100vh / ${pdfUrls.length})`;
 
   return (

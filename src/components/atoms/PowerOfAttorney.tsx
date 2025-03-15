@@ -89,7 +89,7 @@ const PowerOfAttorney: React.FC<PowerOfAttorneyProps> = ({ formData: propFormDat
           <p>as my attorney in fact, to complete all necessary documents, as needed, to transfer ownership as required by law.</p>
         </div>
 
-        <div className="dates-section">
+        {/* <div className="dates-section">
           <div className="date-input-row">
             <label className="date-label">Date</label>
             <div className="signature-input-group">
@@ -102,7 +102,7 @@ const PowerOfAttorney: React.FC<PowerOfAttorneyProps> = ({ formData: propFormDat
               />
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

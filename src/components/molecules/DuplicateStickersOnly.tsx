@@ -15,10 +15,12 @@ import TitleField from '../atoms/TitleCompany';
 
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
+  isMotorcycle?: boolean;
 }
 
 interface FormContextData {
   vehicleTransactionDetails?: VehicleTransactionDetailsData;
+  vehicleInformation?: any;
   [key: string]: any;
 }
 
@@ -56,59 +58,76 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
     }, [activeSubOptions, updateField]);
 
     const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
+    
+ 
+    const [isMotorcycle, setIsMotorcycle] = useState<boolean>(
+      contextFormData?.vehicleTransactionDetails?.isMotorcycle || false
+    );
+
+    useEffect(() => {
+      if (contextFormData?.vehicleTransactionDetails?.isMotorcycle !== undefined) {
+        setIsMotorcycle(contextFormData.vehicleTransactionDetails.isMotorcycle);
+      }
+    }, [contextFormData?.vehicleTransactionDetails?.isMotorcycle]);
+
+    const handleMotorcycleChange = () => {
+      const newValue = !isMotorcycle;
+      setIsMotorcycle(newValue);
+      
+ 
+      const currentDetails = contextFormData?.vehicleTransactionDetails || {};
+      updateField('vehicleTransactionDetails', {
+        ...currentDetails,
+        isMotorcycle: newValue
+      });
+      
+ 
+      if (!newValue) {
+        const currentVehicleInfo = contextFormData.vehicleInformation || {};
+        if (currentVehicleInfo.engineNumber) {
+          updateField('vehicleInformation', {
+            ...currentVehicleInfo,
+            engineNumber: ''
+          });
+        }
+      }
+    };
 
     return (
       <div className='wholeForm'>
         <TypeContainer />
-        {/* <VehicleTransactionDetails formData={formValues} /> */}
+        
+        {/* Motorcycle checkbox */}
+        <div className="releaseWrapper">
+          <div className="headerRow">
+            <h3 className="releaseHeading">Vehicle Type</h3>
+          </div>
+
+          <div className="checkbox-container">
+            <div className="checkbox-section">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={isMotorcycle}
+                  onChange={handleMotorcycleChange}
+                />
+                Is the vehicle a Motorcycle
+              </label>
+            </div>
+          </div>
+        </div>
 
         <VehicleInformation 
           formData={formValues}
           isDuplicateRegistrationMode={true}
-        />        <Seller formData={formValues} />
+        />        
+        <Seller formData={formValues} />
         <SellerAddress formData={formValues} />
         <ItemRequested formData={formValues}/>
         <TitleField formData={formData} />
 
         <LicensePlate formData={formData} />
-        {/* <MissingTitle formData={formValues} />
-        {isCurrentLienholder && (
-          <LegalOwnerOfRecord formData={formValues} />
-        )} */}
-        {/* <NewRegisteredOwners formData={formValues} />
-        <Address formData={formValues} />
-        <NewLien formData={formValues} />
-        <PowerOfAttorney formData={formValues} /> */}
-
-        {/* <VehicleTransactionDetails formData={formValues} /> */}
         
-        {/* <ResidentialAddress formData={formValues} /> */}
-        {/* <ReleaseofOwnership formData={formValues} />
-        <TypeofVehicle formData={formValues} />
-        <SmogExemption formData={formValues} />
-        
-        <NameStatement formData={formValues} />
-        <StatementOfFacts formData={formValues} />
-        <PlateSelection formData={formValues} />
-        <SelectConfiguration formData={formValues} />
-        <ReplacementSection formData={formValues} />
-        <PlatePurchaserOwner formData={formValues} />
-        <StatementOfError formData={formValues} />
-        <PlannedNonOperation formData={formValues} />
-        <DisabledPersonParkingForm formData={formValues} />
-        <SectionOne formData={formValues} />
-        <SectionTwo formData={formValues} />
-        <SectionThree formData={formValues} />
-        <SectionFive formData={formValues} />
-        <SectionSix formData={formValues} />
-        <VehicleInformationReg formData={formValues} />
-        <DisabledPersonPlacard formData={formValues} />
-        <PlatesStickerDocRequests formData={formValues} />
-        <LicensePlate formData={formValues} />
-        <SalvageCertificate formData={formValues} />
-        <LicensePlateDisposition formData={formValues} />
-        <PowerOfAttorney formData={formValues} />
-        <MultipleTransfer /> */}
         <SaveButton 
           transactionType="Duplicate Stickers"
           onSuccess={() => console.log('Save completed successfully')}
