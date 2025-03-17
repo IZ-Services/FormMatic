@@ -16,12 +16,12 @@ import DuplicateStickers from '../../components/molecules/DuplicateStickersOnly'
 import DuplicatePlatesStickers from '../../components/molecules/DuplicatePlatesAndSticklers';
 import AddLienholder from '../../components/molecules/LienHolderAddition';
 import RemoveLienholder from '../../components/molecules/LienHolderRemovel';
-// import NameChange from '../../components/scenarios/NameChange';
-// import ChangeOfAddress from '../../components/scenarios/ChangeOfAddress';
+import NameChange from '../../components/molecules/NameChange';
+import ChangeOfAddress from '../../components/molecules/ChangeOfAddress';
 // import PlannedNonOperation from '../../components/scenarios/PlannedNonOperation';
 // import RestoringPNO from '../../components/scenarios/RestoringPNO';
 // import PersonalizedPlates from '../../components/scenarios/PersonalizedPlates';
-// import DisabledPersonPlacards from '../../components/scenarios/DisabledPersonPlacards';
+import DisabledPersonPlacards from '../../components/molecules/DisabledPersonAndPlacards';
 
 export default function Home() {
   const { selectedSubsection, activeScenarios, activeSubOptions } = useScenarioContext();
@@ -58,10 +58,10 @@ export default function Home() {
     if (activeScenarios["Duplicate Plates & Stickers"]) components.push(<DuplicatePlatesStickers key="duplicate-plates-stickers" />);
     if (activeScenarios["Add Lienholder"]) components.push(<AddLienholder key="add-lienholder" />);
     if (activeScenarios["Remove Lienholder"]) components.push(<RemoveLienholder key="remove-lienholder" />);
-    // if (activeScenarios["Change of Address"]) components.push(<ChangeOfAddress key="change-of-address" />);
+    if (activeScenarios["Change of Address"]) components.push(<ChangeOfAddress key="change-of-address" />);
     // if (activeScenarios["Filing for Planned Non-Operation (PNO)"]) components.push(<PlannedNonOperation key="planned-non-operation" />);
     // if (activeScenarios["Restoring PNO Vehicle to Operational"]) components.push(<RestoringPNO key="restoring-pno" />);
-    // if (activeScenarios["Disabled Person Placards/Plates"]) components.push(<DisabledPersonPlacards key="disabled-person-placards" />);
+    if (activeScenarios["Disabled Person Placards/Plates"]) components.push(<DisabledPersonPlacards key="disabled-person-placards" />);
     
     // // Check for scenarios with suboptions
     // if (activeScenarios["Out-of-State Title"]) {
@@ -78,14 +78,11 @@ export default function Home() {
       />);
     }
     
-    // if (activeScenarios["Name Change"]) {
-    //   components.push(<NameChange 
-    //     key="name-change"
-    //     correction={activeSubOptions["Name Change-Name Correction"]}
-    //     legalChange={activeSubOptions["Name Change-Legal Name Change"]}
-    //     discrepancy={activeSubOptions["Name Change-Name Discrepancy"]}
-    //   />);
-    // }
+    if (activeScenarios["Name Change"]) {
+      components.push(<NameChange 
+        key="name-change"
+      />);
+    }
     
     // if (activeScenarios["Personalized Plates"]) {
     //   components.push(<PersonalizedPlates 

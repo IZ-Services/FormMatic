@@ -10,12 +10,15 @@ interface Address {
   city?: string;
   state?: string;
   zipCode?: string;
+  county?: string; 
 }
 
 interface SectionThreeData {
   address?: Address;
   mailingAddress?: Address;
+  trailerVesselAddress?: Address; 
   mailingAddressDifferent?: boolean;
+  hasTrailerVessel?: boolean; 
 }
 
 interface SectionThreeProps {
@@ -30,13 +33,16 @@ const initialAddress: Address = {
   aptNo: '',
   city: '',
   state: '',
-  zipCode: ''
+  zipCode: '',
+  county: '' 
 };
 
 const initialSectionThreeData: SectionThreeData = {
   address: { ...initialAddress },
   mailingAddress: { ...initialAddress },
-  mailingAddressDifferent: false
+  trailerVesselAddress: { ...initialAddress }, 
+  mailingAddressDifferent: false,
+  hasTrailerVessel: false 
 };
 
 const states = [
@@ -97,7 +103,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
     propFormData?.newOrCorrectResidence || initialSectionThreeData
   );
   const { updateField } = useFormContext();
-  const [openDropdown, setOpenDropdown] = useState<'residential' | 'mailing' | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<'residential' | 'mailing' | 'trailerVessel' | null>(null);
 
   useEffect(() => {
     if (propFormData?.newOrCorrectResidence) {
@@ -105,7 +111,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
     }
   }, [propFormData]);
 
-  const handleAddressChange = (addressType: 'address' | 'mailingAddress', field: keyof Address, value: string) => {
+  const handleAddressChange = (addressType: 'address' | 'mailingAddress' | 'trailerVesselAddress', field: keyof Address, value: string) => {
     const newData = { 
       ...sectionData, 
       [addressType]: {
@@ -121,8 +127,22 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
     const newData = {
       ...sectionData,
       mailingAddressDifferent: !sectionData.mailingAddressDifferent
-    };     if (!newData.mailingAddressDifferent) {
+    };     
+    if (!newData.mailingAddressDifferent) {
       newData.mailingAddress = { ...initialAddress };
+    }
+    
+    setSectionData(newData);
+    updateField('newOrCorrectResidence', newData);
+  };
+
+  const handleTrailerVesselToggle = () => {
+    const newData = {
+      ...sectionData,
+      hasTrailerVessel: !sectionData.hasTrailerVessel
+    };     
+    if (!newData.hasTrailerVessel) {
+      newData.trailerVesselAddress = { ...initialAddress };
     }
     
     setSectionData(newData);
@@ -223,7 +243,20 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
         </div>
       </div>
 
-      <div className="mailingCheckboxWrapper">
+      {/* Added County field based on the image */}
+      <div className="releaseFormGroup">
+        <label className="releaseFormLabel">COUNTY - DO NOT ABBREVIATE</label>
+        <input
+          className="releaseFormInput"
+          type="text"
+          placeholder="County"
+          value={sectionData.address?.county || ''}
+          onChange={(e) => handleAddressChange('address', 'county', e.target.value)}
+          maxLength={30}
+        />
+      </div>
+
+      <div className="mailingCheckboxWrapperr">
         <label className="mailingCheckboxLabel">
           <input
             type="checkbox"
@@ -327,6 +360,129 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
                 maxLength={10}
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Checkbox for Location of Trailer Coach or Vessel */}
+      <div className="mailingCheckboxWrapperr">
+        <label className="mailingCheckboxLabel">
+          <input
+            type="checkbox"
+            className="mailingCheckboxInput"
+            checked={sectionData.hasTrailerVessel || false}
+            onChange={handleTrailerVesselToggle}
+          />
+          Location of Trailer Coach or Vessel
+        </label>
+      </div>
+
+      {/* Trailer Coach or Vessel Address Section */}
+      {sectionData.hasTrailerVessel && (
+        <div>
+          <div className="headerRow">
+            <h3 className="releaseHeading">Location of Trailer Coach or Vessel</h3>
+          </div>
+          
+          <div className="streetAptGroup">
+            <div className="formGroup streetField">
+              <label className="formLabel">STREET NUMBER ONLY</label>
+              <input
+                className="formInputt"
+                type="text"
+                placeholder="Street Number"
+                value={sectionData.trailerVesselAddress?.streetNumber || ''}
+                onChange={(e) => handleAddressChange('trailerVesselAddress', 'streetNumber', e.target.value)}
+                maxLength={10}
+              />
+            </div>
+            <div className="formGroup aptField">
+              <label className="formLabel">APT. NO.</label>
+              <input
+                className="formInputt"
+                type="text"
+                placeholder="Apt Number"
+                value={sectionData.trailerVesselAddress?.aptNo || ''}
+                onChange={(e) => handleAddressChange('trailerVesselAddress', 'aptNo', e.target.value)}
+                maxLength={10}
+              />
+            </div>
+          </div>
+
+          <div className="releaseFormGroup">
+            <label className="releaseFormLabel">STREET NAME (INCLUDE ST., AVE., RD., CT., ETC.)</label>
+            <input
+              className="releaseFormInput"
+              type="text"
+              placeholder="Street Name"
+              value={sectionData.trailerVesselAddress?.streetName || ''}
+              onChange={(e) => handleAddressChange('trailerVesselAddress', 'streetName', e.target.value)}
+              maxLength={50}
+            />
+          </div>
+
+          <div className="cityStateZipGroupp">
+            <div className="cityFieldCustomWidth">
+              <label className="formLabel">CITY - DO NOT ABBREVIATE - USE FIRST 16 CHARACTERS IN CITY NAME</label>
+              <input
+                className="cityInputt"
+                type="text"
+                placeholder="City"
+                value={sectionData.trailerVesselAddress?.city || ''}
+                onChange={(e) => handleAddressChange('trailerVesselAddress', 'city', e.target.value)}
+                maxLength={16}
+              />
+            </div>
+            <div className="regStateWrapper">
+              <label className="registeredOwnerLabel">STATE</label>
+              <button
+                onClick={() => setOpenDropdown(openDropdown === 'trailerVessel' ? null : 'trailerVessel')}
+                className="regStateDropDown"
+              >
+                {sectionData.trailerVesselAddress?.state || 'State'}
+                <ChevronDownIcon className={`regIcon ${openDropdown === 'trailerVessel' ? 'rotate' : ''}`} />
+              </button>
+              {openDropdown === 'trailerVessel' && (
+                <ul className="regStateMenu">
+                  {states.map((state, index) => (
+                    <li
+                      key={index}
+                      onClick={() => {
+                        handleAddressChange('trailerVesselAddress', 'state', state.abbreviation);
+                        setOpenDropdown(null);
+                      }}
+                      className="regStateLists"
+                    >
+                      {state.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="formGroup zipCodeField">
+              <label className="formLabel">ZIP CODE</label>
+              <input
+                className="formInputt"
+                type="text"
+                placeholder="Zip Code"
+                value={sectionData.trailerVesselAddress?.zipCode || ''}
+                onChange={(e) => handleAddressChange('trailerVesselAddress', 'zipCode', e.target.value)}
+                maxLength={10}
+              />
+            </div>
+          </div>
+
+          {/* County field for Trailer/Vessel */}
+          <div className="releaseFormGroup">
+            <label className="releaseFormLabel">COUNTY - DO NOT ABBREVIATE</label>
+            <input
+              className="releaseFormInput"
+              type="text"
+              placeholder="County"
+              value={sectionData.trailerVesselAddress?.county || ''}
+              onChange={(e) => handleAddressChange('trailerVesselAddress', 'county', e.target.value)}
+              maxLength={30}
+            />
           </div>
         </div>
       )}

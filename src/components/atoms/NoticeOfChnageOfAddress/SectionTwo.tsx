@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, CSSProperties } from 'react';
 import { useFormContext } from '../../../app/api/formDataContext/formDataContextProvider';
 import './SectionTwo.css';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-
 
 interface Address {
   streetNumber?: string;
@@ -79,7 +78,57 @@ const states = [
     { name: 'West Virginia', abbreviation: 'WV' },
     { name: 'Wisconsin', abbreviation: 'WI' },
     { name: 'Wyoming', abbreviation: 'WY' },
-  ];
+];
+
+ 
+const dropdownStyles: Record<string, CSSProperties> = {
+  dropdownWrapper: {
+    position: 'relative',
+    zIndex: 5,
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 'calc(100% + 2px)',
+    left: 0,
+    width: '100%',
+    maxHeight: '200px',
+    overflowY: 'auto',
+    backgroundColor: 'white',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+    zIndex: 9999,
+    padding: 0,
+    margin: 0,
+    listStyle: 'none',
+  },
+  dropdownItem: {
+    padding: '12px 16px',
+    cursor: 'pointer',
+    color: 'rgb(150 148 148)',
+    fontSize: '15px',
+    borderBottom: '1px solid #f5f5f5',
+    transition: 'background-color 0.2s ease',
+  },
+  button: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    padding: '8px 12px',
+    backgroundColor: 'white',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    color: '#666',
+    fontSize: '15px',
+    cursor: 'pointer'
+  },
+  chevron: {
+    width: '20px',
+    height: '20px',
+    transition: 'transform 0.2s ease'
+  }
+};
 
 const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
   const [addressData, setAddressData] = useState<Address>(
@@ -87,12 +136,28 @@ const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
   );
   const { updateField } = useFormContext();
   const [openDropdown, setOpenDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (propFormData?.previousResidence) {
       setAddressData(propFormData.previousResidence);
     }
   }, [propFormData]);
+
+ 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Element;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
+        setOpenDropdown(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleAddressChange = (field: keyof Address, value: string) => {
     const newData = { 
@@ -103,8 +168,18 @@ const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
     updateField('previousResidence', newData);
   };
 
+  const containerStyle: CSSProperties = { 
+    position: 'relative', 
+    overflow: 'visible' 
+  };
+  
+  const cityStateZipStyle: CSSProperties = { 
+    position: 'relative', 
+    overflow: 'visible' 
+  };
+
   return (
-    <div className="releaseWrapper">
+    <div className="releaseWrapper" style={containerStyle}>
       <div className="headerRow">
         <h3 className="releaseHeading">Previous Residence or Business Address</h3>
       </div>
@@ -146,7 +221,7 @@ const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
         />
       </div>
 
-      <div className="cityStateZipGroupp">
+      <div className="cityStateZipGroupp" style={cityStateZipStyle}>
         <div className="cityFieldCustomWidth">
           <label className="formLabel">CITY - DO NOT ABBREVIATE</label>
           <input
@@ -158,17 +233,23 @@ const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
             maxLength={22}
           />
         </div>
-        <div className="regStateWrapper">
+        <div className="regStateWrapper" ref={dropdownRef} style={dropdownStyles.dropdownWrapper}>
           <label className="registeredOwnerLabel">STATE</label>
           <button
+            type="button"
             onClick={() => setOpenDropdown(!openDropdown)}
-            className="regStateDropDown"
+            style={dropdownStyles.button}
           >
             {addressData.state || 'State'}
-            <ChevronDownIcon className={`regIcon ${openDropdown ? 'rotate' : ''}`} />
+            <ChevronDownIcon 
+              style={{
+                ...dropdownStyles.chevron,
+                transform: openDropdown ? 'rotate(180deg)' : 'none'
+              }} 
+            />
           </button>
           {openDropdown && (
-            <ul className="regStateMenu">
+            <ul style={dropdownStyles.dropdownMenu}>
               {states.map((state, index) => (
                 <li
                   key={index}
@@ -176,7 +257,13 @@ const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
                     handleAddressChange('state', state.abbreviation);
                     setOpenDropdown(false);
                   }}
-                  className="regStateLists"
+                  style={dropdownStyles.dropdownItem}
+                  onMouseEnter={(e) => {
+                    (e.target as HTMLLIElement).style.backgroundColor = '#f5f5f5';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.target as HTMLLIElement).style.backgroundColor = 'white';
+                  }}
                 >
                   {state.name}
                 </li>

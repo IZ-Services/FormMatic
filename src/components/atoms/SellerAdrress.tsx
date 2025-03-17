@@ -9,7 +9,7 @@ interface Address {
   state?: string;
   zip?: string;
   poBox?: string;
-  country?: string;
+  county?: string; 
 }
 
 interface FormData {
@@ -31,14 +31,14 @@ const initialAddress: Address = {
   state: '',
   zip: '',
   poBox: '',
-  country: ''
+  county: '' 
 }; const cleanFormData = (data: any): any => {
   if (!data || typeof data !== 'object') return data;
   
   const result: any = {};   Object.keys(data).forEach(key => {
     const value = data[key];     if (key === 'sellerAddress' && value && typeof value === 'object' && 
-        (value.sellerAddress !== undefined)) {       const { street, apt, city, state, zip, poBox, country } = value;
-      result[key] = { street, apt, city, state, zip, poBox, country };
+        (value.sellerAddress !== undefined)) {       const { street, apt, city, state, zip, poBox, country, county } = value;
+      result[key] = { street, apt, city, state, zip, poBox, country, county };
     } else {
       result[key] = value;
     }
@@ -282,6 +282,20 @@ const handleAddressChange = (section: keyof FormData, field: keyof Address, valu
               onChange={(e) => handleAddressChange('sellerAddress', 'city', e.target.value)}
             />
           </div>
+
+          {/* Added County field */}
+          <div className="cityFieldCustomWidth">
+            <label className="formLabel">County</label>
+            <input
+              className="cityInputt"
+              type="text"
+              placeholder="County"
+              value={addressData.sellerAddress?.county || ''}
+              onChange={(e) => handleAddressChange('sellerAddress', 'county', e.target.value)}
+            />
+          </div>
+          
+        
        
           <div className="formGroup zipCodeField">
             <label className="formLabel">ZIP Code</label>
@@ -333,6 +347,19 @@ const handleAddressChange = (section: keyof FormData, field: keyof Address, valu
                 onChange={(e) => handleAddressChange('sellerMailingAddress', 'city', e.target.value)}
               />
             </div>
+
+            {/* Added County field for mailing address */}
+            <div className="cityFieldCustomWidth">
+              <label className="formLabel">County</label>
+              <input
+                className="cityInputt"
+                type="text"
+                placeholder="County"
+                value={addressData.sellerMailingAddress?.county || ''}
+                onChange={(e) => handleAddressChange('sellerMailingAddress', 'county', e.target.value)}
+              />
+            </div>
+
             <div className="regStateWrapper">
               <label className="registeredOwnerLabel">State</label>
               <button

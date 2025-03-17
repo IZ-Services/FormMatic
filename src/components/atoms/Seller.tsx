@@ -13,7 +13,8 @@ interface Seller {
   phone?: string;
   saleDate?: string;
   relationshipWithGifter?: string;
-  giftValue?: string;               
+  giftValue?: string;
+  dob?: string; 
 }
 
 interface SellerInfo {
@@ -45,7 +46,8 @@ const initialSeller: Seller = {
   phone: '',
   saleDate: '',
   relationshipWithGifter: '',
-  giftValue: ''
+  giftValue: '',
+  dob: '' 
 };
 
 const initialSellerInfo: SellerInfo = {
@@ -282,6 +284,13 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown]);
+
+ 
+  const validateDateFormat = (dateString: string): boolean => {
+ 
+    const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
+    return dateRegex.test(dateString);
+  };
   
   const renderSellerForms = () => {
     const count = Number(formData.sellerInfo?.sellerCount || 1);
@@ -333,6 +342,9 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
             />
           </div>
         </div>
+
+
+
         <div className="driverState">
           <div className="driverLicenseField">
             <label className="formLabel">Driver License Number</label>
@@ -343,7 +355,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
               value={formData.sellerInfo?.sellers?.[index]?.licenseNumber || ''}
               onChange={(e) =>{ 
                 const value = e.target.value;
-                if (/^\d{0,8}$/.test(value)) {
+                if (/^[a-zA-Z0-9]*$/.test(value)) {
                   handleSellerChange(index, 'licenseNumber', e.target.value);
                 }
               }}
@@ -388,6 +400,26 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
               </ul>
             )}
           </div>
+          
+          {/* DOB field - only visible for the first seller */}
+          {index === 0 && (
+            <div className="sellerFormItem">
+              <label className="sellerLabel">Date of Birth</label>
+              <input
+                className="sellerInput"
+                type="text"
+                placeholder="MM/DD/YYYY"
+                value={formData.sellerInfo?.sellers?.[index]?.dob || ''}
+                onChange={(e) => handleSellerChange(index, 'dob', e.target.value)}
+              />
+              {formData.sellerInfo?.sellers?.[index]?.dob && 
+                !validateDateFormat(formData.sellerInfo?.sellers?.[index]?.dob || '') && (
+                <p className="validation-message" style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px' }}>
+                  Please use MM/DD/YYYY format
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="sellerThirdGroup">
@@ -415,6 +447,12 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
                 value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
                 onChange={(e) => handleSellerChange(index, 'saleDate', e.target.value)}
               />
+              {formData.sellerInfo?.sellers?.[index]?.saleDate && 
+                !validateDateFormat(formData.sellerInfo?.sellers?.[index]?.saleDate || '') && (
+                <p className="validation-message" style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px' }}>
+                  Please use MM/DD/YYYY format
+                </p>
+              )}
             </div>
           )}
         </div>

@@ -1,6 +1,7 @@
 .releaseWrapper {
     font-family: Arial, sans-serif;
     margin-bottom: 20px;
+    position: relative; /* Add this to create a new stacking context */
 }
 
 .headerRow {
@@ -14,6 +15,11 @@
     font-size: 18px;
     font-weight: bold;
     color: #333;
+}
+
+
+.mailingCheckboxWrapperr {
+    margin-top: 15px;
 }
 
 .releaseFormGroup {
@@ -102,9 +108,10 @@
     text-transform: uppercase;
 }
 
-.regIcon {width: 20px;
+.regIcon {
+    width: 20px;
     height: 20px;
-    transition: transform 0.2sease;
+    transition: transform 0.2s ease; /* Fixed 'ease' typo */
 }
 
 .regIcon.rotate {
@@ -121,7 +128,8 @@
     border-radius: 2px;
     max-height: 200px;
     overflow-y: auto;
-    z-index: 1000;
+    z-index: 1000; /* Increased z-index */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Added shadow to make dropdown more visible */
 }
 
 .regStateLists {

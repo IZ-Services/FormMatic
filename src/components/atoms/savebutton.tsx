@@ -493,94 +493,110 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
     }
   };
 
-const openMergedPdfs = async (transactionId: string) => {
-  try {
-    let formTypes = [];
-    
-    console.log('Opening PDFs for transaction type:', transactionType);
-    
-
-    if (transactionType === "Lien Holder Addition") {
-      formTypes = ['Reg227'];
-    } else if (transactionType === "Lien Holder Removal") {
-
-      formTypes = ['Reg227', 'DMVReg166']; 
-      console.log('Lien Holder Removal: Using both Reg227 and DMVReg166 forms');
-    } else if (transactionType === "Duplicate Title Transfer") {
-
-      formTypes = ['Reg227'];
-      console.log('Duplicate Title Transfer: Using Reg227 form');
-    } else if (transactionType === "Duplicate Registration Transfer") {
-
-      formTypes = ['Reg156'];
-      console.log('Duplicate Registration Transfer: Using Reg156 form');
-    } else {
-      formTypes = ['Reg227', 'DMVREG262'];
+  const openMergedPdfs = async (transactionId: string) => {
+    try {
+      let formTypes = [];
       
-
-      if (formData.vehicleTransactionDetails?.isFamilyTransfer || 
-          formData.vehicleTransactionDetails?.isGift ||
-          formData.vehicleTransactionDetails?.isSmogExempt) {
-        formTypes.push('Reg256');
-        console.log('Including Reg256 form due to family transfer, gift, or smog exemption');
-      }
-    }
-    
-    const pdfBlobs: { blob: Blob, title: string }[] = [];
-    
-
-    for (const formType of formTypes) {
-      console.log(`Requesting PDF for form type: ${formType}`);
+      console.log('Opening PDFs for transaction type:', transactionType);
       
-      try {
-        const fillPdfResponse = await fetch('/api/fillPdf', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            transactionId, 
-            formType,
-            transactionType
-          }),
-        });
-    
-        if (fillPdfResponse.ok) {
-          const pdfBlob = await fillPdfResponse.blob();
-          console.log(`Successfully received PDF for ${formType}, size: ${pdfBlob.size} bytes`);
-          
-
-          if (pdfBlob.size > 0) {
-            pdfBlobs.push({ 
-              blob: pdfBlob, 
-              title: formType 
-            });
-          } else {
-            console.warn(`PDF for ${formType} has zero size, skipping`);
-          }
-        } else {
-          let errorText = 'Unknown error';
-          try {
-            const errorJson = await fillPdfResponse.json();
-            errorText = errorJson.error || 'Unknown error';
-          } catch (err) {
-            errorText = await fillPdfResponse.text();
-          }
-          console.error(`Error fetching ${formType} (${fillPdfResponse.status}):`, errorText);
+      if (transactionType === "Disabled Person and Placards") {
+        formTypes = ['REG195'];
+        console.log('Disabled Person and Placards: Using REG195 form');
+      } else if (transactionType === "Lien Holder Addition") {
+        formTypes = ['Reg227'];
+      } else if (transactionType === "Lien Holder Removal") {
+        formTypes = ['Reg227', 'DMVReg166']; 
+        console.log('Lien Holder Removal: Using both Reg227 and DMVReg166 forms');
+      } else if (transactionType === "Duplicate Title Transfer") {
+        formTypes = ['Reg227'];
+        console.log('Duplicate Title Transfer: Using Reg227 form');
+      } else if (transactionType === "Duplicate Registration Transfer") {
+        formTypes = ['Reg156'];
+        console.log('Duplicate Registration Transfer: Using Reg156 form');
+      } else if (transactionType === "Name Change/Correction Transfer") {
+        formTypes = ['Reg256'];
+        console.log('Name Change/Correction Transfer: Using Reg256 form');
+      } else if (transactionType === "Change Of Address Transfer") {
+        formTypes = ['DMV14'];
+        console.log('Change Of Address Transfer: Using DMV14 form');
+      } else {
+        formTypes = ['Reg227', 'DMVREG262'];
+        
+        if (formData.vehicleTransactionDetails?.isFamilyTransfer || 
+            formData.vehicleTransactionDetails?.isGift ||
+            formData.vehicleTransactionDetails?.isSmogExempt) {
+          formTypes.push('Reg256');
+          console.log('Including Reg256 form due to family transfer, gift, or smog exemption');
         }
-      } catch (error) {
-        console.error(`Exception while fetching ${formType}:`, error);
       }
-    }
-    
-    if (pdfBlobs.length === 0) {
-      throw new Error('No PDFs were generated successfully');
-    }
-    
-    console.log(`Successfully received ${pdfBlobs.length} PDFs, merging them...`);
-    
-
-    if (pdfBlobs.length === 1) {
-      console.log('Only one PDF available, opening directly without merging');
-      const pdfUrl = URL.createObjectURL(pdfBlobs[0].blob);
+      
+      const pdfBlobs: { blob: Blob, title: string }[] = [];
+      
+      for (const formType of formTypes) {
+        console.log(`Requesting PDF for form type: ${formType}`);
+        
+        try {
+          const fillPdfResponse = await fetch('/api/fillPdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              transactionId, 
+              formType,
+              transactionType
+            }),
+          });
+      
+          if (fillPdfResponse.ok) {
+            const pdfBlob = await fillPdfResponse.blob();
+            console.log(`Successfully received PDF for ${formType}, size: ${pdfBlob.size} bytes`);
+            
+            if (pdfBlob.size > 0) {
+              pdfBlobs.push({ 
+                blob: pdfBlob, 
+                title: formType 
+              });
+            } else {
+              console.warn(`PDF for ${formType} has zero size, skipping`);
+            }
+          } else {
+            let errorText = 'Unknown error';
+            try {
+              const errorJson = await fillPdfResponse.json();
+              errorText = errorJson.error || 'Unknown error';
+            } catch (err) {
+              errorText = await fillPdfResponse.text();
+            }
+            console.error(`Error fetching ${formType} (${fillPdfResponse.status}):`, errorText);
+          }
+        } catch (error) {
+          console.error(`Exception while fetching ${formType}:`, error);
+        }
+      }
+      
+      if (pdfBlobs.length === 0) {
+        throw new Error('No PDFs were generated successfully');
+      }
+      
+      console.log(`Successfully received ${pdfBlobs.length} PDFs, merging them...`);
+      
+      if (pdfBlobs.length === 1) {
+        console.log('Only one PDF available, opening directly without merging');
+        const pdfUrl = URL.createObjectURL(pdfBlobs[0].blob);
+        const pdfWindow = window.open(pdfUrl, '_blank');
+        
+        if (!pdfWindow) {
+          alert('Please allow popups to view the PDF forms.');
+        }
+        
+        setTimeout(() => {
+          URL.revokeObjectURL(pdfUrl);
+        }, 5000);
+        
+        return true;
+      }
+      
+      const mergedPdfBlob = await mergePDFs(pdfBlobs);
+      const pdfUrl = URL.createObjectURL(mergedPdfBlob);
       const pdfWindow = window.open(pdfUrl, '_blank');
       
       if (!pdfWindow) {
@@ -588,32 +604,16 @@ const openMergedPdfs = async (transactionId: string) => {
       }
       
       setTimeout(() => {
-        URL.revokeObjectURL(pdfUrl);
+          URL.revokeObjectURL(pdfUrl);
       }, 5000);
       
       return true;
+    } catch (error: any) {
+      console.error('Error opening PDFs:', error);
+      alert(`Error opening PDFs: ${error.message}`);
+      return false;
     }
-    
-
-    const mergedPdfBlob = await mergePDFs(pdfBlobs);
-    const pdfUrl = URL.createObjectURL(mergedPdfBlob);
-    const pdfWindow = window.open(pdfUrl, '_blank');
-    
-    if (!pdfWindow) {
-      alert('Please allow popups to view the PDF forms.');
-    }
-    
-    setTimeout(() => {
-      URL.revokeObjectURL(pdfUrl);
-    }, 5000);
-    
-    return true;
-  } catch (error: any) {
-    console.error('Error opening PDFs:', error);
-    alert(`Error opening PDFs: ${error.message}`);
-    return false;
-  }
-};
+  };
   return (
     <div className="saveButtonContainer">
       <button

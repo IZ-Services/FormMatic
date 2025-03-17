@@ -1,0 +1,115 @@
+.disabledPersonLicensePlatesWrapper {
+  width: 100%;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+.onlyText {
+  font-style: italic;
+}
+
+.italicText {
+  font-style: italic;
+}
+
+.sectionHeader {
+  margin-bottom: 15px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* Exemption Container Styles */
+.exemptionContainer {
+  margin: 15px 0;
+
+}
+
+.exemptionText {
+  margin-bottom: 15px;
+}
+
+.exemptionText p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.checkboxOptions {
+  display: flex;
+  gap: 20px;
+}
+
+.checkboxOption {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.checkboxOption input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkboxOption input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.checkboxOption label {
+  cursor: pointer;
+}
+
+/* Form Fields Styles */
+.formFields {
+  margin-top: 15px;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .formRow {
+    flex-direction: row;
+  }
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ccc;
+  flex: 1;
+}
+
+.vinField {
+  flex: 2;
+}
+
+.fieldLabel {
+  padding: 8px;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+  background-color: white;
+}
+
+.fieldInput {
+  padding: 8px;
+  min-height: 40px;
+  border: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.fieldInput:focus {
+  outline: none;
+  background-color: #d9e6ff;
+}
+
+.fieldInput:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+}

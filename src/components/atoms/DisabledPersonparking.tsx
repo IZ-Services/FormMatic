@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './DisabledPersonParking.css';
 
@@ -25,8 +24,6 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({ formD
   const [formState, setFormState] = useState<DisabledPersonParkingData>(
     propFormData?.disabledPersonParkingInfo || initialDisabledPersonParkingData
   );
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const { updateField } = useFormContext();
 
   const parkingPlacardTypes = [
@@ -43,24 +40,12 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({ formD
     }
   }, [propFormData]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const handleParkingPlacardTypeChange = (value: string) => {
     const newData = { 
       ...formState, 
       parkingPlacardType: value 
     };
     setFormState(newData);
-    setIsDropdownOpen(false);
     updateField('disabledPersonParkingInfo', newData);
   };
 
@@ -85,44 +70,25 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({ formD
 
   return (
     <div className="space-y-6 w-full max-w-2xl">
-        <div className="pnoHeader">
+      <div className="pnoHeader">
         <h3 className="pnoTitle">Type of Disabled Person Parking Placard(S) or License Plates</h3>
       </div>
       <div className="topGroup">
         <label className="subHeadings">Select Parking Placard Type</label>
-        <div className="relative" ref={dropdownRef}>
-          <div 
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="dropdown cursor-pointer"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '8px',
-              width: '100%',
-              border: '1px solid #ccc',
-              borderRadius: '2px',
-              backgroundColor: 'white'
-            }}
-          >
-            <span style={{ color: formState.parkingPlacardType ? '#000' : '#999' }}>
-              {formState.parkingPlacardType || 'Select parking placard type'}
-            </span>
-            <ChevronDownIcon className={`regIcon ${isDropdownOpen ? 'rotate' : ''}`} />
-          </div>
-          {isDropdownOpen && (
-            <ul className="menu">
-              {parkingPlacardTypes.map((type) => (
-                <li
-                  key={type}
-                  className="lists"
-                  onClick={() => handleParkingPlacardTypeChange(type)}
-                >
-                  {type}
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="space-y-2">
+          {parkingPlacardTypes.map((type) => (
+            <div key={type} className="checkboxSection">
+              <input
+                type="radio"
+                id={`placard-type-${type.replace(/\s+/g, '-').toLowerCase()}`}
+                name="parkingPlacardType"
+                className="checkBoxAddress"
+                checked={formState.parkingPlacardType === type}
+                onChange={() => handleParkingPlacardTypeChange(type)}
+              />
+              <p>{type}</p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -169,11 +135,7 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({ formD
             value={formState.licensePlateNumber || ''}
             onChange={handleLicensePlateNumberChange}
           />
-          <p className="text-xs text-gray-600 mt-2">
-            A doctor's certification is not required unless it was cancelled 
-            by DMV or is no longer on record, or four replacement permanent 
-            DP placards have been issued during the 2-year renewal period.
-          </p>
+          
         </div>
       )}
     </div>

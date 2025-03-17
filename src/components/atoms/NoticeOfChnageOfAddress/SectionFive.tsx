@@ -92,20 +92,8 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
                   checked={entry.leased === 'inside'}
                   onChange={() => handleEntryChange(index, 'leased', 'inside')}
                 />
-                LEASED INSIDE CA
+                CHECK IF LEASED
               </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name={`leased-${index}`}
-                  checked={entry.leased === 'outside'}
-                  onChange={() => handleEntryChange(index, 'leased', 'outside')}
-                />
-                LEASED OUTSIDE CA
-              </label>
-            </div>
-
-            <div className="radio-group">
               <label className="radio-label">
                 <input
                   type="radio"
@@ -113,18 +101,10 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
                   checked={entry.registeredLocation === 'inside'}
                   onChange={() => handleEntryChange(index, 'registeredLocation', 'inside')}
                 />
-                REGISTERED INSIDE CA
-              </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name={`registered-${index}`}
-                  checked={entry.registeredLocation === 'outside'}
-                  onChange={() => handleEntryChange(index, 'registeredLocation', 'outside')}
-                />
-                REGISTERED OUTSIDE CA
+                CHECK IF REGISTERED OUTSIDE CA
               </label>
             </div>
+
           </div>
         </div>
       ))}
