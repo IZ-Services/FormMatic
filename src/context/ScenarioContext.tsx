@@ -29,13 +29,7 @@ const scenerios: Scenerio[] = [
     transactionType: 'Transfer',
     subsections: [
       'Simple Transfer',
-      'Multiple Transfer',       {
-        name: 'Out-of-State Title',
-        subOptions: [
-          'Purchased Over a Year Ago',
-          'Purchased Less Than a Year Ago'
-        ]
-      }
+      'Multiple Transfer', 
     ],
   },
   {
