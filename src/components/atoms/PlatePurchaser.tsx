@@ -10,6 +10,7 @@ interface PersonInfoType {
   city: string;
   state: string;
   zipCode: string;
+  phoneNumber: string;
 }
 
 interface PlatePurchaserOwnerType {
@@ -29,7 +30,8 @@ const initialPersonInfo: PersonInfoType = {
   streetAddress: '',
   city: '',
   state: '',
-  zipCode: ''
+  zipCode: '',
+  phoneNumber: ''
 };
 
 const initialPlatePurchaserOwner: PlatePurchaserOwnerType = {
@@ -145,15 +147,19 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
     }
     
     updateField('platePurchaserOwner', currentInfo);
-  };   const capitalizeFirstLetter = (value: string): string => {
+  };   
+  
+  const capitalizeFirstLetter = (value: string): string => {
     if (!value) return value;
     return value.charAt(0).toUpperCase() + value.slice(1);
   };
 
   const handlePurchaserChange = (field: keyof PersonInfoType, value: string) => {
-    const currentInfo = { ...(formData.platePurchaserOwner || initialPlatePurchaserOwner) };     const capitalizedValue = field === 'state' ? value : capitalizeFirstLetter(value);
+    const currentInfo = { ...(formData.platePurchaserOwner || initialPlatePurchaserOwner) };     
+    const capitalizedValue = field === 'state' || field === 'phoneNumber' ? value : capitalizeFirstLetter(value);
     
-    currentInfo.purchaser = { ...currentInfo.purchaser, [field]: capitalizedValue };     if (currentInfo.sameAsOwner) {
+    currentInfo.purchaser = { ...currentInfo.purchaser, [field]: capitalizedValue };     
+    if (currentInfo.sameAsOwner) {
       currentInfo.owner = { ...currentInfo.purchaser };
     }
     
@@ -161,7 +167,8 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
   };
 
   const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
-    const currentInfo = { ...(formData.platePurchaserOwner || initialPlatePurchaserOwner) };     const capitalizedValue = field === 'state' ? value : capitalizeFirstLetter(value);
+    const currentInfo = { ...(formData.platePurchaserOwner || initialPlatePurchaserOwner) };     
+    const capitalizedValue = field === 'state' || field === 'phoneNumber' ? value : capitalizeFirstLetter(value);
     
     if (!currentInfo.owner) {
       currentInfo.owner = { ...initialPersonInfo };
@@ -171,10 +178,14 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
     updateField('platePurchaserOwner', currentInfo);
   };
   
-  const handlePurchaserStateSelect = (abbreviation: string) => {     handlePurchaserChange('state', abbreviation);     setOpenDropdown(null);
+  const handlePurchaserStateSelect = (abbreviation: string) => {     
+    handlePurchaserChange('state', abbreviation);     
+    setOpenDropdown(null);
   };
   
-  const handleOwnerStateSelect = (abbreviation: string) => {     handleOwnerChange('state', abbreviation);     setOpenDropdown(null);
+  const handleOwnerStateSelect = (abbreviation: string) => {     
+    handleOwnerChange('state', abbreviation);     
+    setOpenDropdown(null);
   };
 
   return (
@@ -217,6 +228,17 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                 placeholder="Enter street address or PO box"
                 value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.streetAddress || ''}
                 onChange={(e) => handlePurchaserChange('streetAddress', e.target.value)}
+              />
+            </div>
+            
+            <div className="infoField">
+              <label className="infoLabel">Phone Number</label>
+              <input
+                type="text"
+                className="infoInput"
+                placeholder="Enter phone number"
+                value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.phoneNumber || ''}
+                onChange={(e) => handlePurchaserChange('phoneNumber', e.target.value)}
               />
             </div>
             
@@ -298,6 +320,18 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                 placeholder="Enter street address or PO box"
                 value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.streetAddress || ''}
                 onChange={(e) => handleOwnerChange('streetAddress', e.target.value)}
+                disabled={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
+              />
+            </div>
+            
+            <div className="infoField">
+              <label className="infoLabel">Phone Number</label>
+              <input
+                type="text"
+                className="infoInput"
+                placeholder="Enter phone number"
+                value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.phoneNumber || ''}
+                onChange={(e) => handleOwnerChange('phoneNumber', e.target.value)}
                 disabled={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
               />
             </div>

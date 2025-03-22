@@ -7,12 +7,13 @@ import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
 import TypeContainer from '../layouts/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
-import NameStatement from '../atoms/NameStatement';
+import PlannedNonoperation from '../atoms/PlannedNonoperation';
+import FilingPnoCheckboxes from '../atoms/FilingPnoCheckboxes';
 import SellerAddress from '../atoms/SellerAdrress';
+import VehicleStorageLocation from '../atoms/VehicleStorageLocation';
 
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
-  isSmogExempt?: boolean;
 }
 
 interface FormContextData {
@@ -20,12 +21,13 @@ interface FormContextData {
   [key: string]: any;
 }
 
-interface NameChangeTransferProps {
+interface CertificateOfNonOperationProps {
   formData?: any;
   onDataChange?: (data: any) => void;
+
 }
 
-export default function NameChangeTransfer({ formData, onDataChange }: NameChangeTransferProps) {
+export default function CertificateOfNonOperationTransfer({ formData, onDataChange }:CertificateOfNonOperationProps) {
   const [formValues, setFormValues] = useState(formData || {});
   useEffect(() => {
     if (onDataChange) {
@@ -47,19 +49,18 @@ export default function NameChangeTransfer({ formData, onDataChange }: NameChang
       }
     }, [formValues]);
 
-    const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
-    const isSmogExempt = contextFormData?.vehicleTransactionDetails?.isSmogExempt === true;
 
     return (
       <div className='wholeForm'>
         <TypeContainer />
+        <FilingPnoCheckboxes formData={formValues} />
         <VehicalInformation formData={formValues}/>
-        <NameStatement formData={formValues} />
-
         <Seller formData={formValues} />
         <SellerAddress formData={formValues} />
+        <VehicleStorageLocation formData={formValues} />
+        <PlannedNonoperation formData={formValues} />
         <SaveButton 
-          transactionType="Name Change/Correction Transfer"
+          transactionType="Certificate Of Non-Operation Transfer"
           onSuccess={() => console.log('Save completed successfully')}
         />
       </div>
@@ -68,11 +69,11 @@ export default function NameChangeTransfer({ formData, onDataChange }: NameChang
 
   return (
     <FormDataProvider>
-      {/* <ScenarioProvider> */}
+      <ScenarioProvider>
         <div className="simpleTransferWrapper">
           <FormContent />
         </div>
-      {/* </ScenarioProvider> */}
+      </ScenarioProvider>
     </FormDataProvider>
   );
 }

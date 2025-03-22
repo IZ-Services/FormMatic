@@ -502,7 +502,37 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       if (transactionType === "Disabled Person and Placards") {
         formTypes = ['REG195'];
         console.log('Disabled Person and Placards: Using REG195 form');
-      } else if (transactionType === "Lien Holder Addition") {
+      }
+      
+      else if (transactionType === "Personalized Plates (Order)") {
+        formTypes = ['REG17'];
+        console.log('Personalized Plates (Order): Using REG17 form');
+      } 
+  
+      else if (transactionType === "Personalized Plates (Reassignment)") {
+        formTypes = ['REG17'];
+        console.log('Personalized Plates (Reassignment): Using REG17 form');
+      } 
+      
+      else if (transactionType === "Personalized Plates (Replacement)") {
+        formTypes = ['REG17'];
+        console.log('Personalized Plates (Replacement): Using REG17 form');
+      } 
+      
+      else if (transactionType === "Personalized Plates (Exchange)") {
+        formTypes = ['REG17'];
+        console.log('Personalized Plates (Exchange): Using REG17 form');
+      } 
+      
+      else if (transactionType === "Filing PNO Transfer"|| transactionType === "Certificate Of Non-Operation Transfer") {
+        formTypes = ['REG102'];
+        console.log('Filing PNO Transfer: Using REG102 form');        if (formData.pnoDetails?.requestPnoCard) {
+          formTypes.push('Reg156');
+          console.log('Request PNO card checked: Adding Reg156 form');
+        }
+      }
+      
+      else if (transactionType === "Lien Holder Addition") {
         formTypes = ['Reg227'];
       } else if (transactionType === "Lien Holder Removal") {
         formTypes = ['Reg227', 'DMVReg166']; 
@@ -614,6 +644,9 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       return false;
     }
   };
+
+
+
   return (
     <div className="saveButtonContainer">
       <button

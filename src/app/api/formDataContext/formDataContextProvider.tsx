@@ -5,7 +5,8 @@ type FormData = Record<string, unknown>;
 
 type FormContextType = {
   formData: FormData;
-  updateField: (key: string, value: unknown) => void; 
+  updateField: (key: string, value: unknown) => void;
+  clearField: (key: string) => void;
   transactionType: string;
   setTransactionType: (type: string) => void;
 };
@@ -14,7 +15,8 @@ const FormContext = createContext<FormContextType | undefined>(undefined);
 
 interface FormDataProviderProps {
   children: React.ReactNode;
-  initialData?: FormData; }
+  initialData?: FormData;
+}
 
 export const FormDataProvider: React.FC<FormDataProviderProps> = ({ 
   children, 
@@ -27,11 +29,27 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
+
+  const clearField = (key: string) => {
+    console.log(`Clearing field: ${key}`);
+    setFormData((prev) => {
+      const newData = { ...prev };
+      delete newData[key];
+      return newData;
+    });
+  };
+
   console.log('FormDataProvider is rendering with state:', { formData, transactionType });
 
   return (
     <FormContext.Provider
-      value={{ formData, updateField, transactionType, setTransactionType }}
+      value={{ 
+        formData, 
+        updateField, 
+        clearField,
+        transactionType, 
+        setTransactionType 
+      }}
     >
       {children}
     </FormContext.Provider>

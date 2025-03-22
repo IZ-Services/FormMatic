@@ -3,14 +3,14 @@ import TransactionModel from '../../../models/transaction';
 import { NextResponse } from 'next/server';
 import { PDFDocument, PDFName, PDFBool } from 'pdf-lib';
 import {  StandardFonts, rgb } from 'pdf-lib';
-import VehicleTransactionDetails from '@/components/atoms/Checkboxes';
+
 
 export async function POST(request: Request) {
   try {
     await connectDB();
 
     const requestData = await request.json();
-    const { transactionId, formType = 'Reg227' } = requestData;
+    const { transactionId, formType = 'Reg227', transactionType } = requestData;
 
     if (!transactionId) {
       return NextResponse.json({ error: 'Transaction ID is required.' }, { status: 400 });
@@ -21,9 +21,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Transaction not found.' }, { status: 404 });
     }
 
+    const effectiveTransactionType = transactionType || transaction.transactionType;
+
     console.log('Transaction data:', JSON.stringify({
       id: transaction._id,
-      type: transaction.transactionType,
+      type: effectiveTransactionType,
       isMultiple: transaction.isPartOfMultipleTransfer,
       index: transaction.transferIndex,
       total: transaction.totalTransfers
@@ -32,7 +34,7 @@ export async function POST(request: Request) {
     let formData = transaction.formData;
 
     const isMultipleTransfer = transaction.isPartOfMultipleTransfer === true || 
-                            transaction.transactionType?.includes('Multiple Transfer') ||
+                            effectiveTransactionType?.includes('Multiple Transfer') ||
                             (formData && formData.newOwners && formData.newOwners.owners);
 
     console.log('Complete formData:', JSON.stringify(formData));
@@ -60,7 +62,8 @@ export async function POST(request: Request) {
           trailerLocationDifferent: false,
           itemRequested: {},
           disabledPersonParkingInfo: {},
-          addressChangeInfo: {} 
+          addressChangeInfo: {},
+          pnoDetails: {}
         };
         
         formData = restructuredData;
@@ -86,7 +89,8 @@ export async function POST(request: Request) {
           trailerLocationDifferent: false,
           itemRequested: {},
           disabledPersonParkingInfo: {},
-          addressChangeInfo: {} 
+          addressChangeInfo: {},
+          pnoDetails: {}
         };
       }
     }
@@ -100,7 +104,8 @@ export async function POST(request: Request) {
     formData.itemRequested = formData.itemRequested || {};
     formData.vehicleTransactionDetails = formData.vehicleTransactionDetails || {};
     formData.disabledPersonParkingInfo = formData.disabledPersonParkingInfo || {};
-    formData.addressChangeInfo = formData.addressChangeInfo || {}; 
+    formData.addressChangeInfo = formData.addressChangeInfo || {};
+    formData.pnoDetails = formData.pnoDetails || {};
     
     formData.mailingAddressDifferent = !!formData.mailingAddressDifferent;
     formData.lesseeAddressDifferent = !!formData.lesseeAddressDifferent;
@@ -108,21 +113,6 @@ export async function POST(request: Request) {
     formData.sellerMailingAddressDifferent = !!formData.sellerMailingAddressDifferent;
 
     console.log("After restructuring:");
-    console.log('- owners exists:', !!formData.owners);
-    console.log('- vehicleInformation exists:', !!formData.vehicleInformation);
-    console.log('- vehicleTransactionDetails exists:', !!formData.vehicleTransactionDetails);
-    console.log('- legalOwnerInformation exists:', !!formData.legalOwnerInformation);
-    console.log('- mailingAddressDifferent:', formData.mailingAddressDifferent);
-    console.log('- lesseeAddressDifferent:', formData.lesseeAddressDifferent);
-    console.log('- trailerLocationDifferent:', formData.trailerLocationDifferent);
-    console.log('- sellerMailingAddressDifferent:', formData.sellerMailingAddressDifferent);
-    console.log('- sellerAddress exists:', Object.keys(formData.sellerAddress).length > 0 ? true : false);
-    console.log('- sellerAddress keys:', Object.keys(formData.sellerAddress));
-    console.log('- sellerMailingAddress exists:', Object.keys(formData.sellerMailingAddress).length > 0 ? true : false);
-    console.log('- sellerMailingAddress keys:', Object.keys(formData.sellerMailingAddress));
-    console.log('- itemRequested exists:', Object.keys(formData.itemRequested).length > 0 ? true : false);
-    console.log('- disabledPersonParkingInfo exists:', Object.keys(formData.disabledPersonParkingInfo).length > 0 ? true : false);
-    console.log('- addressChangeInfo exists:', Object.keys(formData.addressChangeInfo).length > 0 ? true : false);
 
     let pdfPath;
     let pdfUrl;
@@ -145,6 +135,10 @@ export async function POST(request: Request) {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'REG195.pdf');
       } else if (formType === 'DMV14') {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'DMV14.pdf');
+      } else if (formType === 'REG17') {
+        pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'REG17.pdf');
+      } else if (formType === 'REG102') {
+        pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'REG102.pdf');
       } else {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg227.pdf');
       }
@@ -170,8 +164,11 @@ export async function POST(request: Request) {
         modifiedPdfBytes = await modifyREG195Pdf(existingPdfBytes, formData);
       } else if (formType === 'DMV14') {
         modifiedPdfBytes = await modifyDMV14Pdf(existingPdfBytes, formData);
+      } else if (formType === 'REG17') {
+        modifiedPdfBytes = await modifyREG17Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'REG102') {        modifiedPdfBytes = await modifyREG102Pdf(existingPdfBytes, formData, effectiveTransactionType);
       } else {
-        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, transaction.transactionType);
+        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType);
       }
 
       return new Response(modifiedPdfBytes, {
@@ -197,6 +194,10 @@ export async function POST(request: Request) {
         pdfUrl = `${baseUrl}/pdfs/REG195.pdf`;
       } else if (formType === 'DMV14') {
         pdfUrl = `${baseUrl}/pdfs/DMV14.pdf`;
+      } else if (formType === 'REG17') {
+        pdfUrl = `${baseUrl}/pdfs/REG17.pdf`;
+      } else if (formType === 'REG102') {
+        pdfUrl = `${baseUrl}/pdfs/REG102.pdf`;
       } else {
         pdfUrl = `${baseUrl}/pdfs/Reg227.pdf`;
       }
@@ -222,8 +223,11 @@ export async function POST(request: Request) {
         modifiedPdfBytes = await modifyREG195Pdf(existingPdfBytes, formData);
       } else if (formType === 'DMV14') {
         modifiedPdfBytes = await modifyDMV14Pdf(existingPdfBytes, formData);
+      } else if (formType === 'REG17') {
+        modifiedPdfBytes = await modifyREG17Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'REG102') {        modifiedPdfBytes = await modifyREG102Pdf(existingPdfBytes, formData, effectiveTransactionType);
       } else {
-        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, transaction.transactionType);
+        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType);
       }
 
       return new Response(modifiedPdfBytes, {
@@ -236,71 +240,395 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error(`[fillPdfForm] Error:`, error);
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
-  }}
-
-
-interface Address {
-  streetNumber?: string;
-  streetName?: string;
-  aptNo?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  county?: string; 
-}
-interface Address {
-  streetNumber?: string;
-  streetName?: string;
-  aptNo?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  county?: string;
+  }
 }
 
-interface SectionThreeData {
-  address?: Address;
-  mailingAddress?: Address;
-  trailerVesselAddress?: Address; 
-  mailingAddressDifferent?: boolean;
-  hasTrailerVessel?: boolean; 
+async function modifyREG102Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
+  try {
+    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
+    
+    if (!pdfDoc) {
+      console.error('Failed to load PDF document');
+      throw new Error('Failed to load PDF document');
+    }
+    
+    const form = pdfDoc.getForm();
+    
+    if (!form) {
+      console.error('Failed to get form from PDF');
+      throw new Error('Failed to get form from PDF');
+    }    console.log('Incoming effectiveTransactionType parameter:', effectiveTransactionType);    console.log('Raw formData.type:', formData.type);
+    console.log('Raw formData.transactionType:', formData.transactionType);    let transactionType = '';
+    
+    if (effectiveTransactionType) {      transactionType = effectiveTransactionType;
+      console.log(`Using provided effectiveTransactionType: "${transactionType}"`);
+    } else if (formData.type) {
+      transactionType = formData.type;
+      console.log(`Found transaction type in formData.type: "${transactionType}"`);
+    } else if (formData.transactionType) {
+      transactionType = formData.transactionType;
+      console.log(`Found transaction type in formData.transactionType: "${transactionType}"`);
+    } else if (formData.formData && formData.formData.type) {
+      transactionType = formData.formData.type;
+      console.log(`Found transaction type in formData.formData.type: "${transactionType}"`);
+    } else if (formData.formData && formData.formData.transactionType) {
+      transactionType = formData.formData.transactionType;
+      console.log(`Found transaction type in formData.formData.transactionType: "${transactionType}"`);
+    }    if (!transactionType && formData.pnoDetails) {
+      transactionType = "Filing PNO Transfer";
+      console.log(`No transaction type found, but pnoDetails exists. Setting to: "${transactionType}"`);
+    }
+    
+    const isFilingPNOTransfer = transactionType === "Filing PNO Transfer";
+    const isCertificateOfNonOperationTransfer = transactionType === "Certificate Of Non-Operation Transfer";
+    
+    console.log(`Processing REG102 form for ${transactionType || 'unknown'} transaction type`);
+    console.log(`isFilingPNOTransfer: ${isFilingPNOTransfer}, isCertificateOfNonOperationTransfer: ${isCertificateOfNonOperationTransfer}`);    const fields = form.getFields();
+    console.log(`Found ${fields.length} form fields in REG102 PDF:`);    interface FieldInfo {
+      name: string;
+      type: string;
+    }
+    
+    interface RadioFieldInfo extends FieldInfo {
+      options: string[];
+    }    const textFields: FieldInfo[] = [];
+    const checkboxFields: FieldInfo[] = [];
+    const radioGroupFields: RadioFieldInfo[] = [];
+    const otherFields: FieldInfo[] = [];
+    
+    fields.forEach(field => {
+      const fieldName = field.getName();
+      const fieldType = field.constructor.name;
+      
+      if (fieldType === 'PDFTextField') {
+        textFields.push({ name: fieldName, type: fieldType });
+      } else if (fieldType === 'PDFCheckBox') {
+        checkboxFields.push({ name: fieldName, type: fieldType });
+      } else if (fieldType === 'PDFRadioGroup') {
+        const radioGroup = field as any;        const options = radioGroup.getOptions ? radioGroup.getOptions() : [];
+        radioGroupFields.push({ name: fieldName, type: fieldType, options });
+      } else {
+        otherFields.push({ name: fieldName, type: fieldType });
+      }
+    });
+    
+    console.log('Text Fields:', textFields);
+    console.log('Checkbox Fields:', checkboxFields);
+    console.log('Radio Group Fields:', radioGroupFields);
+    console.log('Other Fields:', otherFields);    const safeSetCheckbox = (fieldName: string, checked: boolean) => {
+      try {
+        const field = form.getCheckBox(fieldName);
+        if (field) {
+          if (checked) {
+            field.check();
+          } else {
+            field.uncheck();
+          }
+          console.log(`Successfully set checkbox: ${fieldName} to ${checked}`);
+        } else {
+          console.warn(`Checkbox field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error setting checkbox ${fieldName}:`, error);
+      }
+    };
+    
+    const safeSetText = (fieldName: string, value: string) => {
+      try {
+        const field = form.getTextField(fieldName);
+        if (field) {
+          field.setText(value);
+          console.log(`Successfully filled field: ${fieldName}`);
+        } else {
+          console.warn(`Field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error filling field ${fieldName}:`, error);
+      }
+    };    try {
+      const today = new Date();
+      const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+      
+      if (isCertificateOfNonOperationTransfer) {        safeSetText('certify date', formattedDate);
+        console.log(`Set certify date for Certificate Of Non-Operation Transfer: ${formattedDate}`);
+      } else if (isFilingPNOTransfer) {        safeSetText('cert date', formattedDate);
+        console.log(`Set cert date for Filing PNO Transfer: ${formattedDate}`);
+      } else {        console.log(`Skipping date fields for unknown transaction type: ${transactionType}`);
+      }
+    } catch (error) {
+      console.error('Error setting certification date:', error);
+    }    if (formData.storageLocation) {
+      const storage = formData.storageLocation;
+      
+      if (isCertificateOfNonOperationTransfer) {        if (storage.fromDate) {
+          const fromDateParts = storage.fromDate.split('/');
+          if (fromDateParts.length === 3) {
+            safeSetText('from month.0', fromDateParts[0]);
+            safeSetText('from day.0', fromDateParts[1]);
+            safeSetText('from year.0', fromDateParts[2]);
+            console.log(`Set storage from date for Certificate Of Non-Operation Transfer: ${storage.fromDate}`);
+          }
+        }
+        
+        if (storage.toDate) {
+          const toDateParts = storage.toDate.split('/');
+          if (toDateParts.length === 3) {
+            safeSetText('to month', toDateParts[0]);
+            safeSetText('to day', toDateParts[1]);
+            safeSetText('to year', toDateParts[2]);
+            console.log(`Set storage to date for Certificate Of Non-Operation Transfer: ${storage.toDate}`);
+          }
+        }
+        
+        if (storage.address) {
+          safeSetText('address', storage.address);
+          console.log(`Set storage address for Certificate Of Non-Operation Transfer: ${storage.address}`);
+        }
+        
+        if (storage.city) {
+          safeSetText('city', storage.city);
+          console.log(`Set storage city for Certificate Of Non-Operation Transfer: ${storage.city}`);
+        }
+        
+        if (storage.state) {
+          safeSetText('state', storage.state);
+          console.log(`Set storage state for Certificate Of Non-Operation Transfer: ${storage.state}`);
+        }
+        
+        if (storage.zipCode) {
+          safeSetText('zip', storage.zipCode);
+          console.log(`Set storage zip code for Certificate Of Non-Operation Transfer: ${storage.zipCode}`);
+        }
+      } else {
+        console.log('Storage location data skipped for transaction type:', transactionType);
+      }
+    }    if (formData.pnoDetails) {
+      const pnoDetails = formData.pnoDetails;
+      
+      try {        const allCheckboxes = checkboxFields.map(field => field.name.toLowerCase());
+        const hasBeforeExpiration = allCheckboxes.includes('beforeexpiration');
+        const hasAfterExpiration = allCheckboxes.includes('afterexpiration');
+        const hasRequestPnoCard = allCheckboxes.includes('requestpnocard');
+        
+        console.log(`Checkbox availability - BeforeExpiration: ${hasBeforeExpiration}, AfterExpiration: ${hasAfterExpiration}, RequestPnoCard: ${hasRequestPnoCard}`);        if (hasBeforeExpiration || hasAfterExpiration || hasRequestPnoCard) {
+          if ((isFilingPNOTransfer || isCertificateOfNonOperationTransfer) && 
+              pnoDetails.isBeforeRegExpires) {
+            if (hasBeforeExpiration) {
+              safeSetCheckbox('BeforeExpiration', true);
+              console.log(`Set before registration expires checkbox for ${transactionType}`);
+            }
+          } else if ((isFilingPNOTransfer || isCertificateOfNonOperationTransfer) && 
+                     !pnoDetails.isBeforeRegExpires && 
+                     hasAfterExpiration) {
+            safeSetCheckbox('AfterExpiration', true);
+            console.log(`Set after registration expires checkbox for ${transactionType}`);
+          }
+          
+          if ((isFilingPNOTransfer || isCertificateOfNonOperationTransfer) && 
+              pnoDetails.requestPnoCard && 
+              hasRequestPnoCard) {
+            safeSetCheckbox('RequestPnoCard', true);
+            console.log(`Set request PNO card checkbox for ${transactionType}`);
+          }
+        } else {
+          console.log('PNO checkboxes not found in form');
+        }
+      } catch (error) {
+        console.error('Error setting PNO checkboxes:', error);
+      }
+    }    interface VehicleEntry {
+      vehicleLicensePlate?: string;
+      vehicleIdNumber?: string;
+      vehicleMake?: string;
+      equipmentNumber?: string;
+      [key: string]: any;    }    if (formData.plannedNonOperation && formData.plannedNonOperation.entries) {      const entries = formData.plannedNonOperation.entries.filter((entry: VehicleEntry) => 
+        entry.vehicleLicensePlate || entry.vehicleIdNumber || entry.vehicleMake || entry.equipmentNumber
+      );
+      
+      console.log(`Processing ${entries.length} non-empty vehicle entries for ${transactionType}`);
+      
+      if (isFilingPNOTransfer) {        const maxEntries = Math.min(entries.length, 9);        
+        for (let i = 0; i < maxEntries; i++) {
+          const entry = entries[i];
+          
+          if (entry.vehicleLicensePlate) {
+            safeSetText(`veh lic plate #.${i}`, entry.vehicleLicensePlate);
+            console.log(`Set veh lic plate #.${i} to ${entry.vehicleLicensePlate} for Filing PNO Transfer`);
+          }
+          
+          if (entry.vehicleIdNumber) {
+            safeSetText(`veh id #.${i}`, entry.vehicleIdNumber);
+            console.log(`Set veh id #.${i} to ${entry.vehicleIdNumber} for Filing PNO Transfer`);
+          }
+          
+          if (entry.vehicleMake) {
+            safeSetText(`veh make.${i}`, entry.vehicleMake);
+            console.log(`Set veh make.${i} to ${entry.vehicleMake} for Filing PNO Transfer`);
+          }
+          
+          if (entry.equipmentNumber) {
+            safeSetText(`veh equip #.${i}`, entry.equipmentNumber);
+            console.log(`Set veh equip #.${i} to ${entry.equipmentNumber} for Filing PNO Transfer`);
+          }
+        }
+      } else if (isCertificateOfNonOperationTransfer) {        const maxEntries = Math.min(entries.length, 7);        
+        for (let i = 0; i < maxEntries; i++) {
+          const entry = entries[i];
+          
+          if (entry.vehicleLicensePlate) {
+            safeSetText(`license plate #.${i}`, entry.vehicleLicensePlate);
+            console.log(`Set license plate #.${i} to ${entry.vehicleLicensePlate} for Certificate Of Non-Operation Transfer`);
+          }
+          
+          if (entry.vehicleIdNumber) {
+            safeSetText(`vin.${i}`, entry.vehicleIdNumber);
+            console.log(`Set vin.${i} to ${entry.vehicleIdNumber} for Certificate Of Non-Operation Transfer`);
+          }
+          
+          if (entry.vehicleMake) {
+            safeSetText(`make.${i}`, entry.vehicleMake);
+            console.log(`Set make.${i} to ${entry.vehicleMake} for Certificate Of Non-Operation Transfer`);
+          }
+          
+          if (entry.equipmentNumber) {
+            safeSetText(`equip #.${i}`, entry.equipmentNumber);
+            console.log(`Set equip #.${i} to ${entry.equipmentNumber} for Certificate Of Non-Operation Transfer`);
+          }
+        }
+      } else {
+        console.log(`Skipping vehicle entries for unknown transaction type: ${transactionType}`);
+      }
+    }    if (formData.sellerInfo && formData.sellerInfo.sellers && formData.sellerInfo.sellers.length > 0) {
+      const seller = formData.sellerInfo.sellers[0];      if (seller.firstName || seller.middleName || seller.lastName) {
+        const fullName = [
+          seller.firstName || '',
+          seller.middleName || '',
+          seller.lastName || ''
+        ].filter(Boolean).join(' ');
+        
+        safeSetText('OwnerName', fullName);
+        console.log(`Set owner name for ${transactionType}: ${fullName}`);
+      }
+      
+      if (seller.licenseNumber) {
+        safeSetText('DriverLicense', seller.licenseNumber);
+        console.log(`Set driver license for ${transactionType}: ${seller.licenseNumber}`);
+      }
+      
+      if (seller.dob) {
+        safeSetText('OwnerDOB', seller.dob);
+        console.log(`Set owner date of birth for ${transactionType}: ${seller.dob}`);
+      }      if (seller.phone) {        const cleanPhone = seller.phone.replace(/\D/g, '');
+        
+        if (cleanPhone.length >= 10) {          const areaCode = cleanPhone.substring(0, 3);          const phoneNumber = cleanPhone.substring(3);
+          
+          if (isFilingPNOTransfer) {            safeSetText('daytime area code', areaCode);
+            safeSetText('daytime phone', phoneNumber);
+            console.log(`Set daytime area code and daytime phone for Filing PNO Transfer: (${areaCode}) ${phoneNumber}`);
+          } else if (isCertificateOfNonOperationTransfer) {            safeSetText('area code', areaCode);
+            safeSetText('phone', phoneNumber);
+            console.log(`Set area code and phone for Certificate Of Non-Operation Transfer: (${areaCode}) ${phoneNumber}`);
+          } else {
+            console.log(`Skipping phone fields for unknown transaction type: ${transactionType}`);
+          }
+        } else if (cleanPhone.length > 0) {          let areaCode = '';
+          let phoneNumber = cleanPhone;
+          
+          if (cleanPhone.length > 3) {
+            areaCode = cleanPhone.substring(0, 3);
+            phoneNumber = cleanPhone.substring(3);
+          }
+          
+          if (isFilingPNOTransfer) {
+            safeSetText('daytime area code', areaCode);
+            safeSetText('daytime phone', phoneNumber);
+          } else if (isCertificateOfNonOperationTransfer) {
+            safeSetText('area code', areaCode);
+            safeSetText('phone', phoneNumber);
+          } else {
+            console.log(`Skipping phone fields for unknown transaction type: ${transactionType}`);
+          }
+        }
+      }
+    }    if (formData.sellerAddress) {
+      const address = formData.sellerAddress;      let fullAddress = '';
+      if (address.street) {
+        fullAddress += address.street;
+        safeSetText('StreetAddress', address.street);
+        console.log(`Set street address for ${transactionType}: ${address.street}`);
+      }
+      
+      if (address.city) {
+        safeSetText('City', address.city);
+        console.log(`Set city for ${transactionType}: ${address.city}`);
+      }
+      
+      if (address.state) {
+        safeSetText('State', address.state);
+        console.log(`Set state for ${transactionType}: ${address.state}`);
+      }
+      
+      if (address.zip) {
+        safeSetText('ZipCode', address.zip);
+        console.log(`Set zip code for ${transactionType}: ${address.zip}`);
+      }
+      
+      console.log(`Set full address for ${transactionType}: ${fullAddress}`);
+    }    if (formData.sellerMailingAddressDifferent && formData.sellerMailingAddress) {
+      const mailingAddress = formData.sellerMailingAddress;      let fullMailingAddress = '';
+      if (mailingAddress.street) {
+        fullMailingAddress += mailingAddress.street;
+        safeSetText('MailingStreetAddress', mailingAddress.street);
+        console.log(`Set mailing street address for ${transactionType}: ${mailingAddress.street}`);
+      }
+      
+      if (mailingAddress.city) {
+        safeSetText('MailingCity', mailingAddress.city);
+        console.log(`Set mailing city for ${transactionType}: ${mailingAddress.city}`);
+      }
+      
+      if (mailingAddress.state) {
+        safeSetText('MailingState', mailingAddress.state);
+        console.log(`Set mailing state for ${transactionType}: ${mailingAddress.state}`);
+      }
+      
+      if (mailingAddress.zip) {
+        safeSetText('MailingZipCode', mailingAddress.zip);
+        console.log(`Set mailing zip code for ${transactionType}: ${mailingAddress.zip}`);
+      }
+      
+      console.log(`Set mailing address for ${transactionType}: ${fullMailingAddress}`);
+    }    try {
+      const hasOwnerSignature = textFields.some(field => field.name === 'OwnerSignature');
+      if (hasOwnerSignature) {
+        safeSetText('OwnerSignature', '[Signature on file]');
+        console.log(`Set signature placeholder for ${transactionType}`);
+      } else {
+        console.log('OwnerSignature field not found in form');
+      }
+    } catch (error) {
+      console.error('Error setting signature:', error);
+    }
+    
+    try {
+      form.updateFieldAppearances();
+    } catch (e) {
+      console.warn('Error updating field appearances, continuing anyway:', e);
+    }
+    
+    return await pdfDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: false,
+      updateFieldAppearances: false
+    });
+  } catch (error) {
+    console.error('Error in modifyREG102Pdf:', error);
+    const emptyPdf = await PDFDocument.create();
+    return await emptyPdf.save();
+  }
 }
 
-interface VehicleEntry {
-  plateCfNumber?: string;
-  vehicleHullId?: string;
-  leased?: 'inside' | 'outside';
-  registeredLocation?: 'inside' | 'outside';
-}
-
-interface CitizenshipData {
-  isUsCitizen?: boolean;
-}
-
-interface LeasedVehiclesData {
-  isLeased: boolean;
-  leasingCompanyName: string;
-}
-
-interface FormData {
-  personalBusinessInfo?: {
-    lastName?: string;
-    firstName?: string;
-    initial?: string;
-    birthDate?: string;
-    driverLicenseId?: string;
-  };
-  previousResidence?: Address;
-  newOrCorrectResidence?: SectionThreeData;
-  vehiclesOwned?: VehicleEntry[];
-  voterAddressUpdate?: {
-    doNotUpdateVoterRegistration?: boolean;
-  };
-  citizenship?: CitizenshipData;
-  leasedVehicles?: LeasedVehiclesData;
-}
-
-async function modifyDMV14Pdf(fileBytes: ArrayBuffer, formData: FormData): Promise<Uint8Array> {
+async function modifyREG17Pdf(fileBytes: ArrayBuffer, formData: any, transactionType?: string): Promise<Uint8Array> {
   try {
     const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
     
@@ -316,28 +644,394 @@ async function modifyDMV14Pdf(fileBytes: ArrayBuffer, formData: FormData): Promi
       throw new Error('Failed to get form from PDF');
     }
     
- 
+    console.log('Processing REG17 form for transaction type:', transactionType);
+    
+
+    const safeSetCheckbox = (fieldName: string, checked: boolean) => {
+      try {
+        const field = form.getCheckBox(fieldName);
+        if (field) {
+          if (checked) {
+            field.check();
+          } else {
+            field.uncheck();
+          }
+          console.log(`Successfully set checkbox: ${fieldName} to ${checked}`);
+        } else {
+          console.warn(`Checkbox field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error setting checkbox ${fieldName}:`, error);
+      }
+    };
+    
+    const safeSetText = (fieldName: string, value: string) => {
+      try {
+        const field = form.getTextField(fieldName);
+        if (field) {
+          field.setText(value);
+          console.log(`Successfully filled field: ${fieldName}`);
+        } else {
+          console.warn(`Field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error filling field ${fieldName}:`, error);
+      }
+    };
+    
+
     try {
-      const fieldNames = form.getFields().map(f => f.getName());
-      console.log('Available DMV14 PDF Fields:', JSON.stringify(fieldNames, null, 2));
+      const today = new Date();
+      const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+      safeSetText("Text74", formattedDate);
+      console.log(`Set current date fields with: ${formattedDate}`);
     } catch (error) {
-      console.error('Error getting field names:', error);
+      console.error('Error setting current date:', error);
     }
     
- 
-    try {
-      mapPersonalBusinessInfo(form, formData.personalBusinessInfo);
-      mapPreviousResidence(form, formData.previousResidence);
-      mapNewOrCorrectResidence(form, formData.newOrCorrectResidence);
-      mapVoterAddressUpdate(form, formData.voterAddressUpdate);
-      mapVehiclesOwned(form, formData.vehiclesOwned);
-      mapCitizenshipStatus(form, formData.citizenship);
-      mapLeasingCompany(form, formData.leasedVehicles);
-      mapCurrentDateToSec10(form);
-      mapS8cEligible(form);
 
-    } catch (error) {
-      console.error('Error mapping form data to PDF fields:', error);
+    if (transactionType === "Personalized Plates (Order)") {
+      console.log('Transaction type is "Personalized Plates (Order)", checking Check Box1');
+      safeSetCheckbox("Check Box1", true);
+    } else if (transactionType === "Personalized Plates (Replacement)") {
+      console.log('Transaction type is "Personalized Plates (Replacement)", checking Check Box2');
+      safeSetCheckbox("Check Box2", true);
+    } else if (transactionType === "Personalized Plates (Reassignment)") {
+      console.log('Transaction type is "Personalized Plates (Reassignment)", checking Check Box3');
+      safeSetCheckbox("Check Box3", true);
+    } else if (transactionType === "Personalized Plates (Exchange)") {
+      console.log('Transaction type is "Personalized Plates (Exchange)", checking Check Box4');
+      safeSetCheckbox("Check Box4", true);
+    } else {
+      console.log('Unknown transaction type:', transactionType);
+    }
+    
+
+    if (transactionType === "Personalized Plates (Reassignment)" && formData.reassignmentSection) {
+      const reassignmentInfo = formData.reassignmentSection;
+      console.log('Processing reassignment section information:', reassignmentInfo);
+      
+
+      if (reassignmentInfo.specialInterestLicensePlate) {
+        safeSetText('Text56', reassignmentInfo.specialInterestLicensePlate);
+        console.log(`Set special interest license plate number: ${reassignmentInfo.specialInterestLicensePlate}`);
+      }
+      
+
+      if (reassignmentInfo.removedFrom) {
+        safeSetText('Text57', reassignmentInfo.removedFrom);
+        console.log(`Set removed from VIN: ${reassignmentInfo.removedFrom}`);
+      }
+      
+
+      if (reassignmentInfo.placedOnLicensePlate) {
+        safeSetText('Text58', reassignmentInfo.placedOnLicensePlate);
+        console.log(`Set placed on license plate: ${reassignmentInfo.placedOnLicensePlate}`);
+      }
+      
+
+      if (reassignmentInfo.placedOnVehicle) {
+        safeSetText('Text59', reassignmentInfo.placedOnVehicle);
+        console.log(`Set placed on vehicle VIN: ${reassignmentInfo.placedOnVehicle}`);
+      }
+      
+
+      if (reassignmentInfo.retainInterest) {
+        safeSetCheckbox('Check Box60', true);
+        console.log('Checked retain interest checkbox');
+      }
+      
+
+      if (reassignmentInfo.feeEnclosed) {
+        safeSetCheckbox('Check Box61', true);
+        console.log('Checked fee enclosed checkbox');
+      }
+      
+
+      if (reassignmentInfo.releaseInterestDMV) {
+        safeSetCheckbox('Check Box62', true);
+        console.log('Checked release interest to DMV checkbox');
+      }
+      
+
+      if (reassignmentInfo.releaseInterestNewOwner) {
+        safeSetCheckbox('Check Box63', true);
+        console.log('Checked release interest to new owner checkbox');
+      }
+    } else if (transactionType === "Personalized Plates (Reassignment)") {
+      console.log('Transaction type is Reassignment but no reassignmentSection data provided');
+    }
+    
+
+    if (transactionType === "Personalized Plates (Replacement)" && formData.replacementSection) {
+      const replacementInfo = formData.replacementSection;
+      console.log('Processing replacement section information:', replacementInfo);
+      
+
+      if (replacementInfo.specialInterestLicensePlate) {
+        safeSetText('Text28', replacementInfo.specialInterestLicensePlate);
+        console.log(`Set special interest license plate number: ${replacementInfo.specialInterestLicensePlate}`);
+      }
+      
+
+      if (replacementInfo.ineed === 'One Plate') {
+        safeSetCheckbox('Check Box29', true);
+        console.log('Selected One Plate option');
+      } else if (replacementInfo.ineed === 'Two Plates') {
+        safeSetCheckbox('Check Box30', true);
+        console.log('Selected Two Plates option');
+      }
+      
+
+      if (replacementInfo.plateStatus === 'Lost') {
+        safeSetCheckbox('Check Box31', true);
+        console.log('Selected Lost plate status');
+      } else if (replacementInfo.plateStatus === 'Mutilated') {
+        safeSetCheckbox('Check Box32', true);
+        console.log('Selected Mutilated plate status');
+      } else if (replacementInfo.plateStatus === 'Stolen') {
+        safeSetCheckbox('Check Box33', true);
+        console.log('Selected Stolen plate status');
+      }
+    } else if (transactionType === "Personalized Plates (Replacement)") {
+      console.log('Transaction type is Replacement but no replacementSection data provided');
+    }
+    
+
+    if (formData.plateSelection) {
+      const plateSelection = formData.plateSelection;
+      console.log('Processing plate selection:', plateSelection);
+      
+
+      const plateTypeMapping: Record<string, string> = {
+        'Environmental License Plate (ELP)': 'Check Box5',
+        'California Coastal Commission (Whale Tail)': 'Check Box6',
+        'Lake Tahoe Conservancy': 'Check Box7',
+        'Yosemite Foundation': 'Check Box9',
+        'California 1960s Legacy': 'Check Box25',
+        'Breast Cancer Awareness': 'Check Box34',
+        'California Arts Council': 'Check Box10',
+        'California Agricultural (CalAg)': 'Check Box11',
+        'California Memorial': 'Check Box13',
+        'California Museums (Snoopy)': 'Check Box26',
+        'Collegiate (only UCLA is available)': 'Check Box14',
+        'Kids - Child Health and Safety Funds': 'Check Box15',
+        'Pet Lovers': 'Check Box16',
+        'Veterans\' Organization': 'Check Box17',
+        'Honoring Veterans Plate': 'Check Box8',
+        'Duplicate Decal': 'Check Box12'
+      };
+      
+
+      const plateType = plateSelection.plateType as string;
+      if (plateType && plateType in plateTypeMapping) {
+        safeSetCheckbox(plateTypeMapping[plateType], true);
+        console.log(`Checked checkbox for plate type: ${plateType} -> ${plateTypeMapping[plateType]}`);
+      } else if (plateType) {
+        console.warn(`No mapping found for plate type: ${plateType}`);
+      }
+      
+
+      if (plateType === 'Veterans\' Organization' && plateSelection.organizationalCode) {
+        safeSetText('Text18', plateSelection.organizationalCode);
+        console.log(`Set organization code: ${plateSelection.organizationalCode}`);
+      }
+      
+
+      if (plateType === 'Duplicate Decal' && plateSelection.duplicateDecalNumber) {
+        safeSetText('Text13', plateSelection.duplicateDecalNumber);
+        console.log(`Set duplicate decal number: ${plateSelection.duplicateDecalNumber}`);
+      }
+    }
+    
+
+    if (formData.selectConfiguration) {
+      const selectConfig = formData.selectConfiguration;
+      console.log('Processing select configuration:', selectConfig);
+      
+
+      if (selectConfig.vehicleType) {
+        const vehicleTypeMapping: Record<string, string> = {
+          'Automobile': 'Check Box19',
+          'Commercial': 'Check Box20',
+          'Trailer': 'Check Box21',
+          'Motorcycle': 'Check Box22'
+        };
+        
+        if (selectConfig.vehicleType in vehicleTypeMapping) {
+          safeSetCheckbox(vehicleTypeMapping[selectConfig.vehicleType], true);
+          console.log(`Checked vehicle type: ${selectConfig.vehicleType} -> ${vehicleTypeMapping[selectConfig.vehicleType]}`);
+        }
+      }
+      
+
+      if (selectConfig.plateType) {
+        if (selectConfig.plateType === 'Sequential') {
+          safeSetCheckbox('Check Box23', true);
+          console.log('Selected Sequential plate type');
+          
+
+          if (selectConfig.currentLicensePlate) {
+            safeSetText('Text25', selectConfig.currentLicensePlate);
+            console.log(`Set current license plate: ${selectConfig.currentLicensePlate}`);
+          }
+          
+          if (selectConfig.fullVehicleId) {
+            safeSetText('Text26', selectConfig.fullVehicleId);
+            console.log(`Set full vehicle ID: ${selectConfig.fullVehicleId}`);
+          }
+        } else if (selectConfig.plateType === 'Personalized') {
+          safeSetCheckbox('Check Box27', true);
+          console.log('Selected Personalized plate type');
+          
+
+          if (selectConfig.personalized) {
+
+            if (selectConfig.personalized.plateNotCentered) {
+              safeSetCheckbox('Check Box28', true);
+              console.log('Checked plate not centered');
+            }
+            
+
+            if (selectConfig.personalized.firstChoice) {
+              const firstChoice = selectConfig.personalized.firstChoice;
+              const textFields = ['Text29', 'Text30', 'Text31', 'Text32', 'Text33', 'Text34', 'Text35', 'Text36'];
+              
+              for (let i = 0; i < Math.min(firstChoice.length, textFields.length); i++) {
+                safeSetText(textFields[i], firstChoice.charAt(i));
+              }
+              console.log(`Set first choice: ${firstChoice}`);
+            }
+            
+
+            if (selectConfig.personalized.firstChoiceMeaning) {
+              safeSetText('Text37', selectConfig.personalized.firstChoiceMeaning);
+              console.log(`Set first choice meaning: ${selectConfig.personalized.firstChoiceMeaning}`);
+            }
+            
+
+            if (selectConfig.personalized.secondChoice) {
+              const secondChoice = selectConfig.personalized.secondChoice;
+              const textFields = ['Text38', 'Text39', 'Text40', 'Text41', 'Text42', 'Text43', 'Text44', 'Text45'];
+              
+              for (let i = 0; i < Math.min(secondChoice.length, textFields.length); i++) {
+                safeSetText(textFields[i], secondChoice.charAt(i));
+              }
+              console.log(`Set second choice: ${secondChoice}`);
+            }
+            
+
+            if (selectConfig.personalized.secondChoiceMeaning) {
+              safeSetText('Text46', selectConfig.personalized.secondChoiceMeaning);
+              console.log(`Set second choice meaning: ${selectConfig.personalized.secondChoiceMeaning}`);
+            }
+            
+
+            if (selectConfig.personalized.thirdChoice) {
+              const thirdChoice = selectConfig.personalized.thirdChoice;
+              const textFields = ['Text47', 'Text48', 'Text49', 'Text50', 'Text51', 'Text52', 'Text53', 'Text54'];
+              
+              for (let i = 0; i < Math.min(thirdChoice.length, textFields.length); i++) {
+                safeSetText(textFields[i], thirdChoice.charAt(i));
+              }
+              console.log(`Set third choice: ${thirdChoice}`);
+            }
+            
+
+            if (selectConfig.personalized.thirdChoiceMeaning) {
+              safeSetText('Text55', selectConfig.personalized.thirdChoiceMeaning);
+              console.log(`Set third choice meaning: ${selectConfig.personalized.thirdChoiceMeaning}`);
+            }
+            
+
+          }
+        }
+      }
+      
+
+      if (selectConfig.pickupLocation) {
+        if (selectConfig.pickupLocation === 'DMV Office') {
+          safeSetCheckbox('Check Box18', true);
+          console.log('Selected DMV Office pickup location');
+        } else if (selectConfig.pickupLocation === 'Auto Club') {
+          safeSetCheckbox('Check Box24', true);
+          console.log('Selected Auto Club pickup location');
+        }
+      }
+      
+
+      if (selectConfig.locationCity) {
+        safeSetText('Text27', selectConfig.locationCity);
+        console.log(`Set location city: ${selectConfig.locationCity}`);
+      }
+    }
+    
+
+    if (formData.platePurchaserOwner) {
+      const purchaserOwner = formData.platePurchaserOwner;
+      console.log('Processing plate purchaser/owner information:', purchaserOwner);
+      
+
+      if (purchaserOwner.purchaser) {
+        safeSetText('Text64', purchaserOwner.purchaser.fullName || '');
+        safeSetText('Text65', purchaserOwner.purchaser.streetAddress || '');
+        safeSetText('Text66', purchaserOwner.purchaser.city || '');
+        safeSetText('Text67', purchaserOwner.purchaser.state || '');
+        safeSetText('Text68', purchaserOwner.purchaser.zipCode || '');
+        
+
+        const phoneNumber = purchaserOwner.purchaser.phoneNumber || purchaserOwner.purchaser.phone || '';
+        if (phoneNumber) {
+
+          const cleanedPhone = phoneNumber.replace(/\D/g, '');
+          
+          if (cleanedPhone.length >= 3) {
+
+            const areaCode = cleanedPhone.substring(0, 3);
+            safeSetText('Text75', areaCode);
+            
+
+            const restOfPhone = cleanedPhone.substring(3);
+            safeSetText('Text76', restOfPhone);
+            
+            console.log(`Set phone number: (${areaCode}) ${restOfPhone}`);
+          }
+        } else {
+
+          safeSetText('Text75', '');
+          safeSetText('Text76', '');
+          console.log('No phone number provided for purchaser');
+        }
+        
+        console.log(`Set purchaser information:
+          Name: ${purchaserOwner.purchaser.fullName}
+          Address: ${purchaserOwner.purchaser.streetAddress}
+          City: ${purchaserOwner.purchaser.city}
+          State: ${purchaserOwner.purchaser.state}
+          ZIP: ${purchaserOwner.purchaser.zipCode}`);
+      }
+      
+
+      if (purchaserOwner.sameAsOwner) {
+        safeSetCheckbox('Check Box79', true);
+        console.log('Checked "Same as Owner" box');
+      }
+      
+
+      if (!purchaserOwner.sameAsOwner && purchaserOwner.owner) {
+        safeSetText('Text69', purchaserOwner.owner.fullName || '');
+        safeSetText('Text70', purchaserOwner.owner.streetAddress || '');
+        safeSetText('Text71', purchaserOwner.owner.city || '');
+        safeSetText('Text72', purchaserOwner.owner.state || '');
+        safeSetText('Text73', purchaserOwner.owner.zipCode || '');
+        
+        console.log(`Set owner information:
+          Name: ${purchaserOwner.owner.fullName}
+          Address: ${purchaserOwner.owner.streetAddress}
+          City: ${purchaserOwner.owner.city}
+          State: ${purchaserOwner.owner.state}
+          ZIP: ${purchaserOwner.owner.zipCode}`);
+      }
     }
     
     try {
@@ -352,1355 +1046,11 @@ async function modifyDMV14Pdf(fileBytes: ArrayBuffer, formData: FormData): Promi
       updateFieldAppearances: false
     });
   } catch (error) {
-    console.error('Error in modifyDMV14Pdf:', error);
-    
+    console.error('Error in modifyREG17Pdf:', error);
     const emptyPdf = await PDFDocument.create();
     return await emptyPdf.save();
   }
 }
-
- 
-function mapLeasingCompany(form: any, leasedVehiclesData?: LeasedVehiclesData) {
-  if (!leasedVehiclesData || !leasedVehiclesData.isLeased || !leasedVehiclesData.leasingCompanyName) return;
-
-  try {
-    const leasingCoFields = [
-      "leasing co.0",
-      "leasing co.1",
-      "leasing co.2",
-      "leasing co.3",
-      "leasing co.4",
-      "leasing co.5",
-      "leasing co.6",
-      "leasing co.7",
-      "leasing co.8",
-      "leasing co.9",
-      "leasing co.10",
-      "leasing co.11",
-      "leasing co.12",
-      "leasing co.13",
-      "leasing co.14",
-      "leasing co.15",
-      "leasing co.16",
-      "leasing co.17",
-      "leasing co.18",
-      "leasing co.19",
-      "leasing co.20",
-      "leasing co.21"
-    ];
-    
-    const companyName = leasedVehiclesData.leasingCompanyName.toUpperCase();
-    
-    for (let i = 0; i < companyName.length && i < leasingCoFields.length; i++) {
-      const field = form.getTextField(leasingCoFields[i]);
-      if (field) {
-        field.setText(companyName.charAt(i));
-      }
-    }
-    
-    console.log(`Successfully set leasing company name: ${companyName}`);
-  } catch (e) {
-    console.warn('Error setting leasing company fields:', e);
-    
- 
-    try {
- 
-      const singleFieldNames = [
-        "Leasing Company",
-        "LEASING COMPANY",
-        "leasing_company",
-        "LeasingCompany"
-      ];
-      
-      for (const fieldName of singleFieldNames) {
-        try {
-          const field = form.getTextField(fieldName);
-          if (field) {
-            field.setText(leasedVehiclesData.leasingCompanyName);
-            console.log(`Successfully set "${fieldName}" field to ${leasedVehiclesData.leasingCompanyName}`);
-            break;
-          }
-        } catch (e) {
- 
-        }
-      }
-    } catch (fallbackError) {
-      console.warn('Error setting fallback leasing company field:', fallbackError);
-    }
-  }
-}
-
- 
-function mapCitizenshipStatus(form: any, citizenshipData?: CitizenshipData) {
-  if (!citizenshipData || citizenshipData.isUsCitizen === undefined) return;
-
-  try {
-    if (citizenshipData.isUsCitizen === true) {
- 
-      const citizenYesField = form.getCheckBox("S8a Yes");
-      if (citizenYesField) {
-        citizenYesField.check();
-        console.log('Successfully checked "S8a Yes" checkbox');
-      } else {
- 
-        const yesAlternativeFieldNames = [
-          "s8a yes",
-          "S8aYes",
-          "citizen_yes",
-          "CitizenYes",
-          "US Citizen Yes"
-        ];
-        
-        for (const fieldName of yesAlternativeFieldNames) {
-          try {
-            const field = form.getCheckBox(fieldName);
-            if (field) {
-              field.check();
-              console.log(`Successfully checked "${fieldName}" checkbox for US Citizen Yes`);
-              break;
-            }
-          } catch (e) {
- 
-          }
-        }
-      }
-    } else if (citizenshipData.isUsCitizen === false) {
- 
-      const citizenNoField = form.getCheckBox("S8a No");
-      if (citizenNoField) {
-        citizenNoField.check();
-        console.log('Successfully checked "S8a No" checkbox');
-      } else {
- 
-        const noAlternativeFieldNames = [
-          "s8a no",
-          "S8aNo",
-          "citizen_no",
-          "CitizenNo",
-          "US Citizen No"
-        ];
-        
-        for (const fieldName of noAlternativeFieldNames) {
-          try {
-            const field = form.getCheckBox(fieldName);
-            if (field) {
-              field.check();
-              console.log(`Successfully checked "${fieldName}" checkbox for US Citizen No`);
-              break;
-            }
-          } catch (e) {
- 
-          }
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('Error setting citizenship status fields:', e);
-  }
-}
-
-function mapVehiclesOwned(form: any, vehiclesOwned?: VehicleEntry[]) {
-  if (!vehiclesOwned || vehiclesOwned.length === 0) return;
-
- 
-  for (let i = 0; i < Math.min(vehiclesOwned.length, 3); i++) {
-    const vehicle = vehiclesOwned[i];
-    const vehicleIndex = i + 1; 
-
- 
-    if (vehicle.plateCfNumber) {
-      try {
-        const plateFields = getPlateFieldsForIndex(vehicleIndex);
-        const plateNumber = vehicle.plateCfNumber.toUpperCase();
-        
-        for (let j = 0; j < plateNumber.length && j < plateFields.length; j++) {
-          const field = form.getTextField(plateFields[j]);
-          if (field) {
-            field.setText(plateNumber.charAt(j));
-          }
-        }
-      } catch (e) {
-        console.warn(`Error setting plate/CF/placard fields for vehicle ${vehicleIndex}:`, e);
-      }
-    }
-
- 
-    if (vehicle.vehicleHullId) {
-      try {
-        const hullIdFields = getHullIdFieldsForIndex(vehicleIndex);
-        const hullId = vehicle.vehicleHullId.toUpperCase();
-        
-        for (let j = 0; j < hullId.length && j < hullIdFields.length; j++) {
-          const field = form.getTextField(hullIdFields[j]);
-          if (field) {
-            field.setText(hullId.charAt(j));
-          }
-        }
-      } catch (e) {
-        console.warn(`Error setting hull ID fields for vehicle ${vehicleIndex}:`, e);
-      }
-    }
-
- 
-    try {
- 
-      if (vehicle.leased === 'inside') {
-        const leasedCheckboxFieldName = `Check Box3.${i}`; 
-        const leasedCheckboxField = form.getCheckBox(leasedCheckboxFieldName);
-        
-        if (leasedCheckboxField) {
-          leasedCheckboxField.check();
-          console.log(`Successfully checked "${leasedCheckboxFieldName}" for leased vehicle ${vehicleIndex}`);
-        } else {
-          console.warn(`Could not find checkbox field "${leasedCheckboxFieldName}" for leased vehicle ${vehicleIndex}`);
-          
- 
-          const alternativeFieldNames = [
-            `Leased ${vehicleIndex}`,
-            `leased_${vehicleIndex}`,
-            `Leased Vehicle ${vehicleIndex}`
-          ];
-          
-          for (const fieldName of alternativeFieldNames) {
-            try {
-              const field = form.getCheckBox(fieldName);
-              if (field) {
-                field.check();
-                console.log(`Successfully checked "${fieldName}" for leased vehicle ${vehicleIndex}`);
-                break;
-              }
-            } catch (e) {
- 
-            }
-          }
-        }
-      }
-
- 
-      if (vehicle.registeredLocation === 'inside') {
-        const registeredOutsideFieldName = `Check Box4.${i}`; 
-        const registeredOutsideField = form.getCheckBox(registeredOutsideFieldName);
-        
-        if (registeredOutsideField) {
-          registeredOutsideField.check();
-          console.log(`Successfully checked "${registeredOutsideFieldName}" for registered outside CA vehicle ${vehicleIndex}`);
-        } else {
-          console.warn(`Could not find checkbox field "${registeredOutsideFieldName}" for registered outside CA vehicle ${vehicleIndex}`);
-          
- 
-          const alternativeFieldNames = [
-            `Registered Outside CA ${vehicleIndex}`,
-            `registered_outside_${vehicleIndex}`,
-            `Outside CA ${vehicleIndex}`
-          ];
-          
-          for (const fieldName of alternativeFieldNames) {
-            try {
-              const field = form.getCheckBox(fieldName);
-              if (field) {
-                field.check();
-                console.log(`Successfully checked "${fieldName}" for registered outside CA vehicle ${vehicleIndex}`);
-                break;
-              }
-            } catch (e) {
- 
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting checkbox fields for vehicle ${vehicleIndex}:`, e);
-    }
-  }
-}
-
-function mapS8cEligible(form: any) {
-  try {
- 
-    const s8cEligibleField = form.getCheckBox("S8c Eligible");
-    if (s8cEligibleField) {
-      s8cEligibleField.check(); 
-      console.log('Successfully checked "S8c Eligible" checkbox');
-    } else {
- 
-      const alternativeFieldNames = [
-        "s8c eligible",
-        "S8cEligible",
-        "s8c_eligible",
-        "Section 8c Eligible"
-      ];
-      
-      for (const fieldName of alternativeFieldNames) {
-        try {
-          const field = form.getCheckBox(fieldName);
-          if (field) {
-            field.check();
-            console.log(`Successfully checked "${fieldName}" checkbox`);
-            break;
-          }
-        } catch (e) {
- 
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('Error setting S8c Eligible field:', e);
-  }
-}
-
- 
-function mapCurrentDateToSec10(form: any) {
-  try {
- 
-    const today = new Date();
-    const month = (today.getMonth() + 1).toString().padStart(2, '0');
-    const day = today.getDate().toString().padStart(2, '0');
-    const year = today.getFullYear().toString();
-    const formattedDate = `${month}/${day}/${year}`;
-    
- 
-    const sec10DateField = form.getTextField("Sec10 date");
-    if (sec10DateField) {
-      sec10DateField.setText(formattedDate);
-      console.log(`Successfully set "Sec10 date" to ${formattedDate}`);
-    } else {
- 
-      const alternativeFieldNames = [
-        "sec10 date",
-        "Sec10Date",
-        "sec10_date",
-        "Section10Date",
-        "Section 10 Date"
-      ];
-      
-      for (const fieldName of alternativeFieldNames) {
-        try {
-          const field = form.getTextField(fieldName);
-          if (field) {
-            field.setText(formattedDate);
-            console.log(`Successfully set "${fieldName}" to ${formattedDate}`);
-            break;
-          }
-        } catch (e) {
- 
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('Error setting Sec10 date field:', e);
-  }
-}
-
-
- 
-function getPlateFieldsForIndex(index: number): string[] {
-  if (index === 1) {
-    return [
-      "California plate 1.0",
-      "California plate 1.1",
-      "California plate 1.2",
-      "California plate 1.3",
-      "California plate 1.4",
-      "California plate 1.5",
-      "California plate 1.6",
-      "California plate 1.7"
-    ];
-  } else if (index === 2) {
-    return [
-      "California plate 2.0",
-      "California plate 2.1",
-      "California plate 2.2",
-      "California plate 2.3",
-      "California plate 2.4",
-      "California plate 2.5",
-      "California plate 2.6",
-      "California plate 2.7"
-    ];
-  } else if (index === 3) {
-    return [
-      "California plate 3.0",
-      "California plate 3.1",
-      "California plate 3.2",
-      "California plate 3.3",
-      "California plate 3.4",
-      "California plate 3.5",
-      "California plate 3.6",
-      "California plate 3.7"
-    ];
-  }
-  return [];
-}
-
- 
-function getHullIdFieldsForIndex(index: number): string[] {
-  if (index === 1) {
-    return [
-      "HULL ID.0",
-      "HULL ID.1",
-      "HULL ID.2",
-      "HULL ID.3",
-      "HULL ID.4",
-      "HULL ID.5",
-      "HULL ID.6",
-      "HULL ID.7",
-      "HULL ID.8",
-      "HULL ID.9",
-      "HULL ID.10",
-      "HULL ID.11",
-      "HULL ID.12",
-      "HULL ID.13",
-      "HULL ID.14",
-      "HULL ID.15",
-      "HULL ID.16"
-    ];
-  } else if (index === 2) {
-    return [
-      "HULL ID 2.0",
-      "HULL ID 2.1",
-      "HULL ID 2.2",
-      "HULL ID 2.3",
-      "HULL ID 2.4",
-      "HULL ID 2.5",
-      "HULL ID 2.6",
-      "HULL ID 2.7",
-      "HULL ID 2.8",
-      "HULL ID 2.9",
-      "HULL ID 2.10",
-      "HULL ID 2.11",
-      "HULL ID 2.12",
-      "HULL ID 2.13",
-      "HULL ID 2.14",
-      "HULL ID 2.15"
-    ];
-  } else if (index === 3) {
-    return [
-      "HULL ID 3.0",
-      "HULL ID 3.1",
-      "HULL ID 3.2",
-      "HULL ID 3.3",
-      "HULL ID 3.4",
-      "HULL ID 3.5",
-      "HULL ID 3.6",
-      "HULL ID 3.7",
-      "HULL ID 3.8",
-      "HULL ID 3.9",
-      "HULL ID 3.10",
-      "HULL ID 3.11",
-      "HULL ID 3.12",
-      "HULL ID 3.13",
-      "HULL ID 3.14",
-      "HULL ID 3.15",
-      "HULL ID 3.16"
-    ];
-  }
-  return [];
-}
-
-function mapVoterAddressUpdate(form: any, voterAddressUpdateData?: FormData['voterAddressUpdate']) {
-  if (!voterAddressUpdateData) return;
-
-  try {
- 
-    if (voterAddressUpdateData.doNotUpdateVoterRegistration) {
- 
-      const addressUpdateField = form.getCheckBox("Address Update");
-      if (addressUpdateField) {
-        addressUpdateField.check(); 
-        console.log('Successfully checked "Address Update" checkbox');
-      } else {
- 
-        const alternativeFieldNames = [
-          "address update",
-          "AddressUpdate",
-          "doNotUpdateVoterRegistration",
-          "voter_registration_opt_out"
-        ];
-        
-        for (const fieldName of alternativeFieldNames) {
-          try {
-            const field = form.getCheckBox(fieldName);
-            if (field) {
-              field.check();
-              console.log(`Successfully checked "${fieldName}" checkbox`);
-              break;
-            }
-          } catch (e) {
- 
-          }
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('Error setting voter address update fields:', e);
-  }
-}
-
-
-
-
-function mapPersonalBusinessInfo(form: any, personalInfo?: FormData['personalBusinessInfo']) {
-  if (!personalInfo) return;
-
- 
-  if (personalInfo.lastName) {
-    const lastNameFields = [
-      "last name",
-      "last 1.0.0", "last 1.0.1", "last 1.0.2", "last 1.0.3", "last 1.0.4", 
-      "last 1.0.5", "last 1.0.6", "last 1.0.7", "last 1.0.8", "last 1.0.9", 
-      "last 1.0.10", "last 1.0.11", "last 1.0.12", "last 1.0.13", "last 1.0.14", 
-      "last 1.0.15", "last 1.0.16", "last 1.0.17", "last 1.0.18"
-    ];
-    
-    const lastName = personalInfo.lastName.toUpperCase(); 
-    
-    for (let i = 0; i < lastName.length && i < lastNameFields.length; i++) {
-      try {
-        const field = form.getTextField(lastNameFields[i]);
-        if (field) {
-          field.setText(lastName.charAt(i));
-        }
-      } catch (e) {
-        console.warn(`Field ${lastNameFields[i]} not found or cannot be set`, e);
-      }
-    }
-  }
-  
- 
-  if (personalInfo.firstName) {
-    try {
-      const firstNameFields = [
-        "first name",
-        "first.0",
-        "first.1",
-        "first.2",
-        "first.3",
-        "first.4",
-        "first.5",
-        "first.6",
-        "first.7",
-      ];
-      
-      const firstName = personalInfo.firstName.toUpperCase();
-      
-      for (let i = 0; i < firstName.length && i < firstNameFields.length; i++) {
-        const field = form.getTextField(firstNameFields[i]);
-        if (field) {
-          field.setText(firstName.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting first name fields`, e);
-    }
-  }
-
- 
-  if (personalInfo.initial) {
-    try {
-      const field = form.getTextField("initial");
-      if (field) {
-        field.setText(personalInfo.initial.toUpperCase());
-      }
-    } catch (e) {
-      console.warn(`Field 'initial' not found or cannot be set`, e);
-    }
-  }
-
- 
-  if (personalInfo.birthDate) {
-    try {
-      const birthDateFields = [
-        "birth date.0",
-        "birth date.1",
-        "birth date.2",
-        "birth date.3",
-        "birth date.4",
-        "birth date.5",
-        "birth date.6",
-        "birth date.7"
-      ];
-      
-      const birthDate = personalInfo.birthDate; 
- 
-      const digitsOnly = birthDate.replace(/\D/g, '');
-      
- 
-      let fieldIndex = 0;
-      for (let i = 0; i < digitsOnly.length && fieldIndex < birthDateFields.length; i++) {
-        const field = form.getTextField(birthDateFields[fieldIndex]);
-        if (field) {
-          field.setText(digitsOnly.charAt(i));
-          fieldIndex++; 
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting birth date fields`, e);
-    }
-  }
-
- 
-  if (personalInfo.driverLicenseId) {
-    try {
-      const driverLicenseFields = [
-        "Driver license",
-        "Driver license digits.0",
-        "Driver license digits.1",
-        "Driver license digits.2",
-        "Driver license digits.3",
-        "Driver license digits.4",
-        "Driver license digits.5",
-        "Driver license digits.6"
-      ];
-      
-      const driverLicenseId = personalInfo.driverLicenseId.toUpperCase();
-      
-      for (let i = 0; i < driverLicenseId.length && i < driverLicenseFields.length; i++) {
-        const field = form.getTextField(driverLicenseFields[i]);
-        if (field) {
-          field.setText(driverLicenseId.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting driver license fields`, e);
-    }
-  }
-}
-
-function mapPreviousResidence(form: any, address?: Address) {
-  if (!address) return;
-
- 
-  if (address.streetNumber) {
-    try {
-      const streetNumberFields = [
-        "street.0",
-        "street 1.0.0",
-        "street 1.1.0",
-        "street 1.2.0",
-        "street 1.3.0",
-      ];
-      
-      const streetNumber = address.streetNumber.toUpperCase();
-      
-      for (let i = 0; i < streetNumber.length && i < streetNumberFields.length; i++) {
-        const field = form.getTextField(streetNumberFields[i]);
-        if (field) {
-          field.setText(streetNumber.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting previous residence street number fields`, e);
-    }
-  }
-
-  if (address.streetName) {
-    try {
-      const streetNameFields = [
-        "street name.0",
-        "street name 1.0.0.0",
-        "street name 1.0.1.0",
-        "street name 1.0.2.0",
-        "street name 1.0.3.0",
-        "street name 1.0.4.0",
-        "street name 1.0.5.0",
-        "street name 1.0.6.0",
-        "street name 1.0.7.0",
-        "street name 1.0.8.0",
-        "street name 1.0.9.0",
-        "street name 1.0.10.0",
-        "street name 1.0.11.0",
-        "street name 1.0.12.0",
-        "street name 1.0.13.0",
-        "street name 1.0.14.0",
-        "street name 1.0.15.0",
-        "street name 1.0.16.0",
-        "street name 1.0.17.0",
-        "street name 1.0.18.0",
-        "street name 1.0.19.0.0",
-        "street name 1.0.19.1.0",
-        "street name 1.0.20.0.0",
-        "street name 1.0.20.1.0",
-      "street name 1.0.20.2.0",
-      "street name 1.0.20.3.0",
-      "street name 1.0.20.4.0", 
-      "street name 1.0.20.5.0", 
-      "street name 1.0.20.6.0", 
-      "street name 1.0.20.7.0", 
-      "street name 1.0.20.8.0", 
-      "street name 1.0.20.9.0", 
-      "street name 1.0.20.10.0", 
-      "street name 1.0.20.11.0", 
-      "street name 1.0.20.12.0", 
-      "street name 1.0.20.13.0", 
-      "street name 1.0.20.14.0", 
-      "street name 1.0.20.15.0", 
-      "street name 1.0.20.16.0", 
-      "street name 1.0.20.17.0", 
-      "street name 1.0.20.18.0", 
-      "street name 1.0.20.19.0", 
-      "street name 1.0.20.20.0", 
-      "street name 1.0.20.21.0", 
-      
-    
-    ];
-      
-      const streetName = address.streetName.toUpperCase();
-      
-      for (let i = 0; i < streetName.length && i < streetNameFields.length; i++) {
-        const field = form.getTextField(streetNameFields[i]);
-        if (field) {
-          field.setText(streetName.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting previous residence street name fields`, e);
-    }
-  }
-  if (address.city) {
-    try {
-      const cityFields = [
-        "city.0",
-        "city 1.0.0",
-        "city 1.1.0",
-        "city 1.2.0", 
-        "city 1.3.0",
-        "city 1.4.0",
-        "city 1.5.0",
-        "city 1.6.0",
-        "city 1.7.0",
-        "city 1.8.0",
-        "city 1.9.0",
-        "city 1.10.0",
-        "city 1.11.0",
-        "city 1.12.0",
-        "city 1.13.0",
-        "city 1.14.0",
-        "city 1.15.0",
-        "city 1.16.0",
-        "city 1.17.0",
-        "city 1.18.0",
-        "city 1.19.0",
-        "city 1.20.0",
-      ];
-      
-      const city = address.city.toUpperCase();
-      
-      for (let i = 0; i < city.length && i < cityFields.length; i++) {
-        const field = form.getTextField(cityFields[i]);
-        if (field) {
-          field.setText(city.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting previous residence city fields`, e);
-    }
-  }
- 
-  if (address.aptNo) {
-    try {
-      const aptNumberFields = [
-        "apt number.0.0",
-        "apt number.1.0.0",
-        "apt number.1.1.0",
-        "apt number.1.2.0",
-      ];
-      
-      const aptNo = address.aptNo.toUpperCase();
-      
-      for (let i = 0; i < aptNo.length && i < aptNumberFields.length; i++) {
-        const field = form.getTextField(aptNumberFields[i]);
-        if (field) {
-          field.setText(aptNo.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting previous residence apt number fields`, e);
-    }
-  }
-  
- 
-  if (address.state) {
-    try {
-      const stateFields = [
-        "state 1.0",
-        "state 1.1.1",
-      ];
-      
-      const state = address.state.toUpperCase();
-      
- 
-      if (state.length === 2) {
-        for (let i = 0; i < state.length && i < stateFields.length; i++) {
-          const field = form.getTextField(stateFields[i]);
-          if (field) {
-            field.setText(state.charAt(i));
-          }
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting previous residence state fields`, e);
-    }
-  }
-  if (address.zipCode) {
-    try {
-      const zipCodeFields = [
-        "zip code.0.0",
-        "zip code.1.0.0",
-        "zip code.1.1.0",
-        "zip code.1.2.0",
-        "zip code.1.3.0",
-      ];
-      
-      const cleanZipCode = address.zipCode.replace(/[^0-9]/g, '');
-      
-      for (let i = 0; i < cleanZipCode.length && i < zipCodeFields.length; i++) {
-        const field = form.getTextField(zipCodeFields[i]);
-        if (field) {
-          field.setText(cleanZipCode.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting previous residence zip code fields`, e);
-    }
-  }
- 
-}
-
-function mapNewOrCorrectResidence(form: any, sectionThreeData?: SectionThreeData) {
-  if (!sectionThreeData) return;
-
-  if (sectionThreeData.address && sectionThreeData.address.city) {
-    try {
-      const cityFields = [
-        "city.1.0",
-        "city 1.0.1.0",
-        "city 1.1.1.0",
-        "city 1.2.1.0",
-        "city 1.3.1.0",
-        "city 1.4.1.0",
-        "city 1.5.1.0",
-        "city 1.6.1.0",
-        "city 1.7.1.0",
-        "city 1.8.1.0",
-        "city 1.9.1.0",
-        "city 1.10.1.0",
-        "city 1.11.1.0",
-        "city 1.12.1.0",
-        "city 1.13.1.0",
-        "city 1.14.1.0",
-        "city 1.15.1.0",
-        "city 1.16.1.0",
-        "city 1.17.1.0",
-        "city 1.18.1.0",
-        "city 1.19.1.0",
-        "city 1.20.1.0",
-
-      ];
-      
-      const city = sectionThreeData.address.city.toUpperCase();
-      
-      for (let i = 0; i < city.length && i < cityFields.length; i++) {
-        const field = form.getTextField(cityFields[i]);
-        if (field) {
-          field.setText(city.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting new residence city fields`, e);
-    }
-  }
-    if (sectionThreeData.address && sectionThreeData.address.streetNumber) {
-    try {
-      const streetNumberFields = [
-        "street.1.0",
-        "street 1.0.1.0", 
-        "street 1.1.1.0",
-        "street 1.2.1.0",  
-        "street 1.3.1.0",
-      ];
-      
-      const streetNumber = sectionThreeData.address.streetNumber.toUpperCase();
-      
-      for (let i = 0; i < streetNumber.length && i < streetNumberFields.length; i++) {
-        const field = form.getTextField(streetNumberFields[i]);
-        if (field) {
-          field.setText(streetNumber.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting new residence street number fields`, e);
-    }
-  }
-  
- 
-  if (sectionThreeData.address && sectionThreeData.address.aptNo) {
-    try {
-      const aptNumberFields = [
-        "apt number.0.1.0",
-        "apt number.1.0.1.0",
-        "apt number.1.1.1.0",
-        "apt number.1.2.1.0",
-      ];
-      
-      const aptNo = sectionThreeData.address.aptNo.toUpperCase();
-      
-      for (let i = 0; i < aptNo.length && i < aptNumberFields.length; i++) {
-        const field = form.getTextField(aptNumberFields[i]);
-        if (field) {
-          field.setText(aptNo.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting new residence apt number fields`, e);
-    }
-  }
-  
- 
-  if (sectionThreeData.address && sectionThreeData.address.state) {
-    try {
-      const stateFields = [
-        "state 1.1.0",
-        "state 2.0",
-      ];
-      
-      const state = sectionThreeData.address.state.toUpperCase();
-      
- 
-      if (state.length === 2) {
-        for (let i = 0; i < state.length && i < stateFields.length; i++) {
-          const field = form.getTextField(stateFields[i]);
-          if (field) {
-            field.setText(state.charAt(i));
-          }
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting new residence state fields`, e);
-    }
-
-    
-  }
-
-  if (sectionThreeData.address && sectionThreeData.address.streetName) {
-    try {
-      const streetNameFields = [
-        "street name.1.0",
-        "street name 1.0.0.1.0",
-        "street name 1.0.1.1.0",
-        "street name 1.0.2.1.0",
-        "street name 1.0.3.1.0",
-        "street name 1.0.4.1.0",
-        "street name 1.0.5.1.0",
-        "street name 1.0.6.1.0",
-        "street name 1.0.7.1.0",
-        "street name 1.0.8.1.0",
-        "street name 1.0.9.1.0",
-        "street name 1.0.10.1.0",
-
-        "street name 1.0.11.1.0",
-        "street name 1.0.12.1.0",
-        "street name 1.0.13.1.0",
-        "street name 1.0.14.1.0",
-        "street name 1.0.15.1.0",
-        "street name 1.0.16.1.0",
-        "street name 1.0.17.1.0",
-        "street name 1.0.18.1.0",
-
-        "street name 1.0.19.0.1.0",
-        "street name 1.0.19.1.1.0",
-
-
-        "street name 1.0.20.0.1.0",
-
-      "street name 1.0.20.1.1.0",
-      "street name 1.0.20.2.1.0",
-      "street name 1.0.20.3.1.0",
-      "street name 1.0.20.4.1.0",
-      "street name 1.0.20.5.1.0",
-      "street name 1.0.20.6.1.0",
-      "street name 1.0.20.7.1.0",
-      "street name 1.0.20.8.1.0",
-      "street name 1.0.20.9.1.0",
-      "street name 1.0.20.10.1.0",
-
-      "street name 1.0.20.11.1.0",
-      "street name 1.0.20.12.1.0",
-      "street name 1.0.20.13.1.0",
-      "street name 1.0.20.14.1.0",
-      "street name 1.0.20.15.1.0",
-      "street name 1.0.20.16.1.0",
-      "street name 1.0.20.17.1.0",
-      "street name 1.0.20.18.1.0",
-      "street name 1.0.20.19.1.0",
-      "street name 1.0.20.20.1.0",
-      "street name 1.0.20.21.1.0",
-
-
-
-      ];
-      
-      const streetName = sectionThreeData.address.streetName.toUpperCase();
-      
-      for (let i = 0; i < streetName.length && i < streetNameFields.length; i++) {
-        const field = form.getTextField(streetNameFields[i]);
-        if (field) {
-          field.setText(streetName.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting new residence street name fields`, e);
-    }
-  }
-  
-  if (sectionThreeData.address && sectionThreeData.address.zipCode) {
-    try {
-      const zipCodeFields = [
-        "zip code.0.1.0",
-        "zip code.1.0.1.0",
-        "zip code.1.1.1.0",
-        "zip code.1.2.1.0",
-        "zip code.1.3.1.0",
-      ];
-      
-      const cleanZipCode = sectionThreeData.address.zipCode.replace(/[^0-9]/g, '');
-      
-      for (let i = 0; i < cleanZipCode.length && i < zipCodeFields.length; i++) {
-        const field = form.getTextField(zipCodeFields[i]);
-        if (field) {
-          field.setText(cleanZipCode.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting new residence zip code fields`, e);
-    }
-  }
-  
-  if (sectionThreeData.mailingAddressDifferent && 
-    sectionThreeData.mailingAddress && 
-    sectionThreeData.mailingAddress.city) {
-  try {
-    const mailingCityFields = [
-      "city.1.1.0",
-      "city 1.0.1.1.0",
-      "city 1.1.1.1.0",
-      "city 1.2.1.1.0",
-      "city 1.3.1.1.0",
-      "city 1.4.1.1.0",
-      "city 1.5.1.1.0",
-      "city 1.6.1.1.0",
-      "city 1.7.1.1.0",
-      "city 1.8.1.1.0",
-      "city 1.9.1.1.0",
-      "city 1.10.1.1.0",
-      "city 1.11.1.1.0",
-      "city 1.12.1.1.0",
-      "city 1.13.1.1.0",
-      "city 1.14.1.1.0",
-      "city 1.15.1.1",
-      "city 1.16.1.1",
-      "city 1.17.1.1",
-      "city 1.18.1.1",
-      "city 1.19.1.1",
-      "city 1.19.1.1",
-      "city 1.20.1.1",
-
-      
-    ];
-    
-    const mailingCity = sectionThreeData.mailingAddress.city.toUpperCase();
-    
-    for (let i = 0; i < mailingCity.length && i < mailingCityFields.length; i++) {
-      const field = form.getTextField(mailingCityFields[i]);
-      if (field) {
-        field.setText(mailingCity.charAt(i));
-      }
-    }
-  } catch (e) {
-    console.warn(`Error setting mailing address city fields`, e);
-  }
-} 
-
-
-if (sectionThreeData.mailingAddressDifferent && 
-  sectionThreeData.mailingAddress && 
-  sectionThreeData.mailingAddress.streetName) {
-try {
-  const streetNameFields = [
-    "street name.1.1.0",
-    "street name 1.0.0.1.1.0",
-    "street name 1.0.1.1.1.0",
-    "street name 1.0.2.1.1.0",
-    "street name 1.0.3.1.1.0",
-    "street name 1.0.4.1.1.0",
-    "street name 1.0.5.1.1.0",
-    "street name 1.0.6.1.1.0",
-    "street name 1.0.7.1.1.0",
-    "street name 1.0.8.1.1.0",
-    "street name 1.0.9.1.1.0",
-    "street name 1.0.10.1.1.0",
-    "street name 1.0.11.1.1.0",
-    "street name 1.0.12.1.1.0",
-    "street name 1.0.13.1.1.0",
-    "street name 1.0.14.1.1.0",
-    "street name 1.0.15.1.1.0",
-    "street name 1.0.16.1.1.0",
-    "street name 1.0.17.1.1.0",
-    "street name 1.0.18.1.1.0",
-    "street name 1.0.19.0.1.1.0",
-    "street name 1.0.19.1.1.1.0",
-    "street name 1.0.20.0.1.1",
-    "street name 1.0.20.1.1.1",
-    "street name 1.0.20.2.1.1",
-    "street name 1.0.20.3.1.1",
-    "street name 1.0.20.4.1.1",
-    "street name 1.0.20.5.1.1",
-    "street name 1.0.20.6.1.1",
-    "street name 1.0.20.7.1.1",
-    "street name 1.0.20.8.1.1",
-    "street name 1.0.20.9.1.1",
-    "street name 1.0.20.10.1.1",
-    "street name 1.0.20.11.1.1",
-    "street name 1.0.20.12.1.1",
-    "street name 1.0.20.13.1.1",
-    "street name 1.0.20.14.1.1",
-    "street name 1.0.20.15.1.1",
-    "street name 1.0.20.16.1.1",
-    "street name 1.0.20.17.1.1",
-    "street name 1.0.20.18.1.1",
-    "street name 1.0.20.19.1.1",
-    "street name 1.0.20.20.1.1",
-    "street name 1.0.20.21.1.1",
-   
-
-  
-  ];
-  
-  const streetName = sectionThreeData.mailingAddress.streetName.toUpperCase();
-  
-  for (let i = 0; i < streetName.length && i < streetNameFields.length; i++) {
-    const field = form.getTextField(streetNameFields[i]);
-    if (field) {
-      field.setText(streetName.charAt(i));
-    }
-  }
-} catch (e) {
-  console.warn(`Error setting mailing address street name fields`, e);
-}
-}
-if (sectionThreeData.mailingAddressDifferent && 
-      sectionThreeData.mailingAddress && 
-      sectionThreeData.mailingAddress.streetNumber) {
-    try {
-      const mailingStreetNumberFields = [
-        "street.1.1.0",
-        "street 1.0.1.1.0",
-        "street 1.1.1.1.0",
-        "street 1.2.1.1.0",
-        "street 1.3.1.1.0",
-      ];
-      
-      const mailingStreetNumber = sectionThreeData.mailingAddress.streetNumber.toUpperCase();
-      
-      for (let i = 0; i < mailingStreetNumber.length && i < mailingStreetNumberFields.length; i++) {
-        const field = form.getTextField(mailingStreetNumberFields[i]);
-        if (field) {
-          field.setText(mailingStreetNumber.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting mailing address street number fields`, e);
-    }
-  }
-  
- 
-  if (sectionThreeData.mailingAddressDifferent && 
-      sectionThreeData.mailingAddress && 
-      sectionThreeData.mailingAddress.aptNo) {
-    try {
-      const mailingAptNumberFields = [
-        "apt number.0.1.1",
-        "apt number.1.0.1.1",
-        "apt number.1.1.1.1",
-        "apt number.1.2.1.1",
-      ];
-      
-      const mailingAptNo = sectionThreeData.mailingAddress.aptNo.toUpperCase();
-      
-      for (let i = 0; i < mailingAptNo.length && i < mailingAptNumberFields.length; i++) {
-        const field = form.getTextField(mailingAptNumberFields[i]);
-        if (field) {
-          field.setText(mailingAptNo.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting mailing address apt number fields`, e);
-    }
-  }
-  
- 
-  if (sectionThreeData.mailingAddressDifferent && 
-      sectionThreeData.mailingAddress && 
-      sectionThreeData.mailingAddress.state) {
-    try {
-      const mailingStateFields = [
-        "state 2.1.0",
-        "state 2.1.1",
-      ];
-      
-      const mailingState = sectionThreeData.mailingAddress.state.toUpperCase();
-      
- 
-      if (mailingState.length === 2) {
-        for (let i = 0; i < mailingState.length && i < mailingStateFields.length; i++) {
-          const field = form.getTextField(mailingStateFields[i]);
-          if (field) {
-            field.setText(mailingState.charAt(i));
-          }
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting mailing address state fields`, e);
-    }
-  }
-  
-  if (sectionThreeData.mailingAddressDifferent && 
-    sectionThreeData.mailingAddress && 
-    sectionThreeData.mailingAddress.zipCode) {
-  try {
-    const mailingZipCodeFields = [
-      "zip code.0.1.1",
-      "zip code.1.0.1.1",
-      "zip code.1.1.1.1",
-      "zip code.1.2.1.1",
-      "zip code.1.3.1.1",
-    ];
-    
-    const cleanMailingZipCode = sectionThreeData.mailingAddress.zipCode.replace(/[^0-9]/g, '');
-    
-    for (let i = 0; i < cleanMailingZipCode.length && i < mailingZipCodeFields.length; i++) {
-      const field = form.getTextField(mailingZipCodeFields[i]);
-      if (field) {
-        field.setText(cleanMailingZipCode.charAt(i));
-      }
-    }
-  } catch (e) {
-    console.warn(`Error setting mailing address zip code fields`, e);
-  }
-}
-
-if (sectionThreeData.hasTrailerVessel && 
-  sectionThreeData.trailerVesselAddress && 
-  sectionThreeData.trailerVesselAddress.streetName) {
-try {
-  const streetNameFields = [ "street name.1.1.1", "street name 1.0.0.1.1.1", "street name 1.0.1.1.1.1", "street name 1.0.2.1.1.1", "street name 1.0.3.1.1.1", "street name 1.0.4.1.1.1", "street name 1.0.5.1.1.1", "street name 1.0.6.1.1.1", "street name 1.0.7.1.1.1", "street name 1.0.8.1.1.1", "street name 1.0.9.1.1.1", "street name 1.0.10.1.1.1", "street name 1.0.11.1.1.1", "street name 1.0.12.1.1.1", "street name 1.0.13.1.1.1", "street name 1.0.14.1.1.1", "street name 1.0.15.1.1.1", "street name 1.0.16.1.1.1", "street name 1.0.17.1.1.1", "street name 1.0.18.1.1.1", "street name 1.0.19.0.1.1.1", "street name 1.0.19.1.1.1.1" ];
-  
-  const streetName = sectionThreeData.trailerVesselAddress.streetName.toUpperCase();
-  
-  for (let i = 0; i < streetName.length && i < streetNameFields.length; i++) {
-    const field = form.getTextField(streetNameFields[i]);
-    if (field) {
-      field.setText(streetName.charAt(i));
-    }
-  }
-} catch (e) {
-  console.warn(`Error setting trailer/vessel address street name fields`, e);
-}
-}
-if (sectionThreeData.hasTrailerVessel && 
-  sectionThreeData.trailerVesselAddress && 
-  sectionThreeData.trailerVesselAddress.city) {
-try {
-  const trailerVesselCityFields = [
-    "city.1.1.1.0",
-    "city 1.0.1.1.1.0",
-    "city 1.1.1.1.1.0",
-    "city 1.2.1.1.1.0",
-    "city 1.3.1.1.1.0",
-    "city 1.4.1.1.1.0",
-    "city 1.5.1.1.1.0",
-    "city 1.6.1.1.1.0",
-    "city 1.7.1.1.1.0",
-    "city 1.8.1.1.1.0",
-    "city 1.9.1.1.1.0",
-    "city 1.10.1.1.1.0",
-    "city 1.11.1.1.1.0",
-    "city 1.12.1.1.1.0",
-    "city 1.13.1.1.1.0",
-    "city 1.14.1.1.1.0",
-  ];
-  
-  const trailerVesselCity = sectionThreeData.trailerVesselAddress.city.toUpperCase();
-  
-  for (let i = 0; i < trailerVesselCity.length && i < trailerVesselCityFields.length; i++) {
-    const field = form.getTextField(trailerVesselCityFields[i]);
-    if (field) {
-      field.setText(trailerVesselCity.charAt(i));
-    }
-  }
-} catch (e) {
-  console.warn(`Error setting trailer/vessel address city fields`, e);
-}
-
-if (sectionThreeData.hasTrailerVessel && 
-  sectionThreeData.trailerVesselAddress && 
-  sectionThreeData.trailerVesselAddress.county) {
-try {
-  const countyFields = [
-    "county.0",
-    "county.1",
-    "county.2",
-    "county.3",
-    "county.4",
-    "county.5",
-    "county.6",
-    "county.7",
-    "county.8",
-    "county.9",
-    "county.10",
-    "county.11",
-    "county.12",
-    "county.13"
-  ];
-  
-  const county = sectionThreeData.trailerVesselAddress.county.toUpperCase();
-  
-  for (let i = 0; i < county.length && i < countyFields.length; i++) {
-    const field = form.getTextField(countyFields[i]);
-    if (field) {
-      field.setText(county.charAt(i));
-    }
-  }
-} catch (e) {
-  console.warn(`Error setting trailer/vessel address county fields`, e);
-}
-}
-}  if (sectionThreeData.hasTrailerVessel && 
-      sectionThreeData.trailerVesselAddress && 
-      sectionThreeData.trailerVesselAddress.streetNumber) {
-    try {
-      const trailerVesselStreetNumberFields = [
-        "street.1.1.1",
-        "street 1.0.1.1.1",
-        "street 1.1.1.1.1",
-        "street 1.2.1.1.1",
-        "street 1.3.1.1.1",
-      ];
-      
-      const trailerVesselStreetNumber = sectionThreeData.trailerVesselAddress.streetNumber.toUpperCase();
-      
-      for (let i = 0; i < trailerVesselStreetNumber.length && i < trailerVesselStreetNumberFields.length; i++) {
-        const field = form.getTextField(trailerVesselStreetNumberFields[i]);
-        if (field) {
-          field.setText(trailerVesselStreetNumber.charAt(i));
-        }
-      }
-    } catch (e) {
-      console.warn(`Error setting trailer/vessel address street number fields`, e);
-    }
-  }
-  
- 
-}
-
 
 
 
@@ -4087,8 +3437,7 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   return await pdfDoc.save();
 }
 
-
-async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
+async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactionType?: string): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
   
   const form = pdfDoc.getForm();
@@ -4098,35 +3447,37 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   
   console.log('===== COMPLETE FORM DATA =====');
   console.log(JSON.stringify(formData, null, 2));
-  console.log('=============================');
-  
-  let transactionType = null;
-  
-  if (formData.transactionType) {
-    transactionType = formData.transactionType;
-    console.log(`Found transaction type in formData.transactionType: "${transactionType}"`);
-  } else if (formData.type) {
-    transactionType = formData.type;
-    console.log(`Found transaction type in formData.type: "${transactionType}"`);
-  } else if (formData.formData && formData.formData.transactionType) {
-    transactionType = formData.formData.transactionType;
-    console.log(`Found transaction type in formData.formData.transactionType: "${transactionType}"`);
-  } else if (formData.formData && formData.formData.type) {
-    transactionType = formData.formData.type;
-    console.log(`Found transaction type in formData.formData.type: "${transactionType}"`);
+  console.log('=============================');  console.log('Transaction type passed directly:', transactionType);  console.log('Raw formData object type property:', formData.type);  if (!transactionType) {    if (formData.transactionType) {
+      transactionType = formData.transactionType;
+      console.log(`Found transaction type in formData.transactionType: "${transactionType}"`);
+    } else if (formData.type) {
+      transactionType = formData.type;
+      console.log(`Found transaction type in formData.type: "${transactionType}"`);
+    } else if (formData.formData && formData.formData.transactionType) {
+      transactionType = formData.formData.transactionType;
+      console.log(`Found transaction type in formData.formData.transactionType: "${transactionType}"`);
+    } else if (formData.formData && formData.formData.type) {
+      transactionType = formData.formData.type;
+      console.log(`Found transaction type in formData.formData.type: "${transactionType}"`);
+    } else {      if (formData.pnoDetails && formData.pnoDetails.requestPnoCard) {
+        transactionType = "Filing PNO Transfer";
+        console.log(`Found PNO details, setting transaction type to: "Filing PNO Transfer"`);
+      } else {
+        transactionType = "Duplicate Registration Transfer";
+        console.log(`No transaction type found anywhere, using default: "Duplicate Registration Transfer"`);
+      }
+    }
   } else {
-    transactionType = "Duplicate Registration Transfer";
-    console.log(`No transaction type found anywhere, using default: "Duplicate Registration Transfer"`);
+    console.log(`Using provided transaction type: "${transactionType}"`);
   }
-  
-  formData.transactionType = transactionType;
   
   const isDuplicateStickers = transactionType === "Duplicate Stickers";
   const isDuplicatePlatesAndStickers = transactionType === "Duplicate Plates & Stickers";
   const isDuplicateTitleTransfer = transactionType === "Duplicate Title Transfer";
   const isDuplicateRegistrationTransfer = transactionType === "Duplicate Registration Transfer";
+  const isFilingPNOTransfer = transactionType === "Filing PNO Transfer";
   
-  console.log(`Transaction type: "${transactionType}", isDuplicateStickers: ${isDuplicateStickers}, isDuplicatePlatesAndStickers: ${isDuplicatePlatesAndStickers}, isDuplicateTitleTransfer: ${isDuplicateTitleTransfer}, isDuplicateRegistrationTransfer: ${isDuplicateRegistrationTransfer}`);
+  console.log(`Transaction type: "${transactionType}", isDuplicateStickers: ${isDuplicateStickers}, isDuplicatePlatesAndStickers: ${isDuplicatePlatesAndStickers}, isDuplicateTitleTransfer: ${isDuplicateTitleTransfer}, isDuplicateRegistrationTransfer: ${isDuplicateRegistrationTransfer}, isFilingPNOTransfer: ${isFilingPNOTransfer}`);
   
   const fieldMapping = {
     "Vehicle license plate": "vehicleInformation.licensePlate",
@@ -4191,8 +3542,9 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     "other": "itemRequested.other",
     
     "One license": "licensePlate.oneMissingPlate",
-    "Two plates": "licensePlate.twoMissingPlates" 
-  };
+    "Two plates": "licensePlate.twoMissingPlates",
+    
+    "PNO": "pnoDetails.requestPnoCard"  };
   
   const safeSetText = (fieldName: string, value: string) => {
     try {
@@ -4341,14 +3693,12 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   const seller1 = sellers[0] || {};
   const seller2 = sellers[1] || {};
   
- 
   let seller1SaleDate = '';
   if (seller1 && seller1.saleDate) {
     seller1SaleDate = seller1.saleDate;
     console.log(`Found seller1's sale date: ${seller1SaleDate}`);
   }
   
- 
   const formattedSellerSaleDate = formatDate(seller1SaleDate);
   
   for (const [pdfField, formField] of Object.entries(fieldMapping)) {
@@ -4435,49 +3785,16 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     safeSetText("City2", dataToUse.sellerAddress.city || '');
     safeSetText("state2", dataToUse.sellerAddress.state || '');
     safeSetText("zip code2", dataToUse.sellerAddress.zip || '');
-  }
-  
- 
-  if (!isDuplicateRegistrationTransfer) {
-    for (const [pdfField, formField] of Object.entries(checkboxMapping)) {
-      try {
-        if (pdfField === "one" || pdfField === "Two") {
-          if (!getNestedProperty(dataToUse, "itemRequested.surrendered")) {
-            continue;
-          }
-          
-          const numberOfPlatesSurrendered = getNestedProperty(dataToUse, "itemRequested.numberOfPlatesSurrendered");
-          const shouldCheck = (pdfField === "one" && numberOfPlatesSurrendered === "One") ||
-                              (pdfField === "Two" && numberOfPlatesSurrendered === "Two");
-          
-          safeSetCheckbox(pdfField, shouldCheck);
-          continue;
-        }
-        
-        if (pdfField === "other") {
-          continue;
-        }
-        
-        if (pdfField === "Two plates") {
-          const value = getNestedProperty(dataToUse, formField) || false;
-          console.log(`Setting "${pdfField}" checkbox to: ${value}`, {
-            path: formField,
-            rawValue: getNestedProperty(dataToUse, formField),
-            finalValue: value
-          });
-          safeSetCheckbox(pdfField, value);
-          continue;
-        }
-        
-        const value = getNestedProperty(dataToUse, formField) || false;
-        safeSetCheckbox(pdfField, value);
-      } catch (error) {
-        console.error(`Error applying checkbox mapping for field ${pdfField}:`, error);
+  }  if (isFilingPNOTransfer) {
+    console.log('Processing Filing PNO Transfer transaction type');    safeSetCheckbox("PNO", true);    safeSetCheckbox("License plates", false);
+    safeSetCheckbox("license month", false);
+    safeSetCheckbox("license year", false);
+    safeSetCheckbox("Reg Card", false);    safeSetCheckbox("other", false);
+    safeSetText("Explanation", "");    for (const fieldName of Object.keys(checkboxMapping)) {
+      if (fieldName !== "PNO") {        safeSetCheckbox(fieldName, false);
       }
-    }
-  }
-  
-  if (isDuplicateStickers) {
+    }  }
+  else if (isDuplicateStickers) {
     console.log('Processing Duplicate Stickers transaction type');
     
     safeSetCheckbox("License plates", false);
@@ -4532,18 +3849,12 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   else if (isDuplicateRegistrationTransfer) {
     console.log('Processing Duplicate Registration Transfer transaction type');
     
- 
     safeSetCheckbox("License plates", false);
     safeSetCheckbox("license month", false);
     safeSetCheckbox("license year", false);
     safeSetCheckbox("Reg Card", true);
     
- 
- 
     safeSetCheckbox("other", true);
-    
- 
- 
     safeSetText("Explanation", "Requesting a duplicate registration card");
   }
   else {
@@ -4560,9 +3871,48 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
       const explanation = getNestedProperty(dataToUse, "itemRequested.otherExplanation") || '';
       safeSetText("Explanation", explanation);
     }
+  }  if (!isFilingPNOTransfer) {    for (const [pdfField, formField] of Object.entries(checkboxMapping)) {
+      try {        if (pdfField === "License plates" || 
+            pdfField === "license month" || 
+            pdfField === "license year" || 
+            pdfField === "Reg Card" || 
+            pdfField === "other" ||
+            pdfField === "PNO") {
+          continue;
+        }
+        
+        if (pdfField === "one" || pdfField === "Two") {
+          if (!getNestedProperty(dataToUse, "itemRequested.surrendered")) {
+            continue;
+          }
+          
+          const numberOfPlatesSurrendered = getNestedProperty(dataToUse, "itemRequested.numberOfPlatesSurrendered");
+          const shouldCheck = (pdfField === "one" && numberOfPlatesSurrendered === "One") ||
+                              (pdfField === "Two" && numberOfPlatesSurrendered === "Two");
+          
+          safeSetCheckbox(pdfField, shouldCheck);
+          continue;
+        }
+        
+        if (pdfField === "Two plates") {
+          const value = getNestedProperty(dataToUse, formField) || false;
+          console.log(`Setting "${pdfField}" checkbox to: ${value}`, {
+            path: formField,
+            rawValue: getNestedProperty(dataToUse, formField),
+            finalValue: value
+          });
+          safeSetCheckbox(pdfField, value);
+          continue;
+        }
+        
+        const value = getNestedProperty(dataToUse, formField) || false;
+        safeSetCheckbox(pdfField, value);
+      } catch (error) {
+        console.error(`Error applying checkbox mapping for field ${pdfField}:`, error);
+      }
+    }
   }
   
- 
   if (seller1SaleDate) {
     console.log(`Using seller1's sale date: ${formattedSellerSaleDate}`);
     safeSetText("date", formattedSellerSaleDate);
@@ -4583,3 +3933,1467 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   
   return await pdfDoc.save();
 }
+
+
+interface Address {
+  streetNumber?: string;
+  streetName?: string;
+  aptNo?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  county?: string; 
+}
+interface Address {
+  streetNumber?: string;
+  streetName?: string;
+  aptNo?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  county?: string;
+}
+
+interface SectionThreeData {
+  address?: Address;
+  mailingAddress?: Address;
+  trailerVesselAddress?: Address; 
+  mailingAddressDifferent?: boolean;
+  hasTrailerVessel?: boolean; 
+}
+
+interface VehicleEntry {
+  plateCfNumber?: string;
+  vehicleHullId?: string;
+  leased?: 'inside' | 'outside';
+  registeredLocation?: 'inside' | 'outside';
+}
+
+interface CitizenshipData {
+  isUsCitizen?: boolean;
+}
+
+interface LeasedVehiclesData {
+  isLeased: boolean;
+  leasingCompanyName: string;
+}
+
+interface FormData {
+  personalBusinessInfo?: {
+    lastName?: string;
+    firstName?: string;
+    initial?: string;
+    birthDate?: string;
+    driverLicenseId?: string;
+  };
+  previousResidence?: Address;
+  newOrCorrectResidence?: SectionThreeData;
+  vehiclesOwned?: VehicleEntry[];
+  voterAddressUpdate?: {
+    doNotUpdateVoterRegistration?: boolean;
+  };
+  citizenship?: CitizenshipData;
+  leasedVehicles?: LeasedVehiclesData;
+}
+
+async function modifyDMV14Pdf(fileBytes: ArrayBuffer, formData: FormData): Promise<Uint8Array> {
+  try {
+    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
+    
+    if (!pdfDoc) {
+      console.error('Failed to load PDF document');
+      throw new Error('Failed to load PDF document');
+    }
+    
+    const form = pdfDoc.getForm();
+    
+    if (!form) {
+      console.error('Failed to get form from PDF');
+      throw new Error('Failed to get form from PDF');
+    }
+    
+ 
+    try {
+      const fieldNames = form.getFields().map(f => f.getName());
+      console.log('Available DMV14 PDF Fields:', JSON.stringify(fieldNames, null, 2));
+    } catch (error) {
+      console.error('Error getting field names:', error);
+    }
+    
+ 
+    try {
+      mapPersonalBusinessInfo(form, formData.personalBusinessInfo);
+      mapPreviousResidence(form, formData.previousResidence);
+      mapNewOrCorrectResidence(form, formData.newOrCorrectResidence);
+      mapVoterAddressUpdate(form, formData.voterAddressUpdate);
+      mapVehiclesOwned(form, formData.vehiclesOwned);
+      mapCitizenshipStatus(form, formData.citizenship);
+      mapLeasingCompany(form, formData.leasedVehicles);
+      mapCurrentDateToSec10(form);
+      mapS8cEligible(form);
+
+    } catch (error) {
+      console.error('Error mapping form data to PDF fields:', error);
+    }
+    
+    try {
+      form.updateFieldAppearances();
+    } catch (e) {
+      console.warn('Error updating field appearances, continuing anyway:', e);
+    }
+    
+    return await pdfDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: false,
+      updateFieldAppearances: false
+    });
+  } catch (error) {
+    console.error('Error in modifyDMV14Pdf:', error);
+    
+    const emptyPdf = await PDFDocument.create();
+    return await emptyPdf.save();
+  }
+}
+
+ 
+function mapLeasingCompany(form: any, leasedVehiclesData?: LeasedVehiclesData) {
+  if (!leasedVehiclesData || !leasedVehiclesData.isLeased || !leasedVehiclesData.leasingCompanyName) return;
+
+  try {
+    const leasingCoFields = [
+      "leasing co.0",
+      "leasing co.1",
+      "leasing co.2",
+      "leasing co.3",
+      "leasing co.4",
+      "leasing co.5",
+      "leasing co.6",
+      "leasing co.7",
+      "leasing co.8",
+      "leasing co.9",
+      "leasing co.10",
+      "leasing co.11",
+      "leasing co.12",
+      "leasing co.13",
+      "leasing co.14",
+      "leasing co.15",
+      "leasing co.16",
+      "leasing co.17",
+      "leasing co.18",
+      "leasing co.19",
+      "leasing co.20",
+      "leasing co.21"
+    ];
+    
+    const companyName = leasedVehiclesData.leasingCompanyName.toUpperCase();
+    
+    for (let i = 0; i < companyName.length && i < leasingCoFields.length; i++) {
+      const field = form.getTextField(leasingCoFields[i]);
+      if (field) {
+        field.setText(companyName.charAt(i));
+      }
+    }
+    
+    console.log(`Successfully set leasing company name: ${companyName}`);
+  } catch (e) {
+    console.warn('Error setting leasing company fields:', e);
+    
+ 
+    try {
+ 
+      const singleFieldNames = [
+        "Leasing Company",
+        "LEASING COMPANY",
+        "leasing_company",
+        "LeasingCompany"
+      ];
+      
+      for (const fieldName of singleFieldNames) {
+        try {
+          const field = form.getTextField(fieldName);
+          if (field) {
+            field.setText(leasedVehiclesData.leasingCompanyName);
+            console.log(`Successfully set "${fieldName}" field to ${leasedVehiclesData.leasingCompanyName}`);
+            break;
+          }
+        } catch (e) {
+ 
+        }
+      }
+    } catch (fallbackError) {
+      console.warn('Error setting fallback leasing company field:', fallbackError);
+    }
+  }
+}
+
+ 
+function mapCitizenshipStatus(form: any, citizenshipData?: CitizenshipData) {
+  if (!citizenshipData || citizenshipData.isUsCitizen === undefined) return;
+
+  try {
+    if (citizenshipData.isUsCitizen === true) {
+ 
+      const citizenYesField = form.getCheckBox("S8a Yes");
+      if (citizenYesField) {
+        citizenYesField.check();
+        console.log('Successfully checked "S8a Yes" checkbox');
+      } else {
+ 
+        const yesAlternativeFieldNames = [
+          "s8a yes",
+          "S8aYes",
+          "citizen_yes",
+          "CitizenYes",
+          "US Citizen Yes"
+        ];
+        
+        for (const fieldName of yesAlternativeFieldNames) {
+          try {
+            const field = form.getCheckBox(fieldName);
+            if (field) {
+              field.check();
+              console.log(`Successfully checked "${fieldName}" checkbox for US Citizen Yes`);
+              break;
+            }
+          } catch (e) {
+ 
+          }
+        }
+      }
+    } else if (citizenshipData.isUsCitizen === false) {
+ 
+      const citizenNoField = form.getCheckBox("S8a No");
+      if (citizenNoField) {
+        citizenNoField.check();
+        console.log('Successfully checked "S8a No" checkbox');
+      } else {
+ 
+        const noAlternativeFieldNames = [
+          "s8a no",
+          "S8aNo",
+          "citizen_no",
+          "CitizenNo",
+          "US Citizen No"
+        ];
+        
+        for (const fieldName of noAlternativeFieldNames) {
+          try {
+            const field = form.getCheckBox(fieldName);
+            if (field) {
+              field.check();
+              console.log(`Successfully checked "${fieldName}" checkbox for US Citizen No`);
+              break;
+            }
+          } catch (e) {
+ 
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error setting citizenship status fields:', e);
+  }
+}
+
+function mapVehiclesOwned(form: any, vehiclesOwned?: VehicleEntry[]) {
+  if (!vehiclesOwned || vehiclesOwned.length === 0) return;
+
+ 
+  for (let i = 0; i < Math.min(vehiclesOwned.length, 3); i++) {
+    const vehicle = vehiclesOwned[i];
+    const vehicleIndex = i + 1; 
+
+ 
+    if (vehicle.plateCfNumber) {
+      try {
+        const plateFields = getPlateFieldsForIndex(vehicleIndex);
+        const plateNumber = vehicle.plateCfNumber.toUpperCase();
+        
+        for (let j = 0; j < plateNumber.length && j < plateFields.length; j++) {
+          const field = form.getTextField(plateFields[j]);
+          if (field) {
+            field.setText(plateNumber.charAt(j));
+          }
+        }
+      } catch (e) {
+        console.warn(`Error setting plate/CF/placard fields for vehicle ${vehicleIndex}:`, e);
+      }
+    }
+
+ 
+    if (vehicle.vehicleHullId) {
+      try {
+        const hullIdFields = getHullIdFieldsForIndex(vehicleIndex);
+        const hullId = vehicle.vehicleHullId.toUpperCase();
+        
+        for (let j = 0; j < hullId.length && j < hullIdFields.length; j++) {
+          const field = form.getTextField(hullIdFields[j]);
+          if (field) {
+            field.setText(hullId.charAt(j));
+          }
+        }
+      } catch (e) {
+        console.warn(`Error setting hull ID fields for vehicle ${vehicleIndex}:`, e);
+      }
+    }
+
+ 
+    try {
+ 
+      if (vehicle.leased === 'inside') {
+        const leasedCheckboxFieldName = `Check Box3.${i}`; 
+        const leasedCheckboxField = form.getCheckBox(leasedCheckboxFieldName);
+        
+        if (leasedCheckboxField) {
+          leasedCheckboxField.check();
+          console.log(`Successfully checked "${leasedCheckboxFieldName}" for leased vehicle ${vehicleIndex}`);
+        } else {
+          console.warn(`Could not find checkbox field "${leasedCheckboxFieldName}" for leased vehicle ${vehicleIndex}`);
+          
+ 
+          const alternativeFieldNames = [
+            `Leased ${vehicleIndex}`,
+            `leased_${vehicleIndex}`,
+            `Leased Vehicle ${vehicleIndex}`
+          ];
+          
+          for (const fieldName of alternativeFieldNames) {
+            try {
+              const field = form.getCheckBox(fieldName);
+              if (field) {
+                field.check();
+                console.log(`Successfully checked "${fieldName}" for leased vehicle ${vehicleIndex}`);
+                break;
+              }
+            } catch (e) {
+ 
+            }
+          }
+        }
+      }
+
+ 
+      if (vehicle.registeredLocation === 'inside') {
+        const registeredOutsideFieldName = `Check Box4.${i}`; 
+        const registeredOutsideField = form.getCheckBox(registeredOutsideFieldName);
+        
+        if (registeredOutsideField) {
+          registeredOutsideField.check();
+          console.log(`Successfully checked "${registeredOutsideFieldName}" for registered outside CA vehicle ${vehicleIndex}`);
+        } else {
+          console.warn(`Could not find checkbox field "${registeredOutsideFieldName}" for registered outside CA vehicle ${vehicleIndex}`);
+          
+ 
+          const alternativeFieldNames = [
+            `Registered Outside CA ${vehicleIndex}`,
+            `registered_outside_${vehicleIndex}`,
+            `Outside CA ${vehicleIndex}`
+          ];
+          
+          for (const fieldName of alternativeFieldNames) {
+            try {
+              const field = form.getCheckBox(fieldName);
+              if (field) {
+                field.check();
+                console.log(`Successfully checked "${fieldName}" for registered outside CA vehicle ${vehicleIndex}`);
+                break;
+              }
+            } catch (e) {
+ 
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting checkbox fields for vehicle ${vehicleIndex}:`, e);
+    }
+  }
+}
+
+function mapS8cEligible(form: any) {
+  try {
+ 
+    const s8cEligibleField = form.getCheckBox("S8c Eligible");
+    if (s8cEligibleField) {
+      s8cEligibleField.check(); 
+      console.log('Successfully checked "S8c Eligible" checkbox');
+    } else {
+ 
+      const alternativeFieldNames = [
+        "s8c eligible",
+        "S8cEligible",
+        "s8c_eligible",
+        "Section 8c Eligible"
+      ];
+      
+      for (const fieldName of alternativeFieldNames) {
+        try {
+          const field = form.getCheckBox(fieldName);
+          if (field) {
+            field.check();
+            console.log(`Successfully checked "${fieldName}" checkbox`);
+            break;
+          }
+        } catch (e) {
+ 
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error setting S8c Eligible field:', e);
+  }
+}
+
+ 
+function mapCurrentDateToSec10(form: any) {
+  try {
+ 
+    const today = new Date();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const year = today.getFullYear().toString();
+    const formattedDate = `${month}/${day}/${year}`;
+    
+ 
+    const sec10DateField = form.getTextField("Sec10 date");
+    if (sec10DateField) {
+      sec10DateField.setText(formattedDate);
+      console.log(`Successfully set "Sec10 date" to ${formattedDate}`);
+    } else {
+ 
+      const alternativeFieldNames = [
+        "sec10 date",
+        "Sec10Date",
+        "sec10_date",
+        "Section10Date",
+        "Section 10 Date"
+      ];
+      
+      for (const fieldName of alternativeFieldNames) {
+        try {
+          const field = form.getTextField(fieldName);
+          if (field) {
+            field.setText(formattedDate);
+            console.log(`Successfully set "${fieldName}" to ${formattedDate}`);
+            break;
+          }
+        } catch (e) {
+ 
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error setting Sec10 date field:', e);
+  }
+}
+
+
+ 
+function getPlateFieldsForIndex(index: number): string[] {
+  if (index === 1) {
+    return [
+      "California plate 1.0",
+      "California plate 1.1",
+      "California plate 1.2",
+      "California plate 1.3",
+      "California plate 1.4",
+      "California plate 1.5",
+      "California plate 1.6",
+      "California plate 1.7"
+    ];
+  } else if (index === 2) {
+    return [
+      "California plate 2.0",
+      "California plate 2.1",
+      "California plate 2.2",
+      "California plate 2.3",
+      "California plate 2.4",
+      "California plate 2.5",
+      "California plate 2.6",
+      "California plate 2.7"
+    ];
+  } else if (index === 3) {
+    return [
+      "California plate 3.0",
+      "California plate 3.1",
+      "California plate 3.2",
+      "California plate 3.3",
+      "California plate 3.4",
+      "California plate 3.5",
+      "California plate 3.6",
+      "California plate 3.7"
+    ];
+  }
+  return [];
+}
+
+ 
+function getHullIdFieldsForIndex(index: number): string[] {
+  if (index === 1) {
+    return [
+      "HULL ID.0",
+      "HULL ID.1",
+      "HULL ID.2",
+      "HULL ID.3",
+      "HULL ID.4",
+      "HULL ID.5",
+      "HULL ID.6",
+      "HULL ID.7",
+      "HULL ID.8",
+      "HULL ID.9",
+      "HULL ID.10",
+      "HULL ID.11",
+      "HULL ID.12",
+      "HULL ID.13",
+      "HULL ID.14",
+      "HULL ID.15",
+      "HULL ID.16"
+    ];
+  } else if (index === 2) {
+    return [
+      "HULL ID 2.0",
+      "HULL ID 2.1",
+      "HULL ID 2.2",
+      "HULL ID 2.3",
+      "HULL ID 2.4",
+      "HULL ID 2.5",
+      "HULL ID 2.6",
+      "HULL ID 2.7",
+      "HULL ID 2.8",
+      "HULL ID 2.9",
+      "HULL ID 2.10",
+      "HULL ID 2.11",
+      "HULL ID 2.12",
+      "HULL ID 2.13",
+      "HULL ID 2.14",
+      "HULL ID 2.15"
+    ];
+  } else if (index === 3) {
+    return [
+      "HULL ID 3.0",
+      "HULL ID 3.1",
+      "HULL ID 3.2",
+      "HULL ID 3.3",
+      "HULL ID 3.4",
+      "HULL ID 3.5",
+      "HULL ID 3.6",
+      "HULL ID 3.7",
+      "HULL ID 3.8",
+      "HULL ID 3.9",
+      "HULL ID 3.10",
+      "HULL ID 3.11",
+      "HULL ID 3.12",
+      "HULL ID 3.13",
+      "HULL ID 3.14",
+      "HULL ID 3.15",
+      "HULL ID 3.16"
+    ];
+  }
+  return [];
+}
+
+function mapVoterAddressUpdate(form: any, voterAddressUpdateData?: FormData['voterAddressUpdate']) {
+  if (!voterAddressUpdateData) return;
+
+  try {
+ 
+    if (voterAddressUpdateData.doNotUpdateVoterRegistration) {
+ 
+      const addressUpdateField = form.getCheckBox("Address Update");
+      if (addressUpdateField) {
+        addressUpdateField.check(); 
+        console.log('Successfully checked "Address Update" checkbox');
+      } else {
+ 
+        const alternativeFieldNames = [
+          "address update",
+          "AddressUpdate",
+          "doNotUpdateVoterRegistration",
+          "voter_registration_opt_out"
+        ];
+        
+        for (const fieldName of alternativeFieldNames) {
+          try {
+            const field = form.getCheckBox(fieldName);
+            if (field) {
+              field.check();
+              console.log(`Successfully checked "${fieldName}" checkbox`);
+              break;
+            }
+          } catch (e) {
+ 
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error setting voter address update fields:', e);
+  }
+}
+
+
+
+
+function mapPersonalBusinessInfo(form: any, personalInfo?: FormData['personalBusinessInfo']) {
+  if (!personalInfo) return;
+
+ 
+  if (personalInfo.lastName) {
+    const lastNameFields = [
+      "last name",
+      "last 1.0.0", "last 1.0.1", "last 1.0.2", "last 1.0.3", "last 1.0.4", 
+      "last 1.0.5", "last 1.0.6", "last 1.0.7", "last 1.0.8", "last 1.0.9", 
+      "last 1.0.10", "last 1.0.11", "last 1.0.12", "last 1.0.13", "last 1.0.14", 
+      "last 1.0.15", "last 1.0.16", "last 1.0.17", "last 1.0.18"
+    ];
+    
+    const lastName = personalInfo.lastName.toUpperCase(); 
+    
+    for (let i = 0; i < lastName.length && i < lastNameFields.length; i++) {
+      try {
+        const field = form.getTextField(lastNameFields[i]);
+        if (field) {
+          field.setText(lastName.charAt(i));
+        }
+      } catch (e) {
+        console.warn(`Field ${lastNameFields[i]} not found or cannot be set`, e);
+      }
+    }
+  }
+  
+ 
+  if (personalInfo.firstName) {
+    try {
+      const firstNameFields = [
+        "first name",
+        "first.0",
+        "first.1",
+        "first.2",
+        "first.3",
+        "first.4",
+        "first.5",
+        "first.6",
+        "first.7",
+      ];
+      
+      const firstName = personalInfo.firstName.toUpperCase();
+      
+      for (let i = 0; i < firstName.length && i < firstNameFields.length; i++) {
+        const field = form.getTextField(firstNameFields[i]);
+        if (field) {
+          field.setText(firstName.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting first name fields`, e);
+    }
+  }
+
+ 
+  if (personalInfo.initial) {
+    try {
+      const field = form.getTextField("initial");
+      if (field) {
+        field.setText(personalInfo.initial.toUpperCase());
+      }
+    } catch (e) {
+      console.warn(`Field 'initial' not found or cannot be set`, e);
+    }
+  }
+
+ 
+  if (personalInfo.birthDate) {
+    try {
+      const birthDateFields = [
+        "birth date.0",
+        "birth date.1",
+        "birth date.2",
+        "birth date.3",
+        "birth date.4",
+        "birth date.5",
+        "birth date.6",
+        "birth date.7"
+      ];
+      
+      const birthDate = personalInfo.birthDate; 
+ 
+      const digitsOnly = birthDate.replace(/\D/g, '');
+      
+ 
+      let fieldIndex = 0;
+      for (let i = 0; i < digitsOnly.length && fieldIndex < birthDateFields.length; i++) {
+        const field = form.getTextField(birthDateFields[fieldIndex]);
+        if (field) {
+          field.setText(digitsOnly.charAt(i));
+          fieldIndex++; 
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting birth date fields`, e);
+    }
+  }
+
+ 
+  if (personalInfo.driverLicenseId) {
+    try {
+      const driverLicenseFields = [
+        "Driver license",
+        "Driver license digits.0",
+        "Driver license digits.1",
+        "Driver license digits.2",
+        "Driver license digits.3",
+        "Driver license digits.4",
+        "Driver license digits.5",
+        "Driver license digits.6"
+      ];
+      
+      const driverLicenseId = personalInfo.driverLicenseId.toUpperCase();
+      
+      for (let i = 0; i < driverLicenseId.length && i < driverLicenseFields.length; i++) {
+        const field = form.getTextField(driverLicenseFields[i]);
+        if (field) {
+          field.setText(driverLicenseId.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting driver license fields`, e);
+    }
+  }
+}
+
+function mapPreviousResidence(form: any, address?: Address) {
+  if (!address) return;
+
+ 
+  if (address.streetNumber) {
+    try {
+      const streetNumberFields = [
+        "street.0",
+        "street 1.0.0",
+        "street 1.1.0",
+        "street 1.2.0",
+        "street 1.3.0",
+      ];
+      
+      const streetNumber = address.streetNumber.toUpperCase();
+      
+      for (let i = 0; i < streetNumber.length && i < streetNumberFields.length; i++) {
+        const field = form.getTextField(streetNumberFields[i]);
+        if (field) {
+          field.setText(streetNumber.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting previous residence street number fields`, e);
+    }
+  }
+
+  if (address.streetName) {
+    try {
+      const streetNameFields = [
+        "street name.0",
+        "street name 1.0.0.0",
+        "street name 1.0.1.0",
+        "street name 1.0.2.0",
+        "street name 1.0.3.0",
+        "street name 1.0.4.0",
+        "street name 1.0.5.0",
+        "street name 1.0.6.0",
+        "street name 1.0.7.0",
+        "street name 1.0.8.0",
+        "street name 1.0.9.0",
+        "street name 1.0.10.0",
+        "street name 1.0.11.0",
+        "street name 1.0.12.0",
+        "street name 1.0.13.0",
+        "street name 1.0.14.0",
+        "street name 1.0.15.0",
+        "street name 1.0.16.0",
+        "street name 1.0.17.0",
+        "street name 1.0.18.0",
+        "street name 1.0.19.0.0",
+        "street name 1.0.19.1.0",
+        "street name 1.0.20.0.0",
+        "street name 1.0.20.1.0",
+      "street name 1.0.20.2.0",
+      "street name 1.0.20.3.0",
+      "street name 1.0.20.4.0", 
+      "street name 1.0.20.5.0", 
+      "street name 1.0.20.6.0", 
+      "street name 1.0.20.7.0", 
+      "street name 1.0.20.8.0", 
+      "street name 1.0.20.9.0", 
+      "street name 1.0.20.10.0", 
+      "street name 1.0.20.11.0", 
+      "street name 1.0.20.12.0", 
+      "street name 1.0.20.13.0", 
+      "street name 1.0.20.14.0", 
+      "street name 1.0.20.15.0", 
+      "street name 1.0.20.16.0", 
+      "street name 1.0.20.17.0", 
+      "street name 1.0.20.18.0", 
+      "street name 1.0.20.19.0", 
+      "street name 1.0.20.20.0", 
+      "street name 1.0.20.21.0", 
+      
+    
+    ];
+      
+      const streetName = address.streetName.toUpperCase();
+      
+      for (let i = 0; i < streetName.length && i < streetNameFields.length; i++) {
+        const field = form.getTextField(streetNameFields[i]);
+        if (field) {
+          field.setText(streetName.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting previous residence street name fields`, e);
+    }
+  }
+  if (address.city) {
+    try {
+      const cityFields = [
+        "city.0",
+        "city 1.0.0",
+        "city 1.1.0",
+        "city 1.2.0", 
+        "city 1.3.0",
+        "city 1.4.0",
+        "city 1.5.0",
+        "city 1.6.0",
+        "city 1.7.0",
+        "city 1.8.0",
+        "city 1.9.0",
+        "city 1.10.0",
+        "city 1.11.0",
+        "city 1.12.0",
+        "city 1.13.0",
+        "city 1.14.0",
+        "city 1.15.0",
+        "city 1.16.0",
+        "city 1.17.0",
+        "city 1.18.0",
+        "city 1.19.0",
+        "city 1.20.0",
+      ];
+      
+      const city = address.city.toUpperCase();
+      
+      for (let i = 0; i < city.length && i < cityFields.length; i++) {
+        const field = form.getTextField(cityFields[i]);
+        if (field) {
+          field.setText(city.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting previous residence city fields`, e);
+    }
+  }
+ 
+  if (address.aptNo) {
+    try {
+      const aptNumberFields = [
+        "apt number.0.0",
+        "apt number.1.0.0",
+        "apt number.1.1.0",
+        "apt number.1.2.0",
+      ];
+      
+      const aptNo = address.aptNo.toUpperCase();
+      
+      for (let i = 0; i < aptNo.length && i < aptNumberFields.length; i++) {
+        const field = form.getTextField(aptNumberFields[i]);
+        if (field) {
+          field.setText(aptNo.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting previous residence apt number fields`, e);
+    }
+  }
+  
+ 
+  if (address.state) {
+    try {
+      const stateFields = [
+        "state 1.0",
+        "state 1.1.1",
+      ];
+      
+      const state = address.state.toUpperCase();
+      
+ 
+      if (state.length === 2) {
+        for (let i = 0; i < state.length && i < stateFields.length; i++) {
+          const field = form.getTextField(stateFields[i]);
+          if (field) {
+            field.setText(state.charAt(i));
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting previous residence state fields`, e);
+    }
+  }
+  if (address.zipCode) {
+    try {
+      const zipCodeFields = [
+        "zip code.0.0",
+        "zip code.1.0.0",
+        "zip code.1.1.0",
+        "zip code.1.2.0",
+        "zip code.1.3.0",
+      ];
+      
+      const cleanZipCode = address.zipCode.replace(/[^0-9]/g, '');
+      
+      for (let i = 0; i < cleanZipCode.length && i < zipCodeFields.length; i++) {
+        const field = form.getTextField(zipCodeFields[i]);
+        if (field) {
+          field.setText(cleanZipCode.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting previous residence zip code fields`, e);
+    }
+  }
+ 
+}
+
+function mapNewOrCorrectResidence(form: any, sectionThreeData?: SectionThreeData) {
+  if (!sectionThreeData) return;
+
+  if (sectionThreeData.address && sectionThreeData.address.city) {
+    try {
+      const cityFields = [
+        "city.1.0",
+        "city 1.0.1.0",
+        "city 1.1.1.0",
+        "city 1.2.1.0",
+        "city 1.3.1.0",
+        "city 1.4.1.0",
+        "city 1.5.1.0",
+        "city 1.6.1.0",
+        "city 1.7.1.0",
+        "city 1.8.1.0",
+        "city 1.9.1.0",
+        "city 1.10.1.0",
+        "city 1.11.1.0",
+        "city 1.12.1.0",
+        "city 1.13.1.0",
+        "city 1.14.1.0",
+        "city 1.15.1.0",
+        "city 1.16.1.0",
+        "city 1.17.1.0",
+        "city 1.18.1.0",
+        "city 1.19.1.0",
+        "city 1.20.1.0",
+
+      ];
+      
+      const city = sectionThreeData.address.city.toUpperCase();
+      
+      for (let i = 0; i < city.length && i < cityFields.length; i++) {
+        const field = form.getTextField(cityFields[i]);
+        if (field) {
+          field.setText(city.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting new residence city fields`, e);
+    }
+  }
+    if (sectionThreeData.address && sectionThreeData.address.streetNumber) {
+    try {
+      const streetNumberFields = [
+        "street.1.0",
+        "street 1.0.1.0", 
+        "street 1.1.1.0",
+        "street 1.2.1.0",  
+        "street 1.3.1.0",
+      ];
+      
+      const streetNumber = sectionThreeData.address.streetNumber.toUpperCase();
+      
+      for (let i = 0; i < streetNumber.length && i < streetNumberFields.length; i++) {
+        const field = form.getTextField(streetNumberFields[i]);
+        if (field) {
+          field.setText(streetNumber.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting new residence street number fields`, e);
+    }
+  }
+  
+ 
+  if (sectionThreeData.address && sectionThreeData.address.aptNo) {
+    try {
+      const aptNumberFields = [
+        "apt number.0.1.0",
+        "apt number.1.0.1.0",
+        "apt number.1.1.1.0",
+        "apt number.1.2.1.0",
+      ];
+      
+      const aptNo = sectionThreeData.address.aptNo.toUpperCase();
+      
+      for (let i = 0; i < aptNo.length && i < aptNumberFields.length; i++) {
+        const field = form.getTextField(aptNumberFields[i]);
+        if (field) {
+          field.setText(aptNo.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting new residence apt number fields`, e);
+    }
+  }
+  
+ 
+  if (sectionThreeData.address && sectionThreeData.address.state) {
+    try {
+      const stateFields = [
+        "state 1.1.0",
+        "state 2.0",
+      ];
+      
+      const state = sectionThreeData.address.state.toUpperCase();
+      
+ 
+      if (state.length === 2) {
+        for (let i = 0; i < state.length && i < stateFields.length; i++) {
+          const field = form.getTextField(stateFields[i]);
+          if (field) {
+            field.setText(state.charAt(i));
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting new residence state fields`, e);
+    }
+
+    
+  }
+
+  if (sectionThreeData.address && sectionThreeData.address.streetName) {
+    try {
+      const streetNameFields = [
+        "street name.1.0",
+        "street name 1.0.0.1.0",
+        "street name 1.0.1.1.0",
+        "street name 1.0.2.1.0",
+        "street name 1.0.3.1.0",
+        "street name 1.0.4.1.0",
+        "street name 1.0.5.1.0",
+        "street name 1.0.6.1.0",
+        "street name 1.0.7.1.0",
+        "street name 1.0.8.1.0",
+        "street name 1.0.9.1.0",
+        "street name 1.0.10.1.0",
+
+        "street name 1.0.11.1.0",
+        "street name 1.0.12.1.0",
+        "street name 1.0.13.1.0",
+        "street name 1.0.14.1.0",
+        "street name 1.0.15.1.0",
+        "street name 1.0.16.1.0",
+        "street name 1.0.17.1.0",
+        "street name 1.0.18.1.0",
+
+        "street name 1.0.19.0.1.0",
+        "street name 1.0.19.1.1.0",
+
+
+        "street name 1.0.20.0.1.0",
+
+      "street name 1.0.20.1.1.0",
+      "street name 1.0.20.2.1.0",
+      "street name 1.0.20.3.1.0",
+      "street name 1.0.20.4.1.0",
+      "street name 1.0.20.5.1.0",
+      "street name 1.0.20.6.1.0",
+      "street name 1.0.20.7.1.0",
+      "street name 1.0.20.8.1.0",
+      "street name 1.0.20.9.1.0",
+      "street name 1.0.20.10.1.0",
+
+      "street name 1.0.20.11.1.0",
+      "street name 1.0.20.12.1.0",
+      "street name 1.0.20.13.1.0",
+      "street name 1.0.20.14.1.0",
+      "street name 1.0.20.15.1.0",
+      "street name 1.0.20.16.1.0",
+      "street name 1.0.20.17.1.0",
+      "street name 1.0.20.18.1.0",
+      "street name 1.0.20.19.1.0",
+      "street name 1.0.20.20.1.0",
+      "street name 1.0.20.21.1.0",
+
+
+
+      ];
+      
+      const streetName = sectionThreeData.address.streetName.toUpperCase();
+      
+      for (let i = 0; i < streetName.length && i < streetNameFields.length; i++) {
+        const field = form.getTextField(streetNameFields[i]);
+        if (field) {
+          field.setText(streetName.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting new residence street name fields`, e);
+    }
+  }
+  
+  if (sectionThreeData.address && sectionThreeData.address.zipCode) {
+    try {
+      const zipCodeFields = [
+        "zip code.0.1.0",
+        "zip code.1.0.1.0",
+        "zip code.1.1.1.0",
+        "zip code.1.2.1.0",
+        "zip code.1.3.1.0",
+      ];
+      
+      const cleanZipCode = sectionThreeData.address.zipCode.replace(/[^0-9]/g, '');
+      
+      for (let i = 0; i < cleanZipCode.length && i < zipCodeFields.length; i++) {
+        const field = form.getTextField(zipCodeFields[i]);
+        if (field) {
+          field.setText(cleanZipCode.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting new residence zip code fields`, e);
+    }
+  }
+  
+  if (sectionThreeData.mailingAddressDifferent && 
+    sectionThreeData.mailingAddress && 
+    sectionThreeData.mailingAddress.city) {
+  try {
+    const mailingCityFields = [
+      "city.1.1.0",
+      "city 1.0.1.1.0",
+      "city 1.1.1.1.0",
+      "city 1.2.1.1.0",
+      "city 1.3.1.1.0",
+      "city 1.4.1.1.0",
+      "city 1.5.1.1.0",
+      "city 1.6.1.1.0",
+      "city 1.7.1.1.0",
+      "city 1.8.1.1.0",
+      "city 1.9.1.1.0",
+      "city 1.10.1.1.0",
+      "city 1.11.1.1.0",
+      "city 1.12.1.1.0",
+      "city 1.13.1.1.0",
+      "city 1.14.1.1.0",
+      "city 1.15.1.1",
+      "city 1.16.1.1",
+      "city 1.17.1.1",
+      "city 1.18.1.1",
+      "city 1.19.1.1",
+      "city 1.19.1.1",
+      "city 1.20.1.1",
+
+      
+    ];
+    
+    const mailingCity = sectionThreeData.mailingAddress.city.toUpperCase();
+    
+    for (let i = 0; i < mailingCity.length && i < mailingCityFields.length; i++) {
+      const field = form.getTextField(mailingCityFields[i]);
+      if (field) {
+        field.setText(mailingCity.charAt(i));
+      }
+    }
+  } catch (e) {
+    console.warn(`Error setting mailing address city fields`, e);
+  }
+} 
+
+
+if (sectionThreeData.mailingAddressDifferent && 
+  sectionThreeData.mailingAddress && 
+  sectionThreeData.mailingAddress.streetName) {
+try {
+  const streetNameFields = [
+    "street name.1.1.0",
+    "street name 1.0.0.1.1.0",
+    "street name 1.0.1.1.1.0",
+    "street name 1.0.2.1.1.0",
+    "street name 1.0.3.1.1.0",
+    "street name 1.0.4.1.1.0",
+    "street name 1.0.5.1.1.0",
+    "street name 1.0.6.1.1.0",
+    "street name 1.0.7.1.1.0",
+    "street name 1.0.8.1.1.0",
+    "street name 1.0.9.1.1.0",
+    "street name 1.0.10.1.1.0",
+    "street name 1.0.11.1.1.0",
+    "street name 1.0.12.1.1.0",
+    "street name 1.0.13.1.1.0",
+    "street name 1.0.14.1.1.0",
+    "street name 1.0.15.1.1.0",
+    "street name 1.0.16.1.1.0",
+    "street name 1.0.17.1.1.0",
+    "street name 1.0.18.1.1.0",
+    "street name 1.0.19.0.1.1.0",
+    "street name 1.0.19.1.1.1.0",
+    "street name 1.0.20.0.1.1",
+    "street name 1.0.20.1.1.1",
+    "street name 1.0.20.2.1.1",
+    "street name 1.0.20.3.1.1",
+    "street name 1.0.20.4.1.1",
+    "street name 1.0.20.5.1.1",
+    "street name 1.0.20.6.1.1",
+    "street name 1.0.20.7.1.1",
+    "street name 1.0.20.8.1.1",
+    "street name 1.0.20.9.1.1",
+    "street name 1.0.20.10.1.1",
+    "street name 1.0.20.11.1.1",
+    "street name 1.0.20.12.1.1",
+    "street name 1.0.20.13.1.1",
+    "street name 1.0.20.14.1.1",
+    "street name 1.0.20.15.1.1",
+    "street name 1.0.20.16.1.1",
+    "street name 1.0.20.17.1.1",
+    "street name 1.0.20.18.1.1",
+    "street name 1.0.20.19.1.1",
+    "street name 1.0.20.20.1.1",
+    "street name 1.0.20.21.1.1",
+   
+
+  
+  ];
+  
+  const streetName = sectionThreeData.mailingAddress.streetName.toUpperCase();
+  
+  for (let i = 0; i < streetName.length && i < streetNameFields.length; i++) {
+    const field = form.getTextField(streetNameFields[i]);
+    if (field) {
+      field.setText(streetName.charAt(i));
+    }
+  }
+} catch (e) {
+  console.warn(`Error setting mailing address street name fields`, e);
+}
+}
+if (sectionThreeData.mailingAddressDifferent && 
+      sectionThreeData.mailingAddress && 
+      sectionThreeData.mailingAddress.streetNumber) {
+    try {
+      const mailingStreetNumberFields = [
+        "street.1.1.0",
+        "street 1.0.1.1.0",
+        "street 1.1.1.1.0",
+        "street 1.2.1.1.0",
+        "street 1.3.1.1.0",
+      ];
+      
+      const mailingStreetNumber = sectionThreeData.mailingAddress.streetNumber.toUpperCase();
+      
+      for (let i = 0; i < mailingStreetNumber.length && i < mailingStreetNumberFields.length; i++) {
+        const field = form.getTextField(mailingStreetNumberFields[i]);
+        if (field) {
+          field.setText(mailingStreetNumber.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting mailing address street number fields`, e);
+    }
+  }
+  
+ 
+  if (sectionThreeData.mailingAddressDifferent && 
+      sectionThreeData.mailingAddress && 
+      sectionThreeData.mailingAddress.aptNo) {
+    try {
+      const mailingAptNumberFields = [
+        "apt number.0.1.1",
+        "apt number.1.0.1.1",
+        "apt number.1.1.1.1",
+        "apt number.1.2.1.1",
+      ];
+      
+      const mailingAptNo = sectionThreeData.mailingAddress.aptNo.toUpperCase();
+      
+      for (let i = 0; i < mailingAptNo.length && i < mailingAptNumberFields.length; i++) {
+        const field = form.getTextField(mailingAptNumberFields[i]);
+        if (field) {
+          field.setText(mailingAptNo.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting mailing address apt number fields`, e);
+    }
+  }
+  
+ 
+  if (sectionThreeData.mailingAddressDifferent && 
+      sectionThreeData.mailingAddress && 
+      sectionThreeData.mailingAddress.state) {
+    try {
+      const mailingStateFields = [
+        "state 2.1.0",
+        "state 2.1.1",
+      ];
+      
+      const mailingState = sectionThreeData.mailingAddress.state.toUpperCase();
+      
+ 
+      if (mailingState.length === 2) {
+        for (let i = 0; i < mailingState.length && i < mailingStateFields.length; i++) {
+          const field = form.getTextField(mailingStateFields[i]);
+          if (field) {
+            field.setText(mailingState.charAt(i));
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting mailing address state fields`, e);
+    }
+  }
+  
+  if (sectionThreeData.mailingAddressDifferent && 
+    sectionThreeData.mailingAddress && 
+    sectionThreeData.mailingAddress.zipCode) {
+  try {
+    const mailingZipCodeFields = [
+      "zip code.0.1.1",
+      "zip code.1.0.1.1",
+      "zip code.1.1.1.1",
+      "zip code.1.2.1.1",
+      "zip code.1.3.1.1",
+    ];
+    
+    const cleanMailingZipCode = sectionThreeData.mailingAddress.zipCode.replace(/[^0-9]/g, '');
+    
+    for (let i = 0; i < cleanMailingZipCode.length && i < mailingZipCodeFields.length; i++) {
+      const field = form.getTextField(mailingZipCodeFields[i]);
+      if (field) {
+        field.setText(cleanMailingZipCode.charAt(i));
+      }
+    }
+  } catch (e) {
+    console.warn(`Error setting mailing address zip code fields`, e);
+  }
+}
+
+if (sectionThreeData.hasTrailerVessel && 
+  sectionThreeData.trailerVesselAddress && 
+  sectionThreeData.trailerVesselAddress.streetName) {
+try {
+  const streetNameFields = [ "street name.1.1.1", "street name 1.0.0.1.1.1", "street name 1.0.1.1.1.1", "street name 1.0.2.1.1.1", "street name 1.0.3.1.1.1", "street name 1.0.4.1.1.1", "street name 1.0.5.1.1.1", "street name 1.0.6.1.1.1", "street name 1.0.7.1.1.1", "street name 1.0.8.1.1.1", "street name 1.0.9.1.1.1", "street name 1.0.10.1.1.1", "street name 1.0.11.1.1.1", "street name 1.0.12.1.1.1", "street name 1.0.13.1.1.1", "street name 1.0.14.1.1.1", "street name 1.0.15.1.1.1", "street name 1.0.16.1.1.1", "street name 1.0.17.1.1.1", "street name 1.0.18.1.1.1", "street name 1.0.19.0.1.1.1", "street name 1.0.19.1.1.1.1" ];
+  
+  const streetName = sectionThreeData.trailerVesselAddress.streetName.toUpperCase();
+  
+  for (let i = 0; i < streetName.length && i < streetNameFields.length; i++) {
+    const field = form.getTextField(streetNameFields[i]);
+    if (field) {
+      field.setText(streetName.charAt(i));
+    }
+  }
+} catch (e) {
+  console.warn(`Error setting trailer/vessel address street name fields`, e);
+}
+}
+if (sectionThreeData.hasTrailerVessel && 
+  sectionThreeData.trailerVesselAddress && 
+  sectionThreeData.trailerVesselAddress.city) {
+try {
+  const trailerVesselCityFields = [
+    "city.1.1.1.0",
+    "city 1.0.1.1.1.0",
+    "city 1.1.1.1.1.0",
+    "city 1.2.1.1.1.0",
+    "city 1.3.1.1.1.0",
+    "city 1.4.1.1.1.0",
+    "city 1.5.1.1.1.0",
+    "city 1.6.1.1.1.0",
+    "city 1.7.1.1.1.0",
+    "city 1.8.1.1.1.0",
+    "city 1.9.1.1.1.0",
+    "city 1.10.1.1.1.0",
+    "city 1.11.1.1.1.0",
+    "city 1.12.1.1.1.0",
+    "city 1.13.1.1.1.0",
+    "city 1.14.1.1.1.0",
+  ];
+  
+  const trailerVesselCity = sectionThreeData.trailerVesselAddress.city.toUpperCase();
+  
+  for (let i = 0; i < trailerVesselCity.length && i < trailerVesselCityFields.length; i++) {
+    const field = form.getTextField(trailerVesselCityFields[i]);
+    if (field) {
+      field.setText(trailerVesselCity.charAt(i));
+    }
+  }
+} catch (e) {
+  console.warn(`Error setting trailer/vessel address city fields`, e);
+}
+
+if (sectionThreeData.hasTrailerVessel && 
+  sectionThreeData.trailerVesselAddress && 
+  sectionThreeData.trailerVesselAddress.county) {
+try {
+  const countyFields = [
+    "county.0",
+    "county.1",
+    "county.2",
+    "county.3",
+    "county.4",
+    "county.5",
+    "county.6",
+    "county.7",
+    "county.8",
+    "county.9",
+    "county.10",
+    "county.11",
+    "county.12",
+    "county.13"
+  ];
+  
+  const county = sectionThreeData.trailerVesselAddress.county.toUpperCase();
+  
+  for (let i = 0; i < county.length && i < countyFields.length; i++) {
+    const field = form.getTextField(countyFields[i]);
+    if (field) {
+      field.setText(county.charAt(i));
+    }
+  }
+} catch (e) {
+  console.warn(`Error setting trailer/vessel address county fields`, e);
+}
+}
+}  if (sectionThreeData.hasTrailerVessel && 
+      sectionThreeData.trailerVesselAddress && 
+      sectionThreeData.trailerVesselAddress.streetNumber) {
+    try {
+      const trailerVesselStreetNumberFields = [
+        "street.1.1.1",
+        "street 1.0.1.1.1",
+        "street 1.1.1.1.1",
+        "street 1.2.1.1.1",
+        "street 1.3.1.1.1",
+      ];
+      
+      const trailerVesselStreetNumber = sectionThreeData.trailerVesselAddress.streetNumber.toUpperCase();
+      
+      for (let i = 0; i < trailerVesselStreetNumber.length && i < trailerVesselStreetNumberFields.length; i++) {
+        const field = form.getTextField(trailerVesselStreetNumberFields[i]);
+        if (field) {
+          field.setText(trailerVesselStreetNumber.charAt(i));
+        }
+      }
+    } catch (e) {
+      console.warn(`Error setting trailer/vessel address street number fields`, e);
+    }
+  }
+  
+ 
+}
+

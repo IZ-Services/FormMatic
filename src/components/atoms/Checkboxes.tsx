@@ -9,6 +9,7 @@ interface VehicleTransactionDetailsData {
   isGift?: boolean;
   isFamilyTransfer?: boolean;
   isSmogExempt?: boolean;
+  isOutOfStateTitle?: boolean;
 }
 
 interface OwnerData {
@@ -74,7 +75,8 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     isMotorcycle: false,
     isGift: false,
     isFamilyTransfer: false,
-    isSmogExempt: false
+    isSmogExempt: false,
+    isOutOfStateTitle: false
   });
 
   useEffect(() => {
@@ -85,6 +87,7 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
       isGift: false,
       isFamilyTransfer: false,
       isSmogExempt: false,
+      isOutOfStateTitle: false,
       ...combinedFormData?.vehicleTransactionDetails
     };
     setTransactionData(mergedData);
@@ -96,13 +99,15 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     const newData = { 
       ...transactionData,
       [field]: newValue
-    };     if (field === 'withTitle' && !newValue) {
-      newData.currentLienholder = false;
-    }     if (field === 'isGift' && newValue) {
+    };    if (field === 'isGift' && newValue) {
       newData.isFamilyTransfer = false;
-    }     if (field === 'isFamilyTransfer' && newValue) {
+    }     
+    
+    if (field === 'isFamilyTransfer' && newValue) {
       newData.isGift = false;
-    }     if (field === 'currentLienholder' && !newValue) {
+    }     
+    
+    if (field === 'currentLienholder' && !newValue) {
       updateField('legalOwnerInformation', {
         name: 'NONE',
         address: {
@@ -117,7 +122,9 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
         authorizedAgentName: '',
         authorizedAgentTitle: ''
       });
-    }     if (field === 'isMotorcycle' && !newValue) {
+    }     
+    
+    if (field === 'isMotorcycle' && !newValue) {
       const currentVehicleInfo = combinedFormData.vehicleInformation || {};
       if (currentVehicleInfo.engineNumber) {
         updateField('vehicleInformation', {
@@ -125,7 +132,9 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
           engineNumber: ''
         });
       }
-    }     if (field === 'isGift' && !newValue) {
+    }     
+    
+    if (field === 'isGift' && !newValue) {
       const currentOwners = combinedFormData.owners || [];
       if (currentOwners.length > 0) {
         const updatedOwners = currentOwners.map((owner: OwnerData) => ({
@@ -137,8 +146,6 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
       }
     }
     
-
-
     console.log(`Changing ${field} to:`, newValue);
     console.log("New transaction data:", newData);
 
@@ -172,9 +179,19 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
           <label className="checkbox-label">
             <input
               type="checkbox"
+              checked={transactionData.isOutOfStateTitle || false}
+              onChange={() => handleCheckboxChange('isOutOfStateTitle')}
+            />
+            Out of State Title
+          </label>
+        </div>
+
+        <div className="checkbox-section">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
               checked={transactionData.currentLienholder || false}
               onChange={() => handleCheckboxChange('currentLienholder')}
-              disabled={!transactionData.withTitle}
             />
             There is a Current Lienholder
           </label>

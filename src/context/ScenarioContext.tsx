@@ -79,6 +79,7 @@ const scenerios: Scenerio[] = [
     subsections: [
       'Filing for Planned Non-Operation (PNO)',
       'Restoring PNO Vehicle to Operational',
+      'Certificate of Non-Operation',
     ],
   },
   {

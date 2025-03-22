@@ -29,27 +29,30 @@ const TypeContainer: React.FC = () => {
   }, []);
 
   const handleScenarioSelect = (scenarioName: string, isChecked: boolean): void => {
-    setActiveScenarios(prev => ({
-      ...prev,
-      [scenarioName]: isChecked
-    }));
+    console.log(`Selecting scenario: ${scenarioName}, checked: ${isChecked}`);
+    
+    setActiveScenarios(prev => {
+      const updated = {
+        ...prev,
+        [scenarioName]: isChecked
+      };
+      console.log('Updated activeScenarios:', updated);
+      return updated;
+    });
 
- 
     if (isChecked) {
       setSelectedSubsection(scenarioName);
     }
 
- 
+
     if (scenarioName === 'Duplicate Stickers') {
       if (isChecked) {
- 
         setActiveSubOptions(prev => ({
           ...prev,
           'Duplicate Stickers-Month': true,
           'Duplicate Stickers-Year': true
         }));
       } else {
- 
         setActiveSubOptions(prev => ({
           ...prev,
           'Duplicate Stickers-Month': false,
@@ -57,15 +60,96 @@ const TypeContainer: React.FC = () => {
         }));
       }
     }
+    
+
+    if (scenarioName === 'Name Change' && !isChecked) {
+      setActiveSubOptions(prev => {
+        const updated = { ...prev };
+        delete updated['Name Change-Name Correction'];
+        delete updated['Name Change-Legal Name Change'];
+        delete updated['Name Change-Name Discrepancy'];
+        return updated;
+      });
+    }
+    
+
+    if (scenarioName === 'Personalized Plates' && !isChecked) {
+      setActiveSubOptions(prev => {
+        const updated = { ...prev };
+        delete updated['Personalized Plates-Order'];
+        delete updated['Personalized Plates-Replace'];
+        delete updated['Personalized Plates-Reassign/Retain'];
+        delete updated['Personalized Plates-Exchange'];
+        return updated;
+      });
+    }
   };
 
   const handleSubOptionSelect = (parentName: string, subOptionName: string, isChecked: boolean): void => {
     const optionKey = `${parentName}-${subOptionName}`;
+    console.log(`Selecting sub-option: ${optionKey}, checked: ${isChecked}`);
     
-    setActiveSubOptions(prev => ({
-      ...prev,
-      [optionKey]: isChecked
-    }));
+
+    if (parentName === 'Name Change' && isChecked) {
+
+      const updatedOptions = { ...activeSubOptions };
+      Object.keys(updatedOptions).forEach(key => {
+        if (key.startsWith('Name Change-')) {
+          updatedOptions[key] = false;
+        }
+      });
+      
+
+      updatedOptions[optionKey] = true;
+      
+      console.log('Updated activeSubOptions for Name Change:', updatedOptions);
+      setActiveSubOptions(updatedOptions);
+      
+
+      if (!activeScenarios['Name Change']) {
+        console.log('Auto-selecting Name Change parent option');
+        setActiveScenarios(prev => ({
+          ...prev,
+          'Name Change': true
+        }));
+      }
+    } 
+
+    else if (parentName === 'Personalized Plates' && isChecked) {
+
+      const updatedOptions = { ...activeSubOptions };
+      Object.keys(updatedOptions).forEach(key => {
+        if (key.startsWith('Personalized Plates-')) {
+          updatedOptions[key] = false;
+        }
+      });
+      
+
+      updatedOptions[optionKey] = true;
+      
+      console.log('Updated activeSubOptions for Personalized Plates:', updatedOptions);
+      setActiveSubOptions(updatedOptions);
+      
+
+      if (!activeScenarios['Personalized Plates']) {
+        console.log('Auto-selecting Personalized Plates parent option');
+        setActiveScenarios(prev => ({
+          ...prev,
+          'Personalized Plates': true
+        }));
+      }
+    } 
+    else {
+
+      setActiveSubOptions(prev => {
+        const updated = {
+          ...prev,
+          [optionKey]: isChecked
+        };
+        console.log('Updated activeSubOptions:', updated);
+        return updated;
+      });
+    }
   };
 
   return (
@@ -117,6 +201,7 @@ const TypeContainer: React.FC = () => {
                                 className="checkbox"
                                 checked={!!activeSubOptions[`${subsection.name}-${option}`]}
                                 onChange={(e) => handleSubOptionSelect(subsection.name, option, e.target.checked)}
+                                data-testid={`${subsection.name.toLowerCase().replace(/\s+/g, '-')}-${option.toLowerCase().replace(/\s+/g, '-')}`}
                               />
                               {option}
                             </label>

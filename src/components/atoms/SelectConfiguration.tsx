@@ -64,9 +64,11 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
 
   const handleChange = (field: keyof SelectConfigurationType, value: any) => {
     const currentInfo = (formData.selectConfiguration || {}) as SelectConfigurationType;
-    const newData = { ...currentInfo, [field]: value };     if (field === 'plateType' && value === 'Sequential') {
+    const newData = { ...currentInfo, [field]: value };     
+    if (field === 'plateType' && value === 'Sequential') {
       newData.personalized = initialSelectConfiguration.personalized;
-    }     if (field === 'plateType' && value === 'Personalized') {
+    }     
+    if (field === 'plateType' && value === 'Personalized') {
       newData.currentLicensePlate = '';
       newData.fullVehicleId = '';
     }
@@ -76,7 +78,8 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
 
   const handlePersonalizedChange = (field: string, value: any) => {
     const currentInfo = (formData.selectConfiguration || {}) as SelectConfigurationType;
-    const personalized = { ...(currentInfo.personalized || {}) };     if (field.includes('Meaning') && typeof value === 'string') {
+    const personalized = { ...(currentInfo.personalized || {}) };     
+    if (field.includes('Meaning') && typeof value === 'string') {
       value = value.charAt(0).toUpperCase() + value.slice(1);
     }
     
@@ -337,12 +340,16 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
             
             <div className="noteSection">
               <p className="noteText">NOTE: The department will not honor a change of choice, spacing, or a request for refund after the reservation is made.</p>
-              <p className="noteText">
-                When ready for pick up, your new personalized plates must be assigned to a vehicle currently registered or leased in your name (cannot be on Planned Non-Operation status). Check box and enter the DMV or Auto Club office where your current license plates and registration card will be exchanged for your new plates:
-              </p>
             </div>
+          </div>
+        )}
+        
+        {/* Pickup location section moved outside personalized conditional block */}
+        {(formData.selectConfiguration as SelectConfigurationType)?.plateType && (
+          <div className="pickupSection">
             
-            <div className="pickupSection">
+            
+            <div className="pickupOptions">
               {pickupLocations.map((location) => (
                 <label key={location} className="pickupLabel">
                   <input

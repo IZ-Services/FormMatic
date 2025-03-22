@@ -45,7 +45,6 @@
 .streetAptGroup {
     display: flex;
     gap: 20px;
-    margin-bottom: 15px;
 }
 
 .formGroup {

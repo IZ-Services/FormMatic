@@ -42,7 +42,7 @@ const initialNameStatement: NameStatementType = {
 
 const NameStatement: React.FC<NameStatementProps> = ({ formData: propFormData }) => {
   const { formData: contextFormData, updateField } = useFormContext();
-  const { activeSubOptions } = useScenarioContext();
+  const { activeScenarios, activeSubOptions } = useScenarioContext();
 
   const formData = {
     ...contextFormData,
@@ -55,27 +55,30 @@ const NameStatement: React.FC<NameStatementProps> = ({ formData: propFormData })
     }
   }, []);
 
- 
   useEffect(() => {
     const currentInfo = (formData.nameStatement || initialNameStatement) as NameStatementType;
     let updatedInfo = { ...currentInfo };
     
- 
-    if (activeSubOptions['Name Correction']) {
+
+    const isNameCorrection = activeSubOptions['Name Change-Name Correction'] === true;
+    const isLegalNameChange = activeSubOptions['Name Change-Legal Name Change'] === true;
+    const isNameDiscrepancy = activeSubOptions['Name Change-Name Discrepancy'] === true;
+    
+    if (isNameCorrection) {
       updatedInfo = {
         ...updatedInfo,
         isNameMisspelled: true,
         isSamePerson: false,
         isChangingName: false
       };
-    } else if (activeSubOptions['Legal Name Change']) {
+    } else if (isLegalNameChange) {
       updatedInfo = {
         ...updatedInfo,
         isChangingName: true,
         isSamePerson: false,
         isNameMisspelled: false
       };
-    } else if (activeSubOptions['Name Discrepancy']) {
+    } else if (isNameDiscrepancy) {
       updatedInfo = {
         ...updatedInfo,
         isSamePerson: true,
@@ -84,7 +87,7 @@ const NameStatement: React.FC<NameStatementProps> = ({ formData: propFormData })
       };
     }
     
- 
+
     if (JSON.stringify(updatedInfo) !== JSON.stringify(currentInfo)) {
       updateField('nameStatement', updatedInfo);
     }
@@ -93,7 +96,7 @@ const NameStatement: React.FC<NameStatementProps> = ({ formData: propFormData })
   const handleCheckboxChange = (field: keyof NameStatementType, value: boolean) => {
     const currentInfo = (formData.nameStatement || {}) as NameStatementType;
     
- 
+
     if (value) {
       const updatedInfo = {
         ...currentInfo,
@@ -103,7 +106,7 @@ const NameStatement: React.FC<NameStatementProps> = ({ formData: propFormData })
       };
       updateField('nameStatement', updatedInfo);
     } else {
- 
+
       updateField('nameStatement', { ...currentInfo, [field]: value });
     }
   };
@@ -143,96 +146,149 @@ const NameStatement: React.FC<NameStatementProps> = ({ formData: propFormData })
     updateField('nameStatement', { ...currentInfo, misspelledNameCorrection: capitalizedValue });
   };
 
+
+  const isNameCorrection = activeSubOptions['Name Change-Name Correction'] === true;
+  const isLegalNameChange = activeSubOptions['Name Change-Legal Name Change'] === true;
+  const isNameDiscrepancy = activeSubOptions['Name Change-Name Discrepancy'] === true;
+  
+
+  const hasSelectedSubOption = isNameCorrection || isLegalNameChange || isNameDiscrepancy;
+  
+
+  const nameChangeSelected = activeScenarios['Name Change'] === true;
+  
+
+
+
+
+  useEffect(() => {
+    console.log('Name Change Context:', {
+      'Name Change Selected': nameChangeSelected,
+      'Name Correction': isNameCorrection,
+      'Legal Name Change': isLegalNameChange, 
+      'Name Discrepancy': isNameDiscrepancy,
+      'Has Selected Sub-Option': hasSelectedSubOption
+    });
+    
+    console.log('Active Scenarios:', activeScenarios);
+    console.log('Active SubOptions:', activeSubOptions);
+    console.log('Current form data:', formData.nameStatement);
+  }, [activeScenarios, activeSubOptions, formData.nameStatement, nameChangeSelected, hasSelectedSubOption]);
+
   return (
     <div className="nameStatementWrapper">
       <h3 className="nameStatementHeading">Name Statement (Ownership Certificate Required)</h3>
       
-      <div className="nameStatementOption">
-        <label className="nameStatementCheckboxLabel">
-          <input
-            type="checkbox"
-            checked={(formData.nameStatement as NameStatementType)?.isSamePerson || false}
-            onChange={(e) => handleCheckboxChange('isSamePerson', e.target.checked)}
-            className="nameStatementCheckboxInput"
-            data-testid="name-statement-same-person"
-          />
-          <span className="nameStatementText">I,</span>
-        </label>
-        <input
-          className="nameStatementInput firstPersonInput"
-          type="text"
-          placeholder=""
-          value={(formData.nameStatement as NameStatementType)?.samePerson?.firstPerson || ''}
-          onChange={(e) => handleSamePersonChange('firstPerson', e.target.value)}
-          disabled={!(formData.nameStatement as NameStatementType)?.isSamePerson}
-          data-testid="name-statement-first-person"
-        />
-        <span className="nameStatementText">and</span>
-        <input
-          className="nameStatementInput secondPersonInput"
-          type="text"
-          placeholder=""
-          value={(formData.nameStatement as NameStatementType)?.samePerson?.secondPerson || ''}
-          onChange={(e) => handleSamePersonChange('secondPerson', e.target.value)}
-          disabled={!(formData.nameStatement as NameStatementType)?.isSamePerson}
-          data-testid="name-statement-second-person"
-        />
-        <span className="nameStatementText">are one and the same person.</span>
-      </div>
-      
-      <div className="nameStatementOption">
-        <label className="nameStatementCheckboxLabel">
-          <input
-            type="checkbox"
-            checked={(formData.nameStatement as NameStatementType)?.isNameMisspelled || false}
-            onChange={(e) => handleCheckboxChange('isNameMisspelled', e.target.checked)}
-            className="nameStatementCheckboxInput"
-            data-testid="name-statement-misspelled"
-          />
-          <span className="nameStatementText">My name is misspelled. Please correct it to:</span>
-        </label>
-        <input
-          className="nameStatementInput misspelledNameInput"
-          type="text"
-          placeholder=""
-          value={(formData.nameStatement as NameStatementType)?.misspelledNameCorrection || ''}
-          onChange={(e) => handleMisspelledNameChange(e.target.value)}
-          disabled={!(formData.nameStatement as NameStatementType)?.isNameMisspelled}
-          data-testid="name-statement-correction"
-        />
-      </div>
-      
-      <div className="nameStatementOption">
-        <label className="nameStatementCheckboxLabel">
-          <input
-            type="checkbox"
-            checked={(formData.nameStatement as NameStatementType)?.isChangingName || false}
-            onChange={(e) => handleCheckboxChange('isChangingName', e.target.checked)}
-            className="nameStatementCheckboxInput"
-            data-testid="name-statement-changing"
-          />
-          <span className="nameStatementText">I am changing my name from</span>
-        </label>
-        <input
-          className="nameStatementInput fromNameInput"
-          type="text"
-          placeholder=""
-          value={(formData.nameStatement as NameStatementType)?.nameChange?.fromName || ''}
-          onChange={(e) => handleNameChangeChange('fromName', e.target.value)}
-          disabled={!(formData.nameStatement as NameStatementType)?.isChangingName}
-          data-testid="name-statement-from-name"
-        />
-        <span className="nameStatementText">to</span>
-        <input
-          className="nameStatementInput toNameInput"
-          type="text"
-          placeholder=""
-          value={(formData.nameStatement as NameStatementType)?.nameChange?.toName || ''}
-          onChange={(e) => handleNameChangeChange('toName', e.target.value)}
-          disabled={!(formData.nameStatement as NameStatementType)?.isChangingName}
-          data-testid="name-statement-to-name"
-        />
-      </div>
+      {/* Only render content if Name Change is selected */}
+      {nameChangeSelected ? (
+        hasSelectedSubOption ? (
+          <>
+            {/* Name Discrepancy Option - only show when selected */}
+            {isNameDiscrepancy && (
+              <div className="nameStatementOption">
+                <label className="nameStatementCheckboxLabel">
+                  <input
+                    type="checkbox"
+                    checked={(formData.nameStatement as NameStatementType)?.isSamePerson || false}
+                    onChange={(e) => handleCheckboxChange('isSamePerson', e.target.checked)}
+                    className="nameStatementCheckboxInput"
+                    data-testid="name-statement-same-person"
+                  />
+                  <span className="nameStatementText">I,</span>
+                </label>
+                <input
+                  className="nameStatementInput firstPersonInput"
+                  type="text"
+                  placeholder=""
+                  value={(formData.nameStatement as NameStatementType)?.samePerson?.firstPerson || ''}
+                  onChange={(e) => handleSamePersonChange('firstPerson', e.target.value)}
+                  disabled={!(formData.nameStatement as NameStatementType)?.isSamePerson}
+                  data-testid="name-statement-first-person"
+                />
+                <span className="nameStatementText">and</span>
+                <input
+                  className="nameStatementInput secondPersonInput"
+                  type="text"
+                  placeholder=""
+                  value={(formData.nameStatement as NameStatementType)?.samePerson?.secondPerson || ''}
+                  onChange={(e) => handleSamePersonChange('secondPerson', e.target.value)}
+                  disabled={!(formData.nameStatement as NameStatementType)?.isSamePerson}
+                  data-testid="name-statement-second-person"
+                />
+                <span className="nameStatementText">are one and the same person.</span>
+              </div>
+            )}
+            
+            {/* Name Correction Option - only show when selected */}
+            {isNameCorrection && (
+              <div className="nameStatementOption">
+                <label className="nameStatementCheckboxLabel">
+                  <input
+                    type="checkbox"
+                    checked={(formData.nameStatement as NameStatementType)?.isNameMisspelled || false}
+                    onChange={(e) => handleCheckboxChange('isNameMisspelled', e.target.checked)}
+                    className="nameStatementCheckboxInput"
+                    data-testid="name-statement-misspelled"
+                  />
+                  <span className="nameStatementText">My name is misspelled. Please correct it to:</span>
+                </label>
+                <input
+                  className="nameStatementInput misspelledNameInput"
+                  type="text"
+                  placeholder=""
+                  value={(formData.nameStatement as NameStatementType)?.misspelledNameCorrection || ''}
+                  onChange={(e) => handleMisspelledNameChange(e.target.value)}
+                  disabled={!(formData.nameStatement as NameStatementType)?.isNameMisspelled}
+                  data-testid="name-statement-correction"
+                />
+              </div>
+            )}
+            
+            {/* Legal Name Change Option - only show when selected */}
+            {isLegalNameChange && (
+              <div className="nameStatementOption">
+                <label className="nameStatementCheckboxLabel">
+                  <input
+                    type="checkbox"
+                    checked={(formData.nameStatement as NameStatementType)?.isChangingName || false}
+                    onChange={(e) => handleCheckboxChange('isChangingName', e.target.checked)}
+                    className="nameStatementCheckboxInput"
+                    data-testid="name-statement-changing"
+                  />
+                  <span className="nameStatementText">I am changing my name from</span>
+                </label>
+                <input
+                  className="nameStatementInput fromNameInput"
+                  type="text"
+                  placeholder=""
+                  value={(formData.nameStatement as NameStatementType)?.nameChange?.fromName || ''}
+                  onChange={(e) => handleNameChangeChange('fromName', e.target.value)}
+                  disabled={!(formData.nameStatement as NameStatementType)?.isChangingName}
+                  data-testid="name-statement-from-name"
+                />
+                <span className="nameStatementText">to</span>
+                <input
+                  className="nameStatementInput toNameInput"
+                  type="text"
+                  placeholder=""
+                  value={(formData.nameStatement as NameStatementType)?.nameChange?.toName || ''}
+                  onChange={(e) => handleNameChangeChange('toName', e.target.value)}
+                  disabled={!(formData.nameStatement as NameStatementType)?.isChangingName}
+                  data-testid="name-statement-to-name"
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="nameStatementOption">
+            <p>Please select a specific Name Change option from the transaction menu.</p>
+          </div>
+        )
+      ) : (
+        <div className="nameStatementOption">
+          <p>Please select a Name Change option from the transaction menu.</p>
+        </div>
+      )}
     </div>
   );
 };

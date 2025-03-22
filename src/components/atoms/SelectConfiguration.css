@@ -320,6 +320,12 @@
     gap: 20px;
     align-items: center;
   }
+
+  .pickupOptions{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;  
+  }
   
   .pickupLabel {
     display: flex;

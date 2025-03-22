@@ -9,7 +9,7 @@ import TransactionsContainer from '@/components/layouts/TransactionsContainer';
 
 import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import MultipleTransfer from '../../components/molecules/MultipleTransfer';
-// import OutOfStateTitle from '../../components/scenarios/OutOfStateTitle';
+// import OutOfStateTitle from '../../components/molecules/OutOfStateTitle';
 import DuplicateTitle from '../../components/molecules/DuplicateTitle';
 import DuplicateRegistration from '../../components/molecules/DuplicateRegistration';
 import DuplicateStickers from '../../components/molecules/DuplicateStickersOnly';
@@ -18,9 +18,10 @@ import AddLienholder from '../../components/molecules/LienHolderAddition';
 import RemoveLienholder from '../../components/molecules/LienHolderRemovel';
 import NameChange from '../../components/molecules/NameChange';
 import ChangeOfAddress from '../../components/molecules/ChangeOfAddress';
-// import PlannedNonOperation from '../../components/scenarios/PlannedNonOperation';
+import PlannedNonOperation from '../../components/molecules/FilingPNO';
 // import RestoringPNO from '../../components/scenarios/RestoringPNO';
-// import PersonalizedPlates from '../../components/scenarios/PersonalizedPlates';
+import CertificateOfNonOperation from '../../components/molecules/CertificateOfNonOperation';
+import PersonalizedPlates from '../../components/molecules/PersonlisedPlates';
 import DisabledPersonPlacards from '../../components/molecules/DisabledPersonAndPlacards';
 
 export default function Home() {
@@ -43,14 +44,11 @@ export default function Home() {
     return <Loading />;
   }
 
-  // Check if any scenario is active
   const hasActiveScenarios = Object.values(activeScenarios).some(value => value);
 
-  // Render components based on active scenarios
   const renderActiveComponents = () => {
     const components = [];
 
-    // Check for simple scenarios
     if (activeScenarios["Simple Transfer"]) components.push(<SimpleTransfer key="simple-transfer" />);
     if (activeScenarios["Multiple Transfer"]) components.push(<MultipleTransfer key="multiple-transfer" />);
     if (activeScenarios["Duplicate Title"]) components.push(<DuplicateTitle key="duplicate-title" />);
@@ -59,16 +57,15 @@ export default function Home() {
     if (activeScenarios["Add Lienholder"]) components.push(<AddLienholder key="add-lienholder" />);
     if (activeScenarios["Remove Lienholder"]) components.push(<RemoveLienholder key="remove-lienholder" />);
     if (activeScenarios["Change of Address"]) components.push(<ChangeOfAddress key="change-of-address" />);
-    // if (activeScenarios["Filing for Planned Non-Operation (PNO)"]) components.push(<PlannedNonOperation key="planned-non-operation" />);
+    if (activeScenarios["Filing for Planned Non-Operation (PNO)"]) components.push(<PlannedNonOperation key="planned-non-operation" />);
     // if (activeScenarios["Restoring PNO Vehicle to Operational"]) components.push(<RestoringPNO key="restoring-pno" />);
+    if (activeScenarios["Certificate of Non-Operation"]) components.push(<CertificateOfNonOperation key="restoring-pno" />);
+
     if (activeScenarios["Disabled Person Placards/Plates"]) components.push(<DisabledPersonPlacards key="disabled-person-placards" />);
     
-    // // Check for scenarios with suboptions
     // if (activeScenarios["Out-of-State Title"]) {
     //   components.push(<OutOfStateTitle 
     //     key="out-of-state-title"
-    //     purchasedOverYear={activeSubOptions["Out-of-State Title-Purchased Over a Year Ago"]}
-    //     purchasedLessThanYear={activeSubOptions["Out-of-State Title-Purchased Less Than a Year Ago"]}
     //   />);
     // }
     
@@ -84,15 +81,11 @@ export default function Home() {
       />);
     }
     
-    // if (activeScenarios["Personalized Plates"]) {
-    //   components.push(<PersonalizedPlates 
-    //     key="personalized-plates"
-    //     order={activeSubOptions["Personalized Plates-Order"]}
-    //     replace={activeSubOptions["Personalized Plates-Replace"]}
-    //     reassign={activeSubOptions["Personalized Plates-Reassign/Retain"]}
-    //     exchange={activeSubOptions["Personalized Plates-Exchange"]}
-    //   />);
-    // }
+    if (activeScenarios["Personalized Plates"]) {
+      components.push(<PersonalizedPlates 
+        key="personalized-plates"
+      />);
+    }
     
     return components;
   };
