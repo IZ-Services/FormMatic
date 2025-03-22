@@ -52,7 +52,7 @@ interface FormData {
     isMotorcycle?: boolean;
     isFamilyTransfer?: boolean;
     isSmogExempt?: boolean;
-
+    isOutOfStateTitle?: boolean;
   };
   mailingAddressDifferent?: boolean;
   lesseeAddressDifferent?: boolean;
@@ -526,7 +526,10 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       
       else if (transactionType === "Filing PNO Transfer"|| transactionType === "Certificate Of Non-Operation Transfer") {
         formTypes = ['REG102'];
-        console.log('Filing PNO Transfer: Using REG102 form');        if (formData.pnoDetails?.requestPnoCard) {
+        console.log('Filing PNO Transfer: Using REG102 form');
+        
+
+        if (formData.pnoDetails?.requestPnoCard) {
           formTypes.push('Reg156');
           console.log('Request PNO card checked: Adding Reg156 form');
         }
@@ -552,11 +555,18 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       } else {
         formTypes = ['Reg227', 'DMVREG262'];
         
+
         if (formData.vehicleTransactionDetails?.isFamilyTransfer || 
             formData.vehicleTransactionDetails?.isGift ||
             formData.vehicleTransactionDetails?.isSmogExempt) {
           formTypes.push('Reg256');
           console.log('Including Reg256 form due to family transfer, gift, or smog exemption');
+        }
+        
+
+        if (formData.vehicleTransactionDetails?.isOutOfStateTitle) {
+          formTypes.push('Reg343');
+          console.log('Including Reg343 form due to Out of State Title');
         }
       }
       
@@ -644,8 +654,6 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       return false;
     }
   };
-
-
 
   return (
     <div className="saveButtonContainer">

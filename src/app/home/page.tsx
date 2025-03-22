@@ -9,7 +9,7 @@ import TransactionsContainer from '@/components/layouts/TransactionsContainer';
 
 import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import MultipleTransfer from '../../components/molecules/MultipleTransfer';
-// import OutOfStateTitle from '../../components/molecules/OutOfStateTitle';
+
 import DuplicateTitle from '../../components/molecules/DuplicateTitle';
 import DuplicateRegistration from '../../components/molecules/DuplicateRegistration';
 import DuplicateStickers from '../../components/molecules/DuplicateStickersOnly';
@@ -19,7 +19,7 @@ import RemoveLienholder from '../../components/molecules/LienHolderRemovel';
 import NameChange from '../../components/molecules/NameChange';
 import ChangeOfAddress from '../../components/molecules/ChangeOfAddress';
 import PlannedNonOperation from '../../components/molecules/FilingPNO';
-// import RestoringPNO from '../../components/scenarios/RestoringPNO';
+
 import CertificateOfNonOperation from '../../components/molecules/CertificateOfNonOperation';
 import PersonalizedPlates from '../../components/molecules/PersonlisedPlates';
 import DisabledPersonPlacards from '../../components/molecules/DisabledPersonAndPlacards';
@@ -58,16 +58,16 @@ export default function Home() {
     if (activeScenarios["Remove Lienholder"]) components.push(<RemoveLienholder key="remove-lienholder" />);
     if (activeScenarios["Change of Address"]) components.push(<ChangeOfAddress key="change-of-address" />);
     if (activeScenarios["Filing for Planned Non-Operation (PNO)"]) components.push(<PlannedNonOperation key="planned-non-operation" />);
-    // if (activeScenarios["Restoring PNO Vehicle to Operational"]) components.push(<RestoringPNO key="restoring-pno" />);
+
     if (activeScenarios["Certificate of Non-Operation"]) components.push(<CertificateOfNonOperation key="restoring-pno" />);
 
     if (activeScenarios["Disabled Person Placards/Plates"]) components.push(<DisabledPersonPlacards key="disabled-person-placards" />);
     
-    // if (activeScenarios["Out-of-State Title"]) {
-    //   components.push(<OutOfStateTitle 
-    //     key="out-of-state-title"
-    //   />);
-    // }
+
+
+
+
+
     
     if (activeScenarios["Duplicate Stickers"]) {
       components.push(<DuplicateStickers 

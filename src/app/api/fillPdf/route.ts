@@ -139,6 +139,8 @@ export async function POST(request: Request) {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'REG17.pdf');
       } else if (formType === 'REG102') {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'REG102.pdf');
+      } else if (formType === 'Reg343') {
+        pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg343.pdf');
       } else {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg227.pdf');
       }
@@ -166,7 +168,10 @@ export async function POST(request: Request) {
         modifiedPdfBytes = await modifyDMV14Pdf(existingPdfBytes, formData);
       } else if (formType === 'REG17') {
         modifiedPdfBytes = await modifyREG17Pdf(existingPdfBytes, formData, effectiveTransactionType);
-      } else if (formType === 'REG102') {        modifiedPdfBytes = await modifyREG102Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'REG102') {
+        modifiedPdfBytes = await modifyREG102Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'Reg343') {
+        modifiedPdfBytes = await modifyReg343Pdf(existingPdfBytes, formData, effectiveTransactionType);
       } else {
         modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType);
       }
@@ -198,6 +203,8 @@ export async function POST(request: Request) {
         pdfUrl = `${baseUrl}/pdfs/REG17.pdf`;
       } else if (formType === 'REG102') {
         pdfUrl = `${baseUrl}/pdfs/REG102.pdf`;
+      } else if (formType === 'Reg343') {
+        pdfUrl = `${baseUrl}/pdfs/Reg343.pdf`;
       } else {
         pdfUrl = `${baseUrl}/pdfs/Reg227.pdf`;
       }
@@ -225,7 +232,10 @@ export async function POST(request: Request) {
         modifiedPdfBytes = await modifyDMV14Pdf(existingPdfBytes, formData);
       } else if (formType === 'REG17') {
         modifiedPdfBytes = await modifyREG17Pdf(existingPdfBytes, formData, effectiveTransactionType);
-      } else if (formType === 'REG102') {        modifiedPdfBytes = await modifyREG102Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'REG102') {
+        modifiedPdfBytes = await modifyREG102Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'Reg343') {
+        modifiedPdfBytes = await modifyReg343Pdf(existingPdfBytes, formData, effectiveTransactionType);
       } else {
         modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType);
       }
@@ -242,6 +252,689 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }
+
+async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
+  try {
+    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
+    
+    if (!pdfDoc) {
+      console.error('Failed to load PDF document');
+      throw new Error('Failed to load PDF document');
+    }
+    
+    const form = pdfDoc.getForm();
+    
+    if (!form) {
+      console.error('Failed to get form from PDF');
+      throw new Error('Failed to get form from PDF');
+    }
+    
+    console.log('Processing Reg343 form (Out of State Title)');
+    
+
+    const safeSetCheckbox = (fieldName: string, checked: boolean) => {
+      try {
+        const field = form.getCheckBox(fieldName);
+        if (field) {
+          if (checked) {
+            field.check();
+          } else {
+            field.uncheck();
+          }
+          console.log(`Successfully set checkbox: ${fieldName} to ${checked}`);
+        } else {
+          console.warn(`Checkbox field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error setting checkbox ${fieldName}:`, error);
+      }
+    };
+    
+    const safeSetText = (fieldName: string, value: string) => {
+      try {
+        const field = form.getTextField(fieldName);
+        if (field) {
+          field.setText(value);
+          console.log(`Successfully filled field: ${fieldName} with: ${value}`);
+        } else {
+          console.warn(`Field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error filling field ${fieldName}:`, error);
+      }
+    };
+    
+    const safeSetRadio = (fieldName: string, value: string) => {
+      try {
+        const field = form.getRadioGroup(fieldName);
+        if (field) {
+          field.select(value);
+          console.log(`Successfully set radio group: ${fieldName} to ${value}`);
+        } else {
+          console.warn(`Radio group field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error setting radio group ${fieldName}:`, error);
+      }
+    };
+    
+
+    try {
+      const today = new Date();
+      const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+      
+
+      safeSetText('Text28', formattedDate);
+      safeSetText('Text58', formattedDate);
+    } catch (error) {
+      console.error('Error setting date:', error);
+    }
+    
+
+    let vinSetInText56 = false;
+    
+
+    if (formData.vehicleInformation) {
+      const vehicleInfo = formData.vehicleInformation;
+      
+
+      if (vehicleInfo.hullId) {
+        const vinDigits = vehicleInfo.hullId.split('');
+        
+
+        for (let i = 0; i < Math.min(vinDigits.length, 18); i++) {
+
+          const fieldIndex = i + 1;
+          
+
+          safeSetText(`Text9.${fieldIndex}`, vinDigits[i]);
+        }
+        
+
+        vinSetInText56 = true;
+        
+
+        safeSetText('Text27', vehicleInfo.hullId);
+      }
+      
+
+      if (vehicleInfo.make) {
+        safeSetText('Text10', vehicleInfo.make);
+      }
+      
+
+      if (vehicleInfo.year) {
+        safeSetText('Text11', vehicleInfo.year.toString());
+      }
+      
+
+      const isMotorcycle = vehicleInfo.isMotorcycle || formData.vehicleTransactionDetails?.isMotorcycle;
+      if (vehicleInfo.engineNumber) {
+        safeSetText('Text18', vehicleInfo.engineNumber);
+      }
+      
+
+      if (vehicleInfo.licensePlate) {
+        safeSetText('Text4', vehicleInfo.licensePlate);
+
+        safeSetText('Text21', vehicleInfo.licensePlate);
+      }
+      
+
+      if (vehicleInfo.mileage) {
+        safeSetText('Text24', vehicleInfo.mileage);
+        safeSetText('Text31', vehicleInfo.mileage);
+      }
+      
+
+      if (vehicleInfo.notActualMileage) {
+        safeSetCheckbox('Check1', true);
+      }
+      
+      if (vehicleInfo.exceedsMechanicalLimit) {
+        safeSetCheckbox('Check2', true);
+      }
+    }
+    
+
+    if (formData.owners && formData.owners.length > 0) {
+      const owner = formData.owners[0];
+      
+
+      if (owner.firstName || owner.middleName || owner.lastName) {
+        const fullName = [
+          owner.firstName || '',
+          owner.middleName || '',
+          owner.lastName || ''
+        ].filter(Boolean).join(' ');
+        
+
+        safeSetText('Text5', fullName);
+        safeSetText('Text26', fullName);
+        safeSetText('Text34', fullName);
+        
+
+        safeSetText('Text62', fullName);
+      }
+      
+
+      if (owner.licenseNumber) {
+        safeSetText('Text6', owner.licenseNumber);
+        safeSetText('Text35', owner.licenseNumber);
+        
+
+        const dlDigits = owner.licenseNumber.split('');
+        
+
+        const dlFieldNames = [
+          'Owner DL no',
+          'owner second digit',
+          'owner third digit',
+          'owner fourth digit',
+          'owner fifth digit',
+          'owner sixth digit',
+          'owner seventh digit',
+          'owner eighth digit'
+        ];
+        
+
+        for (let i = 0; i < Math.min(dlDigits.length, dlFieldNames.length); i++) {
+          safeSetText(dlFieldNames[i], dlDigits[i]);
+        }
+      }
+      
+
+      if (owner.state) {
+        safeSetText('Text64', owner.state);
+      }
+      
+
+      if (owner.phoneNumber || owner.phone) {
+        const phone = owner.phoneNumber || owner.phone;
+        safeSetText('Text36', phone);
+        safeSetText('Text47', phone);
+      }
+    }
+    
+
+    if (formData.address) {
+      const address = formData.address;
+      
+
+      if (address.street) {
+        safeSetText('Text7', address.street);
+        safeSetText('Text37', address.street);
+        safeSetText('Text82', address.street);
+      }
+      
+      if (address.apt) {
+        safeSetText('Text83', address.apt);
+      }
+      
+      if (address.city) {
+        safeSetText('Text9', address.city);
+        safeSetText('Text38', address.city);
+        safeSetText('Text85', address.city);
+      }
+      
+      if (address.state) {
+        safeSetText('Text10', address.state);
+        safeSetText('Text39', address.state);
+        safeSetText('Text86', address.state);
+      }
+      
+      if (address.zip) {
+        safeSetText('Text11', address.zip);
+        safeSetText('Text40', address.zip);
+        safeSetText('Text87', address.zip);
+      }
+    }
+    
+
+    if (formData.mailingAddressDifferent && formData.mailingAddress) {
+      const mailingAddress = formData.mailingAddress;
+      
+      if (mailingAddress.street) {
+        safeSetText('Text90', mailingAddress.street);
+      }
+      
+      if (mailingAddress.poBox) {
+        safeSetText('Text91', mailingAddress.poBox);
+      }
+      
+      if (mailingAddress.city) {
+        safeSetText('Text92', mailingAddress.city);
+      }
+      
+      if (mailingAddress.state) {
+        safeSetText('Text93', mailingAddress.state);
+      }
+      
+      if (mailingAddress.zip) {
+        safeSetText('Text94', mailingAddress.zip);
+      }
+    }
+    
+
+    if (formData.lesseeAddressDifferent && formData.lesseeAddress) {
+      const lesseeAddress = formData.lesseeAddress;
+      
+      if (lesseeAddress.street) {
+        safeSetText('Text95', lesseeAddress.street);
+      }
+      
+      if (lesseeAddress.apt) {
+        safeSetText('Text109', lesseeAddress.apt);
+      }
+      
+      if (lesseeAddress.city) {
+        safeSetText('Text110', lesseeAddress.city);
+      }
+      
+      if (lesseeAddress.state) {
+        safeSetText('Text111', lesseeAddress.state);
+      }
+      
+      if (lesseeAddress.zip) {
+        safeSetText('Text112', lesseeAddress.zip);
+      }
+    }
+    
+
+    if (formData.trailerLocationDifferent && formData.trailerLocation) {
+      const trailerLocation = formData.trailerLocation;
+      
+      if (trailerLocation.street) {
+        safeSetText('Text113', trailerLocation.street);
+      }
+      
+      if (trailerLocation.city) {
+        safeSetText('Text115', trailerLocation.city);
+      }
+      
+      if (trailerLocation.state) {
+        safeSetText('Text116', trailerLocation.state);
+      }
+      
+      if (trailerLocation.zip) {
+        safeSetText('Text117', trailerLocation.zip);
+      }
+    }
+    
+
+    if (formData.owners && formData.owners.length > 1) {
+      const coOwner = formData.owners[1];
+      
+
+      if (coOwner.relationshipType === 'AND') {
+        safeSetCheckbox('Check Box70', true);
+      } else if (coOwner.relationshipType === 'OR') {
+        safeSetCheckbox('Check Box71', true);
+      }
+      
+      if (coOwner.firstName || coOwner.middleName || coOwner.lastName) {
+        const coOwnerName = [
+          coOwner.firstName || '',
+          coOwner.middleName || '',
+          coOwner.lastName || ''
+        ].filter(Boolean).join(' ');
+        
+        safeSetText('Text41', coOwnerName);
+
+        safeSetText('Text73', coOwnerName);
+      }
+      
+      if (coOwner.licenseNumber) {
+        safeSetText('Text42', coOwner.licenseNumber);
+        
+
+        const dlDigits = coOwner.licenseNumber.split('');
+        
+
+        const dlFieldNames = [
+          'first co owner dl no',
+          'first co owner second digit',
+          'first co owner third digit',
+          'first co owner fourth digit',
+          'first co owner fifth digit',
+          'first co owner sixth digit',
+          'first co owner seventh digit',
+          'first co owner eighth digit'
+        ];
+        
+
+        for (let i = 0; i < Math.min(dlDigits.length, dlFieldNames.length); i++) {
+          safeSetText(dlFieldNames[i], dlDigits[i]);
+        }
+      }
+      
+
+      if (coOwner.state) {
+        safeSetText('Text74', coOwner.state);
+      }
+      
+
+      if (coOwner.address) {
+        if (coOwner.address.street) safeSetText('Text43', coOwner.address.street);
+        if (coOwner.address.city) safeSetText('Text44', coOwner.address.city);
+        if (coOwner.address.state) safeSetText('Text45', coOwner.address.state);
+        if (coOwner.address.zip) safeSetText('Text46', coOwner.address.zip);
+      }
+    }
+
+    if (formData.lienHolder) {
+      const lienHolder = formData.lienHolder;
+      
+
+      if (lienHolder.name) {
+        safeSetText('Text118', lienHolder.name);
+      }
+      
+
+      if (lienHolder.eltNumber) {
+        safeSetText('Text119', lienHolder.eltNumber);
+      }
+      
+
+      if (lienHolder.address) {
+        const address = lienHolder.address;
+        
+
+        if (address.street) {
+          safeSetText('Text120', address.street);
+        }
+        
+
+        if (address.apt) {
+          safeSetText('Text121', address.apt);
+        }
+        
+
+        if (address.city) {
+          safeSetText('Text122', address.city);
+        }
+        
+
+        if (address.state) {
+          safeSetText('Text123', address.state);
+        }
+        
+
+        if (address.zip) {
+          safeSetText('Text124', address.zip);
+        }
+      }
+      
+
+      if (lienHolder.mailingAddressDifferent && lienHolder.mailingAddress) {
+        const mailingAddress = lienHolder.mailingAddress;
+        
+
+        if (mailingAddress.street) {
+          safeSetText('Text125', mailingAddress.street);
+        }
+        
+
+        if (mailingAddress.poBox) {
+          safeSetText('Text126', mailingAddress.poBox);
+        }
+        
+
+        if (mailingAddress.city) {
+          safeSetText('Text127', mailingAddress.city);
+        }
+        
+
+        if (mailingAddress.state) {
+          safeSetText('Text128', mailingAddress.state);
+        }
+        
+
+        if (mailingAddress.zip) {
+          safeSetText('Text129', mailingAddress.zip);
+        }
+      }
+    }
+
+    if (formData.vehicleInformation && formData.vehicleInformation.mileage) {
+      const mileage = formData.vehicleInformation.mileage.toString().padStart(6, '0');
+      
+
+      for (let i = 0; i < Math.min(mileage.length, 6); i++) {
+        safeSetText(`Text132.${i}`, mileage[i]);
+      }
+    }    
+    
+
+
+
+if (formData.lienHolder) {
+  const lienHolder = formData.lienHolder;
+  
+
+  if (lienHolder.name) {
+    safeSetText('Text118', lienHolder.name);
+  }
+
+
+if (formData.vehicleInformation && formData.vehicleInformation.mileage) {
+  const mileage = formData.vehicleInformation.mileage.toString().padStart(6, '0');
+  
+
+  for (let i = 0; i < Math.min(mileage.length, 6); i++) {
+    safeSetText(`Text132.${i}`, mileage[i]);
+  }
+  
+
+  safeSetText('Text24', formData.vehicleInformation.mileage);
+  safeSetText('Text31', formData.vehicleInformation.mileage);
+}
+
+
+if (formData.owners && formData.owners.length > 0) {
+
+  const saleDate = formData.sellerInfo?.sellers?.[0]?.saleDate || '';
+  
+
+  if (formData.owners.length >= 1) {
+    const owner1 = formData.owners[0];
+    
+
+    const owner1FullName = [
+      owner1.firstName || '',
+      owner1.middleName || '',
+      owner1.lastName || ''
+    ].filter(Boolean).join(' ');
+    
+
+    safeSetText('Text184', owner1FullName);
+    
+
+    safeSetText('Text185', saleDate);
+    
+
+    if (owner1.phoneNumber || owner1.phone) {
+      const phone = (owner1.phoneNumber || owner1.phone || '').replace(/\D/g, '');
+      if (phone.length >= 3) {
+        safeSetText('Text186', phone.substring(0, 3));
+        safeSetText('Text187', phone.substring(3));
+      }
+    }
+  }
+  
+
+  if (formData.owners.length >= 2) {
+    const owner2 = formData.owners[1];
+    
+
+    const owner2FullName = [
+      owner2.firstName || '',
+      owner2.middleName || '',
+      owner2.lastName || ''
+    ].filter(Boolean).join(' ');
+    
+
+    if (owner2FullName.trim()) {
+
+      safeSetText('Text188', owner2FullName);
+      
+
+      safeSetText('Text189', saleDate);
+      
+
+      if (owner2.phoneNumber || owner2.phone) {
+        const phone = (owner2.phoneNumber || owner2.phone || '').replace(/\D/g, '');
+        if (phone.length >= 3) {
+          safeSetText('Text190', phone.substring(0, 3));
+          safeSetText('Text191', phone.substring(3));
+        }
+      }
+    }
+  }
+  
+
+  if (formData.owners.length >= 3) {
+    const owner3 = formData.owners[3-1];
+    
+
+    const owner3FullName = [
+      owner3.firstName || '',
+      owner3.middleName || '',
+      owner3.lastName || ''
+    ].filter(Boolean).join(' ');
+    
+
+    if (owner3FullName.trim()) {
+
+      safeSetText('Text192', owner3FullName);
+      
+
+      safeSetText('Text193', saleDate);
+      
+
+      if (owner3.phoneNumber || owner3.phone) {
+        const phone = (owner3.phoneNumber || owner3.phone || '').replace(/\D/g, '');
+        if (phone.length >= 3) {
+          safeSetText('Text194', phone.substring(0, 3));
+          safeSetText('Text195', phone.substring(3));
+        }
+      }
+    }}}}
+
+    if (formData.owners && formData.owners.length > 2) {
+      const owner3 = formData.owners[2];
+      
+
+      if (owner3.relationshipType === 'AND') {
+        safeSetCheckbox('Check Box77', true);
+      } else if (owner3.relationshipType === 'OR') {
+        safeSetCheckbox('Check Box80', true);
+      }
+      
+      if (owner3.firstName || owner3.middleName || owner3.lastName) {
+        const owner3Name = [
+          owner3.firstName || '',
+          owner3.middleName || '',
+          owner3.lastName || ''
+        ].filter(Boolean).join(' ');
+        
+
+        safeSetText('Text81', owner3Name);
+      }
+      
+      if (owner3.licenseNumber) {
+
+        const dlDigits = owner3.licenseNumber.split('');
+        
+
+        const dlFieldNames = [
+          'second co owner',
+          'second co owner second digit',
+          'second co owner third digit',
+          'second co owner fourth digit',
+          'second co owner fifth digit',
+          'second co owner sixth digit',
+          'second co owner seventh digit',
+          'second co owner eighth digit'
+        ];
+        
+
+        for (let i = 0; i < Math.min(dlDigits.length, dlFieldNames.length); i++) {
+          safeSetText(dlFieldNames[i], dlDigits[i]);
+        }
+      }
+      
+
+      if (owner3.state) {
+        safeSetText('Text75', owner3.state);
+      }
+    }
+    
+
+    try {
+
+      safeSetText('Text55', '[Signature on file]');
+      safeSetText('Text57', '[Signature on file]');
+    } catch (error) {
+      console.error('Error setting signature:', error);
+    }
+    
+
+    if (formData.lienholders && formData.lienholders.length > 0) {
+      const lienholder = formData.lienholders[0];
+      
+      if (lienholder.name) {
+        safeSetText('Text48', lienholder.name);
+      }
+      
+      if (lienholder.address) {
+
+        const lienholderAddress = [
+          lienholder.address.street || '',
+          lienholder.address.city ? `${lienholder.address.city},` : '',
+          lienholder.address.state || '',
+          lienholder.address.zip || ''
+        ].filter(Boolean).join(' ');
+        
+        safeSetText('Text51.0', lienholderAddress);
+      }
+    }
+    
+
+
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 8; j++) {
+        if (i === 0 && j === 5) continue;
+        safeSetText(`Text25.${i}.${j}`, '');
+      }
+    }
+    
+
+    if (!vinSetInText56) {
+
+      for (let i = 0; i < 18; i++) {
+        safeSetText(`Text56.${i}`, '');
+      }
+    }
+    
+    try {
+      form.updateFieldAppearances();
+    } catch (e) {
+      console.warn('Error updating field appearances, continuing anyway:', e);
+    }
+    
+    return await pdfDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: false,
+      updateFieldAppearances: false
+    });
+  } catch (error) {
+    console.error('Error in modifyReg343Pdf:', error);
+    const emptyPdf = await PDFDocument.create();
+    return await emptyPdf.save();
+  }
+}
+
 
 async function modifyREG102Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
   try {
