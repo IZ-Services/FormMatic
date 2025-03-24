@@ -18,11 +18,15 @@
     margin: 0;
   }
   
-  .checkbox-container {
+  .checkboxes {
     padding: 15px;
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+    gap: 8px;
   }
   
   .checkbox-section {

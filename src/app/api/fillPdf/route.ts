@@ -549,6 +549,14 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     console.log('Processing Reg343 form (Out of State Title)');
     
 
+    console.log('Available fields in Reg343 form:');
+    const fields = form.getFields();
+    for (const field of fields) {
+      const fieldName = field.getName();
+      const fieldType = field.constructor.name;
+      console.log(`Field: ${fieldName} (Type: ${fieldType})`);
+    }
+
     const safeSetCheckbox = (fieldName: string, checked: boolean) => {
       try {
         const field = form.getCheckBox(fieldName);
@@ -600,7 +608,6 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
       const today = new Date();
       const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
       
-
       safeSetText('Text28', formattedDate);
       safeSetText('Text58', formattedDate);
     } catch (error) {
@@ -610,28 +617,24 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
 
     let vinSetInText56 = false;
     
-
     if (formData.vehicleInformation) {
       const vehicleInfo = formData.vehicleInformation;
       
 
-      if (vehicleInfo.hullId) {
-        const vinDigits = vehicleInfo.hullId.split('');
+      if (vehicleInfo.vin || vehicleInfo.hullId) {
+        const vin = vehicleInfo.vin || vehicleInfo.hullId;
+        const vinDigits = vin.split('');
         
 
         for (let i = 0; i < Math.min(vinDigits.length, 18); i++) {
-
           const fieldIndex = i + 1;
-          
-
           safeSetText(`Text9.${fieldIndex}`, vinDigits[i]);
         }
         
-
         vinSetInText56 = true;
         
 
-        safeSetText('Text27', vehicleInfo.hullId);
+        safeSetText('Text27', vin);
       }
       
 
@@ -653,23 +656,29 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
 
       if (vehicleInfo.licensePlate) {
         safeSetText('Text4', vehicleInfo.licensePlate);
-
         safeSetText('Text21', vehicleInfo.licensePlate);
       }
       
 
       if (vehicleInfo.mileage) {
-        safeSetText('Text24', vehicleInfo.mileage);
-        safeSetText('Text31', vehicleInfo.mileage);
+
+        safeSetText('Text24', vehicleInfo.mileage.toString());
+        safeSetText('Text31', vehicleInfo.mileage.toString());
+        
+
+        const mileage = vehicleInfo.mileage.toString().padStart(6, '0');
+        for (let i = 0; i < Math.min(mileage.length, 6); i++) {
+          safeSetText(`Text132.${i}`, mileage[i]);
+        }
       }
       
 
       if (vehicleInfo.notActualMileage) {
-        safeSetCheckbox('Check1', true);
+        safeSetCheckbox('Check Box134', true);
       }
       
       if (vehicleInfo.exceedsMechanicalLimit) {
-        safeSetCheckbox('Check2', true);
+        safeSetCheckbox('Check Box135', true);
       }
     }
     
@@ -685,12 +694,9 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
           owner.lastName || ''
         ].filter(Boolean).join(' ');
         
-
         safeSetText('Text5', fullName);
         safeSetText('Text26', fullName);
         safeSetText('Text34', fullName);
-        
-
         safeSetText('Text62', fullName);
       }
       
@@ -702,7 +708,6 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
 
         const dlDigits = owner.licenseNumber.split('');
         
-
         const dlFieldNames = [
           'Owner DL no',
           'owner second digit',
@@ -714,7 +719,6 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
           'owner eighth digit'
         ];
         
-
         for (let i = 0; i < Math.min(dlDigits.length, dlFieldNames.length); i++) {
           safeSetText(dlFieldNames[i], dlDigits[i]);
         }
@@ -734,10 +738,9 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     }
     
 
-    if (formData.address) {
-      const address = formData.address;
+    if (formData.address || formData.sellerAddress) {
+      const address = formData.address || formData.sellerAddress;
       
-
       if (address.street) {
         safeSetText('Text7', address.street);
         safeSetText('Text37', address.street);
@@ -768,8 +771,9 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     }
     
 
-    if (formData.mailingAddressDifferent && formData.mailingAddress) {
-      const mailingAddress = formData.mailingAddress;
+    if ((formData.sellerMailingAddressDifferent && formData.sellerMailingAddress) || 
+        (formData.mailingAddressDifferent && formData.mailingAddress)) {
+      const mailingAddress = formData.sellerMailingAddress || formData.mailingAddress;
       
       if (mailingAddress.street) {
         safeSetText('Text90', mailingAddress.street);
@@ -793,52 +797,6 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     }
     
 
-    if (formData.lesseeAddressDifferent && formData.lesseeAddress) {
-      const lesseeAddress = formData.lesseeAddress;
-      
-      if (lesseeAddress.street) {
-        safeSetText('Text95', lesseeAddress.street);
-      }
-      
-      if (lesseeAddress.apt) {
-        safeSetText('Text109', lesseeAddress.apt);
-      }
-      
-      if (lesseeAddress.city) {
-        safeSetText('Text110', lesseeAddress.city);
-      }
-      
-      if (lesseeAddress.state) {
-        safeSetText('Text111', lesseeAddress.state);
-      }
-      
-      if (lesseeAddress.zip) {
-        safeSetText('Text112', lesseeAddress.zip);
-      }
-    }
-    
-
-    if (formData.trailerLocationDifferent && formData.trailerLocation) {
-      const trailerLocation = formData.trailerLocation;
-      
-      if (trailerLocation.street) {
-        safeSetText('Text113', trailerLocation.street);
-      }
-      
-      if (trailerLocation.city) {
-        safeSetText('Text115', trailerLocation.city);
-      }
-      
-      if (trailerLocation.state) {
-        safeSetText('Text116', trailerLocation.state);
-      }
-      
-      if (trailerLocation.zip) {
-        safeSetText('Text117', trailerLocation.zip);
-      }
-    }
-    
-
     if (formData.owners && formData.owners.length > 1) {
       const coOwner = formData.owners[1];
       
@@ -849,6 +807,7 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
         safeSetCheckbox('Check Box71', true);
       }
       
+
       if (coOwner.firstName || coOwner.middleName || coOwner.lastName) {
         const coOwnerName = [
           coOwner.firstName || '',
@@ -857,17 +816,16 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
         ].filter(Boolean).join(' ');
         
         safeSetText('Text41', coOwnerName);
-
         safeSetText('Text73', coOwnerName);
       }
       
+
       if (coOwner.licenseNumber) {
         safeSetText('Text42', coOwner.licenseNumber);
         
 
         const dlDigits = coOwner.licenseNumber.split('');
         
-
         const dlFieldNames = [
           'first co owner dl no',
           'first co owner second digit',
@@ -879,7 +837,6 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
           'first co owner eighth digit'
         ];
         
-
         for (let i = 0; i < Math.min(dlDigits.length, dlFieldNames.length); i++) {
           safeSetText(dlFieldNames[i], dlDigits[i]);
         }
@@ -897,169 +854,20 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
         if (coOwner.address.state) safeSetText('Text45', coOwner.address.state);
         if (coOwner.address.zip) safeSetText('Text46', coOwner.address.zip);
       }
-    }    if (formData.legalOwnerInformation) {
-      const legalOwner = formData.legalOwnerInformation;
-      
-      if (legalOwner.name) {
-        safeSetText('Text118', legalOwner.name);
-      }
-      
-      if (legalOwner.eltNumber) {
-        safeSetText('Text119', legalOwner.eltNumber);
-      }
-      
-      if (legalOwner.address) {
-        const address = legalOwner.address;
-        
-        if (address.street) {
-          safeSetText('Text120', address.street);
-        }
-        
-        if (address.apt) {
-          safeSetText('Text121', address.apt);
-        }
-        
-        if (address.city) {
-          safeSetText('Text122', address.city);
-        }
-        
-        if (address.state) {
-          safeSetText('Text123', address.state);
-        }
-        
-        if (address.zip) {
-          safeSetText('Text124', address.zip);
-        }
-      }
-      
-      if (legalOwner.mailingAddressDifferent && legalOwner.mailingAddress) {
-        const mailingAddress = legalOwner.mailingAddress;
-        
-        if (mailingAddress.street) {
-          safeSetText('Text125', mailingAddress.street);
-        }
-        
-        if (mailingAddress.poBox) {
-          safeSetText('Text126', mailingAddress.poBox);
-        }
-        
-        if (mailingAddress.city) {
-          safeSetText('Text127', mailingAddress.city);
-        }
-        
-        if (mailingAddress.state) {
-          safeSetText('Text128', mailingAddress.state);
-        }
-        
-        if (mailingAddress.zip) {
-          safeSetText('Text129', mailingAddress.zip);
-        }
-      }
     }
-
-    if (formData.vehicleInformation && formData.vehicleInformation.mileage) {
-      const mileage = formData.vehicleInformation.mileage.toString().padStart(6, '0');
-      
-      for (let i = 0; i < Math.min(mileage.length, 6); i++) {
-        safeSetText(`Text132.${i}`, mileage[i]);
-      }
-    }
-    if (formData.vehicleInformation && formData.vehicleInformation.mileage) {
-      const mileage = formData.vehicleInformation.mileage.toString().padStart(6, '0');
-      
-      for (let i = 0; i < Math.min(mileage.length, 6); i++) {
-        safeSetText(`Text132.${i}`, mileage[i]);
-      }
-      
-      safeSetText('Text24', formData.vehicleInformation.mileage);
-      safeSetText('Text31', formData.vehicleInformation.mileage);
-    }
-
-
-    if (formData.owners && formData.owners.length > 0) {
-
-      const saleDate = formData.sellerInfo?.sellers?.[0]?.saleDate || '';
-      
-      if (formData.owners.length >= 1) {
-        const owner1 = formData.owners[0];
-        
-        const owner1FullName = [
-          owner1.firstName || '',
-          owner1.middleName || '',
-          owner1.lastName || ''
-        ].filter(Boolean).join(' ');
-        
-        safeSetText('Text184', owner1FullName);
-        
-        safeSetText('Text185', saleDate);
-        
-        if (owner1.phoneNumber || owner1.phone) {
-          const phone = (owner1.phoneNumber || owner1.phone || '').replace(/\D/g, '');
-          if (phone.length >= 3) {
-            safeSetText('Text186', phone.substring(0, 3));
-            safeSetText('Text187', phone.substring(3));
-          }
-        }
-      }
-      
-      if (formData.owners.length >= 2) {
-        const owner2 = formData.owners[1];
-        
-        const owner2FullName = [
-          owner2.firstName || '',
-          owner2.middleName || '',
-          owner2.lastName || ''
-        ].filter(Boolean).join(' ');
-        
-        if (owner2FullName.trim()) {
-          safeSetText('Text188', owner2FullName);
-          
-          safeSetText('Text189', saleDate);
-          
-          if (owner2.phoneNumber || owner2.phone) {
-            const phone = (owner2.phoneNumber || owner2.phone || '').replace(/\D/g, '');
-            if (phone.length >= 3) {
-              safeSetText('Text190', phone.substring(0, 3));
-              safeSetText('Text191', phone.substring(3));
-            }
-          }
-        }
-      }
-      
-      if (formData.owners.length >= 3) {
-        const owner3 = formData.owners[2];
-        
-        const owner3FullName = [
-          owner3.firstName || '',
-          owner3.middleName || '',
-          owner3.lastName || ''
-        ].filter(Boolean).join(' ');
-        
-        if (owner3FullName.trim()) {
-          safeSetText('Text192', owner3FullName);
-          
-          safeSetText('Text193', saleDate);
-          
-          if (owner3.phoneNumber || owner3.phone) {
-            const phone = (owner3.phoneNumber || owner3.phone || '').replace(/\D/g, '');
-            if (phone.length >= 3) {
-              safeSetText('Text194', phone.substring(0, 3));
-              safeSetText('Text195', phone.substring(3));
-            }
-          }
-        }
-      }
-    }
+    
 
     if (formData.owners && formData.owners.length > 2) {
       const owner3 = formData.owners[2];
       
+
       if (owner3.relationshipType === 'AND') {
         safeSetCheckbox('Check Box77', true);
       } else if (owner3.relationshipType === 'OR') {
         safeSetCheckbox('Check Box80', true);
       }
       
+
       if (owner3.firstName || owner3.middleName || owner3.lastName) {
         const owner3Name = [
           owner3.firstName || '',
@@ -1070,6 +878,7 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
         safeSetText('Text81', owner3Name);
       }
       
+
       if (owner3.licenseNumber) {
         const dlDigits = owner3.licenseNumber.split('');
         
@@ -1089,11 +898,13 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
         }
       }
       
+
       if (owner3.state) {
         safeSetText('Text75', owner3.state);
       }
     }
     
+
     try {
       safeSetText('Text55', '[Signature on file]');
       safeSetText('Text57', '[Signature on file]');
@@ -1101,46 +912,114 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
       console.error('Error setting signature:', error);
     }
     
-    if (formData.lienholders && formData.lienholders.length > 0) {
-      const lienholder = formData.lienholders[0];
+
+    if (formData.sellerInfo && formData.sellerInfo.sellers && formData.sellerInfo.sellers.length > 0) {
+      const saleDate = formData.sellerInfo.sellers[0].saleDate || '';
       
-      if (lienholder.name) {
-        safeSetText('Text48', lienholder.name);
-      }
-      
-      if (lienholder.address) {
-        const lienholderAddress = [
-          lienholder.address.street || '',
-          lienholder.address.city ? `${lienholder.address.city},` : '',
-          lienholder.address.state || '',
-          lienholder.address.zip || ''
-        ].filter(Boolean).join(' ');
+
+      if (formData.owners && formData.owners.length > 0) {
+
+        if (formData.owners.length >= 1) {
+          const owner1 = formData.owners[0];
+          
+          const owner1FullName = [
+            owner1.firstName || '',
+            owner1.middleName || '',
+            owner1.lastName || ''
+          ].filter(Boolean).join(' ');
+          
+          safeSetText('Text184', owner1FullName);
+          safeSetText('Text185', saleDate);
+          
+          if (owner1.phoneNumber || owner1.phone) {
+            const phone = (owner1.phoneNumber || owner1.phone || '').replace(/\D/g, '');
+            if (phone.length >= 3) {
+              safeSetText('Text186', phone.substring(0, 3));
+              safeSetText('Text187', phone.substring(3));
+            }
+          }
+        }
         
-        safeSetText('Text51.0', lienholderAddress);
+
+        if (formData.owners.length >= 2) {
+          const owner2 = formData.owners[1];
+          
+          const owner2FullName = [
+            owner2.firstName || '',
+            owner2.middleName || '',
+            owner2.lastName || ''
+          ].filter(Boolean).join(' ');
+          
+          if (owner2FullName.trim()) {
+            safeSetText('Text188', owner2FullName);
+            safeSetText('Text189', saleDate);
+            
+            if (owner2.phoneNumber || owner2.phone) {
+              const phone = (owner2.phoneNumber || owner2.phone || '').replace(/\D/g, '');
+              if (phone.length >= 3) {
+                safeSetText('Text190', phone.substring(0, 3));
+                safeSetText('Text191', phone.substring(3));
+              }
+            }
+          }
+        }
+        
+
+        if (formData.owners.length >= 3) {
+          const owner3 = formData.owners[2];
+          
+          const owner3FullName = [
+            owner3.firstName || '',
+            owner3.middleName || '',
+            owner3.lastName || ''
+          ].filter(Boolean).join(' ');
+          
+          if (owner3FullName.trim()) {
+            safeSetText('Text192', owner3FullName);
+            safeSetText('Text193', saleDate);
+            
+            if (owner3.phoneNumber || owner3.phone) {
+              const phone = (owner3.phoneNumber || owner3.phone || '').replace(/\D/g, '');
+              if (phone.length >= 3) {
+                safeSetText('Text194', phone.substring(0, 3));
+                safeSetText('Text195', phone.substring(3));
+              }
+            }
+          }
+        }
       }
     }
     
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 8; j++) {
-        if (i === 0 && j === 5) continue;
-        safeSetText(`Text25.${i}.${j}`, '');
+
+    if (formData.owners && formData.owners.length > 0) {
+      const firstOwner = formData.owners[0];
+      const isGift = formData.vehicleTransactionDetails?.isGift === true;
+      
+      if (isGift && firstOwner.giftValue) {
+        safeSetCheckbox('Check Box157', true);
+        safeSetText('Text158', firstOwner.giftValue);
+      } else if (!isGift && firstOwner.purchaseValue) {
+        safeSetCheckbox('Check Box155', true);
+        safeSetText('Text156', firstOwner.purchaseValue);
       }
     }
     
-    if (!vinSetInText56) {
-      for (let i = 0; i < 18; i++) {
-        safeSetText(`Text56.${i}`, '');
-      }
-    }    if (formData.outOfStateVehicles) {
-      const outOfState = formData.outOfStateVehicles;      if (outOfState.salesTaxPaid === 'na') {
+
+    if (formData.outOfStateVehicles) {
+      const outOfState = formData.outOfStateVehicles;
+      
+      if (outOfState.salesTaxPaid === 'na') {
         safeSetCheckbox('Check Box169', true);
       } else if (outOfState.salesTaxPaid === 'yes') {
-        safeSetCheckbox('Check Box170', true);        if (outOfState.taxAmount) {
+        safeSetCheckbox('Check Box170', true);
+        if (outOfState.taxAmount) {
           safeSetText('Text172', outOfState.taxAmount);
         }
       } else if (outOfState.salesTaxPaid === 'no') {
         safeSetCheckbox('Check Box171', true);
-      }      if (outOfState.plateDisposition) {
+      }
+      
+      if (outOfState.plateDisposition) {
         switch (outOfState.plateDisposition) {
           case 'expired':
             safeSetCheckbox('Check Box175', true);
@@ -1159,59 +1038,80 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
             break;
         }
       }
-    }    if (formData.owners && formData.owners.length > 0) {
-      const firstOwner = formData.owners[0];
-      const isGift = formData.vehicleTransactionDetails?.isGift === true;
+    }
+    
+
+    if (formData.vehicleAcquisition) {
+      const acquisition = formData.vehicleAcquisition;
       
-      if (isGift && firstOwner.giftValue) {        safeSetCheckbox('Check Box157', true);
-        safeSetText('Text158', firstOwner.giftValue);
-      } else if (!isGift && firstOwner.purchaseValue) {        safeSetCheckbox('Check Box155', true);
-        safeSetText('Text156', firstOwner.purchaseValue);
-      }
-    }    if (formData.vehicleAcquisition) {
-      const acquisition = formData.vehicleAcquisition;      if (acquisition.acquiredFrom === 'dealer') {
+      if (acquisition.acquiredFrom === 'dealer') {
         safeSetCheckbox('Check Box161', true);
       } else if (acquisition.acquiredFrom === 'privateParty') {
         safeSetCheckbox('Check Box162', true);
       } else if (acquisition.acquiredFrom === 'dismantler') {
         safeSetCheckbox('Check Box163', true);
       } else if (acquisition.acquiredFrom === 'familyMember') {
-        safeSetCheckbox('Check Box164', true);        if (acquisition.familyRelationship) {
+        safeSetCheckbox('Check Box164', true);
+        if (acquisition.familyRelationship) {
           safeSetText('Text165', acquisition.familyRelationship);
         }
-      }      if (acquisition.hasModifications === true) {
+      }
+      
+      if (acquisition.hasModifications === true) {
         safeSetCheckbox('Check Box166', true);
       } else if (acquisition.hasModifications === false) {
         safeSetCheckbox('Check Box167', true);
       }
-    }    if (formData.vehicleStatus) {
-      const status = formData.vehicleStatus;      if (status.didNotOwnAtEntry) {
+    }
+    
+
+    if (formData.vehicleStatus) {
+      const status = formData.vehicleStatus;
+      
+      if (status.didNotOwnAtEntry) {
         safeSetCheckbox('Check Box140', true);
-      }      if (status.notCaliforniaResident) {
+      }
+      
+      if (status.notCaliforniaResident) {
         safeSetCheckbox('Check Box151', true);
-      }      if (status.vehicleCondition === 'new') {
+      }
+      
+      if (status.vehicleCondition === 'new') {
         safeSetCheckbox('Check Box150', true);
       } else if (status.vehicleCondition === 'used') {
         safeSetCheckbox('Check Box152', true);
-      }      if (status.purchaseLocation === 'inside') {
+      }
+      
+      if (status.purchaseLocation === 'inside') {
         safeSetCheckbox('Check Box153', true);
       } else if (status.purchaseLocation === 'outside') {
         safeSetCheckbox('Check Box154', true);
       }
-    }    if (formData.dateInformation) {
-      const dates = formData.dateInformation;      if (dates.enteredCalifornia) {
+    }
+    
+
+    if (formData.dateInformation) {
+      const dates = formData.dateInformation;
+      
+      if (dates.enteredCalifornia) {
         safeSetText('Text137', dates.enteredCalifornia.month || '');
         safeSetText('Text138', dates.enteredCalifornia.day || '');
         safeSetText('Text139', dates.enteredCalifornia.year || '');
-      }      if (dates.firstOperated) {
+      }
+      
+      if (dates.firstOperated) {
         safeSetText('Text141', dates.firstOperated.month || '');
         safeSetText('Text142', dates.firstOperated.day || '');
         safeSetText('Text143', dates.firstOperated.year || '');
-      }      if (dates.becameResident) {
+      }
+      
+      if (dates.becameResident) {
         safeSetText('Text144', dates.becameResident.month || '');
         safeSetText('Text145', dates.becameResident.day || '');
         safeSetText('Text146', dates.becameResident.year || '');
-      }      if (dates.purchased) {
+      }
+      
+      if (dates.purchased) {
         safeSetText('Text147', dates.purchased.month || '');
         safeSetText('Text148', dates.purchased.day || '');
         safeSetText('Text149', dates.purchased.year || '');

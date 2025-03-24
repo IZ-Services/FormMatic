@@ -72,6 +72,12 @@ export default function CommercialVehicleTransfer({ formData, onDataChange }: Co
         <SellerAddress formData={formValues} />
         <VehicalInformation formData={formValues} />
         <VehicleWeightInfo formData={formValues} />
+        <NewRegisteredOwners formData={formValues} />
+        <Address formData={formValues} />
+        <DateInformation formData={formValues} />
+        <VehicleStatus formData={formValues} />
+        <VehicleAcquisition formData={formValues} />
+        <NewLien formData={formValues} />
         <StatementOfFacts formData={formValues} />
         <SaveButton 
           transactionType="Commercial Vehicle Transfer"

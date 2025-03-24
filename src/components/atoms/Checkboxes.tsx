@@ -163,7 +163,7 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
         <h3 className="releaseHeading">Transaction Details</h3>
       </div>
 
-      <div className="checkbox-container">
+      <div className="checkboxes">
         <div className="checkbox-section">
           <label className="checkbox-label">
             <input
