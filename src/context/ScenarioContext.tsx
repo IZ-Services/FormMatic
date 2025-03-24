@@ -91,6 +91,13 @@ const scenerios: Scenerio[] = [
       'Disabled Person Placards/Plates',
     ],
   },
+  {
+    transactionType: 'Commercial and Salvage Title',
+    subsections: [
+      'Commercial Vehicle',
+      'Salvage',
+    ],
+  },
 ];
 
 export function ScenarioProvider({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -19,7 +19,7 @@ import RemoveLienholder from '../../components/molecules/LienHolderRemovel';
 import NameChange from '../../components/molecules/NameChange';
 import ChangeOfAddress from '../../components/molecules/ChangeOfAddress';
 import PlannedNonOperation from '../../components/molecules/FilingPNO';
-
+import CommercialVehicleTransfer from '@/components/molecules/CommercialVehicleTitle';
 import CertificateOfNonOperation from '../../components/molecules/CertificateOfNonOperation';
 import PersonalizedPlates from '../../components/molecules/PersonlisedPlates';
 import DisabledPersonPlacards from '../../components/molecules/DisabledPersonAndPlacards';
@@ -57,6 +57,8 @@ export default function Home() {
     if (activeScenarios["Add Lienholder"]) components.push(<AddLienholder key="add-lienholder" />);
     if (activeScenarios["Remove Lienholder"]) components.push(<RemoveLienholder key="remove-lienholder" />);
     if (activeScenarios["Change of Address"]) components.push(<ChangeOfAddress key="change-of-address" />);
+    if (activeScenarios["Commercial Vehicle"]) components.push(<CommercialVehicleTransfer key="change-of-address" />);
+
     if (activeScenarios["Filing for Planned Non-Operation (PNO)"]) components.push(<PlannedNonOperation key="planned-non-operation" />);
 
     if (activeScenarios["Certificate of Non-Operation"]) components.push(<CertificateOfNonOperation key="restoring-pno" />);

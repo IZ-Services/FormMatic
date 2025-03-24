@@ -44,9 +44,20 @@ interface Address {
   zip?: string;
 }
 
+interface MailingAddress {
+  street?: string;
+  poBox?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+}
+
 interface LegalOwnerType {
   name?: string;
+  eltNumber?: string;
   address?: Address;
+  mailingAddressDifferent?: boolean;
+  mailingAddress?: MailingAddress;
   date?: string;
   phoneNumber?: string;
   authorizedAgentName?: string;
@@ -71,9 +82,20 @@ const initialAddress: Address = {
   zip: ''
 };
 
+const initialMailingAddress: MailingAddress = {
+  street: '',
+  poBox: '',
+  city: '',
+  state: '',
+  zip: ''
+};
+
 const initialLegalOwner: LegalOwnerType = {
   name: '',
+  eltNumber: '',
   address: initialAddress,
+  mailingAddressDifferent: false,
+  mailingAddress: initialMailingAddress,
   date: '',
   phoneNumber: '',
   authorizedAgentName: '',
@@ -137,11 +159,12 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
   const [legalOwnerData, setLegalOwnerData] = useState<LegalOwnerType>(
     propFormData?.legalOwnerInformation || initialLegalOwner
   );
+  const [eltError, setEltError] = useState<string>('');
   const { updateField } = useFormContext();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
-
   const stateDropdownRef = useRef<HTMLDivElement>(null);
+  const mailingStateDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!propFormData?.legalOwnerInformation) {
@@ -158,11 +181,14 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
     if (!hasCurrentLienholder && 
         legalOwnerData && 
         (legalOwnerData.name || 
+         legalOwnerData.eltNumber ||
          legalOwnerData.address?.street || 
          legalOwnerData.address?.city || 
          legalOwnerData.address?.state || 
          legalOwnerData.address?.zip || 
          legalOwnerData.address?.apt ||
+         legalOwnerData.mailingAddressDifferent ||
+         (legalOwnerData.mailingAddress && Object.values(legalOwnerData.mailingAddress).some(val => val)) ||
          legalOwnerData.date ||
          legalOwnerData.phoneNumber ||
          legalOwnerData.authorizedAgentName ||
@@ -191,10 +217,25 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
     }
   };
 
-  const handleAddressChange = (field: keyof Address, value: string) => {
+  const handleEltChange = (value: string) => {
+    const digitsOnly = value.replace(/\D/g, '');
+    const truncatedValue = digitsOnly.slice(0, 3);
+    
+    if (value !== truncatedValue) {
+      setEltError('ELT Number must be exactly 3 digits');
+    } else if (truncatedValue.length > 0 && truncatedValue.length < 3) {
+      setEltError('ELT Number must be exactly 3 digits');
+    } else {
+      setEltError('');
+    }
+    
+    handleInfoChange('eltNumber', truncatedValue);
+  };
+
+  const handleAddressChange = (addressType: 'address' | 'mailingAddress', field: string, value: string) => {
     const newData = { ...legalOwnerData };
-    newData.address = {
-      ...(newData.address || {}),
+    newData[addressType] = {
+      ...(newData[addressType] || {}),
       [field]: value
     };
     setLegalOwnerData(newData);
@@ -204,28 +245,36 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
     }
   };
   
-  const handleToggleDropdown = () => {
-    setOpenDropdown(prev => (prev === 'reg' ? null : 'reg'));
+  const handleToggleDropdown = (dropdown: string) => {
+    setOpenDropdown(prev => (prev === dropdown ? null : dropdown));
   };
   
-  const handleStateSelect = (stateAbbreviation: string) => {
-    handleAddressChange('state', stateAbbreviation);
+  const handleStateSelect = (dropdown: string, stateAbbreviation: string) => {
+    const addressType = dropdown === 'mailing' ? 'mailingAddress' : 'address';
+    handleAddressChange(addressType, 'state', stateAbbreviation);
     setOpenDropdown(null);
   };
-
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Element;
       
-      if (stateDropdownRef.current && !stateDropdownRef.current.contains(target)) {
+      if (stateDropdownRef.current && 
+          !stateDropdownRef.current.contains(target) && 
+          openDropdown === 'reg') {
+        setOpenDropdown(null);
+      }
+      
+      if (mailingStateDropdownRef.current && 
+          !mailingStateDropdownRef.current.contains(target) && 
+          openDropdown === 'mailing') {
         setOpenDropdown(null);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [openDropdown]);
 
 
   const containerStyle: CSSProperties = { 
@@ -242,7 +291,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
   const buttonStyle: CSSProperties = {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     width: '100%',
     padding: '8px 12px',
     backgroundColor: 'white',
@@ -254,23 +303,56 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
   };
 
   return (
-    <div className="releaseWrapper" style={containerStyle}>
-      <div className="headerRow">
-        <h3 className="releaseHeading">Legal Owner of Record</h3>
+    <div className="releaseWrapper" style={{ ...containerStyle, marginBottom: '30px' }}>
+      <div className="headerRow" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <h3 className="releaseHeading" style={{ margin: 0 }}>Legal Owner of Record</h3>
+        <div className="mailingCheckboxWrapper">
+          <label className="mailingCheckboxLabel" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="checkbox"
+              className="mailingCheckboxInput"
+              checked={legalOwnerData.mailingAddressDifferent || false}
+              onChange={(e) => handleInfoChange('mailingAddressDifferent', e.target.checked)}
+              style={{ margin: 0 }}
+            />
+            If mailing address is different
+          </label>
+        </div>
       </div>
       
-      <div className="releaseFormGroup">
-        <label className="releaseFormLabel">Name of Bank, Finance Company, or Individual having a Lien on this Vehicle</label>
-        <input
-          className="releaseFormInput"
-          type="text"
-          placeholder="Name of Bank, Finance Company, or Individual having a Lien on this Vehicle"
-          value={legalOwnerData.name || ''}
-          onChange={(e) => handleInfoChange('name', e.target.value)}
-        />
+      {/* Name and ELT fields in one row */}
+      <div className="nameEltGroup" style={{ display: 'flex', gap: '1rem' }}>
+        <div className="formGroup" style={{ flex: '3' }}>
+          <label className="releaseFormLabel">Name of Bank, Finance Company, or Individual having a Lien on this Vehicle</label>
+          <input
+            className="releaseFormInput"
+            type="text"
+            placeholder="Name of Bank, Finance Company, or Individual having a Lien on this Vehicle"
+            value={legalOwnerData.name || ''}
+            onChange={(e) => handleInfoChange('name', e.target.value)}
+          />
+        </div>
+        
+        <div className="formGroup" style={{ flex: '1' }}>
+          <label className="formLabel">ELT Number (3 digits)</label>
+          <input
+            className="formInput"
+            type="text"
+            placeholder="ELT Number"
+            value={legalOwnerData.eltNumber || ''}
+            onChange={(e) => handleEltChange(e.target.value)}
+            maxLength={3}
+            style={{ borderColor: eltError ? 'red' : '' }}
+          />
+          {eltError && (
+            <div className="errorMessage" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
+              {eltError}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Address */}
+      {/* Primary Address */}
       <div className="streetAptGroup">
         <div className="formGroup streetField">
           <label className="formLabel">Street</label>
@@ -279,7 +361,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
             type="text"
             placeholder="Street"
             value={legalOwnerData.address?.street || ''}
-            onChange={(e) => handleAddressChange('street', e.target.value)}
+            onChange={(e) => handleAddressChange('address', 'street', e.target.value)}
           />
         </div>
         <div className="formGroup aptField">
@@ -289,12 +371,12 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
             type="text"
             placeholder="APT./SPACE/STE.#"
             value={legalOwnerData.address?.apt || ''}
-            onChange={(e) => handleAddressChange('apt', e.target.value)}
+            onChange={(e) => handleAddressChange('address', 'apt', e.target.value)}
           />
         </div>
       </div>
 
-      <div className="cityStateZipGroupp" style={cityStateZipStyle}>
+      <div className="cityStateZipGroupp" style={{ ...cityStateZipStyle, position: 'relative', zIndex: 6 }}>
         <div className="cityFieldCustomWidth">
           <label className="formLabel">City</label>
           <input
@@ -302,7 +384,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
             type="text"
             placeholder="City"
             value={legalOwnerData.address?.city || ''}
-            onChange={(e) => handleAddressChange('city', e.target.value)}
+            onChange={(e) => handleAddressChange('address', 'city', e.target.value)}
           />
         </div>
         
@@ -310,12 +392,12 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
         <div 
           className="regStateWrapper" 
           ref={stateDropdownRef}
-          style={dropdownStyles.dropdownWrapper}
+          style={{ ...dropdownStyles.dropdownWrapper, zIndex: 6 }}
         >
           <label className="registeredOwnerLabel">State</label>
           <button
             type="button"
-            onClick={handleToggleDropdown}
+            onClick={() => handleToggleDropdown('reg')}
             className="regStateDropDown"
             style={buttonStyle}
           >
@@ -329,7 +411,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
               {states.map((state, index) => (
                 <li
                   key={index}
-                  onClick={() => handleStateSelect(state.abbreviation)}
+                  onClick={() => handleStateSelect('reg', state.abbreviation)}
                   style={dropdownStyles.dropdownItem}
                   onMouseEnter={(e) => {
                     (e.target as HTMLLIElement).style.backgroundColor = '#f5f5f5';
@@ -352,10 +434,105 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
             type="text"
             placeholder="Zip Code"
             value={legalOwnerData.address?.zip || ''}
-            onChange={(e) => handleAddressChange('zip', e.target.value)}
+            onChange={(e) => handleAddressChange('address', 'zip', e.target.value)}
           />
         </div>
       </div>
+
+              {/* Mailing Address Section (shows only when checkbox is checked) */}
+      {legalOwnerData.mailingAddressDifferent && (
+        <div className="addressWrapper" style={{ marginTop: '30px', position: 'relative' }}>
+          <h3 className="addressHeading" style={{ marginBottom: '15px' }}>Mailing Address</h3>
+          <div className="streetAptGroup">
+            <div className="formGroup streetField">
+              <label className="formLabel">Street</label>
+              <input
+                className="formInputt streetInput"
+                type="text"
+                placeholder="Street"
+                value={legalOwnerData.mailingAddress?.street || ''}
+                onChange={(e) => handleAddressChange('mailingAddress', 'street', e.target.value)}
+              />
+            </div>
+            <div className="formGroup aptField">
+              <label className="formLabel">PO Box No</label>
+              <input
+                className="formInputt aptInput"
+                type="text"
+                placeholder="PO Box No"
+                value={legalOwnerData.mailingAddress?.poBox || ''}
+                onChange={(e) => handleAddressChange('mailingAddress', 'poBox', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="cityStateZipGroupp" style={{ ...cityStateZipStyle, position: 'relative', zIndex: 4 }}>
+            <div className="cityFieldCustomWidth">
+              <label className="formLabel">City</label>
+              <input
+                className="cityInputt"
+                type="text"
+                placeholder="City"
+                value={legalOwnerData.mailingAddress?.city || ''}
+                onChange={(e) => handleAddressChange('mailingAddress', 'city', e.target.value)}
+              />
+            </div>
+            
+            {/* Mailing State dropdown */}
+            <div 
+              className="regStateWrapper" 
+              ref={mailingStateDropdownRef}
+              style={dropdownStyles.dropdownWrapper}
+            >
+              <label className="registeredOwnerLabel">State</label>
+              <button
+                type="button"
+                onClick={() => handleToggleDropdown('mailing')}
+                className="regStateDropDown"
+                style={buttonStyle}
+              >
+                {legalOwnerData.mailingAddress?.state || 'State'}
+                <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} style={{ width: '20px', height: '20px' }} />
+              </button>
+              
+              {openDropdown === 'mailing' && (
+                <ul style={{
+                  ...dropdownStyles.dropdownMenu,
+                  zIndex: 10000,                  position: 'absolute',
+                  maxHeight: '200px'
+                }}>
+                  {states.map((state, index) => (
+                    <li
+                      key={index}
+                      onClick={() => handleStateSelect('mailing', state.abbreviation)}
+                      style={dropdownStyles.dropdownItem}
+                      onMouseEnter={(e) => {
+                        (e.target as HTMLLIElement).style.backgroundColor = '#f5f5f5';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.target as HTMLLIElement).style.backgroundColor = 'white';
+                      }}
+                    >
+                      {state.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            
+            <div className="formGroup zipCodeField">
+              <label className="formLabel">ZIP Code</label>
+              <input
+                className="formInputt zipInput"
+                type="text"
+                placeholder="ZIP Code"
+                value={legalOwnerData.mailingAddress?.zip || ''}
+                onChange={(e) => handleAddressChange('mailingAddress', 'zip', e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

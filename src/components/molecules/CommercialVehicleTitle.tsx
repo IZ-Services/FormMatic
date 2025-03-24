@@ -19,8 +19,9 @@ import PowerOfAttorney from '../atoms/PowerOfAttorney';
 import SellerAddress from '../atoms/SellerAdrress';
 import VehicleStatus from '../atoms/VehicleStatus';
 import VehicleAcquisition from '../atoms/VehicleAcquisition';
-import OutOfStateVehicles from '../atoms/OutOfStateVehicles';
-
+import TypeOfVehicle from '../atoms/TypeOfVehicle';
+import StatementOfFacts from '../atoms/StatementOfFacts';
+import VehicleWeightInfo from '../atoms/VehicleWeightInfo';
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
   isSmogExempt?: boolean;
@@ -31,12 +32,12 @@ interface FormContextData {
   [key: string]: any;
 }
 
-interface SimpleTransferProps {
+interface CommercialVehicleTransferProps {
   formData?: any;
   onDataChange?: (data: any) => void;
 }
 
-export default function SimpleTransfer({ formData, onDataChange }: SimpleTransferProps) {
+export default function CommercialVehicleTransfer({ formData, onDataChange }: CommercialVehicleTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
   useEffect(() => {
     if (onDataChange) {
@@ -65,39 +66,15 @@ export default function SimpleTransfer({ formData, onDataChange }: SimpleTransfe
     return (
       <div className='wholeForm'>
         <TypeContainer />
-        <VehicleTransactionDetails formData={formValues} />
-        
-        {isOutOfStateTitle && (
-          <VehicleType formData={formValues} />
-        )}
+        <TypeOfVehicle formData={formValues} />
 
-        <VehicalInformation formData={formValues}/>
         <Seller formData={formValues} />
         <SellerAddress formData={formValues} />
-        {isCurrentLienholder && (
-          <LegalOwnerOfRecord formData={formValues} />
-        )}
-        <NewRegisteredOwners formData={formValues} />
-        <Address formData={formValues} />
-        {isOutOfStateTitle && (
-          <DateInformation formData={formValues} />
-        )}
-        {isOutOfStateTitle && (
-          <VehicleStatus formData={formValues} />
-        )}
-        {isOutOfStateTitle && (
-          <VehicleAcquisition formData={formValues} />
-        )}
-        {isOutOfStateTitle && (
-          <OutOfStateVehicles formData={formValues} />
-        )}  
-        <NewLien formData={formValues} />
-        <PowerOfAttorney formData={formValues} />
-         {isSmogExempt && (
-          <SmogExemption formData={formValues} />
-        )}
+        <VehicalInformation formData={formValues} />
+        <VehicleWeightInfo formData={formValues} />
+        <StatementOfFacts formData={formValues} />
         <SaveButton 
-          transactionType="Simple Transfer"
+          transactionType="Commercial Vehicle Transfer"
           onSuccess={() => console.log('Save completed successfully')}
         />
       </div>

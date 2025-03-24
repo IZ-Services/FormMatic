@@ -141,6 +141,10 @@ export async function POST(request: Request) {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'REG102.pdf');
       } else if (formType === 'Reg343') {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg343.pdf');
+      } else if (formType === 'Reg4008') {
+        pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg4008.pdf');
+      } else if (formType === 'Reg590') {
+        pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg590.pdf');
       } else {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg227.pdf');
       }
@@ -172,6 +176,10 @@ export async function POST(request: Request) {
         modifiedPdfBytes = await modifyREG102Pdf(existingPdfBytes, formData, effectiveTransactionType);
       } else if (formType === 'Reg343') {
         modifiedPdfBytes = await modifyReg343Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'Reg4008') {
+        modifiedPdfBytes = await modifyReg4008Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'Reg590') {
+        modifiedPdfBytes = await modifyReg590Pdf(existingPdfBytes, formData, effectiveTransactionType);
       } else {
         modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType);
       }
@@ -205,6 +213,10 @@ export async function POST(request: Request) {
         pdfUrl = `${baseUrl}/pdfs/REG102.pdf`;
       } else if (formType === 'Reg343') {
         pdfUrl = `${baseUrl}/pdfs/Reg343.pdf`;
+      } else if (formType === 'Reg4008') {
+        pdfUrl = `${baseUrl}/pdfs/Reg4008.pdf`;
+      } else if (formType === 'Reg590') {
+        pdfUrl = `${baseUrl}/pdfs/Reg590.pdf`;
       } else {
         pdfUrl = `${baseUrl}/pdfs/Reg227.pdf`;
       }
@@ -236,6 +248,10 @@ export async function POST(request: Request) {
         modifiedPdfBytes = await modifyREG102Pdf(existingPdfBytes, formData, effectiveTransactionType);
       } else if (formType === 'Reg343') {
         modifiedPdfBytes = await modifyReg343Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'Reg4008') {
+        modifiedPdfBytes = await modifyReg4008Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'Reg590') {
+        modifiedPdfBytes = await modifyReg590Pdf(existingPdfBytes, formData, effectiveTransactionType);
       } else {
         modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType);
       }
@@ -252,6 +268,267 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }
+
+async function modifyReg4008Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
+  try {
+    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: false });
+    
+    if (!pdfDoc) {
+      console.error('Failed to load PDF document');
+      throw new Error('Failed to load PDF document');
+    }
+    
+    const form = pdfDoc.getForm();
+    
+    if (!form) {
+      console.error('Failed to get form from PDF');
+      throw new Error('Failed to get form from PDF');
+    }
+    
+    console.log('Processing Reg4008 form (Verification of Vehicle)');
+    
+    const safeSetText = (fieldName: string, value: string) => {
+      try {
+        const field = form.getTextField(fieldName);
+        if (field) {
+          field.setText(value);
+          console.log(`Successfully filled field: ${fieldName} with: ${value}`);
+        } else {
+          console.warn(`Field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error filling field ${fieldName}:`, error);
+      }
+    };    console.log('Available fields in Reg4008 form:');
+    const fields = form.getFields();
+    for (const field of fields) {
+      const fieldName = field.getName();
+      const fieldType = field.constructor.name;
+      console.log(`Field: ${fieldName} (Type: ${fieldType})`);
+    }    try {
+      const today = new Date();
+      const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+      safeSetText('Executed on-Date', formattedDate);
+    } catch (error) {
+      console.error('Error setting date:', error);
+    }    if (formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 0) {
+      const seller = formData.sellerInfo.sellers[0];      const lastName = seller.lastName || '';
+      const firstName = seller.firstName || '';
+      const middleName = seller.middleName || '';
+      
+      let formattedName = '';
+      if (lastName) {
+        formattedName += lastName;
+        if (firstName || middleName) formattedName += ', ';
+      }
+      if (firstName) {
+        formattedName += firstName;
+        if (middleName) formattedName += ' ';
+      }
+      if (middleName) {
+        formattedName += middleName;
+      }
+      
+      safeSetText('Name', formattedName);
+
+      if (seller.state) {
+        safeSetText('States1.0', seller.state);
+      }
+    }    if (formData.sellerAddress) {      const address = formData.sellerAddress;      const street = address.street || '';
+      const apt = address.apt ? `Apt ${address.apt}` : '';
+      const streetApt = [street, apt].filter(Boolean).join(' ');
+      
+      safeSetText('Address.0.0', streetApt);      if (address.city) {
+        safeSetText('City.0', address.city);
+      }      if (address.zip) {
+        safeSetText('Zip Code.0', address.zip);
+      }
+    }    if (formData.sellerMailingAddressDifferent && formData.sellerMailingAddress) {
+      const mailingAddress = formData.sellerMailingAddress;      const street = mailingAddress.street || '';
+      const poBox = mailingAddress.poBox ? `PO Box ${mailingAddress.poBox}` : '';
+      const mailingStreetBox = [street, poBox].filter(Boolean).join(' ');
+      
+      safeSetText('Address.1', mailingStreetBox);      if (mailingAddress.city) {
+        safeSetText('City.1', mailingAddress.city);
+      }      if (mailingAddress.state) {
+        safeSetText('States1.1', mailingAddress.state);
+      }      if (mailingAddress.zip) {
+        safeSetText('Zip Code.1', mailingAddress.zip);
+      }
+    }    if (formData.vehicleInformation) {
+      const vInfo = formData.vehicleInformation;      if (vInfo.licensePlate) {
+        try {          const truncatedLicensePlate = vInfo.licensePlate.substring(0, 7);
+          safeSetText('License- 1.0', truncatedLicensePlate);
+        } catch (error) {
+          console.error('Error setting license plate:', error);
+        }
+      }      if (vInfo.hullId) {
+        safeSetText('VIN- 1.0', vInfo.hullId);
+      }      if (vInfo.make) {
+        safeSetText('Make -1.0', vInfo.make);
+      }
+    }    if (formData.vehicleWeightInfo && formData.vehicleWeightInfo.length > 0) {
+      const maxVehicles = Math.min(formData.vehicleWeightInfo.length, 2);      
+      for (let i = 0; i < maxVehicles; i++) {
+        const vehicle = formData.vehicleWeightInfo[i];
+        const suffix = i === 0 ? '.0' : '.1';        if (vehicle.vehicleOperatedUnder) {
+          safeSetText(`Under 10,001 pounds${suffix}`, 'X');
+        }        if (vehicle.gvwValue) {
+          safeSetText(`GVW -1${suffix}`, vehicle.gvwValue);
+        }        if (vehicle.cgwValue) {
+          safeSetText(`CGW -1${suffix}`, vehicle.cgwValue);
+        }        if (vehicle.firstOperatedDate) {
+          safeSetText(`Date 1st operated-1${suffix}`, vehicle.firstOperatedDate);
+        }
+      }
+    }
+    
+    try {
+      form.updateFieldAppearances();
+    } catch (e) {
+      console.warn('Error updating field appearances, continuing anyway:', e);
+    }
+    
+    return await pdfDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: false,
+      updateFieldAppearances: true
+    });
+  } catch (error) {
+    console.error('Error in modifyReg4008Pdf:', error);
+    const emptyPdf = await PDFDocument.create();
+    return await emptyPdf.save();
+  }
+}
+
+async function modifyReg590Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
+  try {
+    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: false});
+    
+    if (!pdfDoc) {
+      console.error('Failed to load PDF document');
+      throw new Error('Failed to load PDF document');
+    }
+    
+    const form = pdfDoc.getForm();
+    
+    if (!form) {
+      console.error('Failed to get form from PDF');
+      throw new Error('Failed to get form from PDF');
+    }
+    
+    console.log('Processing Reg590 form (Vehicle Transfer & Reassignment Form)');    console.log('Available fields in Reg590 form:');
+    const fields = form.getFields();
+    for (const field of fields) {
+      const fieldName = field.getName();
+      const fieldType = field.constructor.name;
+      console.log(`Field: ${fieldName} (Type: ${fieldType})`);
+    }
+    
+    const safeSetCheckbox = (fieldName: string, checked: boolean) => {
+      try {
+        const field = form.getCheckBox(fieldName);
+        if (field) {
+          if (checked) {
+            field.check();
+          } else {
+            field.uncheck();
+          }
+          console.log(`Successfully set checkbox: ${fieldName} to ${checked}`);
+        } else {
+          console.warn(`Checkbox field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error setting checkbox ${fieldName}:`, error);
+      }
+    };
+    
+    const safeSetText = (fieldName: string, value: string) => {
+      try {
+        const field = form.getTextField(fieldName);
+        if (field) {
+          field.setText(value);
+          console.log(`Successfully filled field: ${fieldName} with: ${value}`);
+        } else {
+          console.warn(`Field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error filling field ${fieldName}:`, error);
+      }
+    };    if (formData.vehicleInformation) {      if (formData.vehicleInformation.hullId) {
+        safeSetText('Vehicle identification number', formData.vehicleInformation.hullId);
+      }      const yearMake = [
+        formData.vehicleInformation.year || '',
+        formData.vehicleInformation.make || ''
+      ].filter(Boolean).join(' ');
+      
+      if (yearMake) {
+        safeSetText('Text2', yearMake);
+      }      if (formData.vehicleInformation.licensePlate) {
+        safeSetText('Text3', formData.vehicleInformation.licensePlate);
+      }
+    }    if (formData.vehicleTypeInfo) {
+      const vehicleType = formData.vehicleTypeInfo.vehicleType;
+      
+      if (vehicleType) {        if (vehicleType === 'Bus') {
+          safeSetCheckbox('Check Box4', true);
+        } else if (vehicleType === 'Taxicab') {
+          safeSetCheckbox('Check Box5', true);
+        } else if (vehicleType === 'Limousine') {
+          safeSetCheckbox('Check Box6', true);
+        } else if (vehicleType === 'Ambulance') {
+          safeSetCheckbox('Check Box7', true);
+        } else if (vehicleType === 'Station Wagon') {
+          safeSetCheckbox('Check Box8', true);          if (formData.vehicleTypeInfo.stationWagonUse === 'owner') {
+            safeSetCheckbox('Check Box9', true);
+          } else if (formData.vehicleTypeInfo.stationWagonUse === 'employee') {
+            safeSetCheckbox('Check Box10', true);
+          }
+        }
+      }      if (formData.vehicleTypeInfo.commercialStartDate) {
+        console.log('Setting commercialStartDate in Text14:', formData.vehicleTypeInfo.commercialStartDate);
+        safeSetText('Text14', formData.vehicleTypeInfo.commercialStartDate);
+      } else {
+        console.log('commercialStartDate is not available');
+      }
+    }    try {
+      const today = new Date();
+      const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+      safeSetText('Text11', formattedDate);
+    } catch (error) {
+      console.error('Error setting date in Text11:', error);
+    }    if (formData.sellerInfo && formData.sellerInfo.sellers && formData.sellerInfo.sellers.length > 0) {
+      const seller = formData.sellerInfo.sellers[0];
+      
+      if (seller.phone) {
+        const phone = seller.phone.replace(/\D/g, '');        
+        if (phone.length >= 3) {          safeSetText('Text12', phone.substring(0, 3));          if (phone.length > 3) {
+            safeSetText('Text13', phone.substring(3));
+          }
+        }
+      }
+    }
+    
+    try {
+      form.updateFieldAppearances();
+    } catch (e) {
+      console.warn('Error updating field appearances, continuing anyway:', e);
+    }
+    
+    return await pdfDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: false,
+      updateFieldAppearances: true
+    });
+  } catch (error) {
+    console.error('Error in modifyReg590Pdf:', error);
+    const emptyPdf = await PDFDocument.create();
+    return await emptyPdf.save();
+  }
+}
+
+
+
 
 async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
   try {
@@ -620,76 +897,60 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
         if (coOwner.address.state) safeSetText('Text45', coOwner.address.state);
         if (coOwner.address.zip) safeSetText('Text46', coOwner.address.zip);
       }
-    }
-
-    if (formData.lienHolder) {
-      const lienHolder = formData.lienHolder;
+    }    if (formData.legalOwnerInformation) {
+      const legalOwner = formData.legalOwnerInformation;
       
-
-      if (lienHolder.name) {
-        safeSetText('Text118', lienHolder.name);
+      if (legalOwner.name) {
+        safeSetText('Text118', legalOwner.name);
       }
       
-
-      if (lienHolder.eltNumber) {
-        safeSetText('Text119', lienHolder.eltNumber);
+      if (legalOwner.eltNumber) {
+        safeSetText('Text119', legalOwner.eltNumber);
       }
       
-
-      if (lienHolder.address) {
-        const address = lienHolder.address;
+      if (legalOwner.address) {
+        const address = legalOwner.address;
         
-
         if (address.street) {
           safeSetText('Text120', address.street);
         }
         
-
         if (address.apt) {
           safeSetText('Text121', address.apt);
         }
         
-
         if (address.city) {
           safeSetText('Text122', address.city);
         }
         
-
         if (address.state) {
           safeSetText('Text123', address.state);
         }
         
-
         if (address.zip) {
           safeSetText('Text124', address.zip);
         }
       }
       
-
-      if (lienHolder.mailingAddressDifferent && lienHolder.mailingAddress) {
-        const mailingAddress = lienHolder.mailingAddress;
+      if (legalOwner.mailingAddressDifferent && legalOwner.mailingAddress) {
+        const mailingAddress = legalOwner.mailingAddress;
         
-
         if (mailingAddress.street) {
           safeSetText('Text125', mailingAddress.street);
         }
         
-
         if (mailingAddress.poBox) {
           safeSetText('Text126', mailingAddress.poBox);
         }
         
-
         if (mailingAddress.city) {
           safeSetText('Text127', mailingAddress.city);
         }
         
-
         if (mailingAddress.state) {
           safeSetText('Text128', mailingAddress.state);
         }
         
-
         if (mailingAddress.zip) {
           safeSetText('Text129', mailingAddress.zip);
         }
@@ -699,132 +960,100 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     if (formData.vehicleInformation && formData.vehicleInformation.mileage) {
       const mileage = formData.vehicleInformation.mileage.toString().padStart(6, '0');
       
-
       for (let i = 0; i < Math.min(mileage.length, 6); i++) {
         safeSetText(`Text132.${i}`, mileage[i]);
       }
-    }    
-    
-
-
-
-if (formData.lienHolder) {
-  const lienHolder = formData.lienHolder;
-  
-
-  if (lienHolder.name) {
-    safeSetText('Text118', lienHolder.name);
-  }
-
-
-if (formData.vehicleInformation && formData.vehicleInformation.mileage) {
-  const mileage = formData.vehicleInformation.mileage.toString().padStart(6, '0');
-  
-
-  for (let i = 0; i < Math.min(mileage.length, 6); i++) {
-    safeSetText(`Text132.${i}`, mileage[i]);
-  }
-  
-
-  safeSetText('Text24', formData.vehicleInformation.mileage);
-  safeSetText('Text31', formData.vehicleInformation.mileage);
-}
-
-
-if (formData.owners && formData.owners.length > 0) {
-
-  const saleDate = formData.sellerInfo?.sellers?.[0]?.saleDate || '';
-  
-
-  if (formData.owners.length >= 1) {
-    const owner1 = formData.owners[0];
-    
-
-    const owner1FullName = [
-      owner1.firstName || '',
-      owner1.middleName || '',
-      owner1.lastName || ''
-    ].filter(Boolean).join(' ');
-    
-
-    safeSetText('Text184', owner1FullName);
-    
-
-    safeSetText('Text185', saleDate);
-    
-
-    if (owner1.phoneNumber || owner1.phone) {
-      const phone = (owner1.phoneNumber || owner1.phone || '').replace(/\D/g, '');
-      if (phone.length >= 3) {
-        safeSetText('Text186', phone.substring(0, 3));
-        safeSetText('Text187', phone.substring(3));
-      }
     }
-  }
-  
-
-  if (formData.owners.length >= 2) {
-    const owner2 = formData.owners[1];
-    
-
-    const owner2FullName = [
-      owner2.firstName || '',
-      owner2.middleName || '',
-      owner2.lastName || ''
-    ].filter(Boolean).join(' ');
-    
-
-    if (owner2FullName.trim()) {
-
-      safeSetText('Text188', owner2FullName);
+    if (formData.vehicleInformation && formData.vehicleInformation.mileage) {
+      const mileage = formData.vehicleInformation.mileage.toString().padStart(6, '0');
       
-
-      safeSetText('Text189', saleDate);
+      for (let i = 0; i < Math.min(mileage.length, 6); i++) {
+        safeSetText(`Text132.${i}`, mileage[i]);
+      }
       
+      safeSetText('Text24', formData.vehicleInformation.mileage);
+      safeSetText('Text31', formData.vehicleInformation.mileage);
+    }
 
-      if (owner2.phoneNumber || owner2.phone) {
-        const phone = (owner2.phoneNumber || owner2.phone || '').replace(/\D/g, '');
-        if (phone.length >= 3) {
-          safeSetText('Text190', phone.substring(0, 3));
-          safeSetText('Text191', phone.substring(3));
+
+    if (formData.owners && formData.owners.length > 0) {
+
+      const saleDate = formData.sellerInfo?.sellers?.[0]?.saleDate || '';
+      
+      if (formData.owners.length >= 1) {
+        const owner1 = formData.owners[0];
+        
+        const owner1FullName = [
+          owner1.firstName || '',
+          owner1.middleName || '',
+          owner1.lastName || ''
+        ].filter(Boolean).join(' ');
+        
+        safeSetText('Text184', owner1FullName);
+        
+        safeSetText('Text185', saleDate);
+        
+        if (owner1.phoneNumber || owner1.phone) {
+          const phone = (owner1.phoneNumber || owner1.phone || '').replace(/\D/g, '');
+          if (phone.length >= 3) {
+            safeSetText('Text186', phone.substring(0, 3));
+            safeSetText('Text187', phone.substring(3));
+          }
+        }
+      }
+      
+      if (formData.owners.length >= 2) {
+        const owner2 = formData.owners[1];
+        
+        const owner2FullName = [
+          owner2.firstName || '',
+          owner2.middleName || '',
+          owner2.lastName || ''
+        ].filter(Boolean).join(' ');
+        
+        if (owner2FullName.trim()) {
+          safeSetText('Text188', owner2FullName);
+          
+          safeSetText('Text189', saleDate);
+          
+          if (owner2.phoneNumber || owner2.phone) {
+            const phone = (owner2.phoneNumber || owner2.phone || '').replace(/\D/g, '');
+            if (phone.length >= 3) {
+              safeSetText('Text190', phone.substring(0, 3));
+              safeSetText('Text191', phone.substring(3));
+            }
+          }
+        }
+      }
+      
+      if (formData.owners.length >= 3) {
+        const owner3 = formData.owners[2];
+        
+        const owner3FullName = [
+          owner3.firstName || '',
+          owner3.middleName || '',
+          owner3.lastName || ''
+        ].filter(Boolean).join(' ');
+        
+        if (owner3FullName.trim()) {
+          safeSetText('Text192', owner3FullName);
+          
+          safeSetText('Text193', saleDate);
+          
+          if (owner3.phoneNumber || owner3.phone) {
+            const phone = (owner3.phoneNumber || owner3.phone || '').replace(/\D/g, '');
+            if (phone.length >= 3) {
+              safeSetText('Text194', phone.substring(0, 3));
+              safeSetText('Text195', phone.substring(3));
+            }
+          }
         }
       }
     }
-  }
-  
-
-  if (formData.owners.length >= 3) {
-    const owner3 = formData.owners[3-1];
-    
-
-    const owner3FullName = [
-      owner3.firstName || '',
-      owner3.middleName || '',
-      owner3.lastName || ''
-    ].filter(Boolean).join(' ');
-    
-
-    if (owner3FullName.trim()) {
-
-      safeSetText('Text192', owner3FullName);
-      
-
-      safeSetText('Text193', saleDate);
-      
-
-      if (owner3.phoneNumber || owner3.phone) {
-        const phone = (owner3.phoneNumber || owner3.phone || '').replace(/\D/g, '');
-        if (phone.length >= 3) {
-          safeSetText('Text194', phone.substring(0, 3));
-          safeSetText('Text195', phone.substring(3));
-        }
-      }
-    }}}}
 
     if (formData.owners && formData.owners.length > 2) {
       const owner3 = formData.owners[2];
       
-
       if (owner3.relationshipType === 'AND') {
         safeSetCheckbox('Check Box77', true);
       } else if (owner3.relationshipType === 'OR') {
@@ -838,15 +1067,12 @@ if (formData.owners && formData.owners.length > 0) {
           owner3.lastName || ''
         ].filter(Boolean).join(' ');
         
-
         safeSetText('Text81', owner3Name);
       }
       
       if (owner3.licenseNumber) {
-
         const dlDigits = owner3.licenseNumber.split('');
         
-
         const dlFieldNames = [
           'second co owner',
           'second co owner second digit',
@@ -858,28 +1084,23 @@ if (formData.owners && formData.owners.length > 0) {
           'second co owner eighth digit'
         ];
         
-
         for (let i = 0; i < Math.min(dlDigits.length, dlFieldNames.length); i++) {
           safeSetText(dlFieldNames[i], dlDigits[i]);
         }
       }
       
-
       if (owner3.state) {
         safeSetText('Text75', owner3.state);
       }
     }
     
-
     try {
-
       safeSetText('Text55', '[Signature on file]');
       safeSetText('Text57', '[Signature on file]');
     } catch (error) {
       console.error('Error setting signature:', error);
     }
     
-
     if (formData.lienholders && formData.lienholders.length > 0) {
       const lienholder = formData.lienholders[0];
       
@@ -888,7 +1109,6 @@ if (formData.owners && formData.owners.length > 0) {
       }
       
       if (lienholder.address) {
-
         const lienholderAddress = [
           lienholder.address.street || '',
           lienholder.address.city ? `${lienholder.address.city},` : '',
@@ -900,8 +1120,6 @@ if (formData.owners && formData.owners.length > 0) {
       }
     }
     
-
-
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 8; j++) {
         if (i === 0 && j === 5) continue;
@@ -909,11 +1127,94 @@ if (formData.owners && formData.owners.length > 0) {
       }
     }
     
-
     if (!vinSetInText56) {
-
       for (let i = 0; i < 18; i++) {
         safeSetText(`Text56.${i}`, '');
+      }
+    }    if (formData.outOfStateVehicles) {
+      const outOfState = formData.outOfStateVehicles;      if (outOfState.salesTaxPaid === 'na') {
+        safeSetCheckbox('Check Box169', true);
+      } else if (outOfState.salesTaxPaid === 'yes') {
+        safeSetCheckbox('Check Box170', true);        if (outOfState.taxAmount) {
+          safeSetText('Text172', outOfState.taxAmount);
+        }
+      } else if (outOfState.salesTaxPaid === 'no') {
+        safeSetCheckbox('Check Box171', true);
+      }      if (outOfState.plateDisposition) {
+        switch (outOfState.plateDisposition) {
+          case 'expired':
+            safeSetCheckbox('Check Box175', true);
+            break;
+          case 'surrendered':
+            safeSetCheckbox('Check Box176', true);
+            break;
+          case 'destroyed':
+            safeSetCheckbox('Check Box177', true);
+            break;
+          case 'retained':
+            safeSetCheckbox('Check Box178', true);
+            break;
+          case 'returned':
+            safeSetCheckbox('Check Box179', true);
+            break;
+        }
+      }
+    }    if (formData.owners && formData.owners.length > 0) {
+      const firstOwner = formData.owners[0];
+      const isGift = formData.vehicleTransactionDetails?.isGift === true;
+      
+      if (isGift && firstOwner.giftValue) {        safeSetCheckbox('Check Box157', true);
+        safeSetText('Text158', firstOwner.giftValue);
+      } else if (!isGift && firstOwner.purchaseValue) {        safeSetCheckbox('Check Box155', true);
+        safeSetText('Text156', firstOwner.purchaseValue);
+      }
+    }    if (formData.vehicleAcquisition) {
+      const acquisition = formData.vehicleAcquisition;      if (acquisition.acquiredFrom === 'dealer') {
+        safeSetCheckbox('Check Box161', true);
+      } else if (acquisition.acquiredFrom === 'privateParty') {
+        safeSetCheckbox('Check Box162', true);
+      } else if (acquisition.acquiredFrom === 'dismantler') {
+        safeSetCheckbox('Check Box163', true);
+      } else if (acquisition.acquiredFrom === 'familyMember') {
+        safeSetCheckbox('Check Box164', true);        if (acquisition.familyRelationship) {
+          safeSetText('Text165', acquisition.familyRelationship);
+        }
+      }      if (acquisition.hasModifications === true) {
+        safeSetCheckbox('Check Box166', true);
+      } else if (acquisition.hasModifications === false) {
+        safeSetCheckbox('Check Box167', true);
+      }
+    }    if (formData.vehicleStatus) {
+      const status = formData.vehicleStatus;      if (status.didNotOwnAtEntry) {
+        safeSetCheckbox('Check Box140', true);
+      }      if (status.notCaliforniaResident) {
+        safeSetCheckbox('Check Box151', true);
+      }      if (status.vehicleCondition === 'new') {
+        safeSetCheckbox('Check Box150', true);
+      } else if (status.vehicleCondition === 'used') {
+        safeSetCheckbox('Check Box152', true);
+      }      if (status.purchaseLocation === 'inside') {
+        safeSetCheckbox('Check Box153', true);
+      } else if (status.purchaseLocation === 'outside') {
+        safeSetCheckbox('Check Box154', true);
+      }
+    }    if (formData.dateInformation) {
+      const dates = formData.dateInformation;      if (dates.enteredCalifornia) {
+        safeSetText('Text137', dates.enteredCalifornia.month || '');
+        safeSetText('Text138', dates.enteredCalifornia.day || '');
+        safeSetText('Text139', dates.enteredCalifornia.year || '');
+      }      if (dates.firstOperated) {
+        safeSetText('Text141', dates.firstOperated.month || '');
+        safeSetText('Text142', dates.firstOperated.day || '');
+        safeSetText('Text143', dates.firstOperated.year || '');
+      }      if (dates.becameResident) {
+        safeSetText('Text144', dates.becameResident.month || '');
+        safeSetText('Text145', dates.becameResident.day || '');
+        safeSetText('Text146', dates.becameResident.year || '');
+      }      if (dates.purchased) {
+        safeSetText('Text147', dates.purchased.month || '');
+        safeSetText('Text148', dates.purchased.day || '');
+        safeSetText('Text149', dates.purchased.year || '');
       }
     }
     
@@ -934,7 +1235,6 @@ if (formData.owners && formData.owners.length > 0) {
     return await emptyPdf.save();
   }
 }
-
 
 async function modifyREG102Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
   try {
@@ -3511,8 +3811,7 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     vehicleLicensePlate: 'License Plate/CF Number', 
     vehicleVin: 'Veh/Vessel ID Number', 
     vehicleYearMake: 'Year/Make2', 
-    
-    
+    statementOfFacts: 'textarea_69crqf',    
     familyTransferBox: 'Family transfer box',
     giftBox: 'gift box', 
     
@@ -3738,7 +4037,10 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   safeSetText(fieldMapping.vehicleVin, vehicleInfo.vin || vehicleInfo.hullId || '');
   
   const yearMakeValue = [vehicleInfo.year || '', vehicleInfo.make || ''].filter(Boolean).join(' ');
-  safeSetText(fieldMapping.vehicleYearMake, yearMakeValue);
+  safeSetText(fieldMapping.vehicleYearMake, yearMakeValue);  if (formData.statementOfFacts && formData.statementOfFacts.statement) {
+    console.log('Setting Statement of Facts:', formData.statementOfFacts.statement);
+    safeSetText(fieldMapping.statementOfFacts, formData.statementOfFacts.statement);
+  }
   
   if (isGift) {
     safeSetCheckbox(fieldMapping.giftBox, true);
@@ -3804,7 +4106,6 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   
   return await pdfDoc.save();
 }
-
 async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
  
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });

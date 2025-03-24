@@ -18,13 +18,17 @@ interface VehicleInformationType {
   gvwCode?: string;
   cgwCode?: string;
   operationDate?: string;
-}
+  length?: string;  width?: string;}
 
 interface VehicleInformationProps {
   formData?: {
     vehicleInformation?: VehicleInformationType;
     vehicleTransactionDetails?: {
       isMotorcycle?: boolean;
+    };
+    vehicleType?: {
+      isMotorcycle?: boolean;
+      isTrailerCoach?: boolean;
     };
   };
   onChange?: (data: VehicleInformationType) => void;
@@ -45,7 +49,9 @@ const initialVehicleInformation: VehicleInformationType = {
   isMotorcycle: false,
   gvwCode: '',
   cgwCode: '',
-  operationDate: ''
+  operationDate: '',
+  length: '',
+  width: ''
 };
 
 const VehicleInformation: React.FC<VehicleInformationProps> = ({ 
@@ -71,7 +77,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
   }, []);
 
   useEffect(() => {
-    const isCurrentlyMotorcycle = formData.vehicleTransactionDetails?.isMotorcycle === true;
+    const isCurrentlyMotorcycle = formData.vehicleType?.isMotorcycle === true;
     const currentInfo = (formData.vehicleInformation || {}) as VehicleInformationType;
     
     if (!isCurrentlyMotorcycle && currentInfo.engineNumber) {
@@ -84,7 +90,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
         onChange(newInfo);
       }
     }
-  }, [formData.vehicleTransactionDetails?.isMotorcycle]);
+  }, [formData.vehicleType?.isMotorcycle]);
 
   const handleVehicleInfoChange = (field: keyof VehicleInformationType, value: string | boolean) => {
     const currentInfo = (formData.vehicleInformation || {}) as VehicleInformationType;
@@ -112,7 +118,8 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
     }
   };
 
-  const isMotorcycle = formData.vehicleTransactionDetails?.isMotorcycle === true;
+  const isMotorcycle = formData.vehicleType?.isMotorcycle === true;
+  const isTrailerCoach = formData.vehicleType?.isTrailerCoach === true;
 
   return (
     <div className="vehicleInformationWrapper">
@@ -176,6 +183,40 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
           />
         </div>
       </div>
+
+      {/* Trailer Coach dimensions fields */}
+      {isTrailerCoach && (
+        <div className="vehicleFirstGroup">
+          <div className="vehicleFormItem">
+            <label className="yearlabel">Length (IN)</label>
+            <input
+              className="yearInput"
+              type="text"
+              placeholder="Length in inches"
+              value={(formData.vehicleInformation as VehicleInformationType)?.length || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                const numericValue = value.replace(/[^0-9]/g, '');
+                handleVehicleInfoChange('length', numericValue);
+              }}
+            />
+          </div>
+          <div className="vehicleFormItem">
+            <label className="yearlabel">Width (IN)</label>
+            <input
+              className="makeInput"
+              type="text"
+              placeholder="Width in inches"
+              value={(formData.vehicleInformation as VehicleInformationType)?.width || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                const numericValue = value.replace(/[^0-9]/g, '');
+                handleVehicleInfoChange('width', numericValue);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Only show mileage fields if NOT in Duplicate Registration mode */}
       {!isDuplicateRegistrationMode && (
