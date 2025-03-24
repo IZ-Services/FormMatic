@@ -285,11 +285,14 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
   } catch (error) {
     console.error('Error in PDF merge process:', error);    return pdfBlobs[0].blob;
   }
-};const handlePdfDisplay = async (transactionId: string) => {
+};
+const handlePdfDisplay = async (transactionId: string) => {
   try {
     let formTypes = [];
     
-    console.log('Opening PDFs for transaction type:', transactionType);    if (transactionType === "Disabled Person and Placards") {
+    console.log('Opening PDFs for transaction type:', transactionType);
+    
+    if (transactionType === "Disabled Person and Placards") {
       formTypes = ['REG195'];
     } else if (transactionType === "Personalized Plates (Order)" || 
                transactionType === "Personalized Plates (Reassignment)" ||
@@ -315,8 +318,18 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
     } else if (transactionType === "Change Of Address Transfer") {
       formTypes = ['DMV14'];
     } else if (transactionType === "Commercial Vehicle Transfer") {
-      formTypes = ['Reg343', 'Reg4008', 'Reg590', 'Reg256'];
-      console.log('Commercial Vehicle Transfer: Using Reg343, Reg4008, Reg590, and Reg256 forms');
+      formTypes = ['Reg343', 'Reg4008', 'Reg256'];
+      
+      // Check if vehicle type is one of the specified types for Reg590
+      const vehicleType = formData.vehicleTypeInfo?.vehicleType;
+      if (vehicleType && ['Bus', 'Taxicab', 'Limousine', 'Station Wagon'].includes(vehicleType)) {
+        formTypes.push('Reg590');
+        console.log(`Adding Reg590 form for vehicle type: ${vehicleType}`);
+      } else {
+        console.log(`Not including Reg590 - vehicle type is: ${vehicleType || 'not specified'}`);
+      }
+      
+      console.log('Commercial Vehicle Transfer: Using forms:', formTypes.join(', '));
     } else {
       formTypes = ['Reg227', 'DMVREG262'];
       
@@ -329,7 +342,11 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       if (formData.vehicleTransactionDetails?.isOutOfStateTitle) {
         formTypes.push('Reg343');
       }
-    }    window._failedPdfs = [];    const pdfBlobs: Array<{ blob: Blob, title: string }> = [];
+    }
+    
+    window._failedPdfs = [];
+    
+    const pdfBlobs: Array<{ blob: Blob, title: string }> = [];
     
     for (const formType of formTypes) {
       console.log(`Requesting PDF for form type: ${formType}`);
@@ -374,12 +391,19 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
     
     if (pdfBlobs.length === 0) {
       throw new Error('No PDFs were generated successfully');
-    }    const mergedPdfBlob = await mergePDFs(pdfBlobs);    const pdfUrl = URL.createObjectURL(mergedPdfBlob);
+    }
+    
+    const mergedPdfBlob = await mergePDFs(pdfBlobs);
+    
+    const pdfUrl = URL.createObjectURL(mergedPdfBlob);
     window.open(pdfUrl, '_blank');
     
     setTimeout(() => {
       URL.revokeObjectURL(pdfUrl);
-    }, 5000);    if (window._failedPdfs && window._failedPdfs.length > 0) {      await new Promise(resolve => setTimeout(resolve, 500));
+    }, 5000);
+    
+    if (window._failedPdfs && window._failedPdfs.length > 0) {
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       console.log(`Opening ${window._failedPdfs.length} PDFs that couldn't be merged`);
       
@@ -401,7 +425,10 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
     alert(`Error opening PDFs: ${error.message}`);
     return false;
   }
-};const openPdfs = async (transactionId: string) => {
+};
+
+
+const openPdfs = async (transactionId: string) => {
   return handlePdfDisplay(transactionId);
 };
 
