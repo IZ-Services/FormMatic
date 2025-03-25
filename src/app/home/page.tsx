@@ -9,7 +9,7 @@ import TransactionsContainer from '@/components/layouts/TransactionsContainer';
 
 import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import MultipleTransfer from '../../components/molecules/MultipleTransfer';
-
+import SalvageTransfer from '../../components/molecules/Salvage';
 import DuplicateTitle from '../../components/molecules/DuplicateTitle';
 import DuplicateRegistration from '../../components/molecules/DuplicateRegistration';
 import DuplicateStickers from '../../components/molecules/DuplicateStickersOnly';
@@ -57,8 +57,8 @@ export default function Home() {
     if (activeScenarios["Add Lienholder"]) components.push(<AddLienholder key="add-lienholder" />);
     if (activeScenarios["Remove Lienholder"]) components.push(<RemoveLienholder key="remove-lienholder" />);
     if (activeScenarios["Change of Address"]) components.push(<ChangeOfAddress key="change-of-address" />);
-    if (activeScenarios["Commercial Vehicle"]) components.push(<CommercialVehicleTransfer key="change-of-address" />);
-
+    if (activeScenarios["Commercial Vehicle"]) components.push(<CommercialVehicleTransfer key="commercial-vehicle-transfer" />);
+    if (activeScenarios["Salvage"]) components.push(<SalvageTransfer key="salvage-transfer" />);
     if (activeScenarios["Filing for Planned Non-Operation (PNO)"]) components.push(<PlannedNonOperation key="planned-non-operation" />);
 
     if (activeScenarios["Certificate of Non-Operation"]) components.push(<CertificateOfNonOperation key="restoring-pno" />);

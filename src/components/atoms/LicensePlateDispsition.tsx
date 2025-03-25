@@ -28,7 +28,6 @@ const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({ formD
   const { updateField } = useFormContext();
 
   useEffect(() => {
- 
     const mergedData: LicensePlateDispositionData = {
       beingSurrendered: false,
       haveLost: false,
@@ -81,7 +80,7 @@ const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({ formD
         <p className="section-description">The license plates assigned to this vehicle:</p>
 
         <div className="checkbox-group">
-          <div className="checkbox-row">
+          <div className="checkbox-item">
             <label className="checkbox-label">
               <input
                 type="checkbox"
@@ -91,27 +90,31 @@ const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({ formD
               Are being surrendered
             </label>
             
-            <div className="plates-surrendered-group">
-              <span>Plates surrendered:</span>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="platesSurrendered"
-                  checked={dispositionData.platesSurrendered === 'one'}
-                  onChange={() => handlePlatesSurrenderedChange('one')}
-                />
-                One
-              </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="platesSurrendered"
-                  checked={dispositionData.platesSurrendered === 'two'}
-                  onChange={() => handlePlatesSurrenderedChange('two')}
-                />
-                Two
-              </label>
-            </div>
+            {dispositionData.beingSurrendered && (
+              <div className="plates-surrendered-group">
+                <span className="plates-surrendered-title">Plates surrendered:</span>
+                <div className="radio-options">
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="platesSurrendered"
+                      checked={dispositionData.platesSurrendered === 'one'}
+                      onChange={() => handlePlatesSurrenderedChange('one')}
+                    />
+                    One
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="platesSurrendered"
+                      checked={dispositionData.platesSurrendered === 'two'}
+                      onChange={() => handlePlatesSurrenderedChange('two')}
+                    />
+                    Two
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
 
           <label className="checkbox-label">
@@ -123,7 +126,7 @@ const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({ formD
             Have been lost
           </label>
 
-          <div className="checkbox-row">
+          <div className="checkbox-item">
             <label className="checkbox-label">
               <input
                 type="checkbox"

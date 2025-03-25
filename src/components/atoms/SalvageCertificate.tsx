@@ -14,6 +14,8 @@ interface SalvageCertificateData {
   dateStolen?: string;
   dateRecovered?: string;
   costOrValue?: string;
+  isOriginal?: boolean;
+  isDuplicate?: boolean;
 }
 
 interface SalvageCertificateProps {
@@ -45,20 +47,51 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propF
     updateField('salvageCertificate', newData);
   };
 
-  const formatDate = (value: string) => {     const digitsOnly = value.replace(/\D/g, '');     let formatted = digitsOnly;
+  const handleCheckboxChange = (field: 'isOriginal' | 'isDuplicate') => {    const newData = { 
+      ...salvageData,
+      isOriginal: field === 'isOriginal' ? !salvageData.isOriginal : false,
+      isDuplicate: field === 'isDuplicate' ? !salvageData.isDuplicate : false
+    };
+    setSalvageData(newData);
+    updateField('salvageCertificate', newData);
+  };
+
+  const formatDate = (value: string) => {
+    const digitsOnly = value.replace(/\D/g, '');
+    let formatted = digitsOnly;
     if (formatted.length > 2) {
       formatted = `${formatted.slice(0, 2)}/${formatted.slice(2)}`;
     }
     if (formatted.length > 5) {
       formatted = `${formatted.slice(0, 5)}/${formatted.slice(5)}`;
-    }     return formatted.slice(0, 10);
+    }
+    return formatted.slice(0, 10);
   };
 
   return (
     <div className="salvage-certificate-wrapper">
       <div className="section-header">
-        <h3 className="section-title">Salvage Certificate</h3>
+        <div className="certificate-type-checkboxes">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={salvageData.isOriginal || false}
+              onChange={() => handleCheckboxChange('isOriginal')}
+            />
+            Original
+          </label>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={salvageData.isDuplicate || false}
+              onChange={() => handleCheckboxChange('isDuplicate')}
+            />
+            Duplicate
+          </label>
+        </div>
+
       </div>
+      <h3 className="section-title">Salvage Certificate</h3>
 
       <div className="form-grid">
         <div className="input-row">
@@ -70,7 +103,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propF
               placeholder="Enter state"
               value={salvageData.stateOfLastRegistration || ''}
               onChange={(e) => handleInputChange('stateOfLastRegistration', e.target.value)}
-              maxLength={2}
+              maxLength={20}
             />
           </div>
           <div className="input-group">

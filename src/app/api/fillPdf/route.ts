@@ -145,6 +145,8 @@ export async function POST(request: Request) {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg4008.pdf');
       } else if (formType === 'Reg590') {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg590.pdf');
+      } else if (formType === 'Reg488c') {
+        pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg488c.pdf');
       } else {
         pdfPath = path.join(process.cwd(), 'public', 'pdfs', 'Reg227.pdf');
       }
@@ -180,6 +182,8 @@ export async function POST(request: Request) {
         modifiedPdfBytes = await modifyReg4008Pdf(existingPdfBytes, formData, effectiveTransactionType);
       } else if (formType === 'Reg590') {
         modifiedPdfBytes = await modifyReg590Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'Reg488c') {
+        modifiedPdfBytes = await modifyReg488cPdf(existingPdfBytes, formData, effectiveTransactionType);
       } else {
         modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType);
       }
@@ -217,6 +221,8 @@ export async function POST(request: Request) {
         pdfUrl = `${baseUrl}/pdfs/Reg4008.pdf`;
       } else if (formType === 'Reg590') {
         pdfUrl = `${baseUrl}/pdfs/Reg590.pdf`;
+      } else if (formType === 'Reg488c') {
+        pdfUrl = `${baseUrl}/pdfs/Reg488c.pdf`;
       } else {
         pdfUrl = `${baseUrl}/pdfs/Reg227.pdf`;
       }
@@ -252,6 +258,8 @@ export async function POST(request: Request) {
         modifiedPdfBytes = await modifyReg4008Pdf(existingPdfBytes, formData, effectiveTransactionType);
       } else if (formType === 'Reg590') {
         modifiedPdfBytes = await modifyReg590Pdf(existingPdfBytes, formData, effectiveTransactionType);
+      } else if (formType === 'Reg488c') {
+        modifiedPdfBytes = await modifyReg488cPdf(existingPdfBytes, formData, effectiveTransactionType);
       } else {
         modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType);
       }
@@ -266,6 +274,194 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error(`[fillPdfForm] Error:`, error);
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
+  }
+}
+
+async function modifyReg488cPdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
+  try {
+    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: false });
+    
+    if (!pdfDoc) {
+      console.error('Failed to load PDF document');
+      throw new Error('Failed to load PDF document');
+    }
+    
+    const form = pdfDoc.getForm();
+    
+    if (!form) {
+      console.error('Failed to get form from PDF');
+      throw new Error('Failed to get form from PDF');
+    }
+    
+    console.log('Processing Reg488c form (Application for Salvage Certificate)');    console.log('Available fields in Reg488c form:');
+    const fields = form.getFields();
+    for (const field of fields) {
+      const fieldName = field.getName();
+      const fieldType = field.constructor.name;
+      console.log(`Field: ${fieldName} (Type: ${fieldType})`);
+    }
+    
+    const safeSetText = (fieldName: string, value: string) => {
+      try {
+        const field = form.getTextField(fieldName);
+        if (field) {
+          field.setText(value);
+          console.log(`Successfully filled field: ${fieldName} with: ${value}`);
+        } else {
+          console.warn(`Field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error filling field ${fieldName}:`, error);
+      }
+    };
+    
+    const safeSetCheckBox = (fieldName: string, value: boolean) => {
+      try {
+        const field = form.getCheckBox(fieldName);
+        if (field) {
+          if (value) {
+            field.check();
+          } else {
+            field.uncheck();
+          }
+          console.log(`Successfully set checkbox: ${fieldName} to: ${value}`);
+        } else {
+          console.warn(`Checkbox field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error setting checkbox ${fieldName}:`, error);
+      }
+    };    if (formData.vehicleInformation) {
+      const vInfo = formData.vehicleInformation;
+      
+      if (vInfo.licensePlate) {
+        safeSetText('VEHICLE LICENSE NUMBER', vInfo.licensePlate || '');
+      }
+      
+      if (vInfo.year) {
+        safeSetText('YEAR1', vInfo.year || '');
+      }
+      
+      if (vInfo.hullId) {
+        safeSetText('VIN', vInfo.hullId || '');
+      }
+      
+      if (vInfo.make) {
+        safeSetText('MAKE1', vInfo.make || '');
+      }
+    }    if (formData.salvageCertificate) {
+      const salvageInfo = formData.salvageCertificate;
+      
+      if (salvageInfo.stateOfLastRegistration) {
+        safeSetText('STATE OF LAST REGISTRATION1', salvageInfo.stateOfLastRegistration || '');
+      }
+      
+      if (salvageInfo.dateRegistrationExpires) {
+        safeSetText('DATE REGISTRATION EXPIRES1', salvageInfo.dateRegistrationExpires || '');
+      }
+      
+      if (salvageInfo.claimNumber) {
+        safeSetText('CLAIM NUMBER1', salvageInfo.claimNumber || '');
+      }
+      
+      if (salvageInfo.costOrValue) {
+        safeSetText('COST/VALUE1', salvageInfo.costOrValue || '');
+      }
+      
+      if (salvageInfo.dateWreckedOrDestroyed) {
+        safeSetText('DATE WRECKED OR DESTROYED1', salvageInfo.dateWreckedOrDestroyed || '');
+      }
+      
+      if (salvageInfo.dateStolen) {
+        safeSetText('DATE STOLEN1', salvageInfo.dateStolen || '');
+      }
+      
+      if (salvageInfo.dateRecovered) {
+        safeSetText('DATE RECOVERED1', salvageInfo.dateRecovered || '');
+      }      if (salvageInfo.isOriginal) {
+        safeSetCheckBox('original', true);
+      }
+      
+      if (salvageInfo.isDuplicate) {
+        safeSetCheckBox('duplicate', true);
+      }
+    }    if (formData.licensePlateDisposition) {
+      const lpDisposition = formData.licensePlateDisposition;      if (lpDisposition.plateRetainedByOwner) {
+        safeSetCheckBox('plate with owner', true);
+      }
+      
+      if (lpDisposition.beingSurrendered) {
+        safeSetCheckBox('Are Being Surrendered', true);        if (lpDisposition.platesSurrendered) {
+          if (lpDisposition.platesSurrendered === 'one') {
+            safeSetCheckBox('one', true);
+          } else if (lpDisposition.platesSurrendered === 'two') {
+            safeSetCheckBox('two', true);
+          }
+        }
+      }
+      
+      if (lpDisposition.haveLost) {
+        safeSetCheckBox('have been lost', true);
+      }
+      
+      if (lpDisposition.haveDestroyed) {
+        safeSetCheckBox('have been destroyed', true);        if (lpDisposition.occupationalLicenseNumber) {
+          safeSetText('OL NUMBER 3', lpDisposition.occupationalLicenseNumber);
+          safeSetText('OL LICENSE NUMBER', lpDisposition.occupationalLicenseNumber);
+        }
+      }
+    }    if (formData.owners && formData.owners.length > 0) {
+      const owner = formData.owners[0];      const ownerFullName = [
+        owner.firstName || '',
+        owner.middleName || '',
+        owner.lastName || ''
+      ].filter(Boolean).join(' ');
+      
+      if (ownerFullName) {
+        safeSetText('PRINTED NAME OF INSURANCE CO. OR APPLICANT1', ownerFullName);
+        safeSetText('PRINTED NAME OF AGENT', ownerFullName);
+      }
+      
+      if (owner.licenseNumber) {
+        safeSetText('DL OR ID NUMBER1', owner.licenseNumber || '');
+      }
+    }    if (formData.address) {
+      const address = formData.address;
+      
+      if (address.street) {
+        safeSetText('STREET ADDRESS', address.street || '');
+      }
+      
+      if (address.city) {
+        safeSetText('CITY', address.city || '');
+      }
+      
+      if (address.state) {
+        safeSetText('STATE', address.state || '');
+      }
+      
+      if (address.zip) {
+        safeSetText('ZIP CODE', address.zip || '');
+      }
+    }    const today = new Date();
+    const formattedDate = `${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getDate().toString().padStart(2, '0')}/${today.getFullYear()}`;
+    safeSetText('CERTIFICATION DATE', formattedDate);
+    
+    try {
+      form.updateFieldAppearances();
+    } catch (e) {
+      console.warn('Error updating field appearances, continuing anyway:', e);
+    }
+    
+    return await pdfDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: false,
+      updateFieldAppearances: true
+    });
+  } catch (error) {
+    console.error('Error in modifyReg488cPdf:', error);
+    const emptyPdf = await PDFDocument.create();
+    return await emptyPdf.save();
   }
 }
 
@@ -526,8 +722,6 @@ async function modifyReg590Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     return await emptyPdf.save();
   }
 }
-
-
 
 
 async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {

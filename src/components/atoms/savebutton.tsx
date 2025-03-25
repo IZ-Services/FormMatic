@@ -317,11 +317,13 @@ const handlePdfDisplay = async (transactionId: string) => {
       formTypes = ['Reg256'];
     } else if (transactionType === "Change Of Address Transfer") {
       formTypes = ['DMV14'];
-    } else if (transactionType === "Commercial Vehicle Transfer") {
+    }else if (transactionType === "Salvage Title Transfer") {
+      formTypes = ['Reg488c'];
+    }  
+    
+    else if (transactionType === "Commercial Vehicle Transfer") {
       formTypes = ['Reg343', 'Reg4008', 'Reg256'];
-      
-      // Check if vehicle type is one of the specified types for Reg590
-      const vehicleType = formData.vehicleTypeInfo?.vehicleType;
+            const vehicleType = formData.vehicleTypeInfo?.vehicleType;
       if (vehicleType && ['Bus', 'Taxicab', 'Limousine', 'Station Wagon'].includes(vehicleType)) {
         formTypes.push('Reg590');
         console.log(`Adding Reg590 form for vehicle type: ${vehicleType}`);
