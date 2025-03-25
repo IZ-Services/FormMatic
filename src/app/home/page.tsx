@@ -23,7 +23,7 @@ import CommercialVehicleTransfer from '@/components/molecules/CommercialVehicleT
 import CertificateOfNonOperation from '../../components/molecules/CertificateOfNonOperation';
 import PersonalizedPlates from '../../components/molecules/PersonlisedPlates';
 import DisabledPersonPlacards from '../../components/molecules/DisabledPersonAndPlacards';
-
+import RestoringPNOTransfer from '@/components/molecules/RestoringPno';
 export default function Home() {
   const { selectedSubsection, activeScenarios, activeSubOptions } = useScenarioContext();
   const { user, isSubscribed } = UserAuth();
@@ -60,6 +60,7 @@ export default function Home() {
     if (activeScenarios["Commercial Vehicle"]) components.push(<CommercialVehicleTransfer key="commercial-vehicle-transfer" />);
     if (activeScenarios["Salvage"]) components.push(<SalvageTransfer key="salvage-transfer" />);
     if (activeScenarios["Filing for Planned Non-Operation (PNO)"]) components.push(<PlannedNonOperation key="planned-non-operation" />);
+    if (activeScenarios["Restoring PNO Vehicle to Operational"]) components.push(<RestoringPNOTransfer key="restoring-pno-transfer" />);
 
     if (activeScenarios["Certificate of Non-Operation"]) components.push(<CertificateOfNonOperation key="restoring-pno" />);
 

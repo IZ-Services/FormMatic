@@ -320,6 +320,9 @@ const handlePdfDisplay = async (transactionId: string) => {
     }else if (transactionType === "Salvage Title Transfer") {
       formTypes = ['Reg488c'];
     }  
+    else if (transactionType === "Restoring PNO Transfer") {
+      formTypes = ['Reg256'];
+    }  
     
     else if (transactionType === "Commercial Vehicle Transfer") {
       formTypes = ['Reg343', 'Reg4008', 'Reg256'];

@@ -163,7 +163,7 @@ export async function POST(request: Request) {
       } else if (formType === 'Reg101') {
         modifiedPdfBytes = await modifyReg101Pdf(existingPdfBytes, formData);
       } else if (formType === 'Reg256') { 
-        modifiedPdfBytes = await modifyReg256Pdf(existingPdfBytes, formData);
+        modifiedPdfBytes = await modifyReg256Pdf(existingPdfBytes, formData, effectiveTransactionType);
       } else if (formType === 'Reg156') { 
         modifiedPdfBytes = await modifyReg156Pdf(existingPdfBytes, formData);
       } else if (formType === 'DMVReg166') {
@@ -3894,12 +3894,44 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
 }
 
 
-async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
+async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactionType?: string): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
   
   const form = pdfDoc.getForm();
   const fieldNames = form.getFields().map(f => f.getName());
   console.log('Available Reg256 PDF Fields:', JSON.stringify(fieldNames, null, 2));
+  
+  console.log('===== COMPLETE FORM DATA =====');
+  console.log(JSON.stringify(formData, null, 2));
+  console.log('=============================');  console.log('Transaction type passed directly:', transactionType);
+  console.log('Raw formData object type property:', formData.type);
+  
+  if (!transactionType) {
+    if (formData.transactionType) {
+      transactionType = formData.transactionType;
+      console.log(`Found transaction type in formData.transactionType: "${transactionType}"`);
+    } else if (formData.type) {
+      transactionType = formData.type;
+      console.log(`Found transaction type in formData.type: "${transactionType}"`);
+    } else if (formData.formData && formData.formData.transactionType) {
+      transactionType = formData.formData.transactionType;
+      console.log(`Found transaction type in formData.formData.transactionType: "${transactionType}"`);
+    } else if (formData.formData && formData.formData.type) {
+      transactionType = formData.formData.type;
+      console.log(`Found transaction type in formData.formData.type: "${transactionType}"`);
+    } else {      transactionType = "Regular Transfer";
+      console.log(`No transaction type found anywhere, using default: "Regular Transfer"`);
+    }
+  } else {
+    console.log(`Using provided transaction type: "${transactionType}"`);
+  }
+  
+  const isRestoringPNOTransfer = transactionType === "Restoring PNO Transfer";
+  const isGift = formData.vehicleTransactionDetails?.isGift === true;
+  const isFamilyTransfer = formData.vehicleTransactionDetails?.isFamilyTransfer === true;
+  const isSmogExempt = formData.vehicleTransactionDetails?.isSmogExempt === true;
+  
+  console.log(`Transaction type: "${transactionType}", isRestoringPNOTransfer: ${isRestoringPNOTransfer}, isGift: ${isGift}, isFamilyTransfer: ${isFamilyTransfer}, isSmogExempt: ${isSmogExempt}`);
   
   const fieldMapping = {
     vehicleLicensePlate: 'License Plate/CF Number', 
@@ -4112,16 +4144,8 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     }
   };
   
-  const isGift = formData.vehicleTransactionDetails?.isGift === true;
-  const isFamilyTransfer = formData.vehicleTransactionDetails?.isFamilyTransfer === true;
-  const isSmogExempt = formData.vehicleTransactionDetails?.isSmogExempt === true;
-  
-  console.log(`Transaction type: ${isGift ? 'Gift' : isFamilyTransfer ? 'Family Transfer' : isSmogExempt ? 'Smog Exempt' : 'Other'}`);
-  
- 
   processPersonalInfo();
   
- 
   if (isGift && newRegOwner?.marketValue) {
     safeSetText(fieldMapping.currentMarketValue, newRegOwner.marketValue.toString());
     console.log(`Set market value to: ${newRegOwner.marketValue}`);
@@ -4131,7 +4155,12 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   safeSetText(fieldMapping.vehicleVin, vehicleInfo.vin || vehicleInfo.hullId || '');
   
   const yearMakeValue = [vehicleInfo.year || '', vehicleInfo.make || ''].filter(Boolean).join(' ');
-  safeSetText(fieldMapping.vehicleYearMake, yearMakeValue);  if (formData.statementOfFacts && formData.statementOfFacts.statement) {
+  safeSetText(fieldMapping.vehicleYearMake, yearMakeValue);  if (isRestoringPNOTransfer) {
+    const pnoStatement = "The vehicle was previously placed on Planned Non Operation (PNO) status I now intend to operate it on public roads and I am submitting payment for registration fees and for any late fees penalities.";
+    console.log('Setting PNO restoration Statement of Facts:', pnoStatement);
+    safeSetText(fieldMapping.statementOfFacts, pnoStatement);
+  }
+  else if (formData.statementOfFacts && formData.statementOfFacts.statement) {
     console.log('Setting Statement of Facts:', formData.statementOfFacts.statement);
     safeSetText(fieldMapping.statementOfFacts, formData.statementOfFacts.statement);
   }
@@ -4181,10 +4210,8 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
     }
   }
   
- 
   processNameStatement();
   
- 
   const currentDate = new Date();
   const formattedCurrentDate = currentDate.toLocaleDateString('en-US', { 
     month: '2-digit', 
@@ -4200,6 +4227,9 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   
   return await pdfDoc.save();
 }
+
+
+
 async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
  
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
