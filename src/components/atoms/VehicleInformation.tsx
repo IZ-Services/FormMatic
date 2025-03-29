@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
+import { useScenarioContext } from '../../context/ScenarioContext';
 import './VehicleInformation.css';
 
 interface VehicleInformationType {
@@ -18,7 +19,10 @@ interface VehicleInformationType {
   gvwCode?: string;
   cgwCode?: string;
   operationDate?: string;
-  length?: string;  width?: string;}
+  length?: string;  
+  width?: string;
+  isKilometers?: boolean;
+}
 
 interface VehicleInformationProps {
   formData?: {
@@ -30,6 +34,7 @@ interface VehicleInformationProps {
       isMotorcycle?: boolean;
       isTrailerCoach?: boolean;
     };
+    hideMileageFields?: boolean;
   };
   onChange?: (data: VehicleInformationType) => void;
   isDuplicateRegistrationMode?: boolean;
@@ -51,7 +56,8 @@ const initialVehicleInformation: VehicleInformationType = {
   cgwCode: '',
   operationDate: '',
   length: '',
-  width: ''
+  width: '',
+  isKilometers: false
 };
 
 const VehicleInformation: React.FC<VehicleInformationProps> = ({ 
@@ -60,11 +66,39 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
   isDuplicateRegistrationMode = false
 }) => {
   const { formData: contextFormData, updateField } = useFormContext();
+  const { activeScenarios } = useScenarioContext();
 
   const formData = {
     ...contextFormData,
     ...propFormData
   };
+
+
+  const shouldHideMileageFields = () => {
+
+    if (formData.hideMileageFields) {
+      return true;
+    }
+    
+
+    return !!(
+      activeScenarios && (
+        activeScenarios["Add Lienholder"] ||
+        activeScenarios["Remove Lienholder"] ||
+        activeScenarios["Name Change"] ||
+        activeScenarios["Salvage"]
+      )
+    );
+  };
+
+  const hideMileageFields = isDuplicateRegistrationMode || shouldHideMileageFields();
+
+
+  useEffect(() => {
+    console.log("Active Scenarios:", activeScenarios);
+    console.log("Should hide mileage fields:", hideMileageFields);
+    console.log("Direct hideMileageFields prop:", formData.hideMileageFields);
+  }, [activeScenarios, hideMileageFields, formData.hideMileageFields]);
 
   useEffect(() => {
     if (!formData.vehicleInformation) {
@@ -169,7 +203,11 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             type="text"
             placeholder="Year of Vehicle"
             value={(formData.vehicleInformation as VehicleInformationType)?.year || ''}
-            onChange={(e) => handleVehicleInfoChange('year', e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/[^\d]/g, '').slice(0, 4);
+              handleVehicleInfoChange('year', value);
+            }}
+            maxLength={4} 
           />
         </div>
         <div className="vehicleFormItem">
@@ -179,12 +217,28 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             type="text"
             placeholder="Make of Vehicle OR Vessel Builder"
             value={(formData.vehicleInformation as VehicleInformationType)?.make || ''}
-            onChange={(e) => handleVehicleInfoChange('make', e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length > 0) {
+                const capitalizedValue = value
+                  .split(' ')
+                  .map(word => {
+                    if (word.length > 0 && /^[a-zA-Z]/.test(word)) {
+                      return word.charAt(0).toUpperCase() + word.slice(1);
+                    }
+                    return word;
+                  })
+                  .join(' ');
+                
+                handleVehicleInfoChange('make', capitalizedValue);
+              } else {
+                handleVehicleInfoChange('make', value);
+              }
+            }}
           />
         </div>
       </div>
 
-      {/* Trailer Coach dimensions fields */}
       {isTrailerCoach && (
         <div className="vehicleFirstGroup">
           <div className="vehicleFormItem">
@@ -218,25 +272,27 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
         </div>
       )}
 
-      {/* Only show mileage fields if NOT in Duplicate Registration mode */}
-      {!isDuplicateRegistrationMode && (
+      {/* Only show mileage fields if not hidden by conditions */}
+      {!hideMileageFields && (
         <div className="mileageRow">
-          <div className="mileageField">
-            <label className="yearlabel">Mileage of Vehicle</label>
-            <input
-              className="yearInput"
-              type="text"
-              placeholder="Vehicle Mileage"
-              value={(formData.vehicleInformation as VehicleInformationType)?.mileage || ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                const numericValue = value.replace(/[^0-9]/g, '');
-                const limitedValue = numericValue.slice(0, 6);
-                
-                handleVehicleInfoChange('mileage', limitedValue);
-              }}
-              maxLength={6}
-            />
+          <div className="mileageField" style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ flexGrow: 1 }}>
+              <label className="yearlabel">Mileage of Vehicle</label>
+              <input
+                className="yearInput"
+                type="text"
+                placeholder="Vehicle Mileage"
+                value={(formData.vehicleInformation as VehicleInformationType)?.mileage || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const numericValue = value.replace(/[^0-9]/g, '');
+                  const limitedValue = numericValue.slice(0, 6);
+                  
+                  handleVehicleInfoChange('mileage', limitedValue);
+                }}
+                maxLength={6}
+              />
+            </div>
           </div>
           
           <div className="mileageCheckboxes">
@@ -261,6 +317,18 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
               />
               Mileage Exceeds Mechanical Limit
             </label>
+            <div style={{ marginLeft: '10px', display: 'flex', alignItems: 'center' }}>
+              <label className="checkboxLabel" style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', marginBottom: '0' }}>
+                <input
+                  type="checkbox"
+                  checked={(formData.vehicleInformation as VehicleInformationType)?.isKilometers || false}
+                  onChange={(e) => handleVehicleInfoChange('isKilometers', e.target.checked)}
+                  className="checkboxInput"
+                  style={{ marginRight: '5px' }}
+                />
+                If kilometers check this box
+              </label>
+            </div>
           </div>
         </div>
       )}

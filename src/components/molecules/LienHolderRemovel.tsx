@@ -64,8 +64,18 @@ export default function LienHolderRemovalTransfer({ formData, onDataChange }: Li
         {/* <VehicleTransactionDetails formData={formValues} /> */}
         <TitleStatus formData={formValues}/>
 
-        <VehicalInformation formData={formValues}/>
-        <Seller formData={formValues} />
+        <VehicalInformation 
+        formData={{
+          hideMileageFields: true
+        }}
+      />            <Seller 
+        formData={{
+          hideDateOfSale: true ,
+          hideDateOfBirth: true,
+          limitOwnerCount: true
+
+        }}
+      />
         <SellerAddress formData={formValues} />
         <MissingTitle formData={formValues} />
         <ReleaseOfOwnership formData={formValues} />

@@ -60,7 +60,7 @@ const VoterAddressUpdate: React.FC<VoterAddressUpdateProps> = ({
         <h3 className="releaseHeading">Voter Address Update</h3>
       </div>
 
-      <div className="checkbox-container">
+      <div className="checkbox-cont">
         <div className="checkbox-section">
           <label className="checkbox-label">
             <input

@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useScenarioContext } from '../../context/ScenarioContext';
 import './Seller.css';
 
 interface Seller {
@@ -24,6 +25,9 @@ interface SellerInfo {
 
 interface FormData {
   sellerInfo?: SellerInfo;
+  hideDateOfSale?: boolean;
+  hideDateOfBirth?: boolean;
+  limitOwnerCount?: boolean;
   [key: string]: any;
 }
 
@@ -57,6 +61,7 @@ const initialSellerInfo: SellerInfo = {
 
 const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, onChange }) => {
   const { formData: contextFormData, updateField } = useFormContext() as FormContext;
+  const { activeScenarios } = useScenarioContext();
   const [openDropdown, setOpenDropdown] = useState<{ 
     type: 'count' | 'state', 
     index?: number 
@@ -70,6 +75,112 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     ...contextFormData,
     ...propFormData
   };
+
+
+  const hideDateOfSale = !!formData.hideDateOfSale || shouldHideDateOfSale();
+  const hideDateOfBirth = !!formData.hideDateOfBirth || shouldHideDateOfBirth();
+  const limitOwnerCount = !!formData.limitOwnerCount || shouldLimitOwnerCount();
+
+
+  function shouldHideDateOfSale() {
+    return !!(
+      activeScenarios && (
+        activeScenarios["Duplicate Registration"] ||
+        activeScenarios["Duplicate Plates & Stickers"] ||
+        activeScenarios["Add Lienholder"] ||
+        activeScenarios["Remove Lienholder"] ||
+        activeScenarios["Commercial Vehicle"] ||
+        activeScenarios["Filing for Planned Non-Operation (PNO)"] ||
+        activeScenarios["Restoring PNO Vehicle to Operational"] ||
+        activeScenarios["Disabled Person Placards/Plates"] ||
+        activeScenarios["Duplicate Stickers"] ||
+        activeScenarios["Name Change"]
+      )
+    );
+  }
+
+
+  function shouldHideDateOfBirth() {
+    return !!(
+      activeScenarios && (
+        activeScenarios["Duplicate Registration"] ||
+        activeScenarios["Duplicate Plates & Stickers"] ||
+        activeScenarios["Add Lienholder"] ||
+        activeScenarios["Remove Lienholder"] ||
+        activeScenarios["Filing for Planned Non-Operation (PNO)"] ||
+        activeScenarios["Duplicate Stickers"]
+      )
+    );
+  }
+
+
+  function shouldLimitOwnerCount() {
+    return !!(
+      activeScenarios && (
+        activeScenarios["Duplicate Title"] ||
+        activeScenarios["Duplicate Registration"] ||
+        activeScenarios["Duplicate Plates & Stickers"] ||
+        activeScenarios["Remove Lienholder"] ||
+        activeScenarios["Filing for Planned Non-Operation (PNO)"] ||
+        activeScenarios["Disabled Person Placards/Plates"] ||
+        activeScenarios["Duplicate Stickers"]
+      )
+    );
+  }
+
+  useEffect(() => {
+    console.log("Should hide date of sale:", hideDateOfSale);
+    console.log("Should hide date of birth:", hideDateOfBirth);
+    console.log("Should limit owner count:", limitOwnerCount);
+    console.log("Active scenarios:", activeScenarios);
+  }, [hideDateOfSale, hideDateOfBirth, limitOwnerCount, activeScenarios]);
+
+
+  const getSellerCountOptions = () => {
+    if (limitOwnerCount) {
+      return ['1', '2'];
+    } else if (activeScenarios && activeScenarios["Duplicate Title"] === true) {
+      return ['1', '2'];
+    }
+    return ['1', '2', '3'];
+  };
+
+
+  useEffect(() => {
+    if (limitOwnerCount && formData.sellerInfo?.sellerCount === '3') {
+      const newSellerCount = '2';
+      
+
+      if (formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 2) {
+        const newSellers = formData.sellerInfo.sellers.slice(0, 2);
+        
+        const newSellerInfo = {
+          ...formData.sellerInfo,
+          sellerCount: newSellerCount,
+          sellers: newSellers
+        };
+        
+        updateField('sellerInfo', newSellerInfo);
+        
+        if (onChange) {
+          onChange(newSellerInfo);
+        }
+      } else {
+
+        updateField('sellerInfo', {
+          ...formData.sellerInfo,
+          sellerCount: newSellerCount
+        });
+        
+        if (onChange) {
+          onChange({
+            ...formData.sellerInfo,
+            sellerCount: newSellerCount
+          });
+        }
+      }
+    }
+  }, [limitOwnerCount, formData.sellerInfo?.sellerCount]);
 
   useEffect(() => {
     if (!formData.sellerInfo) {
@@ -229,12 +340,48 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     }
   };
 
+
+  useEffect(() => {
+    if (hideDateOfSale && (!formData.sellerInfo?.sellers?.[0]?.saleDate || formData.sellerInfo.sellers[0].saleDate === '')) {
+      const currentDate = new Date();
+      const formattedDate = `${String(currentDate.getMonth() + 1).padStart(2, '0')}/${String(currentDate.getDate()).padStart(2, '0')}/${currentDate.getFullYear()}`;
+      
+      console.log('Setting current date for hidden sale date field:', formattedDate);
+      
+
+      const sellers = [...(formData.sellerInfo?.sellers || [])];
+      if (sellers.length > 0) {
+        sellers[0] = { ...sellers[0], saleDate: formattedDate };
+        
+
+        for (let i = 1; i < sellers.length; i++) {
+          sellers[i] = { ...sellers[i], saleDate: formattedDate };
+        }
+        
+        const newSellerInfo = { 
+          ...(formData.sellerInfo || {}), 
+          sellers 
+        };
+        
+        updateField('sellerInfo', newSellerInfo);     
+        if (onChange) {
+          onChange(newSellerInfo);
+        }
+      }
+    }
+  }, [hideDateOfSale, formData.sellerInfo?.sellers]);
+
   const handleStateSelect = (index: number, stateAbbreviation: string) => {     
     handleSellerChange(index, 'state', stateAbbreviation);     
     setOpenDropdown(null);
   };
 
   const handleCountChange = (count: string) => {
+
+    if (limitOwnerCount && count === '3') {
+      count = '2';
+    }
+    
     const currentSellers = formData.sellerInfo?.sellers || [{ ...initialSeller }];
     const currentSaleDate = currentSellers[0]?.saleDate || '';
     
@@ -343,15 +490,13 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
           </div>
         </div>
 
-
-
         <div className="driverState">
           <div className="driverLicenseField">
             <label className="formLabel">Driver License Number</label>
             <input
               className="formInput"
               type="text"
-              placeholder="Driver License Number (8 digits)"
+              placeholder="Driver License Number"
               value={formData.sellerInfo?.sellers?.[index]?.licenseNumber || ''}
               onChange={(e) =>{ 
                 const value = e.target.value;
@@ -401,8 +546,8 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
             )}
           </div>
           
-          {/* DOB field - only visible for the first seller */}
-          {index === 0 && (
+          {/* Only show Date of Birth field if not hidden */}
+          {index === 0 && !hideDateOfBirth && (
             <div className="sellerFormItem">
               <label className="sellerLabel">Date of Birth</label>
               <input
@@ -430,18 +575,23 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
               type="text"
               placeholder="Phone Number"
               value={formData.sellerInfo?.sellers?.[index]?.phone || ''}
-              onChange={(e) => handleSellerChange(index, 'phone', e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^[0-9]*$/.test(value) && value.length <= 10) {
+                  handleSellerChange(index, 'phone', value);
+                }
+              }}
+              maxLength={10}
+              inputMode="numeric"
             />
           </div>
           
-          {/* Only show Date of Sale field for the first seller */}
-          {index === 0 && (
+          {/* Only show the Date of Sale field if not hidden */}
+          {index === 0 && !hideDateOfSale && (
             <div className="sellerThirdItem">
-              <label className="registeredOwnerLabel">
-                Date of Sale
-              </label>
+              <label className="sellerLabel">Date of Sale</label>
               <input
-                className="registeredDateInput"
+                className="sellerDateInput"
                 type="text"
                 placeholder="MM/DD/YYYY"
                 value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
@@ -476,7 +626,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
           </button>
           {openDropdown?.type === 'count' && (
             <ul ref={dropdownRef} className="howManyMenu">
-              {['1', '2', '3'].map((option, index) => (
+              {getSellerCountOptions().map((option, index) => (
                 <li
                   className="howManyLists"
                   key={index}

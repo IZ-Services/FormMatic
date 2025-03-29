@@ -12,6 +12,7 @@ import SectionFive from '../atoms/NoticeOfChnageOfAddress/SectionFive';
 import VoterAddressUpdate from '../atoms/VoterAddressUpdate';
 import LeasedVehicles from '../atoms/LeasedVehiclesData';
 import CitizenshipQuestion from '../atoms/CitizenshipQuestion;';
+import CheckboxOptions from '../atoms/NoticeOfChnageOfAddress/CheckBoxOptions';
 interface FormContextData {
   [key: string]: any;
 }
@@ -49,13 +50,14 @@ export default function ChangeOfAddressTransfer({ formData, onDataChange }: Chan
     return (
       <div className='wholeForm'>
         <TypeContainer />
+        <CheckboxOptions formData={formValues} />
         <SectionOne formData={formValues} />
         <SectionTwo formData={formValues} />
         <SectionThree formData={formValues} />
         <SectionFive formData={formValues} />
-        <VoterAddressUpdate formData={formValues} />
-        <CitizenshipQuestion formData={formValues} />
-        <LeasedVehicles formData={formValues} />
+        {/* <VoterAddressUpdate formData={formValues} /> */}
+        {/* <CitizenshipQuestion formData={formValues} /> */}
+        {/* <LeasedVehicles formData={formValues} /> */}
         <SaveButton 
           transactionType="Change Of Address Transfer"
           onSuccess={() => console.log('Save completed successfully')}

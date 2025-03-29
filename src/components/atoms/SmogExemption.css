@@ -78,7 +78,7 @@
 
 .subCheckboxGroup {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 15px;
   margin-left: 25px;
   flex-wrap: wrap;
@@ -100,6 +100,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  height: 22px; /* Matches the height of other checkbox labels */
 }
 
 .otherInput {
@@ -108,6 +109,10 @@
   border-radius: 4px;
   font-size: 14px;
   width: 200px;
+  height: 22px; /* Consistent height */
+  box-sizing: border-box;
+  vertical-align: middle;
+  margin: 0;
 }
 
 .indentedCheckbox {
@@ -129,11 +134,10 @@
   font-style: italic;
 }
 
-/* Focus and hover states */
-input[type="checkbox"]:focus {
+/* input[type="checkbox"]:focus {
   outline: 2px solid #0066ff;
   outline-offset: 2px;
-}
+} */
 
 .otherInput:focus {
   outline: none;

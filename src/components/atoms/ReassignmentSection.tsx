@@ -56,6 +56,19 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({ formData: pro
       newData.releaseInterestDMV = false;
     }
     
+
+    if (field === 'retainInterest' && value === true) {
+      newData.releaseInterestDMV = false;
+      newData.releaseInterestNewOwner = false;
+    } else if ((field === 'releaseInterestDMV' || field === 'releaseInterestNewOwner') && value === true) {
+      newData.retainInterest = false;
+      
+
+      if (currentInfo.feeEnclosed) {
+        newData.feeEnclosed = false;
+      }
+    }
+    
     updateField('reassignmentSection', newData);
   };
 
@@ -122,7 +135,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({ formData: pro
                 className="optionCheckbox"
               />
               <div className="optionText">
-                <span className="optionTitle">RETAIN INTEREST FOR FUTURE USE. FAILURE TO PAY A REQUIRED RETENTION FEE WILL RESULT IN CANCELLATION OF THE PERSONALIZED PLATE.</span>
+                <span className="optionTitle">RETAIN INTEREST FOR FUTURE USE.</span>
               </div>
             </label>
             
@@ -132,6 +145,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({ formData: pro
                 checked={(formData.reassignmentSection as ReassignmentSectionType)?.feeEnclosed || false}
                 onChange={(e) => handleChange('feeEnclosed', e.target.checked)}
                 className="feeCheckbox"
+                disabled={!(formData.reassignmentSection as ReassignmentSectionType)?.retainInterest}
               />
               <span className="feeText">Fee enclosed</span>
             </label>

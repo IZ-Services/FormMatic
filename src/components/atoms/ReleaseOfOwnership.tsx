@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, CSSProperties } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import './ReleaseOfOwnership.css';
+import { cert } from 'firebase-admin/app';
 
 
 const dropdownStyles: Record<string, CSSProperties> = {
@@ -25,6 +26,7 @@ const dropdownStyles: Record<string, CSSProperties> = {
     padding: 0,
     margin: 0,
     listStyle: 'none',
+    textAlign: 'center'
   },
   dropdownItem: {
     padding: '12px 16px',
@@ -159,11 +161,9 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
   );
   const { updateField } = useFormContext();
   
-
   const [showRegStateDropdown, setShowRegStateDropdown] = useState(false);
   const [showMailingStateDropdown, setShowMailingStateDropdown] = useState(false);
   
-
   const regStateDropdownRef = useRef<HTMLDivElement>(null);
   const mailingStateDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -172,7 +172,6 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
       setReleaseData(propFormData.releaseInformation);
     }
   }, [propFormData]);
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -186,7 +185,6 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
   
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
@@ -199,8 +197,74 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Format phone number function - formats to (XXX) XXX-XXXX
+  const formatPhoneNumber = (value: string): string => {
+    // Remove all non-digit characters
+    const digits = value.replace(/\D/g, '');
+    
+    // Limit to 10 digits
+    const limitedDigits = digits.slice(0, 10);
+    
+    // Format the phone number
+    if (limitedDigits.length === 0) {
+      return '';
+    } else if (limitedDigits.length <= 3) {
+      return `(${limitedDigits}`;
+    } else if (limitedDigits.length <= 6) {
+      return `(${limitedDigits.slice(0, 3)}) ${limitedDigits.slice(3)}`;
+    } else {
+      return `(${limitedDigits.slice(0, 3)}) ${limitedDigits.slice(3, 6)}-${limitedDigits.slice(6, 10)}`;
+    }
+  };
+
+  // Format date as MM/DD/YYYY
+  const formatDate = (value: string): string => {
+    // Remove non-digit characters
+    const digits = value.replace(/\D/g, '');
+    
+    // Format as MM/DD/YYYY
+    if (digits.length <= 2) {
+      return digits;
+    } else if (digits.length <= 4) {
+      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    } else {
+      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+    }
+  };
+
   const handleReleaseInfoChange = (field: keyof ReleaseInformationType, value: any) => {
-    const newData = { ...releaseData, [field]: value };
+    let formattedValue = value;
+
+    // Apply formatting for phone number
+    if (field === 'phoneNumber') {
+      formattedValue = formatPhoneNumber(value);
+    }
+    
+    // Apply formatting for date
+    if (field === 'date') {
+      formattedValue = formatDate(value);
+    }
+
+    const newData = { ...releaseData, [field]: formattedValue };
+    setReleaseData(newData);
+    updateField('releaseInformation', newData);
+  };
+
+  const handleMailingCheckboxChange = (checked: boolean) => {
+    const newData = { ...releaseData };
+    newData.mailingAddressDifferent = checked;
+    
+    if (!checked) {
+      newData.mailingAddress = {
+        street: '',
+        apt: '',
+        poBox: '',
+        city: '',
+        state: '',
+        zip: ''
+      };
+    }
+    
     setReleaseData(newData);
     updateField('releaseInformation', newData);
   };
@@ -235,7 +299,6 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     setShowRegStateDropdown(false);
   };
 
-
   const containerStyle: CSSProperties = { 
     position: 'relative', 
     overflow: 'visible' 
@@ -255,21 +318,23 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
             type="checkbox"
             className="checkBoxAddress"
             checked={releaseData.mailingAddressDifferent || false}
-            onChange={(e) => handleReleaseInfoChange('mailingAddressDifferent', e.target.checked)}
+            onChange={(e) => handleMailingCheckboxChange(e.target.checked)}
           />
           <p>If mailing address is different</p>
         </div>
       </div>
 
       <div className="releaseFormGroup">
-        <label className="releaseFormLabel">Name of Bank, Finance Company, or Individual(s) Having a Lien on this Vehicle</label>
-        <input
-          className="releaseFormInput"
-          type="text"
-          placeholder="Name of Bank, Finance Company, or Individual(s)"
-          value={releaseData.name || ''}
-          onChange={(e) => handleReleaseInfoChange('name', e.target.value)}
-        />
+        <div className="bankNameField">
+          <label className="releaseFormLabel">Name of Bank, Finance Company, or Individual(s) Having a Lien on this Vehicle</label>
+          <input
+            className="releaseFormInput"
+            type="text"
+            placeholder="Name of Bank, Finance Company, or Individual(s)"
+            value={releaseData.name || ''}
+            onChange={(e) => handleReleaseInfoChange('name', e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="streetAptGroup">
@@ -370,21 +435,21 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
             <input
               className="formInputt"
               type="tel"
-              placeholder="Phone Number"
+              placeholder="(XXX) XXX-XXXX"
               value={releaseData.phoneNumber || ''}
               onChange={(e) => handleReleaseInfoChange('phoneNumber', e.target.value)}
             />
           </div>
-          <div className="formGroup agentNameField">
-            <label className="releaseFormLabel">Printed Name of Authorized Agent</label>
-            <input
-              className="formInputt"
-              type="text"
-              placeholder="Full Name"
-              value={releaseData.authorizedAgentName || ''}
-              onChange={(e) => handleReleaseInfoChange('authorizedAgentName', e.target.value)}
-            />
-          </div>
+          <div className="agentNameInline">
+          <label className="releaseFormLabel">Printed Name of Authorized Agent</label>
+          <input
+            className="agentFormInput"
+            type="text"
+            placeholder="Full Name"
+            value={releaseData.authorizedAgentName || ''}
+            onChange={(e) => handleReleaseInfoChange('authorizedAgentName', e.target.value)}
+          />
+        </div>
         </div>
 
         <div className="authorizedAgentGroup">
@@ -416,11 +481,11 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
               />
             </div>
             <div className="formGroup aptField">
-              <label className="formLabel">PO Box No</label>
+              <label className="formLabel">APT./SPACE/STE.#</label>
               <input
                 className="formInputt"
                 type="text"
-                placeholder="PO Box No"
+                placeholder="APT./SPACE/STE.#"
                 value={releaseData.mailingAddress?.poBox || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'poBox', e.target.value)}
               />

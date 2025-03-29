@@ -1,71 +1,96 @@
 .vehicleStatusWrapper {
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-  
+  margin-bottom: 20px;
+  overflow: hidden;
+}
 
-  
-  .sectionHeading {
-    font-size: 18px;
-    font-weight: 600;
-    color: #2d3748;
-    margin: 0;
-  }
-  
-  .statusSection, .radioSection {
-    padding: 15px;
-  }
-  
-  .statusNote {
-    font-size: 14px;
-    font-weight: 500;
-    color: #4a5568;
-    margin: 0 0 10px 0;
-  }
-  
-  .checkboxRow {
-    display: flex;
-    align-items: center;
-  }
-  
-  .checkbox-label, .radio-label {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    margin-right: 20px;
-  }
-  
-  .checkbox-label input, .radio-label input {
-    margin-right: 8px;
-  }
-  
+.sectionHeading {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+}
+
+.statusSection, .radioSection {
+  padding: 15px;
+}
+
+.statusNote {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5568;
+  margin: 0 0 10px 0;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  font-size: 14px;
+  margin-right: 20px;
+  max-width: 100%;
+}
+
+.checkbox-input {
+  margin-right: 8px;
+  margin-top: 3px; /* Align checkbox with the first line of text */
+  flex-shrink: 0;
+}
+
+.checkbox-text {
+  flex: 1;
+  line-height: 1.4;
+  display: inline-block;
+  word-wrap: break-word;
+  max-width: 95%;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-right: 20px;
+}
+
+.radio-label input {
+  margin-right: 8px;
+}
+
+.radioSection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.radioGroup {
+  flex: 1;
+  min-width: 200px;
+}
+
+.radioHeading {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5568;
+  margin: 0 0 10px 0;
+}
+
+.radioOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
   .radioSection {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
-  }
-  
-  .radioGroup {
-    flex: 1;
-    min-width: 200px;
-  }
-  
-  .radioHeading {
-    font-size: 14px;
-    font-weight: 500;
-    color: #4a5568;
-    margin: 0 0 10px 0;
-  }
-  
-  .radioOptions {
-    display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 20px;
   }
   
-  @media (max-width: 768px) {
-    .radioSection {
-      flex-direction: column;
-      gap: 20px;
-    }
+  .checkbox-text {
+    max-width: 90%;
   }
+}

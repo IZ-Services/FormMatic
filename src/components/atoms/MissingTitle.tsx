@@ -1,6 +1,5 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './MissingTitle.css';
 
@@ -19,85 +18,79 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
   const [titleData, setTitleData] = useState<MissingTitleInfo>(
     propFormData?.missingTitleInfo || {}
   );
-  const [openDropdown, setOpenDropdown] = useState<boolean>(false);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const [showOtherInput, setShowOtherInput] = useState<boolean>(false);
   const { updateField } = useFormContext();
 
   const missingTitleOptions = [
     'Lost', 
     'Stolen', 
     'Not Received From Prior Owner', 
-    'Not Received From DMV (Allow 30 days from issue date)', 
-    'Illegible/Mutilated (Attach old title)',
+    'Not Received From DMV', 
+    'Illegible/Mutilated',
     'Other'
   ];
 
   useEffect(() => {
     if (propFormData?.missingTitleInfo) {
       setTitleData(propFormData.missingTitleInfo);
+      setShowOtherInput(propFormData.missingTitleInfo.reason === 'Other');
     }
   }, [propFormData]);
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if (openDropdown && !dropdownRef.current?.contains(e.target as Node)) {
-      setOpenDropdown(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [openDropdown]);
-
-  const handleChange = (field: keyof MissingTitleInfo, value: string) => {
-    const newData = { ...titleData, [field]: value };
+  const handleRadioChange = (reason: string) => {
+    const newData = { ...titleData, reason };
     
-    if (field === 'reason' && value !== 'Other') {
+    if (reason === 'Other') {
+      setShowOtherInput(true);
+    } else {
+      setShowOtherInput(false);
       delete newData.otherReason;
     }
 
     setTitleData(newData);
     updateField('missingTitleInfo', newData);
-    
-    if (field === 'reason') {
-      setOpenDropdown(false);
-    }
+  };
+
+  const handleOtherReasonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const otherReason = e.target.value;
+    const newData = { ...titleData, otherReason };
+    setTitleData(newData);
+    updateField('missingTitleInfo', newData);
   };
 
   return (
-    <div className="missingTitleWrapper">
-      <div className="missingTitleHeader">
-        <h3 className="missingTitleTitle">Missing Title Reason</h3>
+    <div className="releaseWrapper">
+      <div className="headerRow">
+        <h3 className="releaseHeading">Missing Title Reason</h3>
       </div>
       
-      <div className="missingTitleContent">
-        <div 
-          className="dropdownContainer"
-          ref={dropdownRef}
-        >
-          <div
-            className="dropdownButton"
-            onClick={() => setOpenDropdown(!openDropdown)}
-          >
-            <span>{titleData.reason || 'Select reason'}</span>
-            <ChevronDownIcon className={`dropdownIcon ${openDropdown ? 'rotate' : ''}`} />
+      <div className="checkboxes">
+        {missingTitleOptions.map((reason, index) => (
+          <div key={index} className="checkbox-section">
+            <label className="checkbox-label">
+              <input
+                type="radio"
+                name="missingTitleReason"
+                checked={titleData.reason === reason}
+                onChange={() => handleRadioChange(reason)}
+              />
+              {reason}
+            </label>
           </div>
-
-          {openDropdown && (
-            <ul className="dropdownMenu">
-              {missingTitleOptions.map((reason, index) => (
-                <li
-                  key={index}
-                  onClick={() => handleChange('reason', reason)}
-                  className="dropdownItem"
-                >
-                  {reason}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        ))}
       </div>
+      
+      {showOtherInput && (
+        <div className="other-input-container">
+          <input
+            type="text"
+            value={titleData.otherReason || ''}
+            onChange={handleOtherReasonChange}
+            placeholder="Please specify other reason"
+            className="text-input"
+          />
+        </div>
+      )}
     </div>
   );
 };

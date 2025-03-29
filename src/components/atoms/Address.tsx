@@ -38,6 +38,103 @@ const inlineCheckboxStyles = `
 .disabledCheckbox input, .disabledCheckbox label {
   cursor: not-allowed;
 }
+
+.state-dropdown-wrapper {
+  position: relative;
+  width: 120px;
+}
+
+.state-dropdown-button {
+  width: 100%;
+  padding: 10px 10px;
+  background-color: white;
+  border: 1px solid #ced4da;
+  font-size: 14px;
+  color: #757575;
+  text-align: left;
+  height:35px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.state-dropdown-button:hover {
+  border-color: #b8b8b8;
+}
+
+.state-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  width: 100%;
+  height:170px;
+  max-height: 300px;
+
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  margin-top: 2px;
+}
+
+.state-dropdown-item {
+  padding: 7px 12px;
+  color: #9b9b9b;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+}
+
+.state-dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+.state-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.state-dropdown-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.state-dropdown-menu::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.state-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.rotate {
+  transform: rotate(180deg);
+}
+
+.city-state-zip-group {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.state-field {
+  flex: 0 0 120px;
+}
+
+.state-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #333;
+}
 `;
 
 interface AddressData {
@@ -47,7 +144,7 @@ interface AddressData {
   state?: string;
   zip?: string;
   poBox?: string;
-  country?: string;
+  county?: string;
 }
 
 interface FormData {
@@ -86,9 +183,27 @@ const initialAddressData: AddressData = {
   city: '',
   state: '',
   zip: '',
-  country: ''
+  county: ''
 };
 
+const emptyMailingAddress: AddressData = {
+  street: '',
+  apt: '',
+  city: '',
+  state: '',
+  zip: '',
+  poBox: '',
+  county: ''
+};
+
+const emptyAddress: AddressData = {
+  street: '',
+  apt: '',
+  city: '',
+  state: '',
+  zip: '',
+  county: ''
+};
 
 const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isMultipleTransfer = false }) => {
  
@@ -105,11 +220,12 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
   const { updateField } = useFormContext() as FormContextType;
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRefs = {
-    reg: useRef<HTMLUListElement>(null),
-    mailing: useRef<HTMLUListElement>(null),
-    lessee: useRef<HTMLUListElement>(null),
-    trailer: useRef<HTMLUListElement>(null),
+    address: useRef<HTMLDivElement>(null),
+    mailingAddress: useRef<HTMLDivElement>(null),
+    lesseeAddress: useRef<HTMLDivElement>(null),
+    trailerLocation: useRef<HTMLDivElement>(null),
   };
+  
 
  
   useEffect(() => {
@@ -228,12 +344,15 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     };
     
     newData[section] = updatedSection;
-    setAddressData(newData);     console.log(`Updating ${section}.${field} to:`, value);
+    setAddressData(newData);
+    console.log(`Updating ${section}.${field} to:`, value);
     console.log("New section data:", updatedSection);
     
     if (onChange) {
       onChange(newData);
-    } else {       updateField(String(section), updatedSection);       if (isMultipleTransfer && section === 'address') {
+    } else {
+      updateField(String(section), updatedSection);
+      if (isMultipleTransfer && section === 'address') {
         console.log(`Extra update for multiple transfer: address.${field}`, value);
       }
     }
@@ -243,24 +362,49 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     const newData = { ...addressData };
     newData[field] = checked;
     
- 
+
+    if (!checked) {
+      switch (field) {
+        case 'mailingAddressDifferent':
+          newData.mailingAddress = { ...emptyMailingAddress };
+          if (!onChange) {
+            updateField('mailingAddress', { ...emptyMailingAddress });
+          }
+          break;
+        case 'lesseeAddressDifferent':
+          newData.lesseeAddress = { ...emptyAddress };
+          if (!onChange) {
+            updateField('lesseeAddress', { ...emptyAddress });
+          }
+          break;
+        case 'trailerLocationDifferent':
+          newData.trailerLocation = { ...emptyAddress };
+          if (!onChange) {
+            updateField('trailerLocation', { ...emptyAddress });
+          }
+          break;
+      }
+    }
+    
+
     if (field === 'lesseeAddressDifferent' && checked) {
- 
       newData.trailerLocationDifferent = false;
       if (!onChange) {
         updateField('trailerLocationDifferent', false);
+        updateField('trailerLocation', { ...emptyAddress });
       }
+      newData.trailerLocation = { ...emptyAddress };
     } else if (field === 'trailerLocationDifferent' && checked) {
- 
       newData.lesseeAddressDifferent = false;
       if (!onChange) {
         updateField('lesseeAddressDifferent', false);
+        updateField('lesseeAddress', { ...emptyAddress });
       }
+      newData.lesseeAddress = { ...emptyAddress };
     }
     
     setAddressData(newData);
     
- 
     if (onChange) {
       onChange(newData);
     } else {
@@ -268,7 +412,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     }
   };
 
-  const handleStateChange = (dropdown: string, stateAbbreviation: string, addressType: keyof FormData) => {
+  const handleStateChange = (addressType: keyof FormData, stateAbbreviation: string) => {
     handleAddressChange(addressType, 'state', stateAbbreviation);
     setOpenDropdown(null);
   };
@@ -326,6 +470,54 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     { name: 'Wyoming', abbreviation: 'WY' },
   ];
 
+
+  type AddressTypeMap = {
+    [K in keyof FormData]?: keyof typeof dropdownRefs;
+  };
+  
+  const addressTypeToRefKey: AddressTypeMap = {
+    address: 'address',
+    mailingAddress: 'mailingAddress',
+    lesseeAddress: 'lesseeAddress',
+    trailerLocation: 'trailerLocation'
+  };
+  const renderStateDropdown = (addressType: keyof FormData, value: string | undefined) => {
+    const dropdownId = String(addressType);
+    const refKey = addressTypeToRefKey[addressType];
+    
+    return (
+      <div className="state-field" ref={refKey ? dropdownRefs[refKey] : null}>
+        <label className="state-label">State</label>
+        <div className="state-dropdown-wrapper">
+          <button
+            type="button"
+            className="state-dropdown-button"
+            onClick={() => setOpenDropdown(openDropdown === dropdownId ? null : dropdownId)}
+          >
+            {value || 'STATE'}
+            <ChevronDownIcon 
+  className={`${openDropdown === dropdownId ? 'rotate' : ''}`}
+  style={{ width: '18px', height: '18px' }} 
+/>
+          </button>
+          
+          {openDropdown === dropdownId && (
+            <div className="state-dropdown-menu">
+              {states.map((state) => (
+                <div
+                  key={state.abbreviation}
+                  className="state-dropdown-item"
+                  onClick={() => handleStateChange(addressType, state.abbreviation)}
+                >
+                  {state.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const isLesseeCheckboxDisabled = addressData.trailerLocationDifferent;
   const isTrailerCheckboxDisabled = addressData.lesseeAddressDifferent;
@@ -430,7 +622,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             />
           </div>
         </div>
-        <div className="cityStateZipGroupp">
+        <div className="city-state-zip-group">
           <div className="cityFieldCustomWidth">
             <label className="formLabel">City</label>
             <input
@@ -441,30 +633,10 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
               onChange={(e) => handleAddressChange('address', 'city', e.target.value)}
             />
           </div>
-          <div className="regStateWrapper">
-            <label className="registeredOwnerLabel">State</label>
-            <button
-              type="button"
-              onClick={() => setOpenDropdown(openDropdown === 'reg' ? null : 'reg')}
-              className="regStateDropDown"
-            >
-              {addressData.address?.state || 'State'}
-              <ChevronDownIcon className={`regIcon ${openDropdown === 'reg' ? 'rotate' : ''}`} />
-            </button>
-            {openDropdown === 'reg' && (
-              <ul ref={dropdownRefs.reg} className="regStateMenu">
-                {states.map((state, index) => (
-                  <li
-                    key={index}
-                    onClick={() => handleStateChange('reg', state.abbreviation, 'address')}
-                    className="regStateLists"
-                  >
-                    {state.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          
+          {/* State Dropdown for Main Address */}
+          {renderStateDropdown('address', addressData.address?.state)}
+          
           <div className="formGroup zipCodeField">
             <label className="formLabel">ZIP Code</label>
             <input
@@ -475,7 +647,19 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
               onChange={(e) => handleAddressChange('address', 'zip', e.target.value)}
             />
           </div>
+          
         </div>
+        <div className="countyField">
+  <label className="formLabel">County</label>
+  <input
+    className="countyInput"
+    type="text"
+    placeholder="County"
+    value={addressData.address?.county || ''}
+    onChange={(e) => handleAddressChange('address', 'county', e.target.value)}
+  />
+</div>
+
       </div>
 
       {(!isMultipleTransfer || addressData.mailingAddressDifferent) && addressData.mailingAddressDifferent && (
@@ -493,17 +677,17 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
               />
             </div>
             <div className="formGroup aptField">
-              <label className="formLabel">PO Box No</label>
+              <label className="formLabel">APT./SPACE/STE.#</label>
               <input
                 className="formInputt"
                 type="text"
-                placeholder="PO Box No"
+                placeholder="APT./SPACE/STE.#"
                 value={addressData.mailingAddress?.poBox || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'poBox', e.target.value)}
               />
             </div>
           </div>
-          <div className="cityStateZipGroupp">
+          <div className="city-state-zip-group">
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
@@ -514,30 +698,9 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
                 onChange={(e) => handleAddressChange('mailingAddress', 'city', e.target.value)}
               />
             </div>
-            <div className="regStateWrapper">
-              <label className="registeredOwnerLabel">State</label>
-              <button
-                type="button"
-                onClick={() => setOpenDropdown(openDropdown === 'mailing' ? null : 'mailing')}
-                className="regStateDropDown"
-              >
-                {addressData.mailingAddress?.state || 'State'}
-                <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
-              </button>
-              {openDropdown === 'mailing' && (
-                <ul ref={dropdownRefs.mailing} className="regStateMenu">
-                  {states.map((state, index) => (
-                    <li
-                      key={index}
-                      onClick={() => handleStateChange('mailing', state.abbreviation, 'mailingAddress')}
-                      className="regStateLists"
-                    >
-                      {state.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            
+            {renderStateDropdown('mailingAddress', addressData.mailingAddress?.state)}
+          
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
@@ -578,7 +741,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
               />
             </div>
           </div>
-          <div className="cityStateZipGroupp">
+          <div className="city-state-zip-group">
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
@@ -589,30 +752,9 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
                 onChange={(e) => handleAddressChange('lesseeAddress', 'city', e.target.value)}
               />
             </div>
-            <div className="regStateWrapper">
-              <label className="registeredOwnerLabel">State</label>
-              <button
-                type="button"
-                onClick={() => setOpenDropdown(openDropdown === 'lessee' ? null : 'lessee')}
-                className="regStateDropDown"
-              >
-                {addressData.lesseeAddress?.state || 'State'}
-                <ChevronDownIcon className={`regIcon ${openDropdown === 'lessee' ? 'rotate' : ''}`} />
-              </button>
-              {openDropdown === 'lessee' && (
-                <ul ref={dropdownRefs.lessee} className="regStateMenu">
-                  {states.map((state, index) => (
-                    <li
-                      key={index}
-                      onClick={() => handleStateChange('lessee', state.abbreviation, 'lesseeAddress')}
-                      className="regStateLists"
-                    >
-                      {state.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            
+            {renderStateDropdown('lesseeAddress', addressData.lesseeAddress?.state)}
+           
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
@@ -653,7 +795,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
               />
             </div>
           </div>
-          <div className="cityStateZipGroupp">
+          <div className="city-state-zip-group">
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
@@ -664,30 +806,9 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
                 onChange={(e) => handleAddressChange('trailerLocation', 'city', e.target.value)}
               />
             </div>
-            <div className="regStateWrapper">
-              <label className="registeredOwnerLabel">State</label>
-              <button
-                type="button"
-                onClick={() => setOpenDropdown(openDropdown === 'trailer' ? null : 'trailer')}
-                className="regStateDropDown"
-              >
-                {addressData.trailerLocation?.state || 'State'}
-                <ChevronDownIcon className={`regIcon ${openDropdown === 'trailer' ? 'rotate' : ''}`} />
-              </button>
-              {openDropdown === 'trailer' && (
-                <ul ref={dropdownRefs.trailer} className="regStateMenu">
-                  {states.map((state, index) => (
-                    <li
-                      key={index}
-                      onClick={() => handleStateChange('trailer', state.abbreviation, 'trailerLocation')}
-                      className="regStateLists"
-                    >
-                      {state.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            
+            {renderStateDropdown('trailerLocation', addressData.trailerLocation?.state)}
+           
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
@@ -699,14 +820,14 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
               />
             </div>
           </div>
-          <div className="countryField">
-            <label className="formLabel">Country</label>
+          <div className="countyField">
+            <label className="formLabel">County</label>
             <input
-              className="countryInput"
+              className="countyInput"
               type="text"
-              placeholder="Country"
-              value={addressData.trailerLocation?.country || ''}
-              onChange={(e) => handleAddressChange('trailerLocation', 'country', e.target.value)}
+              placeholder="County"
+              value={addressData.trailerLocation?.county || ''}
+              onChange={(e) => handleAddressChange('trailerLocation', 'county', e.target.value)}
             />
           </div>
         </div>

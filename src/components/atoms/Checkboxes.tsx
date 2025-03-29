@@ -99,12 +99,16 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     const newData = { 
       ...transactionData,
       [field]: newValue
-    };    if (field === 'isGift' && newValue) {
+    };    
+    
+    if (field === 'isGift' && newValue) {
       newData.isFamilyTransfer = false;
     }     
     
     if (field === 'isFamilyTransfer' && newValue) {
       newData.isGift = false;
+
+      newData.isSmogExempt = true;
     }     
     
     if (field === 'currentLienholder' && !newValue) {

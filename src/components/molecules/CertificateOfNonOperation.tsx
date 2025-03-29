@@ -53,10 +53,10 @@ export default function CertificateOfNonOperationTransfer({ formData, onDataChan
     return (
       <div className='wholeForm'>
         <TypeContainer />
-        <FilingPnoCheckboxes formData={formValues} />
-        <VehicalInformation formData={formValues}/>
+        {/* <FilingPnoCheckboxes formData={formValues} /> */}
+        {/* <VehicalInformation formData={formValues}/> */}
         <Seller formData={formValues} />
-        <SellerAddress formData={formValues} />
+        {/* <SellerAddress formData={formValues} /> */}
         <VehicleStorageLocation formData={formValues} />
         <PlannedNonoperation formData={formValues} />
         <SaveButton 

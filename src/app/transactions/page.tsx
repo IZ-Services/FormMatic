@@ -14,7 +14,24 @@ import { Dayjs } from 'dayjs';
 import Loading from '../../components/pages/Loading';
 import { useAppContext } from '@/context';
 
+// Import all transaction components
 import SimpleTransfer from '../../components/molecules/SimpleTransfer';
+import MultipleTransfer from '../../components/molecules/MultipleTransfer';
+import DuplicateTitle from '../../components/molecules/DuplicateTitle';
+import DuplicateRegistration from '../../components/molecules/DuplicateRegistration';
+import DuplicatePlatesStickers from '../../components/molecules/DuplicatePlatesAndSticklers';
+import AddLienholder from '../../components/molecules/LienHolderAddition';
+import RemoveLienholder from '../../components/molecules/LienHolderRemovel';
+import ChangeOfAddress from '../../components/molecules/ChangeOfAddress';
+import CommercialVehicleTransfer from '../../components/molecules/CommercialVehicleTitle';
+import SalvageTransfer from '../../components/molecules/Salvage';
+import PlannedNonOperation from '../../components/molecules/FilingPNO';
+import RestoringPNOTransfer from '../../components/molecules/RestoringPno';
+import CertificateOfNonOperation from '../../components/molecules/CertificateOfNonOperation';
+import DisabledPersonPlacards from '../../components/molecules/DisabledPersonAndPlacards';
+import DuplicateStickers from '../../components/molecules/DuplicateStickersOnly';
+import NameChange from '../../components/molecules/NameChange';
+import PersonalizedPlates from '../../components/molecules/PersonlisedPlates';
 
 interface ITransaction {
   _id: string;
@@ -24,9 +41,28 @@ interface ITransaction {
   createdAt: string;
 }
 
+// Map all transaction types to their respective components
 const transactionComponents: Record<string, React.FC<{ formData: any }>> = {
   'Simple Transfer': SimpleTransfer,
-};
+  'Multiple Transfer': MultipleTransfer,
+  'Duplicate Title Transfer': DuplicateTitle,
+  'Duplicate Registration Transfer': DuplicateRegistration,
+  'Duplicate Plates & Stickers': DuplicatePlatesStickers,
+  'Lien Holder Addition': AddLienholder,
+  'Lien Holder Removal': RemoveLienholder,
+  'Change Of Address Transfer': ChangeOfAddress,
+  'Commercial Vehicle Transfer': CommercialVehicleTransfer,
+  'Salvage Title Transfer': SalvageTransfer,
+  'Filing PNO Transfer': PlannedNonOperation,
+  'Restoring PNO Transfer': RestoringPNOTransfer,
+  'Certificate Of Non-Operation Transfer': CertificateOfNonOperation,
+  'Disabled Person and Placards': DisabledPersonPlacards,
+  'Duplicate Stickers': DuplicateStickers,
+  'Name Change/Correction Transfer': NameChange,
+'Personalized Plates (Order)': PersonalizedPlates,
+  'Personalized Plates (Exchange)': PersonalizedPlates,
+  'Personalized Plates (Replacement)': PersonalizedPlates,
+  'Personalized Plates (Reassignment)': PersonalizedPlates};
 
 export default function Transactions() {
   const { transactions, setTransactions, setFormData } = useAppContext()!;
@@ -120,7 +156,11 @@ export default function Transactions() {
       alert('Transaction not found.');
       return;
     }
-  
+    
+    // Debug log to check transaction type
+    console.log('Transaction type:', clientToEdit.transactionType);
+    console.log('Available components:', Object.keys(transactionComponents));
+    
     const formDataWithId = {
       ...clientToEdit.formData,
       _id: clientToEdit._id
@@ -152,6 +192,11 @@ export default function Transactions() {
     }
   };
 
+  // Add a function to go back to the transactions list
+  const handleBackToTransactions = () => {
+    setSelectedTransaction(null);
+  };
+
   if (loading) {
     return <Loading />;
   }
@@ -161,8 +206,22 @@ export default function Transactions() {
 
     return (
       <div className="transaction-container">
-        <h2 className="transaction-heading">Edit Transaction</h2>
-        {Component ? <Component formData={selectedTransaction.formData} /> : <p className="noTransactionsMessage">Form not found for this transaction type.</p>}
+        <div className="transaction-header">
+          <button 
+            className="back-button" 
+            onClick={handleBackToTransactions}
+          >
+            ← Back to Transactions
+          </button>
+          <h2 className="transaction-heading">Edit Transaction</h2>
+        </div>
+        {Component ? (
+          <Component formData={selectedTransaction.formData} />
+        ) : (
+          <p className="noTransactionsMessage">
+            Form not found for this transaction type: {selectedTransaction.transactionType}
+          </p>
+        )}
       </div>
     );
   }
@@ -174,10 +233,10 @@ export default function Transactions() {
           <div className="search-input-wrapper">
             <MagnifyingGlassIcon className="searchIcon" />
             <input
-  className="transactionSearch"
-  placeholder="Search by transaction type..." 
-  onChange={(e) => setSearchFor(e.target.value)}
-/>
+              className="transactionSearch"
+              placeholder="Search by transaction type..." 
+              onChange={(e) => setSearchFor(e.target.value)}
+            />
           </div>
         </div>
         {noTransactions ? (

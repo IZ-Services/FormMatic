@@ -9,7 +9,7 @@ import TypeContainer from '../layouts/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
 import NameStatement from '../atoms/NameStatement';
 import SellerAddress from '../atoms/SellerAdrress';
-
+import TitleStatus from '../atoms/TitleStatus';
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
   isSmogExempt?: boolean;
@@ -53,10 +53,19 @@ export default function NameChangeTransfer({ formData, onDataChange }: NameChang
     return (
       <div className='wholeForm'>
         <TypeContainer />
-        <VehicalInformation formData={formValues}/>
-        <NameStatement formData={formValues} />
+        <TitleStatus formData={formValues}/>
 
-        <Seller formData={formValues} />
+        <VehicalInformation 
+        formData={{
+          hideMileageFields: true
+        }}
+      />            <NameStatement formData={formValues} />
+
+        <Seller 
+        formData={{
+          hideDateOfSale: true
+        }}
+      />
         <SellerAddress formData={formValues} />
         <SaveButton 
           transactionType="Name Change/Correction Transfer"

@@ -188,49 +188,51 @@ const SmogExemption: React.FC<SmogExemptionProps> = ({ formData: propFormData, o
               It is powered by:
             </label>
             
-            {/* Power source options - only shown when alternativeFuel is checked */}
-            {smogData.exemptionReasons?.alternativeFuel && (
-              <div className="subCheckboxGroup">
+            {/* Power source options - always shown */}
+            <div className="subCheckboxGroup">
+              <label className="subCheckboxLabel">
+                <input
+                  type="checkbox"
+                  checked={smogData.powerSource?.electricity || false}
+                  onChange={() => handlePowerSourceChange('electricity')}
+                  disabled={!smogData.exemptionReasons?.alternativeFuel}
+                />
+                electricity
+              </label>
+              
+              <label className="subCheckboxLabel">
+                <input
+                  type="checkbox"
+                  checked={smogData.powerSource?.diesel || false}
+                  onChange={() => handlePowerSourceChange('diesel')}
+                  disabled={!smogData.exemptionReasons?.alternativeFuel}
+                />
+                diesel
+              </label>
+              
+              <div className="otherInputGroup">
                 <label className="subCheckboxLabel">
                   <input
                     type="checkbox"
-                    checked={smogData.powerSource?.electricity || false}
-                    onChange={() => handlePowerSourceChange('electricity')}
+                    checked={smogData.powerSource?.other || false}
+                    onChange={() => handlePowerSourceChange('other')}
+                    disabled={!smogData.exemptionReasons?.alternativeFuel}
                   />
-                  electricity
+                  Other
                 </label>
                 
-                <label className="subCheckboxLabel">
+                {smogData.powerSource?.other && (
                   <input
-                    type="checkbox"
-                    checked={smogData.powerSource?.diesel || false}
-                    onChange={() => handlePowerSourceChange('diesel')}
+                    type="text"
+                    className="otherInput"
+                    value={smogData.powerSourceOther || ''}
+                    onChange={(e) => handleOtherPowerSourceChange(e.target.value)}
+                    placeholder="Specify other power source"
+                    disabled={!smogData.exemptionReasons?.alternativeFuel}
                   />
-                  diesel
-                </label>
-                
-                <div className="otherInputGroup">
-                  <label className="subCheckboxLabel">
-                    <input
-                      type="checkbox"
-                      checked={smogData.powerSource?.other || false}
-                      onChange={() => handlePowerSourceChange('other')}
-                    />
-                    Other
-                  </label>
-                  
-                  {smogData.powerSource?.other && (
-                    <input
-                      type="text"
-                      className="otherInput"
-                      value={smogData.powerSourceOther || ''}
-                      onChange={(e) => handleOtherPowerSourceChange(e.target.value)}
-                      placeholder="Specify other power source"
-                    />
-                  )}
-                </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
           
           <label className="checkboxLabel">
@@ -251,13 +253,12 @@ const SmogExemption: React.FC<SmogExemptionProps> = ({ formData: propFormData, o
             It is being transferred from/between:
           </label>
           
-          {smogData.exemptionReasons?.familyTransfer && (
-            <div className="indentedCheckbox">
-              <div className="familyRelationText">
-                The parent, grandparent, child, grandchild, brother, sister, spouse, or domestic partner (as defined in Family Code §297) of the transferee.*
-              </div>
+          {/* Always display the family relationship text, regardless of checkbox state */}
+          <div className="indentedCheckbox">
+            <div className="familyRelationText">
+              The parent, grandparent, child, grandchild, brother, sister, spouse, or domestic partner (as defined in Family Code §297) of the transferee.*
             </div>
-          )}
+          </div>
           
           <label className="checkboxLabel">
             <input

@@ -18,21 +18,27 @@ interface VehicleTransactionDetailsData {
 
 interface FormContextData {
   vehicleTransactionDetails?: VehicleTransactionDetailsData;
+  pnoDetails?: {
+    isBeforeRegExpires?: boolean;
+    requestPnoCard?: boolean;
+  };
   [key: string]: any;
 }
 
 interface FilingPNOProps {
   formData?: any;
   onDataChange?: (data: any) => void;
-
 }
 
 export default function FilingPNOTransfer({ formData, onDataChange }: FilingPNOProps) {
   const [formValues, setFormValues] = useState(formData || {});
+  
   useEffect(() => {
     if (onDataChange) {
-      onDataChange(formData);     }
+      onDataChange(formData);
+    }
   }, [formData]);
+  
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
@@ -40,6 +46,9 @@ export default function FilingPNOTransfer({ formData, onDataChange }: FilingPNOP
   const FormContent = () => {
     const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
     const { updateField } = useFormContext();
+    
+
+    const isPnoCardRequested = contextFormData?.pnoDetails?.requestPnoCard || false;
 
     useEffect(() => {
       if (formValues) {
@@ -49,14 +58,26 @@ export default function FilingPNOTransfer({ formData, onDataChange }: FilingPNOP
       }
     }, [formValues]);
 
-
     return (
       <div className='wholeForm'>
         <TypeContainer />
         <FilingPnoCheckboxes formData={formValues} />
-        <VehicalInformation formData={formValues}/>
-        <Seller formData={formValues} />
-        <SellerAddress formData={formValues} />
+        
+        {/* Only render Seller and SellerAddress components if PNO card is requested */}
+        {isPnoCardRequested && (
+          <>
+<Seller
+        formData={{
+          hideDateOfSale: true,
+          hideDateOfBirth: true,
+          limitOwnerCount: true
+
+        }}
+      />
+            <SellerAddress formData={formValues} />
+          </>
+        )}
+        
         <VehicleStorageLocation formData={formValues} />
         <PlannedNonoperation formData={formValues} />
         <SaveButton 

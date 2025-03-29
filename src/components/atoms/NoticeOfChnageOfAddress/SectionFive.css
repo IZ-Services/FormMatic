@@ -93,3 +93,37 @@
       flex-direction: column;
     }
   }
+
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .entry-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+  
+  .delete-entry-button {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #d33;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .delete-entry-button:hover {
+    color: #f33;
+  }
+  
+  .delete-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 0.25rem;
+  }

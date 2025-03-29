@@ -74,8 +74,18 @@ export default function LienHolderAdditionTransfer({ formData, onDataChange }: L
         {/* Add the new TitleStatus component */}
         <TitleStatus formData={formValues} />
         
-        <VehicalInformation formData={formValues}/>
-        <Seller formData={formValues} />
+        <VehicalInformation 
+        formData={{
+          hideMileageFields: true
+        }}
+      />        <Seller
+        formData={{
+          hideDateOfSale: true ,
+          hideDateOfBirth: true,
+          limitOwnerCount: true
+
+        }}
+      />
         <SellerAddress formData={formValues} />
         
         {/* Only show MissingTitle component when "Without Title" is selected */}

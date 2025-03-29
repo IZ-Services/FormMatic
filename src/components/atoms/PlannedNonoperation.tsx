@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
-import { PlusCircleIcon } from '@heroicons/react/24/outline';
+import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import './PlannedNonOperation.css';
 
 interface VehicleEntryType {
@@ -48,9 +48,13 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
 
   const handleEntryChange = (index: number, field: keyof VehicleEntryType, value: string) => {
     const currentInfo = { ...(formData.plannedNonOperation || initialPlannedNonOperation) };
-    const updatedEntries = [...currentInfo.entries];     if (!updatedEntries[index]) {
+    const updatedEntries = [...currentInfo.entries];
+    
+    if (!updatedEntries[index]) {
       updatedEntries[index] = { ...initialVehicleEntry };
-    }     updatedEntries[index] = { 
+    }
+    
+    updatedEntries[index] = { 
       ...updatedEntries[index], 
       [field]: value 
     };
@@ -63,7 +67,29 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
 
   const addNewEntry = () => {
     const currentInfo = { ...(formData.plannedNonOperation || initialPlannedNonOperation) };
+    
+
+    if (currentInfo.entries.length >= 9) {
+      return;
+    }
+    
     const updatedEntries = [...currentInfo.entries, { ...initialVehicleEntry }];
+    
+    updateField('plannedNonOperation', {
+      ...currentInfo,
+      entries: updatedEntries
+    });
+  };
+
+  const deleteEntry = (index: number) => {
+    const currentInfo = { ...(formData.plannedNonOperation || initialPlannedNonOperation) };
+    
+
+    if (currentInfo.entries.length <= 1) {
+      return;
+    }
+    
+    const updatedEntries = currentInfo.entries.filter((_, i) => i !== index);
     
     updateField('plannedNonOperation', {
       ...currentInfo,
@@ -82,18 +108,11 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
           <table className="pnoTable">
             <thead>
               <tr>
-                <th className="verticalHeader">
-                  <div className="verticalText">VEHICLE LICENSE PLATE NUMBER</div>
-                </th>
-                <th className="verticalHeader">
-                  <div className="verticalText">VEHICLE ID NUMBER</div>
-                </th>
-                <th className="verticalHeader">
-                  <div className="verticalText">MAKE</div>
-                </th>
-                <th className="verticalHeader">
-                  <div className="verticalText">EQUIPMENT NUMBER (OPTIONAL)</div>
-                </th>
+                <th>VEHICLE LICENSE PLATE NUMBER</th>
+                <th>VEHICLE ID NUMBER</th>
+                <th>MAKE</th>
+                <th>EQUIPMENT NUMBER (OPTIONAL)</th>
+                <th className="actionHeader">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -135,6 +154,19 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
                       placeholder="Equipment number"
                     />
                   </td>
+                  <td className="actionCell">
+                    <button 
+                      type="button" 
+                      className="deleteEntryButton" 
+                      onClick={() => deleteEntry(index)}
+                      aria-label="Delete vehicle entry"
+                      disabled={(formData.plannedNonOperation?.entries || []).length <= 1}
+                      title={(formData.plannedNonOperation?.entries || []).length <= 1 ? 
+                        "Cannot delete the only entry" : "Delete this vehicle"}
+                    >
+                      <TrashIcon className="deleteIcon" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -146,10 +178,13 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
             type="button" 
             className="addEntryButton" 
             onClick={addNewEntry}
-            aria-label="Add new vehicle entry"
+            aria-label="Add another vehicle entry"
+            disabled={(formData.plannedNonOperation?.entries || []).length >= 9}
+            title={(formData.plannedNonOperation?.entries || []).length >= 9 ? 
+              "Maximum of 9 vehicles allowed" : "Add another vehicle"}
           >
             <PlusCircleIcon className="addIcon" />
-            <span>Add Vehicle</span>
+            <span>Add another vehicle</span>
           </button>
         </div>
       </div>

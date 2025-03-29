@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './Checkboxes.css';
+import './VehicleTypeCheckboxes.css'
 
 interface VehicleTypeData {
   isAuto?: boolean;
@@ -97,7 +98,7 @@ const VehicleType: React.FC<VehicleTypeProps> = ({
         <h3 className="releaseHeading">Type of Vehicle</h3>
       </div>
 
-      <div className="checkbox-container">
+      <div className="checkbox-cont">
         <div className="checkbox-section">
           <label className="checkbox-label">
             <input

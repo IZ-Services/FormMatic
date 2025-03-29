@@ -16,7 +16,6 @@
       align-items: center;
       margin-bottom: 15px;
       padding-bottom: 15px;
-      border-bottom: 1px solid #e0e0e0;
       gap: 20px;
   }
 
@@ -101,7 +100,6 @@
 .transfer-form-container {
   background-color: white;
   border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding-right: 30%;
   margin-top: 20px;
 }

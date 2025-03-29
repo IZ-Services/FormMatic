@@ -64,7 +64,12 @@ export default function DisabledPersonPlacards({ formData, onDataChange }: Disab
         {/* <VehicleTransactionDetails formData={formValues} />
 
         <VehicalInformation formData={formValues}/> */}
-        <Seller formData={formValues} />
+<Seller
+        formData={{
+          hideDateOfSale: true,
+          hideDateOfBirth: true
+        }}
+      />
         <SellerAddress formData={formValues} />
         {isCurrentLienholder && (
           <LegalOwnerOfRecord formData={formValues} />

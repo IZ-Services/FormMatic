@@ -105,7 +105,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
             </div>
           </div>
           
-          <div className="statusSection">
+          <div className="statusSec">
             <span className="statusLabel">PLATE(S) WERE:</span>
             <div className="optionCheckboxes">
               {plateStatuses.map((status) => (

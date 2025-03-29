@@ -148,8 +148,8 @@ export default function Account() {
                 style={{ marginTop: '20px' }}
               />
 
-              <div className="saveButtonContainer" style={{ marginTop: '20px' }}>
-                <button className="saveButton" onClick={handleSaveNewPassword}>
+              <div className="saveButtonCont" style={{ marginTop: '20px' }}>
+                <button className="saveBtn" onClick={handleSaveNewPassword}>
                   Save
                 </button>
               </div>

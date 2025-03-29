@@ -326,16 +326,28 @@ const handlePdfDisplay = async (transactionId: string) => {
     
     else if (transactionType === "Commercial Vehicle Transfer") {
       formTypes = ['Reg343', 'Reg4008', 'Reg256'];
-            const vehicleType = formData.vehicleTypeInfo?.vehicleType;
-      if (vehicleType && ['Bus', 'Taxicab', 'Limousine', 'Station Wagon'].includes(vehicleType)) {
-        formTypes.push('Reg590');
-        console.log(`Adding Reg590 form for vehicle type: ${vehicleType}`);
+      
+
+      if (formData.commercialVehicle) {
+        const { isBus, isLimo, isTaxi } = formData.commercialVehicle;
+        
+
+        if (isBus || isLimo || isTaxi) {
+          formTypes.push('Reg590');
+          
+          const vehicleType = isBus ? 'Bus' : isLimo ? 'Limousine' : 'Taxi';
+          console.log(`Adding Reg590 form for commercial vehicle type: ${vehicleType}`);
+        } else {
+          console.log('Not including Reg590 - no commercial vehicle type selected');
+        }
       } else {
-        console.log(`Not including Reg590 - vehicle type is: ${vehicleType || 'not specified'}`);
+        console.log('Not including Reg590 - commercialVehicle data not found');
       }
       
       console.log('Commercial Vehicle Transfer: Using forms:', formTypes.join(', '));
-    } else {
+    }
+    
+    else {
       formTypes = ['Reg227', 'DMVREG262'];
       
       if (formData.vehicleTransactionDetails?.isFamilyTransfer || 

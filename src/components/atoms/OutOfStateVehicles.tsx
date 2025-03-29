@@ -53,7 +53,8 @@ const OutOfStateVehicles: React.FC<OutOfStateVehiclesProps> = ({
     const newData = {
       ...stateData,
       salesTaxPaid: value
-    };    if (value !== 'yes') {
+    };    
+    if (value !== 'yes') {
       newData.taxAmount = '';
     }
     
@@ -94,8 +95,14 @@ const OutOfStateVehicles: React.FC<OutOfStateVehiclesProps> = ({
     }
   };
 
+
+  const preventTextSelection = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
-    <div className="outOfStateWrapper" style={{ position: 'relative', overflow: 'visible' }}>
+    <div className="outOfStateWrapper" style={{ position: 'relative' }}>
       <div className="headerRow">
         <h3 className="sectionHeading">FOR OUT-OF-STATE OR OUT-OF-COUNTRY VEHICLES</h3>
       </div>
@@ -155,9 +162,9 @@ const OutOfStateVehicles: React.FC<OutOfStateVehiclesProps> = ({
         )}
       </div>
 
-      <div className="plateSection">
-        <p className="plateTitle">DISPOSITION OF OUT-OF-STATE PLATES:</p>
-        <p className="plateInfo">
+      <div className="plateSection" onMouseDown={preventTextSelection}>
+        <p className="plateTitle" onMouseDown={preventTextSelection}>DISPOSITION OF OUT-OF-STATE PLATES:</p>
+        <p className="plateInfo" onMouseDown={preventTextSelection}>
           The plates will not be affixed to any vehicle at any time, unless the vehicle is "Dual Registered" in both states.
         </p>
         
@@ -172,7 +179,8 @@ const OutOfStateVehicles: React.FC<OutOfStateVehiclesProps> = ({
               'Returned to the motor vehicle department of the state of issuance'
             ]}
             selectedText={stateData.plateDispositionText || ''}
-            onSelect={(value, text) => {              let disposition: 'expired' | 'surrendered' | 'destroyed' | 'retained' | 'returned';
+            onSelect={(value, text) => {
+              let disposition: 'expired' | 'surrendered' | 'destroyed' | 'retained' | 'returned';
               
               switch(text) {
                 case 'Expired, or will be or were':

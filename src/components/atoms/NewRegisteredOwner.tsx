@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useScenarioContext } from '../../context/ScenarioContext';
 import './NewRegisteredOwner.css';
 
 interface OwnerData {
@@ -34,6 +35,8 @@ interface NewRegisteredOwnersProps {
       isMotorcycle?: boolean;
     };
     _showValidationErrors?: boolean;
+    isPNORestoration?: boolean;
+    forceSingleOwner?: boolean;
     [key: string]: any;   
   };
   onChange?: (data: { owners: OwnerData[], howMany: string }) => void;
@@ -92,13 +95,12 @@ const states = [
   { name: 'Wyoming', abbreviation: 'WY' },
 ];
 
-const howManyOptions = ['1', '2', '3'];
-
 const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({ 
   formData: propFormData,
   onChange 
 }) => {
   const { formData: contextFormData, updateField } = useFormContext();
+  const { activeScenarios } = useScenarioContext();
   
   const formData = {
     ...contextFormData,
@@ -106,19 +108,52 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
   };
   
   const [owners, setOwners] = useState<OwnerData[]>([]);
-  const [isRegMenuOpen, setIsRegMenuOpen] = useState(false);
   const [isHowManyMenuOpen, setIsHowManyMenuOpen] = useState(false);
   const [activeOwnerIndex, setActiveOwnerIndex] = useState(0);
-
   const [syncedPurchaseDate, setSyncedPurchaseDate] = useState<string>('');
+  
+
+  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const stateDropdownRefs = useRef<Array<React.RefObject<HTMLUListElement>>>([]);
   
   const isVehicleGift = formData?.vehicleTransactionDetails?.isGift === true;
   const showValidationErrors = formData?._showValidationErrors === true;
+  
 
-  const regRef = useRef<HTMLUListElement | null>(null);
+  const isPNORestorationActive = !!formData?.isPNORestoration;
+
+
+  const shouldForceSingleOwner = () => {
+
+    if (formData.forceSingleOwner) {
+      return true;
+    }
+    
+
+    return !!(
+      activeScenarios && (
+        activeScenarios["Salvage"]
+      )
+    );
+  };
+  
+  const forceSingleOwner = shouldForceSingleOwner();
+  
+
+  useEffect(() => {
+    console.log("NewRegisteredOwners - isPNORestoration:", isPNORestorationActive);
+    console.log("Force Single Owner:", forceSingleOwner);
+    console.log("Active Scenarios:", activeScenarios);
+  }, [isPNORestorationActive, forceSingleOwner, activeScenarios]);
+
+  const howManyOptions = forceSingleOwner ? ['1'] : ['1', '2', '3'];  
   const howManyRef = useRef<HTMLUListElement | null>(null);
   
   const shouldShowValidationError = (index: number, field: keyof OwnerData) => {
+
+    if (isPNORestorationActive && (field === 'purchaseValue' || field === 'marketValue')) {
+      return false;
+    }
     return showValidationErrors && (!owners[index][field] || owners[index][field] === '');
   };   
 
@@ -177,10 +212,27 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     }
   }, []);   
 
-  useEffect(() => {
-    console.log("Gift status in NewRegisteredOwners:", isVehicleGift);
-  }, [isVehicleGift]);
 
+  useEffect(() => {
+    if (forceSingleOwner && formData?.howMany !== '1') {
+      const newHowMany = '1';
+      updateField('howMany', newHowMany);
+      
+
+      if (owners.length > 1) {
+        const newOwners = [owners[0]];
+        setOwners(newOwners);
+        updateField('owners', newOwners);
+        
+        if (onChange) {
+          onChange({
+            owners: newOwners,
+            howMany: newHowMany
+          });
+        }
+      }
+    }
+  }, [forceSingleOwner, formData?.howMany]);
 
   useEffect(() => {
     if (syncedPurchaseDate && owners.length > 1) {
@@ -205,6 +257,11 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
   }, [syncedPurchaseDate, owners.length]);
 
   const handleHowManyChange = (count: string) => {
+
+    if (forceSingleOwner && count !== '1') {
+      count = '1';
+    }
+    
     const newCount = parseInt(count);
     let newOwners = [...owners];
     const currentPurchaseDate = owners.length > 0 ? owners[0].purchaseDate : '';
@@ -253,12 +310,10 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     const newOwners = [...owners];
     newOwners[index] = { ...newOwners[index], [field]: value };
     
- 
     if (index === 0 && field === 'purchaseDate') {
       setSyncedPurchaseDate(value);
     }
     
- 
     if (index === 0 && (field === 'purchaseValue' || field === 'marketValue')) {
       for (let i = 1; i < newOwners.length; i++) {
         newOwners[i] = { ...newOwners[i], [field]: value };
@@ -293,43 +348,66 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     }
   };
 
+
+  const handleStateDropdownClick = (index: number) => {
+    setOpenDropdown(prev => (prev === index ? null : index));
+  };
+
+  const handleStateSelect = (index: number, abbreviation: string) => {
+    handleOwnerFieldChange(index, 'state', abbreviation);
+    setOpenDropdown(null);
+  };
+
   const handleClickOutsideMenus = (e: MouseEvent) => {
     const target = e.target as Element;
-    if (regRef.current && !regRef.current.contains(target) && !target.closest('.regStateDropDown')) {
-      setIsRegMenuOpen(false);
-    }
+    
+
     if (howManyRef.current && !howManyRef.current.contains(target) && !target.closest('.howManyDropDown')) {
       setIsHowManyMenuOpen(false);
     }
+    
+
+    if (openDropdown !== null && !target.closest(`.stateDropdown-${openDropdown}`)) {
+      let clickedOnDropdown = false;
+      stateDropdownRefs.current.forEach((ref, idx) => {
+        if (ref && ref.current && ref.current.contains(target)) {
+          clickedOnDropdown = true;
+        }
+      });
+      
+      if (!clickedOnDropdown) {
+        setOpenDropdown(null);
+      }
+    }
   };
 
-useEffect(() => {
-  if (owners.length > 0) {
-    const newOwners = [...owners];
-    
-    if (isVehicleGift) {
-      newOwners.forEach(owner => {
-        owner.purchaseValue = '';
-      });
-    } else {
-      newOwners.forEach(owner => {
-        owner.relationshipWithGifter = '';
-        owner.giftValue = '';
-        owner.marketValue = '';
-      });
+  useEffect(() => {
+    if (owners.length > 0) {
+      const newOwners = [...owners];
+      
+      if (isVehicleGift) {
+        newOwners.forEach(owner => {
+          owner.purchaseValue = '';
+        });
+      } else {
+        newOwners.forEach(owner => {
+          owner.relationshipWithGifter = '';
+          owner.giftValue = '';
+          owner.marketValue = '';
+        });
+      }
+      
+      setOwners(newOwners);
+      updateField('owners', newOwners);
+      
+      if (onChange) {
+        onChange({ 
+          owners: newOwners,
+          howMany: formData?.howMany || '1' 
+        });
+      }
     }
-    
-    setOwners(newOwners);
-    updateField('owners', newOwners);
-    
-    if (onChange) {
-      onChange({ 
-        owners: newOwners,
-        howMany: formData?.howMany || '1' 
-      });
-    }
-  }
-}, [isVehicleGift]);
+  }, [isVehicleGift]);
 
   useEffect(() => {     
     if (!isVehicleGift && owners.length > 0) {
@@ -351,6 +429,12 @@ useEffect(() => {
     }
   }, [isVehicleGift]); 
   
+
+  useEffect(() => {
+
+    stateDropdownRefs.current = owners.map(() => React.createRef<HTMLUListElement>());
+  }, [owners.length]);
+
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutsideMenus);
     return () => document.removeEventListener('mousedown', handleClickOutsideMenus);
@@ -360,29 +444,32 @@ useEffect(() => {
     <div className="new-registered-owners">
       <div className="newRegHeader">
         <h3 className="newRegHeading">New Registered Owner(s)</h3>
-        <div className="howManyWrapper">
-          <button
-            onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
-            className="howManyDropDown"
-          >
-            {String(formData?.howMany ?? '1')}
-            <ChevronDownIcon className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`} />
-          </button>
+        {/* Hide the dropdown entirely if force single owner is active */}
+        {!forceSingleOwner && (
+          <div className="howManyWrapper">
+            <button
+              onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
+              className="howManyDropDown"
+            >
+              {String(formData?.howMany ?? '1')}
+              <ChevronDownIcon className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`} />
+            </button>
 
-          {isHowManyMenuOpen && (
-            <ul ref={howManyRef} className="howManyMenu">
-              {howManyOptions.map((option, index) => (
-                <li
-                  className="howManyLists"
-                  key={index}
-                  onClick={() => handleHowManyChange(option)}
-                >
-                  {option}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+            {isHowManyMenuOpen && (
+              <ul ref={howManyRef} className="howManyMenu">
+                {howManyOptions.map((option, index) => (
+                  <li
+                    className="howManyLists"
+                    key={index}
+                    onClick={() => handleHowManyChange(option)}
+                  >
+                    {option}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
       {owners.map((owner, index) => (
@@ -497,53 +584,65 @@ useEffect(() => {
             <div className="regStateWrapper">
               <label className="registeredOwnerLabel">State</label>
               <button
-                onClick={() => {
-                  setActiveOwnerIndex(index);
-                  setIsRegMenuOpen(true);
-                }}
-                className={`regStateDropDown ${shouldShowValidationError(index, 'state') ? 'validation-error' : ''}`}
+                type="button"
+                onClick={() => handleStateDropdownClick(index)}
+                className={`regStateDropDown stateDropdown-${index} ${shouldShowValidationError(index, 'state') ? 'validation-error' : ''}`}
               >
                 {owner.state || 'State'}
-                <ChevronDownIcon className={`regIcon ${isRegMenuOpen ? 'rotate' : ''}`} />
+                <ChevronDownIcon className={`regIcon ${openDropdown === index ? 'rotate' : ''}`} />
               </button>
-              {isRegMenuOpen && activeOwnerIndex === index && (
-                <ul ref={regRef} className="regStateMenu">
+              
+              {openDropdown === index && (
+                <ul 
+                  ref={stateDropdownRefs.current[index]}
+                  className="regStateMenu"
+                >
                   {states.map((state, stateIndex) => (
                     <li
                       className="regStateLists"
                       key={stateIndex}
-                      onClick={() => {
-                        handleOwnerFieldChange(index, 'state', state.abbreviation);
-                        setIsRegMenuOpen(false);
-                      }}
+                      onClick={() => handleStateSelect(index, state.abbreviation)}
                     >
                       {state.name}
                     </li>
                   ))}
                 </ul>
               )}
+              
               {shouldShowValidationError(index, 'state') && (
                 <p className="validation-message">State is required</p>
               )}
             </div>
           </div>
+          
           <div className="newRegThirdGroup">
             <div className="sellerThirdItem">
               <label className="sellerLabel">Phone Number</label>
               <input
                 className={`sellerNumberInput ${shouldShowValidationError(index, 'phoneNumber') ? 'validation-error' : ''}`}
                 type="text"
-                placeholder="Phone Number"
+                placeholder="Phone Number (10 digits)"
                 value={owner.phoneNumber}
-                onChange={(e) => handleOwnerFieldChange(index, 'phoneNumber', e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (/^[0-9]*$/.test(value) && value.length <= 10) {
+                    handleOwnerFieldChange(index, 'phoneNumber', value);
+                  }
+                }}
+                maxLength={10}
+                inputMode="numeric"
               />
-              {shouldShowValidationError(index, 'phoneNumber') && (
+              {shouldShowValidationError(index, 'phoneNumber') ? (
                 <p className="validation-message">Phone number is required</p>
+              ) : (
+                owner.phoneNumber && owner.phoneNumber.length < 10 && (
+                  <p className="validation-message">Phone number must be 10 digits</p>
+                )
               )}
             </div>
             
-            {/* Only show Purchase Price/Market Value field for the first owner */}
-            {index === 0 && (
+            {index === 0 && !isPNORestorationActive && (
               <div className="newRegThirdItem">
                 <label className="registeredOwnerLabel">
                   {isVehicleGift ? 'Market Value' : 'Purchase Price/Value'}
@@ -572,11 +671,10 @@ useEffect(() => {
               </div>
             )}
           </div>
-          
       
-          {isVehicleGift && index === 0 ? (
-            <div className="ownerGiftGroup">
-              <div className="ownerGiftItem">
+          {isVehicleGift && index === 0 && !isPNORestorationActive && (
+            <div className="newRegGiftGroup">
+              <div className="newRegGiftItem">
                 <label className="registeredOwnerLabel">Relationship with Gifter</label>
                 <input
                   className={`registeredOwnerInput ${shouldShowValidationError(index, 'relationshipWithGifter') ? 'validation-error' : ''}`}
@@ -589,10 +687,10 @@ useEffect(() => {
                   <p className="validation-message">Relationship is required</p>
                 )}
               </div>
-              <div className="ownerGiftItem">
+              <div className="newRegGiftItem">
                 <label className="registeredOwnerLabel">Gift Value</label>
                 <input
-                  className={`registeredOwnerInput ${shouldShowValidationError(index, 'giftValue') ? 'validation-error' : ''}`}
+                  className={`registeredValueInput ${shouldShowValidationError(index, 'giftValue') ? 'validation-error' : ''}`}
                   type="text"
                   placeholder="Enter Gift Value"
                   value={owner.giftValue || ''}
@@ -603,7 +701,7 @@ useEffect(() => {
                 )}
               </div>
             </div>
-          ) : null}
+          )}
         </div>
       ))}
     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircleIcon } from '@heroicons/react/24/outline';
+import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useFormContext } from '../../../app/api/formDataContext/formDataContextProvider';
 import './SectionFive.css';
 
@@ -23,6 +23,9 @@ const initialVehicleEntry: VehicleEntry = {
   registeredLocation: undefined
 };
 
+
+const MAX_VEHICLES = 3;
+
 const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => {
   const [vehicleEntries, setVehicleEntries] = useState<VehicleEntry[]>(
     propFormData?.vehiclesOwned?.length 
@@ -37,7 +40,7 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
     }
   }, [propFormData]);
 
-  const handleEntryChange = (index: number, field: keyof VehicleEntry, value: string | undefined) => {
+  const handleEntryChange = (index: number, field: keyof VehicleEntry, value: string | 'inside' | 'outside' | undefined) => {
     const newEntries = [...vehicleEntries];
     newEntries[index] = {
       ...newEntries[index],
@@ -47,8 +50,51 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
     updateField('vehiclesOwned', newEntries);
   };
 
+  const toggleCheckbox = (index: number, field: 'leased' | 'registeredLocation') => {
+    const newEntries = [...vehicleEntries];
+    const currentEntry = { ...newEntries[index] };
+    
+
+    const newValue = currentEntry[field] === 'inside' ? undefined : 'inside';
+    
+
+    if (newValue === undefined) {
+
+      if (field === 'leased') {
+        currentEntry.plateCfNumber = '';
+      }
+      
+
+      if (field === 'registeredLocation') {
+        currentEntry.vehicleHullId = '';
+      }
+    }
+    
+    currentEntry[field] = newValue;
+    newEntries[index] = currentEntry;
+    
+    setVehicleEntries(newEntries);
+    updateField('vehiclesOwned', newEntries);
+  };
+
   const addNewEntry = () => {
-    const newEntries = [...vehicleEntries, { ...initialVehicleEntry }];
+
+    if (vehicleEntries.length < MAX_VEHICLES) {
+      const newEntries = [...vehicleEntries, { ...initialVehicleEntry }];
+      setVehicleEntries(newEntries);
+      updateField('vehiclesOwned', newEntries);
+    }
+  };
+
+  const deleteEntry = (index: number) => {
+
+    const newEntries = vehicleEntries.filter((_, i) => i !== index);
+    
+
+    if (newEntries.length === 0) {
+      newEntries.push({ ...initialVehicleEntry });
+    }
+    
     setVehicleEntries(newEntries);
     updateField('vehiclesOwned', newEntries);
   };
@@ -61,6 +107,21 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
 
       {vehicleEntries.map((entry, index) => (
         <div key={index} className="vehicle-entry">
+          <div className="entry-header">
+            <h4 className="entry-title">Vehicle {index + 1}</h4>
+            {vehicleEntries.length > 1 && (
+              <button 
+                type="button" 
+                className="delete-entry-button" 
+                onClick={() => deleteEntry(index)}
+                aria-label="Delete vehicle entry"
+              >
+                <TrashIcon className="delete-icon" />
+                <span>Delete</span>
+              </button>
+            )}
+          </div>
+
           <div className="input-group">
             <label className="input-label">CALIFORNIA PLATE/CF/PLACARD NO.</label>
             <input
@@ -68,7 +129,8 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
               className="form-input"
               value={entry.plateCfNumber || ''}
               onChange={(e) => handleEntryChange(index, 'plateCfNumber', e.target.value.toUpperCase())}
-              maxLength={20}
+              maxLength={8}
+              disabled={entry.leased !== 'inside'}
             />
           </div>
 
@@ -80,44 +142,47 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
               value={entry.vehicleHullId || ''}
               onChange={(e) => handleEntryChange(index, 'vehicleHullId', e.target.value.toUpperCase())}
               maxLength={17}
+              disabled={entry.registeredLocation !== 'inside'}
             />
           </div>
 
           <div className="checkbox-group">
-            <div className="radio-group">
-              <label className="radio-label">
+            <div className="checkbox-cont">
+              <label className="checkbox-label">
                 <input
-                  type="radio"
-                  name={`leased-${index}`}
+                  type="checkbox"
                   checked={entry.leased === 'inside'}
-                  onChange={() => handleEntryChange(index, 'leased', 'inside')}
+                  onChange={() => toggleCheckbox(index, 'leased')}
                 />
                 CHECK IF LEASED
               </label>
-              <label className="radio-label">
+              <label className="checkbox-label">
                 <input
-                  type="radio"
-                  name={`registered-${index}`}
+                  type="checkbox"
                   checked={entry.registeredLocation === 'inside'}
-                  onChange={() => handleEntryChange(index, 'registeredLocation', 'inside')}
+                  onChange={() => toggleCheckbox(index, 'registeredLocation')}
                 />
                 CHECK IF REGISTERED OUTSIDE CA
               </label>
             </div>
-
           </div>
         </div>
       ))}
 
       <div className="add-entry-container">
-        <button 
-          type="button" 
-          className="add-entry-button" 
-          onClick={addNewEntry}
-        >
-          <PlusCircleIcon className="add-icon" />
-          <span>Add Vehicle</span>
-        </button>
+        {vehicleEntries.length < MAX_VEHICLES && (
+          <button 
+            type="button" 
+            className="add-entry-button" 
+            onClick={addNewEntry}
+          >
+            <PlusCircleIcon className="add-icon" />
+            <span>Add Another Vehicle</span>
+          </button>
+        )}
+        {vehicleEntries.length >= MAX_VEHICLES && (
+          <p className="max-vehicles-message">Maximum number of vehicles reached (3)</p>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,5 @@
 'use client';
-import Address from '../atoms/Address';
-import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
-import NewLien from '../atoms/NewLienHolder';
+
 import VehicleInformation from '../atoms/VehicleInformation';
 import Seller from '../atoms/Seller';
 import SaveButton from '../atoms/savebutton';
@@ -10,10 +8,7 @@ import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
 import TypeContainer from '../layouts/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
-
 import LegalOwnerOfRecord from '../atoms/LegalOwnerOfRecord';
-
-import VehicleTransactionDetails from '../atoms/Checkboxes';
 import MissingTitle from '../atoms/MissingTitle';
 import SellerAddress from '../atoms/SellerAdrress';
 
@@ -94,13 +89,11 @@ export default function DuplicateTitleTransfer({ formData }: DuplicateTitleTrans
     return (
       <div className='wholeForm'>
         <TypeContainer />
-        
-        {/* Current Lienholder Checkbox */}
-        <div className="lienholderCheckboxWrapper">
+                <div className="lienholderCheckboxWrapper">
           <div className="headerRow">
-            <h3 className="releaseHeading">Current Lienholder</h3>
+            <h3 className="releaseHeading">Transaction Details</h3>
           </div>
-          <div className="checkbox-container">
+          <div className="checkbox-cont">
             <div className="checkbox-section">
               <label className="checkbox-label">
                 <input
@@ -118,8 +111,13 @@ export default function DuplicateTitleTransfer({ formData }: DuplicateTitleTrans
           formData={formValues}
           isDuplicateRegistrationMode={true}
         />
-                <Seller formData={formValues} />
-        <SellerAddress formData={formValues} />
+<Seller
+        formData={{
+          
+          limitOwnerCount: true
+
+        }}
+      />        <SellerAddress formData={formValues} />
         <MissingTitle formData={formValues} />
         {hasLienholder && (
           <LegalOwnerOfRecord formData={formValues} />

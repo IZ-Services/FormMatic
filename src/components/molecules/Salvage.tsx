@@ -9,6 +9,8 @@ import SalvageCertificate from '../atoms/SalvageCertificate';
 import LicensePlateDisposition from '../atoms/LicensePlateDispsition';
 import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
 import VehicleInformation from '../atoms/VehicleInformation';
+import Seller from '../atoms/Seller';
+import SellerAddress from '../atoms/SellerAdrress';
 import Address from '../atoms/Address';
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
@@ -50,10 +52,17 @@ export default function SalvageTransfer({ formData, onDataChange }: SalvageTrans
       <div className='wholeForm'>
         <TypeContainer />
         <SalvageCertificate formData={formValues} />
-        <VehicleInformation formData={formValues} />
-
-        <NewRegisteredOwners formData={formValues} />
-        <Address formData={formValues} />
+        <VehicleInformation 
+        formData={{
+          hideMileageFields: true
+        }}
+      />            <Seller formData= {formValues} />
+ <SellerAddress 
+        hideMailingOption={true}
+      />        <NewRegisteredOwners   formData={{
+          forceSingleOwner: true
+        }}
+      />
         <LicensePlateDisposition formData={formValues} />
         <SaveButton 
           transactionType="Salvage Title Transfer"

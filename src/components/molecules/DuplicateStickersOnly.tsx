@@ -100,10 +100,10 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
         {/* Motorcycle checkbox */}
         <div className="releaseWrapper">
           <div className="headerRow">
-            <h3 className="releaseHeading">Vehicle Type</h3>
+          <h3 className="releaseHeading">Transaction Details</h3>
           </div>
 
-          <div className="checkbox-container">
+          <div className="checkbox-cont">
             <div className="checkbox-section">
               <label className="checkbox-label">
                 <input
@@ -120,11 +120,19 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
         <VehicleInformation 
           formData={formValues}
           isDuplicateRegistrationMode={true}
-        />        
-        <Seller formData={formValues} />
+        /> 
+                <TitleField formData={formData} />
+       
+                <Seller
+        formData={{
+          hideDateOfSale: true,
+          hideDateOfBirth: true ,
+          limitOwnerCount: true
+
+        }}
+      />
         <SellerAddress formData={formValues} />
         <ItemRequested formData={formValues}/>
-        <TitleField formData={formData} />
 
         <LicensePlate formData={formData} />
         

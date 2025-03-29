@@ -57,7 +57,7 @@ const FilingPnoCheckboxes: React.FC<FilingPnoCheckboxesProps> = ({ formData }) =
   return (
     <div className="filingPnoContainer">
       <div className="filingPnoHeader">
-        <h3>Filing PNO Options</h3>
+        <h3>Transaction Details</h3>
       </div>
       <div className="filingPnoContent">
         <label className="pnoCheckboxLabel">
@@ -67,13 +67,9 @@ const FilingPnoCheckboxes: React.FC<FilingPnoCheckboxesProps> = ({ formData }) =
             onChange={handleBeforeRegExpiresChange}
             className="pnoCheckbox"
           />
-          <span className="pnoCheckboxText">60 days before registration expires</span>
+          <span className="pnoCheckboxText">60 days before registration expires or 90 days after</span>
         </label>
-        <div className="pnoStatusDescription">
-          {isBeforeRegExpires 
-            ? "Filing 60 days before registration expires." 
-            : "Filing 90 days after registration expires."}
-        </div>
+        
 
         <label className="pnoCheckboxLabel">
           <input
@@ -84,11 +80,7 @@ const FilingPnoCheckboxes: React.FC<FilingPnoCheckboxesProps> = ({ formData }) =
           />
           <span className="pnoCheckboxText">Request PNO card</span>
         </label>
-        <div className="pnoStatusDescription">
-          {requestPnoCard 
-            ? "PNO card will be requested." 
-            : "No PNO card will be requested."}
-        </div>
+        
       </div>
     </div>
   );

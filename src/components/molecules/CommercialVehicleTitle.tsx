@@ -11,11 +11,7 @@ import './Simpletransfer.css';
 import TypeContainer from '../layouts/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
 import DateInformation from '../atoms/DateInformation'; 
-import LegalOwnerOfRecord from '../atoms/LegalOwnerOfRecord';
-import SmogExemption from '../atoms/SmogExemption';
-import VehicleTransactionDetails from '../atoms/Checkboxes';
-import VehicleType from '../atoms/VehicleTypeCheckboxes';
-import PowerOfAttorney from '../atoms/PowerOfAttorney';
+import CommercialCheckboxes from '../atoms/CommercialCheckboxes';
 import SellerAddress from '../atoms/SellerAdrress';
 import VehicleStatus from '../atoms/VehicleStatus';
 import VehicleAcquisition from '../atoms/VehicleAcquisition';
@@ -66,9 +62,14 @@ export default function CommercialVehicleTransfer({ formData, onDataChange }: Co
     return (
       <div className='wholeForm'>
         <TypeContainer />
+        <CommercialCheckboxes formData={formValues}/>
         <TypeOfVehicle formData={formValues} />
 
-        <Seller formData={formValues} />
+        <Seller 
+        formData={{
+          hideDateOfSale: true
+        }}
+      />
         <SellerAddress formData={formValues} />
         <VehicalInformation formData={formValues} />
         <VehicleWeightInfo formData={formValues} />
@@ -77,7 +78,7 @@ export default function CommercialVehicleTransfer({ formData, onDataChange }: Co
         <DateInformation formData={formValues} />
         <VehicleStatus formData={formValues} />
         <VehicleAcquisition formData={formValues} />
-        <NewLien formData={formValues} />
+        {/* <NewLien formData={formValues} /> */}
         <StatementOfFacts formData={formValues} />
         <SaveButton 
           transactionType="Commercial Vehicle Transfer"

@@ -46,7 +46,7 @@ const TitleStatus: React.FC<TitleStatusProps> = ({ formData }) => {
   return (
     <div className="titleStatusContainer">
       <div className="titleStatusHeader">
-        <h3>Title Status</h3>
+        <h3>Transaction Details</h3>
       </div>
       <div className="titleStatusContent">
         <label className="titleCheckboxLabel">
@@ -59,9 +59,7 @@ const TitleStatus: React.FC<TitleStatusProps> = ({ formData }) => {
           <span className="titleCheckboxText">With Title</span>
         </label>
         <div className="titleStatusDescription">
-          {withTitle 
-            ? "This transaction will be processed with the original title." 
-            : "This transaction will be processed without the original title."}
+          
         </div>
       </div>
     </div>

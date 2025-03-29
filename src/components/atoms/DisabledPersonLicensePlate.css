@@ -2,6 +2,9 @@
   width: 100%;
   margin-bottom: 20px;
   margin-top: 20px;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .onlyText {
@@ -24,7 +27,7 @@
 /* Exemption Container Styles */
 .exemptionContainer {
   margin: 15px 0;
-
+  padding: 0 10px;
 }
 
 .exemptionText {
@@ -34,6 +37,7 @@
 .exemptionText p {
   margin: 0;
   line-height: 1.5;
+  font-size: 14px;
 }
 
 .checkboxOptions {
@@ -65,17 +69,13 @@
 /* Form Fields Styles */
 .formFields {
   margin-top: 15px;
+  padding: 0 10px;
 }
 
 .formRow {
   display: flex;
-  flex-direction: column;
-}
-
-@media (min-width: 768px) {
-  .formRow {
-    flex-direction: row;
-  }
+  gap: 1px;
+  width: 100%;
 }
 
 .formField {
@@ -94,6 +94,10 @@
   font-weight: bold;
   border-bottom: 1px solid #ccc;
   background-color: white;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .fieldInput {
@@ -112,4 +116,34 @@
 .fieldInput:disabled {
   background-color: #f0f0f0;
   cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .fieldLabel {
+    font-size: 12px;
+    padding: 6px;
+  }
+  
+  .fieldInput {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 700px) {
+  .formRow {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .formField, .vinField {
+    width: 100%;
+    flex: none;
+  }
+  
+  .fieldLabel {
+    font-size: 14px;
+    padding: 8px;
+    white-space: normal;
+  }
 }

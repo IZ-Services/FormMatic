@@ -1,4 +1,5 @@
 'use client';
+
 import SaveButton from '../atoms/savebutton';
 import { FormDataProvider, useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ScenarioProvider } from '../../context/ScenarioContext';
@@ -12,10 +13,12 @@ import VehicleInformation from '../atoms/VehicleInformation';
 import Address from '../atoms/Address';
 import StatementOfFacts from '../atoms/StatementOfFacts';
 import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
+
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
   isSmogExempt?: boolean;
-  isOutOfStateTitle?: boolean;}
+  isOutOfStateTitle?: boolean;
+}
 
 interface FormContextData {
   vehicleTransactionDetails?: VehicleTransactionDetailsData;
@@ -29,10 +32,13 @@ interface RestoringPNOTransferProps {
 
 export default function RestoringPNOTransfer({ formData, onDataChange }: RestoringPNOTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
+
   useEffect(() => {
     if (onDataChange) {
-      onDataChange(formData);     }
+      onDataChange(formData);
+    }
   }, [formData]);
+
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
@@ -48,13 +54,22 @@ export default function RestoringPNOTransfer({ formData, onDataChange }: Restori
         });
       }
     }, [formValues]);
+
+
+    const modifiedFormData = {
+      ...formValues,
+      isPNORestoration: true
+    };
+
+    console.log("Passing isPNORestoration flag to NewRegisteredOwners:", modifiedFormData.isPNORestoration);
+
     return (
       <div className='wholeForm'>
         <TypeContainer />
         <VehicleInformation formData={formValues} />
-        <NewRegisteredOwners formData={formValues} />
+        <NewRegisteredOwners formData={modifiedFormData} />
         {/* <StatementOfFacts formData={formValues} /> */}
-        <SaveButton 
+        <SaveButton
           transactionType="Restoring PNO Transfer"
           onSuccess={() => console.log('Save completed successfully')}
         />

@@ -103,6 +103,20 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
     handleChange('locationCity', capitalizedValue);
   };
 
+
+  const handlePlateTypeChange = (type: 'Sequential' | 'Personalized') => {
+    const currentPlateType = (formData.selectConfiguration as SelectConfigurationType)?.plateType;
+    
+
+    if (currentPlateType === type) {
+
+      handleChange('plateType', undefined);
+    } else {
+
+      handleChange('plateType', type);
+    }
+  };
+
   return (
     <div className="configWrapper" style={{ margin: '15px 0' }}>
       <div className="configHeader">
@@ -134,7 +148,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
               <input
                 type="checkbox"
                 checked={(formData.selectConfiguration as SelectConfigurationType)?.plateType === 'Sequential'}
-                onChange={() => handleChange('plateType', 'Sequential')}
+                onChange={() => handlePlateTypeChange('Sequential')}
                 className="plateTypeCheckbox"
               />
               <div className="plateTypeText">
@@ -177,7 +191,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
               <input
                 type="checkbox"
                 checked={(formData.selectConfiguration as SelectConfigurationType)?.plateType === 'Personalized'}
-                onChange={() => handleChange('plateType', 'Personalized')}
+                onChange={() => handlePlateTypeChange('Personalized')}
                 className="plateTypeCheckbox"
               />
               <span className="plateTypeTitle">Personalized</span>
@@ -194,9 +208,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
             <p className="personalizedWarning">
               Your application will not be accepted if the MEANING of the plate is not entered, even if it appears obvious, OR if the plate configuration is unacceptable.
             </p>
-            <p className="personalizedInstructions">
-              SEE REVERSE FOR INSTRUCTIONS ON ENTERING THE CONFIGURATION IN THE BOXES BELOW.
-            </p>
+            
             
             <div className="centeringOption">
               <label className="centeringLabel">
@@ -210,12 +222,12 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
               </label>
             </div>
             
-            {/* Properly styled symbols with appropriate spacing */}
+            {/* Kids plate symbol section with responsive styling */}
             <div className="kidsPlateOption">
               <span className="kidsPlateText">KIDS PLATE: Circle choice of symbol</span>
-              <div className="kidsPlateSymbols" style={{ display: 'flex', alignItems: 'center', gap: '30px', marginTop: '10px' }}>
+              <div className="kidsPlateSymbols">
                 {kidsSymbols.map((symbol) => (
-                  <label key={symbol} className="symbolLabel" style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100px' }}>
+                  <label key={symbol} className="symbolLabel">
                     <input
                       type="radio"
                       name="kidsPlateSymbol"
@@ -338,9 +350,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
               </div>
             </div>
             
-            <div className="noteSection">
-              <p className="noteText">NOTE: The department will not honor a change of choice, spacing, or a request for refund after the reservation is made.</p>
-            </div>
+            
           </div>
         )}
         

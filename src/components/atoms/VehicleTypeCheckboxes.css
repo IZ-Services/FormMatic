@@ -1,0 +1,17 @@
+.checkbox-cont{
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+
+  }
+
+  @media (max-width: 768px) {
+    .checkbox-cont {
+      flex-direction: column;
+      gap: 10px;
+    }
+  
+    .checkbox-section {
+      min-width: 100%;
+    }
+  }

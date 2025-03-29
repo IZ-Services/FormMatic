@@ -1,3 +1,4 @@
+/* Keep existing styles */
 .releaseWrapper {
   font-family: Arial, sans-serif;
   margin-bottom: 20px;
@@ -5,6 +6,9 @@
 
 .releaseFormGroup {
   margin-bottom: 15px;
+  display: flex; /* Make this a flex container */
+  justify-content: space-between; /* Space between bank name and agent name */
+  gap: 20px; /* Add some space between the fields */
 }
 
 .releaseFormLabel {
@@ -44,17 +48,28 @@
   cursor: pointer;
 }
 
+/* Modify the bank name input to take less width */
 .releaseFormInput {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 2px;
   font-size: 14px;
-  width: 65.2%;
+  width: 100%; /* Change from 65.2% to 100% for proper flex sizing */
 }
 
 .releaseFormInput:focus {
   border-color: #007bff;
   outline: none;
+}
+
+/* Add styles for the bank name container */
+.bankNameField {
+  flex: 3; /* Take more space than agent name field */
+}
+
+/* Add styles for the agent name container that will be placed next to bank name */
+.agentNameInline {
+  flex: 2; /* Take less space than bank name field */
 }
 
 .releaseCheckboxGroup {
@@ -160,7 +175,7 @@
 
 .datePhoneGroup {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 20px;
   width: 100%;
   margin-bottom: 15px;
@@ -168,10 +183,17 @@
 
 .dateField {
   flex: 1;
+  min-width: 180px;
 }
 
 .phoneField {
   flex: 1;
+  min-width: 180px;
+}
+
+.agentNameInline {
+  flex: 2;
+  min-width: 200px;
 }
 
 .authorizedAgentGroup {
@@ -181,8 +203,9 @@
   width: 100%;
 }
 
+/* Agent name field is now moved to be inline with bank name */
 .agentNameField {
-  flex: 2;
+  display: none; /* Hide the original agent name field since we're moving it */
 }
 
 .agentTitleField {
@@ -195,6 +218,7 @@
   border: 1px solid #ccc;
   border-radius: 2px;
   font-size: 14px;
+  height: 35px; /* Make consistent height for all inputs */
 }
 
 /* Hover effects */
@@ -217,4 +241,41 @@
 .cityInputt::placeholder,
 .registeredDateInput::placeholder {
   color: #999;
+}
+
+/* Add more specific styles for form input in the agent name field */
+.agentFormInput {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 14px;
+  width: 100%;
+  height: 35px; /* Make consistent height for all inputs */
+}
+
+.agentFormInput:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Add responsive styles for form fields */
+@media screen and (max-width: 768px) {
+  .datePhoneGroup {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .dateField, .phoneField, .agentNameInline {
+    width: 100%;
+  }
+  
+  /* Ensure consistent height for inputs on smaller screens */
+  .formInputt, .cityInputt, .registeredDateInput, .agentFormInput, .releaseFormInput {
+    height: 35px;
+  }
+  
+  /* Add some margin bottom to labels to ensure proper spacing when they wrap */
+  .releaseFormLabel {
+    margin-bottom: 8px;
+  }
 }

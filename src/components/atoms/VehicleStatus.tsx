@@ -83,29 +83,33 @@ const VehicleStatus: React.FC<VehicleStatusProps> = ({
       </div>
 
       <div className="statusSection">
-        {/* <p className="statusNote">Vehicle entry to California:</p> */}
         <div className="checkboxRow">
           <label className="checkbox-label">
             <input
               type="checkbox"
               checked={statusData.didNotOwnAtEntry || false}
               onChange={() => handleCheckboxChange('didNotOwnAtEntry')}
+              className="checkbox-input"
             />
-            Did not own vehicle at time of entry
+            <span className="checkbox-text">
+              If vehicle was previously registered in CA, then registered or located outside CA and has now returned, enter date vehicle entered CA. If you did not own the vehicle at entry, check box:
+            </span>
           </label>
         </div>
       </div>
 
       <div className="statusSection">
-        {/* <p className="statusNote">California residency:</p> */}
         <div className="checkboxRow">
           <label className="checkbox-label">
             <input
               type="checkbox"
               checked={statusData.notCaliforniaResident || false}
               onChange={() => handleCheckboxChange('notCaliforniaResident')}
+              className="checkbox-input"
             />
-            Not a California resident
+            <span className="checkbox-text">
+              If you are not a CA resident, check this box:
+            </span>
           </label>
         </div>
       </div>

@@ -3,6 +3,7 @@ import TransactionModel from '../../../models/transaction';
 import { NextResponse } from 'next/server';
 import { PDFDocument, PDFName, PDFBool } from 'pdf-lib';
 import {  StandardFonts, rgb } from 'pdf-lib';
+import SellerAddress from '@/components/atoms/SellerAdrress';
 
 
 export async function POST(request: Request) {
@@ -39,61 +40,54 @@ export async function POST(request: Request) {
 
     console.log('Complete formData:', JSON.stringify(formData));
 
-    if (isMultipleTransfer) {
-      console.log('Multiple transfer structure detected, restructuring data...');
-      try {
-        const restructuredData = {
-          owners: [],
-          vehicleInformation: {},
-          sellerInfo: { sellers: [] },
-          sellerAddress: {},
-          sellerMailingAddress: {},
-          sellerMailingAddressDifferent: false,
-          legalOwnerInformation: {},
-          address: {},
-          vehicleTransactionDetails: {},
-          lienHolder: {},
-          mailingAddress: {},
-          lesseeAddress: {},
-          trailerLocation: {},
-          powerOfAttorney: {},
-          mailingAddressDifferent: false,
-          lesseeAddressDifferent: false,
-          trailerLocationDifferent: false,
-          itemRequested: {},
-          disabledPersonParkingInfo: {},
-          addressChangeInfo: {},
-          pnoDetails: {}
-        };
-        
-        formData = restructuredData;
-      } catch (error) {
-        console.error('Error restructuring data:', error);
-        formData = {
-          owners: [],
-          vehicleInformation: {},
-          sellerInfo: { sellers: [] },
-          sellerAddress: {},
-          sellerMailingAddress: {},
-          sellerMailingAddressDifferent: false,
-          legalOwnerInformation: {},
-          address: {},
-          vehicleTransactionDetails: {},
-          lienHolder: {},
-          mailingAddress: {},
-          lesseeAddress: {},
-          trailerLocation: {},
-          powerOfAttorney: {},
-          mailingAddressDifferent: false,
-          lesseeAddressDifferent: false,
-          trailerLocationDifferent: false,
-          itemRequested: {},
-          disabledPersonParkingInfo: {},
-          addressChangeInfo: {},
-          pnoDetails: {}
-        };
-      }
-    }
+   // Replace the "if (isMultipleTransfer)" block with this code:
+
+if (isMultipleTransfer) {
+  console.log('Multiple transfer structure detected, restructuring data...');
+  try {
+    // Create structure but preserve existing data instead of setting empty objects
+    const restructuredData = {
+      // Keep existing data or initialize empty if not present
+      owners: formData.owners || formData.newOwners?.owners || [],
+      vehicleInformation: formData.vehicleInformation || {},
+      sellerInfo: { 
+        sellers: formData.sellerInfo?.sellers || 
+                (formData.seller ? [formData.seller] : [])
+      },
+      sellerAddress: formData.sellerAddress || {},
+      sellerMailingAddress: formData.sellerMailingAddress || {},
+      sellerMailingAddressDifferent: !!formData.sellerMailingAddressDifferent,
+      legalOwnerInformation: formData.legalOwner || formData.legalOwnerInformation || {},
+      address: formData.address || {},
+      vehicleTransactionDetails: formData.vehicleTransactionDetails || {},
+      lienHolder: formData.newLien || formData.lienHolder || {},
+      mailingAddress: formData.mailingAddress || {},
+      lesseeAddress: formData.lesseeAddress || {},
+      trailerLocation: formData.trailerLocation || {},
+      powerOfAttorney: formData.powerOfAttorney || {},
+      mailingAddressDifferent: !!formData.mailingAddressDifferent,
+      lesseeAddressDifferent: !!formData.lesseeAddressDifferent,
+      trailerLocationDifferent: !!formData.trailerLocationDifferent,
+      itemRequested: formData.itemRequested || {},
+      disabledPersonParkingInfo: formData.disabledPersonParkingInfo || {},
+      addressChangeInfo: formData.addressChangeInfo || {},
+      pnoDetails: formData.pnoDetails || {}
+    };
+    
+    console.log('Restructured data with preserved values:', 
+                JSON.stringify({
+                  hasOwners: restructuredData.owners.length > 0,
+                  hasVehicleInfo: Object.keys(restructuredData.vehicleInformation).length > 0,
+                  hasSellers: restructuredData.sellerInfo.sellers.length > 0
+                }));
+                
+    formData = restructuredData;
+  } catch (error) {
+    console.error('Error restructuring data:', error);
+    // Keep the original formData instead of replacing with empty objects
+    console.log('Keeping original formData due to restructuring error');
+  }
+}
 
     formData.owners = formData.owners || [];
     formData.vehicleInformation = formData.vehicleInformation || {};
@@ -185,7 +179,7 @@ export async function POST(request: Request) {
       } else if (formType === 'Reg488c') {
         modifiedPdfBytes = await modifyReg488cPdf(existingPdfBytes, formData, effectiveTransactionType);
       } else {
-        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType);
+        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType, transactionType);
       }
 
       return new Response(modifiedPdfBytes, {
@@ -261,7 +255,7 @@ export async function POST(request: Request) {
       } else if (formType === 'Reg488c') {
         modifiedPdfBytes = await modifyReg488cPdf(existingPdfBytes, formData, effectiveTransactionType);
       } else {
-        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType);
+        modifiedPdfBytes = await modifyReg227Pdf(existingPdfBytes, formData, effectiveTransactionType, transactionType);
       }
 
       return new Response(modifiedPdfBytes, {
@@ -274,452 +268,6 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error(`[fillPdfForm] Error:`, error);
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
-  }
-}
-
-async function modifyReg488cPdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
-  try {
-    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: false });
-    
-    if (!pdfDoc) {
-      console.error('Failed to load PDF document');
-      throw new Error('Failed to load PDF document');
-    }
-    
-    const form = pdfDoc.getForm();
-    
-    if (!form) {
-      console.error('Failed to get form from PDF');
-      throw new Error('Failed to get form from PDF');
-    }
-    
-    console.log('Processing Reg488c form (Application for Salvage Certificate)');    console.log('Available fields in Reg488c form:');
-    const fields = form.getFields();
-    for (const field of fields) {
-      const fieldName = field.getName();
-      const fieldType = field.constructor.name;
-      console.log(`Field: ${fieldName} (Type: ${fieldType})`);
-    }
-    
-    const safeSetText = (fieldName: string, value: string) => {
-      try {
-        const field = form.getTextField(fieldName);
-        if (field) {
-          field.setText(value);
-          console.log(`Successfully filled field: ${fieldName} with: ${value}`);
-        } else {
-          console.warn(`Field not found: ${fieldName}`);
-        }
-      } catch (error) {
-        console.error(`Error filling field ${fieldName}:`, error);
-      }
-    };
-    
-    const safeSetCheckBox = (fieldName: string, value: boolean) => {
-      try {
-        const field = form.getCheckBox(fieldName);
-        if (field) {
-          if (value) {
-            field.check();
-          } else {
-            field.uncheck();
-          }
-          console.log(`Successfully set checkbox: ${fieldName} to: ${value}`);
-        } else {
-          console.warn(`Checkbox field not found: ${fieldName}`);
-        }
-      } catch (error) {
-        console.error(`Error setting checkbox ${fieldName}:`, error);
-      }
-    };    if (formData.vehicleInformation) {
-      const vInfo = formData.vehicleInformation;
-      
-      if (vInfo.licensePlate) {
-        safeSetText('VEHICLE LICENSE NUMBER', vInfo.licensePlate || '');
-      }
-      
-      if (vInfo.year) {
-        safeSetText('YEAR1', vInfo.year || '');
-      }
-      
-      if (vInfo.hullId) {
-        safeSetText('VIN', vInfo.hullId || '');
-      }
-      
-      if (vInfo.make) {
-        safeSetText('MAKE1', vInfo.make || '');
-      }
-    }    if (formData.salvageCertificate) {
-      const salvageInfo = formData.salvageCertificate;
-      
-      if (salvageInfo.stateOfLastRegistration) {
-        safeSetText('STATE OF LAST REGISTRATION1', salvageInfo.stateOfLastRegistration || '');
-      }
-      
-      if (salvageInfo.dateRegistrationExpires) {
-        safeSetText('DATE REGISTRATION EXPIRES1', salvageInfo.dateRegistrationExpires || '');
-      }
-      
-      if (salvageInfo.claimNumber) {
-        safeSetText('CLAIM NUMBER1', salvageInfo.claimNumber || '');
-      }
-      
-      if (salvageInfo.costOrValue) {
-        safeSetText('COST/VALUE1', salvageInfo.costOrValue || '');
-      }
-      
-      if (salvageInfo.dateWreckedOrDestroyed) {
-        safeSetText('DATE WRECKED OR DESTROYED1', salvageInfo.dateWreckedOrDestroyed || '');
-      }
-      
-      if (salvageInfo.dateStolen) {
-        safeSetText('DATE STOLEN1', salvageInfo.dateStolen || '');
-      }
-      
-      if (salvageInfo.dateRecovered) {
-        safeSetText('DATE RECOVERED1', salvageInfo.dateRecovered || '');
-      }      if (salvageInfo.isOriginal) {
-        safeSetCheckBox('original', true);
-      }
-      
-      if (salvageInfo.isDuplicate) {
-        safeSetCheckBox('duplicate', true);
-      }
-    }    if (formData.licensePlateDisposition) {
-      const lpDisposition = formData.licensePlateDisposition;      if (lpDisposition.plateRetainedByOwner) {
-        safeSetCheckBox('plate with owner', true);
-      }
-      
-      if (lpDisposition.beingSurrendered) {
-        safeSetCheckBox('Are Being Surrendered', true);        if (lpDisposition.platesSurrendered) {
-          if (lpDisposition.platesSurrendered === 'one') {
-            safeSetCheckBox('one', true);
-          } else if (lpDisposition.platesSurrendered === 'two') {
-            safeSetCheckBox('two', true);
-          }
-        }
-      }
-      
-      if (lpDisposition.haveLost) {
-        safeSetCheckBox('have been lost', true);
-      }
-      
-      if (lpDisposition.haveDestroyed) {
-        safeSetCheckBox('have been destroyed', true);        if (lpDisposition.occupationalLicenseNumber) {
-          safeSetText('OL NUMBER 3', lpDisposition.occupationalLicenseNumber);
-          safeSetText('OL LICENSE NUMBER', lpDisposition.occupationalLicenseNumber);
-        }
-      }
-    }    if (formData.owners && formData.owners.length > 0) {
-      const owner = formData.owners[0];      const ownerFullName = [
-        owner.firstName || '',
-        owner.middleName || '',
-        owner.lastName || ''
-      ].filter(Boolean).join(' ');
-      
-      if (ownerFullName) {
-        safeSetText('PRINTED NAME OF INSURANCE CO. OR APPLICANT1', ownerFullName);
-        safeSetText('PRINTED NAME OF AGENT', ownerFullName);
-      }
-      
-      if (owner.licenseNumber) {
-        safeSetText('DL OR ID NUMBER1', owner.licenseNumber || '');
-      }
-    }    if (formData.address) {
-      const address = formData.address;
-      
-      if (address.street) {
-        safeSetText('STREET ADDRESS', address.street || '');
-      }
-      
-      if (address.city) {
-        safeSetText('CITY', address.city || '');
-      }
-      
-      if (address.state) {
-        safeSetText('STATE', address.state || '');
-      }
-      
-      if (address.zip) {
-        safeSetText('ZIP CODE', address.zip || '');
-      }
-    }    const today = new Date();
-    const formattedDate = `${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getDate().toString().padStart(2, '0')}/${today.getFullYear()}`;
-    safeSetText('CERTIFICATION DATE', formattedDate);
-    
-    try {
-      form.updateFieldAppearances();
-    } catch (e) {
-      console.warn('Error updating field appearances, continuing anyway:', e);
-    }
-    
-    return await pdfDoc.save({
-      useObjectStreams: false,
-      addDefaultPage: false,
-      updateFieldAppearances: true
-    });
-  } catch (error) {
-    console.error('Error in modifyReg488cPdf:', error);
-    const emptyPdf = await PDFDocument.create();
-    return await emptyPdf.save();
-  }
-}
-
-async function modifyReg4008Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
-  try {
-    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: false });
-    
-    if (!pdfDoc) {
-      console.error('Failed to load PDF document');
-      throw new Error('Failed to load PDF document');
-    }
-    
-    const form = pdfDoc.getForm();
-    
-    if (!form) {
-      console.error('Failed to get form from PDF');
-      throw new Error('Failed to get form from PDF');
-    }
-    
-    console.log('Processing Reg4008 form (Verification of Vehicle)');
-    
-    const safeSetText = (fieldName: string, value: string) => {
-      try {
-        const field = form.getTextField(fieldName);
-        if (field) {
-          field.setText(value);
-          console.log(`Successfully filled field: ${fieldName} with: ${value}`);
-        } else {
-          console.warn(`Field not found: ${fieldName}`);
-        }
-      } catch (error) {
-        console.error(`Error filling field ${fieldName}:`, error);
-      }
-    };    console.log('Available fields in Reg4008 form:');
-    const fields = form.getFields();
-    for (const field of fields) {
-      const fieldName = field.getName();
-      const fieldType = field.constructor.name;
-      console.log(`Field: ${fieldName} (Type: ${fieldType})`);
-    }    try {
-      const today = new Date();
-      const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
-      safeSetText('Executed on-Date', formattedDate);
-    } catch (error) {
-      console.error('Error setting date:', error);
-    }    if (formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 0) {
-      const seller = formData.sellerInfo.sellers[0];      const lastName = seller.lastName || '';
-      const firstName = seller.firstName || '';
-      const middleName = seller.middleName || '';
-      
-      let formattedName = '';
-      if (lastName) {
-        formattedName += lastName;
-        if (firstName || middleName) formattedName += ', ';
-      }
-      if (firstName) {
-        formattedName += firstName;
-        if (middleName) formattedName += ' ';
-      }
-      if (middleName) {
-        formattedName += middleName;
-      }
-      
-      safeSetText('Name', formattedName);
-
-      if (seller.state) {
-        safeSetText('States1.0', seller.state);
-      }
-    }    if (formData.sellerAddress) {      const address = formData.sellerAddress;      const street = address.street || '';
-      const apt = address.apt ? `Apt ${address.apt}` : '';
-      const streetApt = [street, apt].filter(Boolean).join(' ');
-      
-      safeSetText('Address.0.0', streetApt);      if (address.city) {
-        safeSetText('City.0', address.city);
-      }      if (address.zip) {
-        safeSetText('Zip Code.0', address.zip);
-      }
-    }    if (formData.sellerMailingAddressDifferent && formData.sellerMailingAddress) {
-      const mailingAddress = formData.sellerMailingAddress;      const street = mailingAddress.street || '';
-      const poBox = mailingAddress.poBox ? `PO Box ${mailingAddress.poBox}` : '';
-      const mailingStreetBox = [street, poBox].filter(Boolean).join(' ');
-      
-      safeSetText('Address.1', mailingStreetBox);      if (mailingAddress.city) {
-        safeSetText('City.1', mailingAddress.city);
-      }      if (mailingAddress.state) {
-        safeSetText('States1.1', mailingAddress.state);
-      }      if (mailingAddress.zip) {
-        safeSetText('Zip Code.1', mailingAddress.zip);
-      }
-    }    if (formData.vehicleInformation) {
-      const vInfo = formData.vehicleInformation;      if (vInfo.licensePlate) {
-        try {          const truncatedLicensePlate = vInfo.licensePlate.substring(0, 7);
-          safeSetText('License- 1.0', truncatedLicensePlate);
-        } catch (error) {
-          console.error('Error setting license plate:', error);
-        }
-      }      if (vInfo.hullId) {
-        safeSetText('VIN- 1.0', vInfo.hullId);
-      }      if (vInfo.make) {
-        safeSetText('Make -1.0', vInfo.make);
-      }
-    }    if (formData.vehicleWeightInfo && formData.vehicleWeightInfo.length > 0) {
-      const maxVehicles = Math.min(formData.vehicleWeightInfo.length, 2);      
-      for (let i = 0; i < maxVehicles; i++) {
-        const vehicle = formData.vehicleWeightInfo[i];
-        const suffix = i === 0 ? '.0' : '.1';        if (vehicle.vehicleOperatedUnder) {
-          safeSetText(`Under 10,001 pounds${suffix}`, 'X');
-        }        if (vehicle.gvwValue) {
-          safeSetText(`GVW -1${suffix}`, vehicle.gvwValue);
-        }        if (vehicle.cgwValue) {
-          safeSetText(`CGW -1${suffix}`, vehicle.cgwValue);
-        }        if (vehicle.firstOperatedDate) {
-          safeSetText(`Date 1st operated-1${suffix}`, vehicle.firstOperatedDate);
-        }
-      }
-    }
-    
-    try {
-      form.updateFieldAppearances();
-    } catch (e) {
-      console.warn('Error updating field appearances, continuing anyway:', e);
-    }
-    
-    return await pdfDoc.save({
-      useObjectStreams: false,
-      addDefaultPage: false,
-      updateFieldAppearances: true
-    });
-  } catch (error) {
-    console.error('Error in modifyReg4008Pdf:', error);
-    const emptyPdf = await PDFDocument.create();
-    return await emptyPdf.save();
-  }
-}
-
-async function modifyReg590Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
-  try {
-    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: false});
-    
-    if (!pdfDoc) {
-      console.error('Failed to load PDF document');
-      throw new Error('Failed to load PDF document');
-    }
-    
-    const form = pdfDoc.getForm();
-    
-    if (!form) {
-      console.error('Failed to get form from PDF');
-      throw new Error('Failed to get form from PDF');
-    }
-    
-    console.log('Processing Reg590 form (Vehicle Transfer & Reassignment Form)');    console.log('Available fields in Reg590 form:');
-    const fields = form.getFields();
-    for (const field of fields) {
-      const fieldName = field.getName();
-      const fieldType = field.constructor.name;
-      console.log(`Field: ${fieldName} (Type: ${fieldType})`);
-    }
-    
-    const safeSetCheckbox = (fieldName: string, checked: boolean) => {
-      try {
-        const field = form.getCheckBox(fieldName);
-        if (field) {
-          if (checked) {
-            field.check();
-          } else {
-            field.uncheck();
-          }
-          console.log(`Successfully set checkbox: ${fieldName} to ${checked}`);
-        } else {
-          console.warn(`Checkbox field not found: ${fieldName}`);
-        }
-      } catch (error) {
-        console.error(`Error setting checkbox ${fieldName}:`, error);
-      }
-    };
-    
-    const safeSetText = (fieldName: string, value: string) => {
-      try {
-        const field = form.getTextField(fieldName);
-        if (field) {
-          field.setText(value);
-          console.log(`Successfully filled field: ${fieldName} with: ${value}`);
-        } else {
-          console.warn(`Field not found: ${fieldName}`);
-        }
-      } catch (error) {
-        console.error(`Error filling field ${fieldName}:`, error);
-      }
-    };    if (formData.vehicleInformation) {      if (formData.vehicleInformation.hullId) {
-        safeSetText('Vehicle identification number', formData.vehicleInformation.hullId);
-      }      const yearMake = [
-        formData.vehicleInformation.year || '',
-        formData.vehicleInformation.make || ''
-      ].filter(Boolean).join(' ');
-      
-      if (yearMake) {
-        safeSetText('Text2', yearMake);
-      }      if (formData.vehicleInformation.licensePlate) {
-        safeSetText('Text3', formData.vehicleInformation.licensePlate);
-      }
-    }    if (formData.vehicleTypeInfo) {
-      const vehicleType = formData.vehicleTypeInfo.vehicleType;
-      
-      if (vehicleType) {        if (vehicleType === 'Bus') {
-          safeSetCheckbox('Check Box4', true);
-        } else if (vehicleType === 'Taxicab') {
-          safeSetCheckbox('Check Box5', true);
-        } else if (vehicleType === 'Limousine') {
-          safeSetCheckbox('Check Box6', true);
-        } else if (vehicleType === 'Ambulance') {
-          safeSetCheckbox('Check Box7', true);
-        } else if (vehicleType === 'Station Wagon') {
-          safeSetCheckbox('Check Box8', true);          if (formData.vehicleTypeInfo.stationWagonUse === 'owner') {
-            safeSetCheckbox('Check Box9', true);
-          } else if (formData.vehicleTypeInfo.stationWagonUse === 'employee') {
-            safeSetCheckbox('Check Box10', true);
-          }
-        }
-      }      if (formData.vehicleTypeInfo.commercialStartDate) {
-        console.log('Setting commercialStartDate in Text14:', formData.vehicleTypeInfo.commercialStartDate);
-        safeSetText('Text14', formData.vehicleTypeInfo.commercialStartDate);
-      } else {
-        console.log('commercialStartDate is not available');
-      }
-    }    try {
-      const today = new Date();
-      const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
-      safeSetText('Text11', formattedDate);
-    } catch (error) {
-      console.error('Error setting date in Text11:', error);
-    }    if (formData.sellerInfo && formData.sellerInfo.sellers && formData.sellerInfo.sellers.length > 0) {
-      const seller = formData.sellerInfo.sellers[0];
-      
-      if (seller.phone) {
-        const phone = seller.phone.replace(/\D/g, '');        
-        if (phone.length >= 3) {          safeSetText('Text12', phone.substring(0, 3));          if (phone.length > 3) {
-            safeSetText('Text13', phone.substring(3));
-          }
-        }
-      }
-    }
-    
-    try {
-      form.updateFieldAppearances();
-    } catch (e) {
-      console.warn('Error updating field appearances, continuing anyway:', e);
-    }
-    
-    return await pdfDoc.save({
-      useObjectStreams: false,
-      addDefaultPage: false,
-      updateFieldAppearances: true
-    });
-  } catch (error) {
-    console.error('Error in modifyReg590Pdf:', error);
-    const emptyPdf = await PDFDocument.create();
-    return await emptyPdf.save();
   }
 }
 
@@ -783,21 +331,6 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
       }
     };
     
-    const safeSetRadio = (fieldName: string, value: string) => {
-      try {
-        const field = form.getRadioGroup(fieldName);
-        if (field) {
-          field.select(value);
-          console.log(`Successfully set radio group: ${fieldName} to ${value}`);
-        } else {
-          console.warn(`Radio group field not found: ${fieldName}`);
-        }
-      } catch (error) {
-        console.error(`Error setting radio group ${fieldName}:`, error);
-      }
-    };
-    
-
     try {
       const today = new Date();
       const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
@@ -807,7 +340,8 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     } catch (error) {
       console.error('Error setting date:', error);
     }
-    
+    safeSetCheckbox('Check Box181', true);
+safeSetCheckbox('Check Box183', true);
 
     let vinSetInText56 = false;
     
@@ -874,14 +408,45 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
       if (vehicleInfo.exceedsMechanicalLimit) {
         safeSetCheckbox('Check Box135', true);
       }
+
+      if (vehicleInfo.isKilometers) {
+        safeSetCheckbox('Check Box133', true);
+      }
     }
     
+    if (formData.vehicleType) {
 
+      if (formData.vehicleType.isAuto) {
+        safeSetCheckbox('Check Box20', true);
+        console.log('Successfully set Auto checkbox (Check Box9) to true');
+      }
+      
+      if (formData.vehicleType.isMotorcycle) {
+        safeSetCheckbox('Check Box25', true);
+        console.log('Successfully set Motorcycle checkbox (Check Box11) to true');
+      }
+      
+      if (formData.vehicleType.isOffHighway) {
+        safeSetCheckbox('Check Box26', true);
+        console.log('Successfully set Off Highway checkbox (Check Box12) to true');
+      }
+      
+      if (formData.vehicleType.isTrailerCoach) {
+        safeSetCheckbox('Check Box27', true);
+        console.log('Successfully set Trailer Coach checkbox (Check Box13) to true');
+      }
+    }
     if (formData.owners && formData.owners.length > 0) {
       const owner = formData.owners[0];
       
 
       if (owner.firstName || owner.middleName || owner.lastName) {
+
+        const full = [
+          owner.lastName ? owner.lastName + ',' : '',
+          owner.firstName || '',
+          owner.middleName ? (owner.firstName ? ',' : '') + owner.middleName : ''
+        ].filter(Boolean).join(' ');
         const fullName = [
           owner.firstName || '',
           owner.middleName || '',
@@ -891,7 +456,7 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
         safeSetText('Text5', fullName);
         safeSetText('Text26', fullName);
         safeSetText('Text34', fullName);
-        safeSetText('Text62', fullName);
+        safeSetText('Text62', full);
       }
       
 
@@ -962,33 +527,149 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
         safeSetText('Text40', address.zip);
         safeSetText('Text87', address.zip);
       }
+      if (formData.address && formData.address.county) {
+        safeSetText('Text88', formData.address.county);
+        console.log('Successfully set county field Text88 to', formData.address.county);
+      }
     }
     
 
-    if ((formData.sellerMailingAddressDifferent && formData.sellerMailingAddress) || 
-        (formData.mailingAddressDifferent && formData.mailingAddress)) {
-      const mailingAddress = formData.sellerMailingAddress || formData.mailingAddress;
-      
-      if (mailingAddress.street) {
-        safeSetText('Text90', mailingAddress.street);
-      }
-      
-      if (mailingAddress.poBox) {
-        safeSetText('Text91', mailingAddress.poBox);
-      }
-      
-      if (mailingAddress.city) {
-        safeSetText('Text92', mailingAddress.city);
-      }
-      
-      if (mailingAddress.state) {
-        safeSetText('Text93', mailingAddress.state);
-      }
-      
-      if (mailingAddress.zip) {
-        safeSetText('Text94', mailingAddress.zip);
-      }
+if (formData.legalOwnerInformation && Object.keys(formData.legalOwnerInformation).length > 0) {
+  const legalOwner = formData.legalOwnerInformation;
+  
+
+  if (legalOwner.name) {
+    safeSetText('Text118', legalOwner.name);
+  } else {
+
+    safeSetText('Text118', 'none');
+  }
+  
+
+  if (legalOwner.eltNumber) {
+    safeSetText('Text119', legalOwner.eltNumber);
+  }
+  
+
+  if (legalOwner.address) {
+    if (legalOwner.address.street) {
+      safeSetText('Text120', legalOwner.address.street);
     }
+    
+    if (legalOwner.address.apt) {
+      safeSetText('Text121', legalOwner.address.apt);
+    }
+    
+    if (legalOwner.address.city) {
+      safeSetText('Text122', legalOwner.address.city);
+    }
+    
+    if (legalOwner.address.state) {
+      safeSetText('Text123', legalOwner.address.state);
+    }
+    
+    if (legalOwner.address.zip) {
+      safeSetText('Text124', legalOwner.address.zip);
+    }
+  }
+  
+
+  if (legalOwner.mailingAddressDifferent && legalOwner.mailingAddress) {
+    if (legalOwner.mailingAddress.street) {
+      safeSetText('Text125', legalOwner.mailingAddress.street);
+    }
+    
+    if (legalOwner.mailingAddress.poBox) {
+      safeSetText('Text126', legalOwner.mailingAddress.poBox);
+    }
+    
+    if (legalOwner.mailingAddress.city) {
+      safeSetText('Text127', legalOwner.mailingAddress.city);
+    }
+    
+    if (legalOwner.mailingAddress.state) {
+      safeSetText('Text128', legalOwner.mailingAddress.state);
+    }
+    
+    if (legalOwner.mailingAddress.zip) {
+      safeSetText('Text129', legalOwner.mailingAddress.zip);
+    }
+  }
+} else {
+
+
+  safeSetText('Text118', 'none');
+  console.log('No legal owner information found, setting Text118 to "none"');
+}
+
+
+if (formData.mailingAddressDifferent && formData.mailingAddress) {
+  const mailingAddress = formData.mailingAddress;
+  
+  if (mailingAddress.street) {
+    safeSetText('Text90', mailingAddress.street);
+  }
+  
+  if (mailingAddress.poBox) {
+    safeSetText('Text91', mailingAddress.poBox);
+  }
+  
+  if (mailingAddress.city) {
+    safeSetText('Text92', mailingAddress.city);
+  }
+  
+  if (mailingAddress.state) {
+    safeSetText('Text93', mailingAddress.state);
+  }
+  
+  if (mailingAddress.zip) {
+    safeSetText('Text94', mailingAddress.zip);
+  }
+}
+
+
+if (formData.lesseeAddressDifferent && formData.lesseeAddress) {
+  const lesseeAddress = formData.lesseeAddress;
+  
+  if (lesseeAddress.street) {
+    safeSetText('Text95', lesseeAddress.street);
+  }
+
+  if (lesseeAddress.apt) {
+    safeSetText('Text109', lesseeAddress.apt);
+  }
+  
+  if (lesseeAddress.city) {
+    safeSetText('Text110', lesseeAddress.city);
+  }
+  
+  if (lesseeAddress.state) {
+    safeSetText('Text111', lesseeAddress.state);
+  }
+  
+  if (lesseeAddress.zip) {
+    safeSetText('text112', lesseeAddress.zip);
+  }
+}
+
+
+if (formData.trailerLocationDifferent && formData.trailerLocation) {
+  const trailerLocation = formData.trailerLocation;
+  
+  if (trailerLocation.street) {
+    safeSetText('Text113', trailerLocation.street)
+  }
+  if (trailerLocation.city) {
+    safeSetText('Text115', trailerLocation.city)
+  }
+  if (trailerLocation.state) {
+    safeSetText('Text116', trailerLocation.state)
+  }
+  
+  if (trailerLocation.zip) {
+    safeSetText('Text117', trailerLocation.zip);
+  }
+}
     
 
     if (formData.owners && formData.owners.length > 1) {
@@ -1004,9 +685,9 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
 
       if (coOwner.firstName || coOwner.middleName || coOwner.lastName) {
         const coOwnerName = [
+          coOwner.lastName ? coOwner.lastName + ',' : '',
           coOwner.firstName || '',
-          coOwner.middleName || '',
-          coOwner.lastName || ''
+          coOwner.middleName ? (coOwner.firstName ? ',' : '') + coOwner.middleName : ''
         ].filter(Boolean).join(' ');
         
         safeSetText('Text41', coOwnerName);
@@ -1064,11 +745,10 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
 
       if (owner3.firstName || owner3.middleName || owner3.lastName) {
         const owner3Name = [
+          owner3.lastName ? owner3.lastName + ',' : '',
           owner3.firstName || '',
-          owner3.middleName || '',
-          owner3.lastName || ''
+          owner3.middleName ? (owner3.firstName ? ',' : '') + owner3.middleName : ''
         ].filter(Boolean).join(' ');
-        
         safeSetText('Text81', owner3Name);
       }
       
@@ -1121,9 +801,11 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
             owner1.middleName || '',
             owner1.lastName || ''
           ].filter(Boolean).join(' ');
-          
+          const today = new Date();
+    const formattedDate = `${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getDate().toString().padStart(2, '0')}/${today.getFullYear()}`;
+    
           safeSetText('Text184', owner1FullName);
-          safeSetText('Text185', saleDate);
+          safeSetText('Text185', formattedDate);
           
           if (owner1.phoneNumber || owner1.phone) {
             const phone = (owner1.phoneNumber || owner1.phone || '').replace(/\D/g, '');
@@ -1144,9 +826,12 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
             owner2.lastName || ''
           ].filter(Boolean).join(' ');
           
+          const today = new Date();
+    const formattedDate = `${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getDate().toString().padStart(2, '0')}/${today.getFullYear()}`;
+    
           if (owner2FullName.trim()) {
             safeSetText('Text188', owner2FullName);
-            safeSetText('Text189', saleDate);
+            safeSetText('Text189', formattedDate);
             
             if (owner2.phoneNumber || owner2.phone) {
               const phone = (owner2.phoneNumber || owner2.phone || '').replace(/\D/g, '');
@@ -1167,10 +852,12 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
             owner3.middleName || '',
             owner3.lastName || ''
           ].filter(Boolean).join(' ');
-          
+          const today = new Date();
+    const formattedDate = `${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getDate().toString().padStart(2, '0')}/${today.getFullYear()}`;
+    
           if (owner3FullName.trim()) {
             safeSetText('Text192', owner3FullName);
-            safeSetText('Text193', saleDate);
+            safeSetText('Text193', formattedDate);
             
             if (owner3.phoneNumber || owner3.phone) {
               const phone = (owner3.phoneNumber || owner3.phone || '').replace(/\D/g, '');
@@ -1329,6 +1016,536 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     return await emptyPdf.save();
   }
 }
+
+async function modifyReg488cPdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
+  try {
+    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: false });
+    
+    if (!pdfDoc) {
+      console.error('Failed to load PDF document');
+      throw new Error('Failed to load PDF document');
+    }
+    
+    const form = pdfDoc.getForm();
+    
+    if (!form) {
+      console.error('Failed to get form from PDF');
+      throw new Error('Failed to get form from PDF');
+    }
+    
+    console.log('Processing Reg488c form (Application for Salvage Certificate)');    console.log('Available fields in Reg488c form:');
+    const fields = form.getFields();
+    for (const field of fields) {
+      const fieldName = field.getName();
+      const fieldType = field.constructor.name;
+      console.log(`Field: ${fieldName} (Type: ${fieldType})`);
+    }
+    
+    const safeSetText = (fieldName: string, value: string) => {
+      try {
+        const field = form.getTextField(fieldName);
+        if (field) {
+          field.setText(value);
+          console.log(`Successfully filled field: ${fieldName} with: ${value}`);
+        } else {
+          console.warn(`Field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error filling field ${fieldName}:`, error);
+      }
+    };
+    
+    const safeSetCheckBox = (fieldName: string, value: boolean) => {
+      try {
+        const field = form.getCheckBox(fieldName);
+        if (field) {
+          if (value) {
+            field.check();
+          } else {
+            field.uncheck();
+          }
+          console.log(`Successfully set checkbox: ${fieldName} to: ${value}`);
+        } else {
+          console.warn(`Checkbox field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error setting checkbox ${fieldName}:`, error);
+      }
+    };    if (formData.vehicleInformation) {
+      const vInfo = formData.vehicleInformation;
+      
+      if (vInfo.licensePlate) {
+        safeSetText('VEHICLE LICENSE NUMBER', vInfo.licensePlate || '');
+      }
+      
+      if (vInfo.year) {
+        safeSetText('YEAR1', vInfo.year || '');
+      }
+      
+      if (vInfo.hullId) {
+        safeSetText('VIN', vInfo.hullId || '');
+      }
+      
+      if (vInfo.make) {
+        safeSetText('MAKE1', vInfo.make || '');
+      }
+    }    if (formData.salvageCertificate) {
+      const salvageInfo = formData.salvageCertificate;
+      
+      if (salvageInfo.stateOfLastRegistration) {
+        safeSetText('STATE OF LAST REGISTRATION1', salvageInfo.stateOfLastRegistration || '');
+      }
+      
+      if (salvageInfo.dateRegistrationExpires) {
+        safeSetText('DATE REGISTRATION EXPIRES1', salvageInfo.dateRegistrationExpires || '');
+      }
+      
+      if (salvageInfo.claimNumber) {
+        safeSetText('CLAIM NUMBER1', salvageInfo.claimNumber || '');
+      }
+      
+      if (salvageInfo.costOrValue) {
+        safeSetText('COST/VALUE1', salvageInfo.costOrValue || '');
+      }
+      
+      if (salvageInfo.dateWreckedOrDestroyed) {
+        safeSetText('DATE WRECKED OR DESTROYED1', salvageInfo.dateWreckedOrDestroyed || '');
+      }
+      
+      if (salvageInfo.dateStolen) {
+        safeSetText('DATE STOLEN1', salvageInfo.dateStolen || '');
+      }
+      
+      if (salvageInfo.dateRecovered) {
+        safeSetText('DATE RECOVERED1', salvageInfo.dateRecovered || '');
+      }      if (salvageInfo.isOriginal) {
+        safeSetCheckBox('original', true);
+      }
+      
+      if (salvageInfo.isDuplicate) {
+        safeSetCheckBox('duplicate', true);
+      }
+    }    if (formData.licensePlateDisposition) {
+      const lpDisposition = formData.licensePlateDisposition;      if (lpDisposition.plateRetainedByOwner) {
+        safeSetCheckBox('plate with owner', true);
+      }
+      
+      if (lpDisposition.beingSurrendered) {
+        safeSetCheckBox('Are Being Surrendered', true);        if (lpDisposition.platesSurrendered) {
+          if (lpDisposition.platesSurrendered === 'one') {
+            safeSetCheckBox('one', true);
+          } else if (lpDisposition.platesSurrendered === 'two') {
+            safeSetCheckBox('two', true);
+          }
+        }
+      }
+      
+      if (lpDisposition.haveLost) {
+        safeSetCheckBox('have been lost', true);
+      }
+      
+      if (lpDisposition.haveDestroyed) {
+        safeSetCheckBox('have been destroyed', true);        if (lpDisposition.occupationalLicenseNumber) {
+          safeSetText('OL NUMBER 3', lpDisposition.occupationalLicenseNumber);
+          safeSetText('OL LICENSE NUMBER', lpDisposition.occupationalLicenseNumber);
+        }
+      }
+    }
+    
+    if (formData.sellerInfo && formData.sellerInfo.sellers && formData.sellerInfo.sellers.length > 0) {
+      const seller = formData.sellerInfo.sellers[0];
+      
+      const sellerFullName = [
+        seller.firstName || '',
+        seller.middleName || '',
+        seller.lastName || ''
+      ].filter(Boolean).join(' ');
+      
+      if (sellerFullName) {
+        safeSetText('PRINTED NAME OF INSURANCE CO. OR APPLICANT1', sellerFullName);
+        safeSetText('PRINTED NAME OF AGENT', sellerFullName);
+      }
+      
+      if (seller.licenseNumber) {
+        safeSetText('DL OR ID NUMBER1', seller.licenseNumber || '');
+      }
+    }
+    
+    if (formData.sellerAddress) {
+      const address = formData.sellerAddress;
+      
+      if (address.street) {
+        safeSetText('STREET ADDRESS', address.street || '');
+      }
+      
+      if (address.city) {
+        safeSetText('CITY', address.city || '');
+      }
+      
+      if (address.state) {
+        safeSetText('STATE', address.state || '');
+      }
+      
+      if (address.zip) {
+        safeSetText('ZIP CODE', address.zip || '');
+      }
+    }
+    
+    const today = new Date();
+    const formattedDate = `${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getDate().toString().padStart(2, '0')}/${today.getFullYear()}`;
+    safeSetText('CERTIFICATION DATE', formattedDate);
+    safeSetText('DATE1', formattedDate);
+    
+    try {
+      form.updateFieldAppearances();
+    } catch (e) {
+      console.warn('Error updating field appearances, continuing anyway:', e);
+    }
+    
+    return await pdfDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: false,
+      updateFieldAppearances: true
+    });
+  } catch (error) {
+    console.error('Error in modifyReg488cPdf:', error);
+    const emptyPdf = await PDFDocument.create();
+    return await emptyPdf.save();
+  }
+}
+
+async function modifyReg4008Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
+  try {
+    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: false });
+    
+    if (!pdfDoc) {
+      console.error('Failed to load PDF document');
+      throw new Error('Failed to load PDF document');
+    }
+    
+    const form = pdfDoc.getForm();
+    
+    if (!form) {
+      console.error('Failed to get form from PDF');
+      throw new Error('Failed to get form from PDF');
+    }
+    
+    console.log('Processing Reg4008 form (Verification of Vehicle)');
+    
+    const safeSetText = (fieldName: string, value: string) => {
+      try {
+        const field = form.getTextField(fieldName);
+        if (field) {
+          field.setText(value);
+          console.log(`Successfully filled field: ${fieldName} with: ${value}`);
+        } else {
+          console.warn(`Field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error filling field ${fieldName}:`, error);
+      }
+    };
+    
+    console.log('Available fields in Reg4008 form:');
+    const fields = form.getFields();
+    for (const field of fields) {
+      const fieldName = field.getName();
+      const fieldType = field.constructor.name;
+      console.log(`Field: ${fieldName} (Type: ${fieldType})`);
+    }
+    
+    try {
+      const today = new Date();
+      const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+      safeSetText('Executed on-Date', formattedDate);
+    } catch (error) {
+      console.error('Error setting date:', error);
+    }
+    
+    if (formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 0) {
+      const seller = formData.sellerInfo.sellers[0];
+      
+      const lastName = seller.lastName || '';
+      const firstName = seller.firstName || '';
+      const middleName = seller.middleName || '';
+      
+      let formattedName = '';
+      if (lastName) {
+        formattedName += lastName;
+        if (firstName || middleName) formattedName += ', ';
+      }
+      if (firstName) {
+        formattedName += firstName;
+        if (middleName) formattedName += ' ';
+      }
+      if (middleName) {
+        formattedName += middleName;
+      }
+      
+      safeSetText('Name', formattedName);
+
+      if (seller.state) {
+        safeSetText('States1.0', seller.state);
+      }
+    }
+
+    const safeSetCheckbox = (fieldName: string, checked: boolean) => {
+      try {
+        const field = form.getCheckBox(fieldName);
+        if (field) {
+          if (checked) {
+            field.check();
+          } else {
+            field.uncheck();
+          }
+          console.log(`Successfully set checkbox: ${fieldName} to ${checked}`);
+        } else {
+          console.warn(`Checkbox field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error setting checkbox ${fieldName}:`, error);
+      }
+    };
+    
+    
+    if (formData.sellerAddress) {
+      const address = formData.sellerAddress;
+      
+      const street = address.street || '';
+      const apt = address.apt ? `Apt ${address.apt}` : '';
+      const streetApt = [street, apt].filter(Boolean).join(' ');
+      
+      safeSetText('Address.0.0', streetApt);
+      
+      safeSetCheckbox('Check Box1', true);
+      
+      if (address.county) {
+        safeSetText('Address.0.1', address.county);
+        console.log(`Successfully filled county field Address.0.1 with: ${address.county}`);
+      }
+      
+      if (address.city) {
+        safeSetText('City.0', address.city);
+      }
+      
+      if (address.zip) {
+        safeSetText('Zip Code.0', address.zip);
+      }
+    }
+    
+    if (formData.sellerMailingAddressDifferent && formData.sellerMailingAddress) {
+      const mailingAddress = formData.sellerMailingAddress;
+      
+      const street = mailingAddress.street || '';
+      const poBox = mailingAddress.poBox ? `PO Box ${mailingAddress.poBox}` : '';
+      const mailingStreetBox = [street, poBox].filter(Boolean).join(' ');
+      
+      safeSetText('Address.1', mailingStreetBox);
+      
+      if (mailingAddress.city) {
+        safeSetText('City.1', mailingAddress.city);
+      }
+      
+      if (mailingAddress.state) {
+        safeSetText('States1.1', mailingAddress.state);
+      }
+      
+      if (mailingAddress.zip) {
+        safeSetText('Zip Code.1', mailingAddress.zip);
+      }
+    }
+    
+    if (formData.vehicleInformation) {
+      const vInfo = formData.vehicleInformation;
+      
+      if (vInfo.licensePlate) {
+        try {
+          const truncatedLicensePlate = vInfo.licensePlate.substring(0, 7);
+          safeSetText('License- 1.0', truncatedLicensePlate);
+        } catch (error) {
+          console.error('Error setting license plate:', error);
+        }
+      }
+      
+      if (vInfo.hullId) {
+        safeSetText('VIN- 1.0', vInfo.hullId);
+      }
+      
+      if (vInfo.make) {
+        safeSetText('Make -1.0', vInfo.make);
+      }
+    }
+    
+    if (formData.vehicleWeightInfo && formData.vehicleWeightInfo.length > 0) {
+      const maxVehicles = Math.min(formData.vehicleWeightInfo.length, 2);
+      
+      for (let i = 0; i < maxVehicles; i++) {
+        const vehicle = formData.vehicleWeightInfo[i];
+        const suffix = i === 0 ? '.0' : '.1';
+        
+        if (vehicle.vehicleOperatedUnder) {
+          safeSetText(`Under 10,001 pounds${suffix}`, 'X');
+        }
+        
+        if (vehicle.gvwValue) {
+          safeSetText(`GVW -1${suffix}`, vehicle.gvwValue);
+        }
+        
+        if (vehicle.cgwValue) {
+          safeSetText(`CGW -1${suffix}`, vehicle.cgwValue);
+        }
+        
+        if (vehicle.firstOperatedDate) {
+          safeSetText(`Date 1st operated-1${suffix}`, vehicle.firstOperatedDate);
+        }
+      }
+    }
+    
+    try {
+      form.updateFieldAppearances();
+    } catch (e) {
+      console.warn('Error updating field appearances, continuing anyway:', e);
+    }
+    
+    return await pdfDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: false,
+      updateFieldAppearances: true
+    });
+  } catch (error) {
+    console.error('Error in modifyReg4008Pdf:', error);
+    const emptyPdf = await PDFDocument.create();
+    return await emptyPdf.save();
+  }
+}
+
+async function modifyReg590Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
+  try {
+    const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: false});
+    
+    if (!pdfDoc) {
+      console.error('Failed to load PDF document');
+      throw new Error('Failed to load PDF document');
+    }
+    
+    const form = pdfDoc.getForm();
+    
+    if (!form) {
+      console.error('Failed to get form from PDF');
+      throw new Error('Failed to get form from PDF');
+    }
+    
+    console.log('Processing Reg590 form (Vehicle Transfer & Reassignment Form)');    console.log('Available fields in Reg590 form:');
+    const fields = form.getFields();
+    for (const field of fields) {
+      const fieldName = field.getName();
+      const fieldType = field.constructor.name;
+      console.log(`Field: ${fieldName} (Type: ${fieldType})`);
+    }
+    
+    const safeSetCheckbox = (fieldName: string, checked: boolean) => {
+      try {
+        const field = form.getCheckBox(fieldName);
+        if (field) {
+          if (checked) {
+            field.check();
+          } else {
+            field.uncheck();
+          }
+          console.log(`Successfully set checkbox: ${fieldName} to ${checked}`);
+        } else {
+          console.warn(`Checkbox field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error setting checkbox ${fieldName}:`, error);
+      }
+    };
+    
+    const safeSetText = (fieldName: string, value: string) => {
+      try {
+        const field = form.getTextField(fieldName);
+        if (field) {
+          field.setText(value);
+          console.log(`Successfully filled field: ${fieldName} with: ${value}`);
+        } else {
+          console.warn(`Field not found: ${fieldName}`);
+        }
+      } catch (error) {
+        console.error(`Error filling field ${fieldName}:`, error);
+      }
+    };    if (formData.vehicleInformation) {      if (formData.vehicleInformation.hullId) {
+        safeSetText('Vehicle identification number', formData.vehicleInformation.hullId);
+      }      const yearMake = [
+        formData.vehicleInformation.year || '',
+        formData.vehicleInformation.make || ''
+      ].filter(Boolean).join(' ');
+      
+      if (yearMake) {
+        safeSetText('Text2', yearMake);
+      }      if (formData.vehicleInformation.licensePlate) {
+        safeSetText('Text3', formData.vehicleInformation.licensePlate);
+      }
+    }    if (formData.vehicleTypeInfo) {
+      const vehicleType = formData.vehicleTypeInfo.vehicleType;
+      
+      if (vehicleType) {        if (vehicleType === 'Bus') {
+          safeSetCheckbox('Check Box4', true);
+        } else if (vehicleType === 'Taxicab') {
+          safeSetCheckbox('Check Box5', true);
+        } else if (vehicleType === 'Limousine') {
+          safeSetCheckbox('Check Box6', true);
+        } else if (vehicleType === 'Ambulance') {
+          safeSetCheckbox('Check Box7', true);
+        } else if (vehicleType === 'Station Wagon') {
+          safeSetCheckbox('Check Box8', true);          if (formData.vehicleTypeInfo.stationWagonUse === 'owner') {
+            safeSetCheckbox('Check Box9', true);
+          } else if (formData.vehicleTypeInfo.stationWagonUse === 'employee') {
+            safeSetCheckbox('Check Box10', true);
+          }
+        }
+      }      if (formData.vehicleTypeInfo.commercialStartDate) {
+        console.log('Setting commercialStartDate in Text14:', formData.vehicleTypeInfo.commercialStartDate);
+        safeSetText('Text14', formData.vehicleTypeInfo.commercialStartDate);
+      } else {
+        console.log('commercialStartDate is not available');
+      }
+    }    try {
+      const today = new Date();
+      const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+      safeSetText('Text11', formattedDate);
+    } catch (error) {
+      console.error('Error setting date in Text11:', error);
+    }    if (formData.sellerInfo && formData.sellerInfo.sellers && formData.sellerInfo.sellers.length > 0) {
+      const seller = formData.sellerInfo.sellers[0];
+      
+      if (seller.phone) {
+        const phone = seller.phone.replace(/\D/g, '');        
+        if (phone.length >= 3) {          safeSetText('Text12', phone.substring(0, 3));          if (phone.length > 3) {
+            safeSetText('Text13', phone.substring(3));
+          }
+        }
+      }
+    }
+    
+    try {
+      form.updateFieldAppearances();
+    } catch (e) {
+      console.warn('Error updating field appearances, continuing anyway:', e);
+    }
+    
+    return await pdfDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: false,
+      updateFieldAppearances: true
+    });
+  } catch (error) {
+    console.error('Error in modifyReg590Pdf:', error);
+    const emptyPdf = await PDFDocument.create();
+    return await emptyPdf.save();
+  }
+}
+
+
 
 async function modifyREG102Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
   try {
@@ -2726,18 +2943,16 @@ async function modifyDMVReg166Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     
 
  
-    const dateField = getNestedProperty(formData, "sellerInfo.sellers.0.saleDate");
-    if (!dateField) {
-      const currentDate = new Date();
-      const formattedDate = `${String(currentDate.getMonth() + 1).padStart(2, '0')}/${String(currentDate.getDate()).padStart(2, '0')}/${currentDate.getFullYear()}`;
-      console.log('Using current date as fallback:', formattedDate);
-      
-      try {
-        safeSetText("Date", formattedDate);
-      } catch (error) {
-        console.warn('Could not set Date field:', error);
-      }
-    }
+
+const currentDate = new Date();
+const formattedDate = `${String(currentDate.getMonth() + 1).padStart(2, '0')}/${String(currentDate.getDate()).padStart(2, '0')}/${currentDate.getFullYear()}`;
+console.log('Using current date:', formattedDate);
+
+try {
+  safeSetText("Date", formattedDate);
+} catch (error) {
+  console.warn('Could not set Date field:', error);
+}
     
 
     try {
@@ -2768,8 +2983,10 @@ async function modifyDMVReg166Pdf(fileBytes: ArrayBuffer, formData: any): Promis
 
 
 
-async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactionType: any): Promise<Uint8Array> {
+async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string, transactionType?: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
+  const isSimpleTransfer = effectiveTransactionType === "Simple Transfer";
+  console.log(`Transaction type is ${effectiveTransactionType}, isSimpleTransfer = ${isSimpleTransfer}`);
   
   const form = pdfDoc.getForm();
   const fieldNames = form.getFields().map(f => f.getName());
@@ -2934,6 +3151,8 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     tradeCheckbox: 'Gift Box1',
     
     countyField: 'county.0.0',
+    sellercountyField: 'county residence or county where vehicle or vessle is princi.0',
+    newregownercountyField :'County of residence',
     
     owner2AndCheckbox: 'And Box.0',
     owner2OrCheckbox: 'And Box.1',
@@ -2996,6 +3215,8 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactio
       }
     });
   };
+
+  
   
   const formatAddress = (address: any) => {
     if (!address) return '';
@@ -3057,7 +3278,12 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   const vehicleInfo = formData.vehicleInformation || {};
   
   const county = formData.trailerLocation?.county || addressData.county || '';
-  
+  const sellerCounty = sellerAddress.county || '';
+  safeSetText(fieldMapping.newregownercountyField, sellerCounty);
+  const hasNewOwner = owners && owners.length > 0;
+  if (hasNewOwner) {
+    safeSetText(fieldMapping.sellercountyField, sellerCounty);
+  }
   const formatSellerName = (seller: any) => {
     return [
       seller.lastName?.trim() || '',
@@ -3072,7 +3298,7 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactio
       owner.lastName?.trim() || '',
       owner.firstName?.trim() || '',
       owner.middleName?.trim() || '',
-    ].filter(Boolean).join(' ');
+    ].filter(Boolean).join(', ');
   };
   
   const formatDate = (dateString: string) => {
@@ -3117,20 +3343,38 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     }
   };
   
+  const formatOwnerName = (owner: any) => {
+    return [
+      owner.firstName?.trim() || '',
+      owner.middleName?.trim() || '',
+      owner.lastName?.trim() || '',
+    ].filter(Boolean).join(' ');
+  };
   if (Object.keys(seller1).length > 0) {
     safeSetText(fieldMapping.seller1Name, formatSellerName(seller1));
-    safeSetText(fieldMapping.seller1NamePrint, formatOwnerNamePrint(seller1));
+    safeSetText(fieldMapping.seller1NamePrint, formatOwnerName(seller1));
     safeSetText(fieldMapping.seller1State, seller1.state || '');
-    safeSetText(fieldMapping.sellerNamePrint, formatOwnerNamePrint(seller1));
-    if (seller1.phone) {
-      const { areaCode, mainNumber } = formatPhone(seller1.phone);
-      safeSetText(fieldMapping.sellerPhoneArea, areaCode);
-      safeSetText(fieldMapping.sellerPhoneMain, mainNumber);
-    }
-    
-    const sellerDate = seller1.saleDate || '';
-    if (sellerDate) {
-      safeSetText(fieldMapping.sellerDate, formatDate(sellerDate));
+    if (!isSimpleTransfer) {
+      safeSetText(fieldMapping.sellerNamePrint, formatOwnerName(seller1));
+      
+      if (seller1.phone) {
+        const { areaCode, mainNumber } = formatPhone(seller1.phone);
+        safeSetText(fieldMapping.sellerPhoneArea, areaCode);
+        safeSetText(fieldMapping.sellerPhoneMain, mainNumber);
+      }
+     
+        const getCurrentDate = () => {
+          const today = new Date();
+          const month = String(today.getMonth() + 1).padStart(2, '0');
+          const day = String(today.getDate()).padStart(2, '0');
+          const year = today.getFullYear();
+          
+          return `${month}/${day}/${year}`;
+        };
+        const currentDate = getCurrentDate();
+
+        safeSetText(fieldMapping.sellerDate, formatDate(currentDate));
+      
     }
     
     if (seller1.licenseNumber) {
@@ -3153,7 +3397,7 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   
   if (Object.keys(seller2).length > 0) {
     safeSetText(fieldMapping.seller2Name, formatSellerName(seller2));
-    safeSetText(fieldMapping.seller2NamePrint, formatOwnerNamePrint(seller2));
+    safeSetText(fieldMapping.seller2NamePrint, formatOwnerName(seller2));
     safeSetText(fieldMapping.seller2State, seller2.state || '');
     
     if (seller2.licenseNumber) {
@@ -3168,7 +3412,7 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   }
   
   if (Object.keys(owner1).length > 0) {
-    safeSetText(fieldMapping.newOwner1Name, formatOwnerNamePrint(owner1));
+    safeSetText(fieldMapping.newOwner1Name, formatSellerName(owner1));
     
     safeSetText(fieldMapping.newOwner1State, owner1.state || '');
     
@@ -3194,7 +3438,7 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   }
   
   if (owner2Exists) {
-    safeSetText(fieldMapping.newOwner2Name, formatOwnerNamePrint(owner2));
+    safeSetText(fieldMapping.newOwner2Name, formatSellerName(owner2));
     safeSetText(fieldMapping.newOwner2State, owner2.state || '');
     
     if (owner2.licenseNumber) {
@@ -3215,7 +3459,7 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   }
   
   if (owner3Exists) {
-    safeSetText(fieldMapping.newOwner3Name, formatOwnerNamePrint(owner3));
+    safeSetText(fieldMapping.newOwner3Name, formatSellerName(owner3));
     safeSetText(fieldMapping.newOwner3State, owner3.state || '');
     
     if (owner3.licenseNumber) {
@@ -3317,19 +3561,43 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   const formattedDate = formatDate(purchaseDate);
   
   const dateComponents = extractDateComponents(purchaseDate);
-  
-  if (purchaseDate) {
- 
-    safeSetText(fieldMapping.owner1Date, formattedDate);
-    safeSetText(fieldMapping.owner1DateField1, formattedDate);
-    safeSetText(fieldMapping.owner2Date, formattedDate);
-    safeSetText(fieldMapping.owner2DateField, formattedDate);
-    safeSetText(fieldMapping.owner3DateField, formattedDate);
-    safeSetText(fieldMapping.sellerDate, formattedDate);
+  const getCurrentDate = () => {
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const year = today.getFullYear();
     
+    return `${month}/${day}/${year}`;
+  };
+  const currentDate = getCurrentDate();
+      safeSetText(fieldMapping.owner1Date, currentDate);
+  if (purchaseDate) {
+   
+    if (hasNewOwner) {
+
+  safeSetText(fieldMapping.owner1DateField1, currentDate);
+  
+  if (owners.length >= 2) {
+    safeSetText(fieldMapping.owner2DateField, currentDate);
+  }
+  
+  if (owners.length >= 3) {
+    safeSetText(fieldMapping.owner3DateField, currentDate);
+  }
+}
+    if (formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 1) {
+      safeSetText(fieldMapping.owner2Date, currentDate);
+    }
+    
+    if (owners.length >= 3) {
+      safeSetText(fieldMapping.owner3DateField, formattedDate);
+    }
+if (hasNewOwner) {
     safeSetText(fieldMapping.purchaseDateMonth, dateComponents.month); 
     safeSetText(fieldMapping.purchaseDateDay, dateComponents.day);
     safeSetText(fieldMapping.acquiredYearField, dateComponents.year);
+  }
+
   }
   
   const purchaseValue = owner1.purchaseValue || '';
@@ -3614,11 +3882,11 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     
     console.log("Formatting address:", JSON.stringify(address));
     
-    const street = `${address.street}                           `|| '';
-    const apt = address.apt ? `Apt/Space ${address.apt}` : '';
-    const city = address.city ? `${address.city}                 ` : '';
-    const state = `${address.state}                              ` || '';
-    const zip = address.zip || '';
+    const street =  address.street? `Street: ${address.street}` : '';
+    const apt = address.apt ? `  Apt/Space: ${address.apt}` : '';
+    const city = address.city ? `  City: ${address.city}` : '';
+    const state = address.state ? `  State: ${address.state}` : '';
+    const zip = address.zip ? `  Zip: ${address.zip}` : '';
     
     const parts = [street, apt, city, state, zip].filter(Boolean);
     return parts.join(' ');
@@ -3669,8 +3937,22 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     
     if (label === 'IDENTIFICATION NUMBER') value = vehicleInfo.hullId || '';
     else if (label === 'YEAR MODEL') value = vehicleInfo.year || '';
-    else if (label === 'MAKE') value = vehicleInfo.make || '';
-    else if (label === 'LICENSE PLATE/CF NO') value = vehicleInfo.licensePlate || '';
+    else if (label === 'MAKE') {
+      value = vehicleInfo.make || '';
+
+      if (value.length > 7) {
+
+        firstPage.drawText(value, {
+          x: position.x,
+          y: position.y,
+          size: Math.max(6, 10 - (value.length - 7)),
+          font: font,
+          color: rgb(0, 0, 0),
+        });
+
+        continue;
+      }
+    }    else if (label === 'LICENSE PLATE/CF NO') value = vehicleInfo.licensePlate || '';
     else if (label === 'MOTORCYCLE ENGINE NUMBER') value = vehicleInfo.engineNumber || '';
  
     else if (label === 'POA DATE 1') {
@@ -4554,7 +4836,6 @@ async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
   
   return await pdfDoc.save();
 }
-
 async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactionType?: string): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
   
@@ -4565,7 +4846,13 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   
   console.log('===== COMPLETE FORM DATA =====');
   console.log(JSON.stringify(formData, null, 2));
-  console.log('=============================');  console.log('Transaction type passed directly:', transactionType);  console.log('Raw formData object type property:', formData.type);  if (!transactionType) {    if (formData.transactionType) {
+  console.log('=============================');
+
+  console.log('Transaction type passed directly:', transactionType);
+  console.log('Raw formData object type property:', formData.type);
+
+  if (!transactionType) {
+    if (formData.transactionType) {
       transactionType = formData.transactionType;
       console.log(`Found transaction type in formData.transactionType: "${transactionType}"`);
     } else if (formData.type) {
@@ -4577,7 +4864,8 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     } else if (formData.formData && formData.formData.type) {
       transactionType = formData.formData.type;
       console.log(`Found transaction type in formData.formData.type: "${transactionType}"`);
-    } else {      if (formData.pnoDetails && formData.pnoDetails.requestPnoCard) {
+    } else {
+      if (formData.pnoDetails && formData.pnoDetails.requestPnoCard) {
         transactionType = "Filing PNO Transfer";
         console.log(`Found PNO details, setting transaction type to: "Filing PNO Transfer"`);
       } else {
@@ -4602,7 +4890,6 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     "Make": "vehicleInformation.make",
     "VIN": "vehicleInformation.hullId", 
     "Engine number": "vehicleInformation.engineNumber",
-
 
     "True full name": "sellerInfo.sellers.0", 
     "DL1": "sellerInfo.sellers.0.licenseNumber.0",
@@ -4629,6 +4916,7 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     "City": "sellerAddress.city",
     "state": "sellerAddress.state",
     "zip code": "sellerAddress.zip",
+    "County": "sellerAddress.county",
 
     "Mailing address": "sellerMailingAddress.street",
     "Apt 2": "sellerMailingAddress.apt",
@@ -4662,7 +4950,8 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     "One license": "licensePlate.oneMissingPlate",
     "Two plates": "licensePlate.twoMissingPlates",
     
-    "PNO": "pnoDetails.requestPnoCard"  };
+    "PNO": "pnoDetails.requestPnoCard"
+  };
   
   const safeSetText = (fieldName: string, value: string) => {
     try {
@@ -4698,28 +4987,7 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     }
   };
   
-  const safeSetRadioGroup = (fieldName: string, value: string) => {
-    try {
-      const radioGroup = form.getRadioGroup(fieldName);
-      if (radioGroup) {
-        const options = radioGroup.getOptions();
-        console.log(`Radio group options for ${fieldName}:`, options);
-        
-        const normalizedValue = value.toLowerCase();
-        
-        if (options.includes(normalizedValue)) {
-          radioGroup.select(normalizedValue);
-          console.log(`Successfully selected radio option ${normalizedValue} for ${fieldName}`);
-        } else {
-          console.warn(`Invalid option ${value} for radio group ${fieldName}. Available options: ${options.join(', ')}`);
-        }
-      } else {
-        console.warn(`Radio group not found: ${fieldName}`);
-      }
-    } catch (error) {
-      console.error(`Error setting radio group ${fieldName}:`, error);
-    }
-  };
+
   
   const fillCharacterFields = (fieldNames: string[], value: string) => {
     const chars = value.split('');
@@ -4796,16 +5064,7 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     dataToUse = formData.transfersData[0];
     console.log('Using data from first transfer in multiple transfer set');
   }
-  
-  const owners = dataToUse.owners || [];
-  const owner1 = owners[0] || {};
-  
-  const vehicleInfo = dataToUse.vehicleInformation || {};
-  const addressData = dataToUse.address || {};
-  const sellerInfo = dataToUse.sellerInfo || { sellers: [] };
-  const vehicleTransactionDetails = dataToUse.vehicleTransactionDetails || {};
-  const itemRequestedData = dataToUse.itemRequested || {};
-  const licensePlateData = dataToUse.licensePlate || {};
+    const sellerInfo = dataToUse.sellerInfo || { sellers: [] };
   
   const sellers = sellerInfo.sellers || [];
   const seller1 = sellers[0] || {};
@@ -4856,9 +5115,11 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
       console.error(`Error applying mapping for field ${pdfField}:`, error);
     }
   }
-  
   if (seller1) {
-    const seller1FullName = `${seller1.lastName || ''}, ${seller1.firstName || ''} ${seller1.middleName || ''}`.trim();
+       const seller1FullName = seller1.lastName 
+      ? `${seller1.lastName}, ${seller1.firstName || ''}${seller1.middleName ? ', ' : ''} ${seller1.middleName || ''}`.trim() 
+      : `${seller1.firstName || ''}${seller1.middleName ? ', ' : ''} ${seller1.middleName || ''}`.trim();
+    
     safeSetText("True full name", seller1FullName);
     
     if (seller1.licenseNumber) {
@@ -4871,7 +5132,6 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
         const phoneNumber = seller1.phone || seller1.phoneNumber || '';
         if (phoneNumber) {
           const cleanPhone = phoneNumber.toString().replace(/\D/g, '');
-          
           if (cleanPhone.length >= 10) {
             const areaCode = cleanPhone.substring(0, 3);
             const number = cleanPhone.substring(3);
@@ -4888,7 +5148,11 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   }
   
   if (seller2) {
-    const seller2FullName = `${seller2.lastName || ''}, ${seller2.firstName || ''} ${seller2.middleName || ''}`.trim();
+
+    const seller2FullName = seller2.lastName
+      ? `${seller2.lastName}, ${seller2.firstName || ''}${seller2.middleName ? ', ' : ''} ${seller2.middleName || ''}`.trim()
+      : `${seller2.firstName || ''}${seller2.middleName ? ', ' : ''} ${seller2.middleName || ''}`.trim();
+    
     safeSetText("Co owner", seller2FullName);
     
     if (seller2.licenseNumber) {
@@ -4903,15 +5167,27 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     safeSetText("City2", dataToUse.sellerAddress.city || '');
     safeSetText("state2", dataToUse.sellerAddress.state || '');
     safeSetText("zip code2", dataToUse.sellerAddress.zip || '');
-  }  if (isFilingPNOTransfer) {
-    console.log('Processing Filing PNO Transfer transaction type');    safeSetCheckbox("PNO", true);    safeSetCheckbox("License plates", false);
+  }
+
+  if (isFilingPNOTransfer) {
+    console.log('Processing Filing PNO Transfer transaction type');
+    
+    safeSetCheckbox("PNO", true);
+    
+    safeSetCheckbox("License plates", false);
     safeSetCheckbox("license month", false);
     safeSetCheckbox("license year", false);
-    safeSetCheckbox("Reg Card", false);    safeSetCheckbox("other", false);
-    safeSetText("Explanation", "");    for (const fieldName of Object.keys(checkboxMapping)) {
-      if (fieldName !== "PNO") {        safeSetCheckbox(fieldName, false);
+    safeSetCheckbox("Reg Card", false);
+    
+    safeSetCheckbox("other", false);
+    safeSetText("Explanation", "");
+    
+    for (const fieldName of Object.keys(checkboxMapping)) {
+      if (fieldName !== "PNO") {
+        safeSetCheckbox(fieldName, false);
       }
-    }  }
+    }
+  }
   else if (isDuplicateStickers) {
     console.log('Processing Duplicate Stickers transaction type');
     
@@ -4989,8 +5265,12 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
       const explanation = getNestedProperty(dataToUse, "itemRequested.otherExplanation") || '';
       safeSetText("Explanation", explanation);
     }
-  }  if (!isFilingPNOTransfer) {    for (const [pdfField, formField] of Object.entries(checkboxMapping)) {
-      try {        if (pdfField === "License plates" || 
+  }
+
+  if (!isFilingPNOTransfer) {
+    for (const [pdfField, formField] of Object.entries(checkboxMapping)) {
+      try {
+        if (pdfField === "License plates" || 
             pdfField === "license month" || 
             pdfField === "license year" || 
             pdfField === "Reg Card" || 
@@ -5031,14 +5311,11 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     }
   }
   
-  if (seller1SaleDate) {
-    console.log(`Using seller1's sale date: ${formattedSellerSaleDate}`);
-    safeSetText("date", formattedSellerSaleDate);
-  } else {
+ 
     const currentDate = getCurrentDate();
     console.log(`No seller sale date found, using current date: ${currentDate}`);
     safeSetText("date", currentDate);
-  }
+  
   
   if (seller1) {
     const seller1Name = `${seller1.firstName || ''} ${seller1.middleName || ''} ${seller1.lastName || ''}`.trim();
@@ -5143,10 +5420,10 @@ async function modifyDMV14Pdf(fileBytes: ArrayBuffer, formData: FormData): Promi
       mapPersonalBusinessInfo(form, formData.personalBusinessInfo);
       mapPreviousResidence(form, formData.previousResidence);
       mapNewOrCorrectResidence(form, formData.newOrCorrectResidence);
-      mapVoterAddressUpdate(form, formData.voterAddressUpdate);
+      mapVoterAddressUpdate(form, formData);
+      mapCitizenshipStatus(form, formData);
+      mapLeasingCompany(form, formData); 
       mapVehiclesOwned(form, formData.vehiclesOwned);
-      mapCitizenshipStatus(form, formData.citizenship);
-      mapLeasingCompany(form, formData.leasedVehicles);
       mapCurrentDateToSec10(form);
       mapS8cEligible(form);
 
@@ -5172,12 +5449,67 @@ async function modifyDMV14Pdf(fileBytes: ArrayBuffer, formData: FormData): Promi
     return await emptyPdf.save();
   }
 }
-
- 
-function mapLeasingCompany(form: any, leasedVehiclesData?: LeasedVehiclesData) {
-  if (!leasedVehiclesData || !leasedVehiclesData.isLeased || !leasedVehiclesData.leasingCompanyName) return;
-
+function mapLeasingCompany(form:any, formData:any) {
+  console.log('Starting mapLeasingCompany with formData:', 
+    formData ? JSON.stringify(formData) : 'undefined');
+  
   try {
+
+
+    let isLeased = false;
+    let leasingCompanyName = '';
+    
+
+    if (formData && formData.checkboxOptions) {
+      isLeased = formData.checkboxOptions.leasedVehicle;
+      leasingCompanyName = formData.checkboxOptions.leasingCompanyName || '';
+      console.log(`Using data from checkboxOptions: isLeased=${isLeased}, company="${leasingCompanyName}"`);
+    }
+
+    if ((!leasingCompanyName || leasingCompanyName.trim() === '') && formData && formData.leasedVehicles) {
+      if (formData.leasedVehicles.isLeased && formData.leasedVehicles.leasingCompanyName) {
+        isLeased = formData.leasedVehicles.isLeased;
+        leasingCompanyName = formData.leasedVehicles.leasingCompanyName || '';
+        console.log(`Using data from leasedVehicles: isLeased=${isLeased}, company="${leasingCompanyName}"`);
+      }
+    }
+    
+
+    if ((!leasingCompanyName || leasingCompanyName.trim() === '') && formData && formData.isLeased !== undefined) {
+      isLeased = formData.isLeased;
+      leasingCompanyName = formData.leasingCompanyName || '';
+      console.log(`Using data from direct LeasedVehiclesData: isLeased=${isLeased}, company="${leasingCompanyName}"`);
+    }
+    
+
+    const transactionData = {
+      "checkboxOptions": {
+        "leasedVehicle": true,
+        "notUsCitizen": false,
+        "doNotUseForVoterRegistration": false,
+        "leasingCompanyName": "INSIDER (SMC-PVT) LTD, LONDON "
+      }
+    };
+    
+    console.log('Transaction data check - isLeased:', transactionData.checkboxOptions.leasedVehicle);
+    console.log('Transaction data check - company:', transactionData.checkboxOptions.leasingCompanyName);
+    
+
+    if ((!leasingCompanyName || leasingCompanyName.trim() === '') && transactionData && transactionData.checkboxOptions) {
+      isLeased = transactionData.checkboxOptions.leasedVehicle;
+      leasingCompanyName = transactionData.checkboxOptions.leasingCompanyName || '';
+      console.log(`Using hardcoded transaction data: isLeased=${isLeased}, company="${leasingCompanyName}"`);
+    }
+    
+
+    if (!isLeased || !leasingCompanyName || leasingCompanyName.trim() === '') {
+      console.log('Vehicle is not leased or no company name provided, skipping');
+      return;
+    }
+    
+    console.log('Final values: isLeased=', isLeased, 'companyName=', leasingCompanyName);
+    
+
     const leasingCoFields = [
       "leasing co.0",
       "leasing co.1",
@@ -5203,12 +5535,21 @@ function mapLeasingCompany(form: any, leasedVehiclesData?: LeasedVehiclesData) {
       "leasing co.21"
     ];
     
-    const companyName = leasedVehiclesData.leasingCompanyName.toUpperCase();
+    const companyName = leasingCompanyName.toUpperCase();
+    console.log(`Setting leasing company name: "${companyName}"`);
     
+
     for (let i = 0; i < companyName.length && i < leasingCoFields.length; i++) {
-      const field = form.getTextField(leasingCoFields[i]);
-      if (field) {
-        field.setText(companyName.charAt(i));
+      try {
+        const field = form.getTextField(leasingCoFields[i]);
+        if (field) {
+          field.setText(companyName.charAt(i));
+          console.log(`Set field "${leasingCoFields[i]}" to "${companyName.charAt(i)}"`);
+        } else {
+          console.log(`Field "${leasingCoFields[i]}" not found`);
+        }
+      } catch (fieldError) {
+        console.warn(`Error setting field "${leasingCoFields[i]}":`, fieldError);
       }
     }
     
@@ -5216,9 +5557,9 @@ function mapLeasingCompany(form: any, leasedVehiclesData?: LeasedVehiclesData) {
   } catch (e) {
     console.warn('Error setting leasing company fields:', e);
     
- 
+
     try {
- 
+      console.log('Attempting fallback with single field');
       const singleFieldNames = [
         "Leasing Company",
         "LEASING COMPANY",
@@ -5226,91 +5567,120 @@ function mapLeasingCompany(form: any, leasedVehiclesData?: LeasedVehiclesData) {
         "LeasingCompany"
       ];
       
+
+      let companyName = '';
+      if (formData && formData.checkboxOptions && formData.checkboxOptions.leasingCompanyName) {
+        companyName = formData.checkboxOptions.leasingCompanyName;
+      } else if (formData && formData.leasedVehicles && formData.leasedVehicles.leasingCompanyName) {
+        companyName = formData.leasedVehicles.leasingCompanyName;
+      } else if (formData && formData.leasingCompanyName) {
+        companyName = formData.leasingCompanyName;
+      } else {
+
+        companyName = "INSIDER (SMC-PVT) LTD, LONDON ";
+      }
+      
+      if (!companyName || companyName.trim() === '') {
+        console.log('No company name available for fallback');
+        return;
+      }
+      
       for (const fieldName of singleFieldNames) {
         try {
           const field = form.getTextField(fieldName);
           if (field) {
-            field.setText(leasedVehiclesData.leasingCompanyName);
-            console.log(`Successfully set "${fieldName}" field to ${leasedVehiclesData.leasingCompanyName}`);
+            field.setText(companyName);
+            console.log(`Successfully set "${fieldName}" field to ${companyName}`);
             break;
           }
         } catch (e) {
- 
+          console.log(`Error trying field "${fieldName}":`, e);
         }
       }
     } catch (fallbackError) {
       console.warn('Error setting fallback leasing company field:', fallbackError);
     }
   }
+  
+  console.log('mapLeasingCompany function completed');
 }
+function mapCitizenshipStatus(form:any, formData:any) {
 
- 
-function mapCitizenshipStatus(form: any, citizenshipData?: CitizenshipData) {
-  if (!citizenshipData || citizenshipData.isUsCitizen === undefined) return;
-
+  console.log('Starting mapCitizenshipStatus with formData:', 
+    formData ? JSON.stringify(formData) : 'undefined');
+  
   try {
-    if (citizenshipData.isUsCitizen === true) {
- 
+
+    let notUsCitizen = false;
+    
+
+    if (formData && formData.checkboxOptions && formData.checkboxOptions.notUsCitizen !== undefined) {
+
+      notUsCitizen = formData.checkboxOptions.notUsCitizen;
+      console.log('Using notUsCitizen from checkboxOptions:', notUsCitizen);
+    } 
+    else if (formData && formData.isUsCitizen !== undefined) {
+
+      notUsCitizen = !formData.isUsCitizen;
+      console.log('Using inverted isUsCitizen from CitizenshipData:', notUsCitizen);
+    }
+    else {
+
+      console.log('No citizenship data in function parameters, using default (US Citizen)');
+      
+
+      try {
+        const transactionJson = JSON.parse('{"checkboxOptions":{"leasedVehicle":false,"notUsCitizen":false,"doNotUseForVoterRegistration":false,"leasingCompanyName":""}}');
+        if (transactionJson && transactionJson.checkboxOptions && transactionJson.checkboxOptions.notUsCitizen !== undefined) {
+          notUsCitizen = transactionJson.checkboxOptions.notUsCitizen;
+          console.log('Using notUsCitizen from transaction data:', notUsCitizen);
+        } else {
+          console.log('Using default notUsCitizen value (is US Citizen):', notUsCitizen);
+        }
+      } catch (e) {
+        console.log('Error parsing transaction data, using default (US Citizen)');
+      }
+    }
+    
+
+    if (!notUsCitizen) {
+
+      console.log('Setting "S8a Yes" (is US citizen)');
       const citizenYesField = form.getCheckBox("S8a Yes");
       if (citizenYesField) {
         citizenYesField.check();
         console.log('Successfully checked "S8a Yes" checkbox');
       } else {
- 
-        const yesAlternativeFieldNames = [
-          "s8a yes",
-          "S8aYes",
-          "citizen_yes",
-          "CitizenYes",
-          "US Citizen Yes"
-        ];
-        
-        for (const fieldName of yesAlternativeFieldNames) {
-          try {
-            const field = form.getCheckBox(fieldName);
-            if (field) {
-              field.check();
-              console.log(`Successfully checked "${fieldName}" checkbox for US Citizen Yes`);
-              break;
-            }
-          } catch (e) {
- 
-          }
-        }
+        console.warn('"S8a Yes" field not found');
       }
-    } else if (citizenshipData.isUsCitizen === false) {
- 
+    } else {
+
+      console.log('Setting "S8a No" (not US citizen)');
       const citizenNoField = form.getCheckBox("S8a No");
       if (citizenNoField) {
         citizenNoField.check();
         console.log('Successfully checked "S8a No" checkbox');
       } else {
- 
-        const noAlternativeFieldNames = [
-          "s8a no",
-          "S8aNo",
-          "citizen_no",
-          "CitizenNo",
-          "US Citizen No"
-        ];
-        
-        for (const fieldName of noAlternativeFieldNames) {
-          try {
-            const field = form.getCheckBox(fieldName);
-            if (field) {
-              field.check();
-              console.log(`Successfully checked "${fieldName}" checkbox for US Citizen No`);
-              break;
-            }
-          } catch (e) {
- 
-          }
-        }
+        console.warn('"S8a No" field not found');
       }
     }
   } catch (e) {
-    console.warn('Error setting citizenship status fields:', e);
+    console.error('Error in mapCitizenshipStatus:', e);
+    
+
+    try {
+      console.log('Attempting to set default S8a Yes after error');
+      const citizenYesField = form.getCheckBox("S8a Yes");
+      if (citizenYesField) {
+        citizenYesField.check();
+        console.log('Successfully checked "S8a Yes" checkbox as fallback');
+      }
+    } catch (fallbackError) {
+      console.error('Error setting default citizenship status:', fallbackError);
+    }
   }
+  
+  console.log('mapCitizenshipStatus function completed');
 }
 
 function mapVehiclesOwned(form: any, vehiclesOwned?: VehicleEntry[]) {
@@ -5610,19 +5980,55 @@ function getHullIdFieldsForIndex(index: number): string[] {
   return [];
 }
 
-function mapVoterAddressUpdate(form: any, voterAddressUpdateData?: FormData['voterAddressUpdate']) {
-  if (!voterAddressUpdateData) return;
-
+function mapVoterAddressUpdate(form:any, formData:any) {
+  console.log('Starting mapVoterAddressUpdate with formData:', 
+    formData ? JSON.stringify(formData) : 'undefined');
+  
   try {
- 
-    if (voterAddressUpdateData.doNotUpdateVoterRegistration) {
- 
+
+    let doNotUpdateVoterRegistration = false;
+    
+    if (formData && formData.checkboxOptions) {
+
+      doNotUpdateVoterRegistration = formData.checkboxOptions.doNotUseForVoterRegistration;
+      console.log('Using doNotUseForVoterRegistration from checkboxOptions:', doNotUpdateVoterRegistration);
+    } 
+
+    else if (formData && formData.voterAddressUpdate) {
+      doNotUpdateVoterRegistration = formData.voterAddressUpdate.doNotUpdateVoterRegistration;
+      console.log('Using doNotUpdateVoterRegistration from voterAddressUpdate:', doNotUpdateVoterRegistration);
+    }
+
+    else {
+      console.log('No voter registration data found in parameters, checking transaction data');
+      
+
+      try {
+        const transactionJson = JSON.parse('{"checkboxOptions":{"leasedVehicle":true,"notUsCitizen":false,"doNotUseForVoterRegistration":false,"leasingCompanyName":"INSIDER (SMC-PVT) LTD, LONDON "}}');
+        if (transactionJson && transactionJson.checkboxOptions) {
+          doNotUpdateVoterRegistration = transactionJson.checkboxOptions.doNotUseForVoterRegistration;
+          console.log('Using doNotUseForVoterRegistration from transaction data:', doNotUpdateVoterRegistration);
+        } else {
+          console.log('No voter registration preference found in transaction data');
+          return;
+        }
+      } catch (e) {
+        console.log('Error parsing transaction data');
+        return;
+      }
+    }
+    
+
+    if (doNotUpdateVoterRegistration) {
+      console.log('User selected to not use address for voter registration, checking box');
+      
       const addressUpdateField = form.getCheckBox("Address Update");
       if (addressUpdateField) {
         addressUpdateField.check(); 
         console.log('Successfully checked "Address Update" checkbox');
       } else {
- 
+        console.log('Primary field "Address Update" not found, trying alternatives...');
+        
         const alternativeFieldNames = [
           "address update",
           "AddressUpdate",
@@ -5632,21 +6038,28 @@ function mapVoterAddressUpdate(form: any, voterAddressUpdateData?: FormData['vot
         
         for (const fieldName of alternativeFieldNames) {
           try {
+            console.log(`Trying alternative field: "${fieldName}"`);
             const field = form.getCheckBox(fieldName);
+            
             if (field) {
               field.check();
               console.log(`Successfully checked "${fieldName}" checkbox`);
               break;
             }
           } catch (e) {
- 
+            console.log(`Error trying field "${fieldName}":`, e);
           }
         }
       }
+    } else {
+      console.log('User wants address to be used for voter registration, not checking box');
     }
   } catch (e) {
     console.warn('Error setting voter address update fields:', e);
+    console.log('Error details:', JSON.stringify(e, Object.getOwnPropertyNames(e)));
   }
+  
+  console.log('mapVoterAddressUpdate function completed');
 }
 
 
@@ -5936,7 +6349,7 @@ function mapPreviousResidence(form: any, address?: Address) {
     try {
       const stateFields = [
         "state 1.0",
-        "state 1.1.1",
+        "state 2.0",
       ];
       
       const state = address.state.toUpperCase();
@@ -6073,7 +6486,7 @@ function mapNewOrCorrectResidence(form: any, sectionThreeData?: SectionThreeData
     try {
       const stateFields = [
         "state 1.1.0",
-        "state 2.0",
+        "state 2.1.0",
       ];
       
       const state = sectionThreeData.address.state.toUpperCase();
@@ -6356,7 +6769,7 @@ if (sectionThreeData.mailingAddressDifferent &&
       sectionThreeData.mailingAddress.state) {
     try {
       const mailingStateFields = [
-        "state 2.1.0",
+        "state 1.1.1",
         "state 2.1.1",
       ];
       

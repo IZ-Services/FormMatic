@@ -1,7 +1,7 @@
 'use client';
 import Address from '../atoms/Address';
 import VehicleInformation from '../atoms/VehicleInformation';
-import Seller from '../atoms/Seller';
+import SellerSection from '../atoms/Seller';
 import SaveButton from '../atoms/savebutton';
 import { FormDataProvider, useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ScenarioProvider } from '../../context/ScenarioContext';
@@ -86,10 +86,10 @@ export default function DuplicateRegistrationTransfer({ formData }: DuplicateReg
         {/* Motorcycle checkbox directly in the component */}
         <div className="releaseWrapper">
           <div className="headerRow">
-            <h3 className="releaseHeading">Vehicle Type</h3>
+          <h3 className="releaseHeading">Transaction Details</h3>
           </div>
 
-          <div className="checkbox-container">
+          <div className="checkbox-cont">
             <div className="checkbox-section">
               <label className="checkbox-label">
                 <input
@@ -108,7 +108,14 @@ export default function DuplicateRegistrationTransfer({ formData }: DuplicateReg
           isDuplicateRegistrationMode={true}
         />
         
-        <Seller formData={formValues} />
+        <SellerSection 
+        formData={{
+          hideDateOfSale: true,
+          hideDateOfBirth: true,
+          limitOwnerCount: true
+
+        }}
+      />
         <SellerAddress formData={formValues} />
         
         <SaveButton 

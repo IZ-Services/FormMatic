@@ -106,13 +106,13 @@ body {
   cursor: pointer;
 }
 
-.saveButtonContainer {
+.saveButtonCont {
   display: flex;
   justify-content: flex-end;
   width: 100%;
 }
 
-.saveButton {
+.saveBtn {
   background-color: black;
   color: white;
   border: none;
@@ -128,7 +128,7 @@ body {
   text-align: end;
 }
 
-.saveButton:hover {
+.saveBtn:hover {
   background-color: transparent;
   color: black;
 }

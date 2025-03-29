@@ -85,7 +85,8 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
     if (!lienHolderData) {
       const defaultData = initialLienHolder;
       setLienHolderData(defaultData);
-      updateField('lienHolder', defaultData);       if (onChange) {
+      updateField('lienHolder', defaultData);       
+      if (onChange) {
         onChange(defaultData);
       }
     }
@@ -108,12 +109,38 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
   const handleInputChange = (field: keyof LienHolder, value: any) => {
     const newLienHolder = { ...lienHolderData, [field]: value };
     setLienHolderData(newLienHolder);
-    updateField('lienHolder', newLienHolder);     if (onChange) {
+    updateField('lienHolder', newLienHolder);     
+    if (onChange) {
       onChange(newLienHolder);
     }
   };
 
-  const handleEltChange = (value: string) => {     const digitsOnly = value.replace(/\D/g, '');     const truncatedValue = digitsOnly.slice(0, 3);     if (value !== truncatedValue) {
+  const handleMailingCheckboxChange = (checked: boolean) => {
+    const newLienHolder = { ...lienHolderData };
+    newLienHolder.mailingAddressDifferent = checked;
+    
+
+    if (!checked) {
+      newLienHolder.mailingAddress = {
+        street: '',
+        poBox: '',
+        city: '',
+        state: '',
+        zip: ''
+      };
+    }
+    
+    setLienHolderData(newLienHolder);
+    updateField('lienHolder', newLienHolder);
+    if (onChange) {
+      onChange(newLienHolder);
+    }
+  };
+
+  const handleEltChange = (value: string) => {     
+    const digitsOnly = value.replace(/\D/g, '');     
+    const truncatedValue = digitsOnly.slice(0, 3);     
+    if (value !== truncatedValue) {
       setEltError('ELT Number must be exactly 3 digits');
     } else if (truncatedValue.length > 0 && truncatedValue.length < 3) {
       setEltError('ELT Number must be exactly 3 digits');
@@ -131,7 +158,8 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
       [field]: value
     };
     setLienHolderData(newLienHolder);
-    updateField('lienHolder', newLienHolder);     if (onChange) {
+    updateField('lienHolder', newLienHolder);     
+    if (onChange) {
       onChange(newLienHolder);
     }
   };
@@ -205,7 +233,7 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
               type="checkbox"
               className="mailingCheckboxInput"
               checked={lienHolderData.mailingAddressDifferent || false}
-              onChange={(e) => handleInputChange('mailingAddressDifferent', e.target.checked)}
+              onChange={(e) => handleMailingCheckboxChange(e.target.checked)}
             />
             If mailing address is different
           </label>
@@ -330,11 +358,11 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
               />
             </div>
             <div className="formGroup aptField">
-              <label className="formLabel">PO Box No</label>
+              <label className="formLabel">APT./SPACE/STE.#</label>
               <input
                 className="formInputt aptInput"
                 type="text"
-                placeholder="PO Box No"
+                placeholder="APT./SPACE/STE.#"
                 value={lienHolderData.mailingAddress?.poBox || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'poBox', e.target.value)}
               />

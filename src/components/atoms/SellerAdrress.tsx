@@ -1,7 +1,8 @@
-'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider'; 
+import { useScenarioContext } from '../../context/ScenarioContext';
+
 interface Address {
   street?: string;
   apt?: string;
@@ -10,6 +11,7 @@ interface Address {
   zip?: string;
   poBox?: string;
   county?: string; 
+  isOutOfState?: boolean;
 }
 
 interface FormData {
@@ -22,6 +24,7 @@ interface SellerAddressProps {
   formData?: FormData;
   onChange?: (data: FormData) => void;
   isMultipleTransfer?: boolean;
+  hideMailingOption?: boolean;
 }
 
 const initialAddress: Address = {
@@ -31,14 +34,22 @@ const initialAddress: Address = {
   state: '',
   zip: '',
   poBox: '',
-  county: '' 
-}; const cleanFormData = (data: any): any => {
+  county: '',
+  isOutOfState: false
+};
+
+const cleanFormData = (data: any): any => {
   if (!data || typeof data !== 'object') return data;
   
-  const result: any = {};   Object.keys(data).forEach(key => {
-    const value = data[key];     if (key === 'sellerAddress' && value && typeof value === 'object' && 
-        (value.sellerAddress !== undefined)) {       const { street, apt, city, state, zip, poBox, country, county } = value;
-      result[key] = { street, apt, city, state, zip, poBox, country, county };
+  const result: any = {};
+  
+  Object.keys(data).forEach(key => {
+    const value = data[key];
+    
+    if (key === 'sellerAddress' && value && typeof value === 'object' && 
+        (value.sellerAddress !== undefined)) {
+      const { street, apt, city, state, zip, poBox, county, isOutOfState } = value;
+      result[key] = { street, apt, city, state, zip, poBox, county, isOutOfState };
     } else {
       result[key] = value;
     }
@@ -47,10 +58,34 @@ const initialAddress: Address = {
   return result;
 };
 
-const SellerAddress: React.FC<SellerAddressProps> = ({ formData: propFormData, onChange, isMultipleTransfer = false }) => {   const cleanedFormData = cleanFormData(propFormData);
+const SellerAddress: React.FC<SellerAddressProps> = ({ 
+  formData: propFormData, 
+  onChange, 
+  isMultipleTransfer = false,
+  hideMailingOption = false
+}) => {
+  const cleanedFormData = cleanFormData(propFormData);
+  const { activeScenarios } = useScenarioContext();
+  
+
+  const shouldHideMailingOption = () => {
+
+    if (hideMailingOption) {
+      return true;
+    }
+    
+
+    return !!(
+      activeScenarios && (
+        activeScenarios["Salvage"]
+      )
+    );
+  };
+  
+  const hideMailingAddress = shouldHideMailingOption();
   
   const [addressData, setAddressData] = useState<FormData>({
-    sellerMailingAddressDifferent: cleanedFormData?.sellerMailingAddressDifferent || false,
+    sellerMailingAddressDifferent: hideMailingAddress ? false : (cleanedFormData?.sellerMailingAddressDifferent || false),
     sellerAddress: cleanedFormData?.sellerAddress || { ...initialAddress },
     sellerMailingAddress: cleanedFormData?.sellerMailingAddress || { ...initialAddress }
   });
@@ -58,15 +93,29 @@ const SellerAddress: React.FC<SellerAddressProps> = ({ formData: propFormData, o
   const { formData: contextFormData, updateField } = useFormContext() as {
     formData: Record<string, any>;
     updateField: (section: string, value: any) => void;
-  };   useEffect(() => {
-    if (propFormData) {       const cleanedProps = cleanFormData(propFormData);
+  };
+
+
+  useEffect(() => {
+    console.log("Should hide mailing option:", hideMailingAddress);
+    console.log("Active scenarios:", activeScenarios);
+    console.log("Direct hideMailingOption prop:", hideMailingOption);
+  }, [hideMailingAddress, activeScenarios, hideMailingOption]);
+
+  useEffect(() => {
+    if (propFormData) {
+      const cleanedProps = cleanFormData(propFormData);
       
       const newData = { ...addressData };
       let hasChanges = false;
 
-      if (cleanedProps.sellerMailingAddressDifferent !== undefined && 
+      if (!hideMailingAddress && cleanedProps.sellerMailingAddressDifferent !== undefined && 
           cleanedProps.sellerMailingAddressDifferent !== addressData.sellerMailingAddressDifferent) {
         newData.sellerMailingAddressDifferent = cleanedProps.sellerMailingAddressDifferent;
+        hasChanges = true;
+      } else if (hideMailingAddress && newData.sellerMailingAddressDifferent) {
+
+        newData.sellerMailingAddressDifferent = false;
         hasChanges = true;
       }
 
@@ -75,7 +124,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({ formData: propFormData, o
         hasChanges = true;
       }
 
-      if (cleanedProps.sellerMailingAddress) {
+      if (!hideMailingAddress && cleanedProps.sellerMailingAddress) {
         newData.sellerMailingAddress = { ...addressData.sellerMailingAddress, ...cleanedProps.sellerMailingAddress };
         hasChanges = true;
       }
@@ -84,31 +133,51 @@ const SellerAddress: React.FC<SellerAddressProps> = ({ formData: propFormData, o
         setAddressData(newData);
       }
     }
-  }, [propFormData]);   useEffect(() => {
-    if (!onChange) {       if (addressData.sellerAddress && typeof addressData.sellerAddress === 'object') {
+  }, [propFormData, hideMailingAddress]);
+
+  useEffect(() => {
+    if (!onChange) {
+      if (addressData.sellerAddress && typeof addressData.sellerAddress === 'object') {
         updateField('sellerAddress', addressData.sellerAddress);
-      }       updateField('sellerMailingAddressDifferent', !!addressData.sellerMailingAddressDifferent);       if (addressData.sellerMailingAddressDifferent && addressData.sellerMailingAddress && 
-          typeof addressData.sellerMailingAddress === 'object') {
-        updateField('sellerMailingAddress', addressData.sellerMailingAddress);
+      }
+      
+      if (!hideMailingAddress) {
+        updateField('sellerMailingAddressDifferent', !!addressData.sellerMailingAddressDifferent);
+        
+        if (addressData.sellerMailingAddressDifferent && addressData.sellerMailingAddress && 
+            typeof addressData.sellerMailingAddress === 'object') {
+          updateField('sellerMailingAddress', addressData.sellerMailingAddress);
+        }
+      } else {
+
+        updateField('sellerMailingAddressDifferent', false);
       }
     }
-  }, []);   useEffect(() => {
+  }, [hideMailingAddress]);
+
+  useEffect(() => {
     if (isMultipleTransfer) {
       console.log("SellerAddress: Multiple transfer mode detected");
-      console.log("Initial addressData:", addressData);       if (!onChange) {
+      console.log("Initial addressData:", addressData);
+      
+      if (!onChange) {
         updateField('sellerAddress', addressData.sellerAddress);
-        updateField('sellerMailingAddressDifferent', !!addressData.sellerMailingAddressDifferent);
-        updateField('sellerMailingAddress', addressData.sellerMailingAddress || { ...initialAddress });
+        
+        if (!hideMailingAddress) {
+          updateField('sellerMailingAddressDifferent', !!addressData.sellerMailingAddressDifferent);
+          updateField('sellerMailingAddress', addressData.sellerMailingAddress || { ...initialAddress });
+        } else {
+          updateField('sellerMailingAddressDifferent', false);
+        }
       }
     }
-  }, [isMultipleTransfer]);
+  }, [isMultipleTransfer, hideMailingAddress]);
 
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
   const dropdownRefs = {
-    seller: useRef<HTMLUListElement>(null),
-    mailing: useRef<HTMLUListElement>(null),
-    business: useRef<HTMLUListElement>(null),
+    sellerAddress: useRef<HTMLDivElement>(null),
+    sellerMailingAddress: useRef<HTMLDivElement>(null),
   };
 
   const states = [
@@ -164,37 +233,55 @@ const SellerAddress: React.FC<SellerAddressProps> = ({ formData: propFormData, o
     { name: 'Wyoming', abbreviation: 'WY' },
   ];
 
-  const handleDropdownClick = (dropdown: string) => {
-    setOpenDropdown(prev => (prev === dropdown ? null : dropdown));
-  };  
-const handleAddressChange = (section: keyof FormData, field: keyof Address, value: string) => {
-  console.log(`Updating ${section}.${field} to:`, value);   const newData = { ...addressData };   if (!newData[section]) {     if (section === 'sellerAddress' || section === 'sellerMailingAddress') {
-      newData[section] = { ...initialAddress } as any;
-    } else if (section === 'sellerMailingAddressDifferent') {
-      newData[section] = false as any;
-    }
-  }   const currentSection = (newData[section] as Address) || {};   const updatedSection = {
-    ...currentSection,
-    [field]: value
-  };   newData[section] = updatedSection as any;
-  
-  setAddressData(newData);
-  
-  console.log(`Updated ${section} data:`, updatedSection);
-  
-  if (onChange) {
-    onChange(newData);
-  } else {     updateField(String(section), updatedSection);
+  const handleAddressChange = (section: keyof FormData, field: keyof Address, value: string | boolean) => {
+    console.log(`Updating ${section}.${field} to:`, value);
     
-    if (isMultipleTransfer) {
-      console.log(`Multiple transfer update for ${section}.${field}:`, value);
+    const newData = { ...addressData };
+    
+    if (!newData[section]) {
+      if (section === 'sellerAddress' || section === 'sellerMailingAddress') {
+        newData[section] = { ...initialAddress } as any;
+      } else if (section === 'sellerMailingAddressDifferent') {
+        newData[section] = false as any;
+      }
     }
-  }
-};   const handleCheckboxChange = (field: keyof FormData, checked: boolean) => {
+    
+    const currentSection = (newData[section] as Address) || {};
+    
+    const updatedSection = {
+      ...currentSection,
+      [field]: value
+    };
+    
+    newData[section] = updatedSection as any;
+    
+    setAddressData(newData);
+    
+    console.log(`Updated ${section} data:`, updatedSection);
+    
+    if (onChange) {
+      onChange(newData);
+    } else {
+      updateField(String(section), updatedSection);
+      
+      if (isMultipleTransfer) {
+        console.log(`Multiple transfer update for ${section}.${field}:`, value);
+      }
+    }
+  };
+
+  const handleCheckboxChange = (field: keyof FormData, checked: boolean) => {
+
+    if (hideMailingAddress && field === 'sellerMailingAddressDifferent') {
+      return;
+    }
+    
     console.log(`Checkbox clicked: ${field} to ${checked}`);
     
     const newData = { ...addressData };
-    newData[field] = checked;     if (field === 'sellerMailingAddressDifferent' && checked) {
+    newData[field] = checked;
+    
+    if (field === 'sellerMailingAddressDifferent' && checked) {
       if (!newData.sellerMailingAddress || Object.keys(newData.sellerMailingAddress).length === 0) {
         newData.sellerMailingAddress = { ...initialAddress };
       }
@@ -206,23 +293,37 @@ const handleAddressChange = (section: keyof FormData, field: keyof Address, valu
     if (onChange) {
       onChange(newData);
     } else {
-      updateField(String(field), checked);       if (field === 'sellerMailingAddressDifferent' && checked) {
+      updateField(String(field), checked);
+      
+      if (field === 'sellerMailingAddressDifferent' && checked) {
         updateField('sellerMailingAddress', newData.sellerMailingAddress);
       }
     }
   };
 
-  const handleStateSelect = (section: keyof FormData, abbreviation: string) => {
-    handleAddressChange(section, 'state', abbreviation);
-    setOpenDropdown(null);
+
+  const handleOutOfStateChange = (checked: boolean) => {
+    const newData = { ...addressData };
+    if (!newData.sellerAddress) {
+      newData.sellerAddress = { ...initialAddress };
+    }
+    
+    newData.sellerAddress.isOutOfState = checked;
+    
+    setAddressData(newData);
+    
+    if (onChange) {
+      onChange(newData);
+    } else {
+      updateField('sellerAddress', newData.sellerAddress);
+    }
   };
 
   const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as Element;
     
     Object.entries(dropdownRefs).forEach(([key, ref]) => {
-      if (openDropdown === key && ref.current && !ref.current.contains(target) && 
-          !target.closest(`.${key}DropdownButton`)) {
+      if (openDropdown === key && ref.current && !ref.current.contains(target)) {
         setOpenDropdown(null);
       }
     });
@@ -232,20 +333,176 @@ const handleAddressChange = (section: keyof FormData, field: keyof Address, valu
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown]);
+
+
+  const renderStateDropdown = (addressType: keyof FormData, value: string | undefined) => {
+    const dropdownId = String(addressType);
+    const refKey = addressType as keyof typeof dropdownRefs;
+    
+    return (
+      <div className="state-field" ref={dropdownRefs[refKey]}>
+        <label className="state-label">State</label>
+        <div className="state-dropdown-wrapper">
+          <button
+            type="button"
+            className="state-dropdown-button"
+            onClick={() => setOpenDropdown(openDropdown === dropdownId ? null : dropdownId)}
+          >
+            {value || 'STATE'}
+            <ChevronDownIcon 
+              className={`${openDropdown === dropdownId ? 'rotate' : ''}`}
+              style={{ width: '18px', height: '18px' }} 
+            />
+          </button>
+          
+          {openDropdown === dropdownId && (
+            <div className="state-dropdown-menu">
+              {states.map((state) => (
+                <div
+                  key={state.abbreviation}
+                  className="state-dropdown-item"
+                  onClick={() => {
+                    handleAddressChange(addressType, 'state', state.abbreviation);
+                    setOpenDropdown(null);
+                  }}
+                >
+                  {state.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
+      <style>{`
+        .state-dropdown-wrapper {
+          position: relative;
+          width: 120px;
+        }
+
+        .state-dropdown-button {
+          width: 100%;
+          padding: 10px 12px;
+          background-color: white;
+          border: 1px solid #ced4da;
+          border-radius: 4px;
+          font-size: 16px;
+          color: #495057;
+          text-align: left;
+          height: 35px;
+          cursor: pointer;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .state-dropdown-button:hover {
+          border-color: #b8b8b8;
+        }
+
+        .state-dropdown-menu {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          z-index: 1000;
+          width: 100%;
+          height: 170px;
+          max-height: 300px;
+          overflow-y: auto;
+          background-color: white;
+          border: 1px solid rgba(0, 0, 0, 0.15);
+          border-radius: 4px;
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+          margin-top: 2px;
+        }
+
+        .state-dropdown-item {
+          padding: 7px 15px;
+          color: #9b9b9b;
+          cursor: pointer;
+          font-size: 14px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-align: center;
+          text-overflow: ellipsis;
+        }
+
+        .state-dropdown-item:hover {
+          background-color: #f8f9fa;
+          color: #212529;
+        }
+
+        .state-dropdown-menu::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .state-dropdown-menu::-webkit-scrollbar-track {
+          background: #f1f1f1;
+        }
+
+        .state-dropdown-menu::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 3px;
+        }
+
+        .state-dropdown-menu::-webkit-scrollbar-thumb:hover {
+          background: #a8a8a8;
+        }
+
+        .rotate {
+          transform: rotate(180deg);
+        }
+
+        .state-field {
+          flex: 0 0 120px;
+        }
+
+        .state-label {
+          display: block;
+          margin-bottom: 5px;
+          font-size: 14px;
+          font-weight: 400;
+          color: #333;
+        }
+        
+        .out-of-state-checkbox {
+          margin-top: 10px;
+          padding: 5px 0;
+          display: flex;
+          align-items: center;
+        }
+        
+        .out-of-state-checkbox input {
+          margin-right: 8px;
+        }
+        
+        .out-of-state-checkbox p {
+          font-size: 14px;
+          margin: 0;
+        }
+      `}</style>
+
       <div className="addressWrapper">
         <div className="addressCheckboxWrapper">
           <h3 className="addressHeading">Residential Address</h3>
-          <div className="checkboxSection">
-            <input
-              type="checkbox"
-              className="checkBoxAddress"
-              checked={!!addressData.sellerMailingAddressDifferent}
-              onChange={(e) => handleCheckboxChange('sellerMailingAddressDifferent', e.target.checked)}
-            />
-            <p>If mailing address is different</p>
-          </div>
+          {/* Only show the mailing address checkbox if not hidden */}
+          {!hideMailingAddress && (
+            <div className="checkboxSection">
+              <input
+                type="checkbox"
+                className="checkBoxAddress"
+                checked={!!addressData.sellerMailingAddressDifferent}
+                onChange={(e) => handleCheckboxChange('sellerMailingAddressDifferent', e.target.checked)}
+              />
+              <p>If mailing address is different</p>
+            </div>
+          )}
         </div>
 
         {/* Main Seller Address */}
@@ -257,7 +514,12 @@ const handleAddressChange = (section: keyof FormData, field: keyof Address, valu
               type="text"
               placeholder="Street"
               value={addressData.sellerAddress?.street || ''}
-              onChange={(e) => handleAddressChange('sellerAddress', 'street', e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+                handleAddressChange('sellerAddress', 'street', capitalizedValue);
+              }}
             />
           </div>
           <div className="formGroup aptField">
@@ -279,11 +541,15 @@ const handleAddressChange = (section: keyof FormData, field: keyof Address, valu
               type="text"
               placeholder="City"
               value={addressData.sellerAddress?.city || ''}
-              onChange={(e) => handleAddressChange('sellerAddress', 'city', e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+                handleAddressChange('sellerAddress', 'city', capitalizedValue);
+              }}
             />
           </div>
 
-          {/* Added County field */}
           <div className="cityFieldCustomWidth">
             <label className="formLabel">County</label>
             <input
@@ -291,12 +557,18 @@ const handleAddressChange = (section: keyof FormData, field: keyof Address, valu
               type="text"
               placeholder="County"
               value={addressData.sellerAddress?.county || ''}
-              onChange={(e) => handleAddressChange('sellerAddress', 'county', e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+                handleAddressChange('sellerAddress', 'county', capitalizedValue);
+              }}
             />
           </div>
           
-        
-       
+          {/* State Dropdown for Seller Address - New implementation */}
+          {renderStateDropdown('sellerAddress', addressData.sellerAddress?.state)}
+          
           <div className="formGroup zipCodeField">
             <label className="formLabel">ZIP Code</label>
             <input
@@ -308,10 +580,20 @@ const handleAddressChange = (section: keyof FormData, field: keyof Address, valu
             />
           </div>
         </div>
+        
+        {/* New Out-of-State Checkbox */}
+        <div className="out-of-state-checkbox">
+          <input
+            type="checkbox"
+            checked={!!addressData.sellerAddress?.isOutOfState}
+            onChange={(e) => handleOutOfStateChange(e.target.checked)}
+          />
+          <p>If no California county and used out-of-state, check this box</p>
+        </div>
       </div>
 
-      {/* Mailing Address - only show if checkbox is checked */}
-      {addressData.sellerMailingAddressDifferent && (
+      {/* Mailing Address - only show if checkbox is checked AND mailing option is not hidden */}
+      {!hideMailingAddress && addressData.sellerMailingAddressDifferent && (
         <div className="addressWrapper">
           <h3 className="addressHeading">Mailing Address</h3>
           <div className="streetAptGroup">
@@ -322,15 +604,20 @@ const handleAddressChange = (section: keyof FormData, field: keyof Address, valu
                 type="text"
                 placeholder="Street"
                 value={addressData.sellerMailingAddress?.street || ''}
-                onChange={(e) => handleAddressChange('sellerMailingAddress', 'street', e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+                  handleAddressChange('sellerMailingAddress', 'street', capitalizedValue);
+                }}
               />
             </div>
             <div className="formGroup aptField">
-              <label className="formLabel">PO Box No</label>
+              <label className="formLabel">APT./SPACE/STE.#</label>
               <input
                 className="formInputt"
                 type="text"
-                placeholder="PO Box No"
+                placeholder="APT./SPACE/STE.#"
                 value={addressData.sellerMailingAddress?.poBox || ''}
                 onChange={(e) => handleAddressChange('sellerMailingAddress', 'poBox', e.target.value)}
               />
@@ -344,46 +631,18 @@ const handleAddressChange = (section: keyof FormData, field: keyof Address, valu
                 type="text"
                 placeholder="City"
                 value={addressData.sellerMailingAddress?.city || ''}
-                onChange={(e) => handleAddressChange('sellerMailingAddress', 'city', e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+                  handleAddressChange('sellerMailingAddress', 'city', capitalizedValue);
+                }}
               />
             </div>
 
-            {/* Added County field for mailing address */}
-            <div className="cityFieldCustomWidth">
-              <label className="formLabel">County</label>
-              <input
-                className="cityInputt"
-                type="text"
-                placeholder="County"
-                value={addressData.sellerMailingAddress?.county || ''}
-                onChange={(e) => handleAddressChange('sellerMailingAddress', 'county', e.target.value)}
-              />
-            </div>
-
-            <div className="regStateWrapper">
-              <label className="registeredOwnerLabel">State</label>
-              <button
-                type="button"
-                onClick={() => handleDropdownClick('mailing')}
-                className="regStateDropDown mailingDropdownButton"
-              >
-                {addressData.sellerMailingAddress?.state || 'State'}
-                <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
-              </button>
-              {openDropdown === 'mailing' && (
-                <ul ref={dropdownRefs.mailing} className="regStateMenu">
-                  {states.map((state, index) => (
-                    <li
-                      key={index}
-                      onClick={() => handleStateSelect('sellerMailingAddress', state.abbreviation)}
-                      className="regStateLists"
-                    >
-                      {state.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            {/* State Dropdown for Mailing Address - New implementation */}
+            {renderStateDropdown('sellerMailingAddress', addressData.sellerMailingAddress?.state)}
+            
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input

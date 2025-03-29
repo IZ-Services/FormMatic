@@ -209,7 +209,7 @@ const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
         </div>
       </div>
 
-      <div className="releaseFormGroup">
+      <div className="releaseForm">
         <label className="releaseFormLabel">STREET NAME (INCLUDE ST., AVE., RD., CT., ETC.)</label>
         <input
           className="releaseFormInput"

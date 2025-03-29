@@ -217,6 +217,28 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
     }
   };
 
+  const handleMailingCheckboxChange = (checked: boolean) => {
+    const newData = { ...legalOwnerData };
+    newData.mailingAddressDifferent = checked;
+    
+
+    if (!checked && newData.mailingAddress) {
+      newData.mailingAddress = {
+        street: '',
+        poBox: '',
+        city: '',
+        state: '',
+        zip: ''
+      };
+    }
+    
+    setLegalOwnerData(newData);
+    updateField('legalOwnerInformation', newData);
+    if (onChange) {
+      onChange(newData);
+    }
+  };
+
   const handleEltChange = (value: string) => {
     const digitsOnly = value.replace(/\D/g, '');
     const truncatedValue = digitsOnly.slice(0, 3);
@@ -276,7 +298,6 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown]);
 
-
   const containerStyle: CSSProperties = { 
     position: 'relative', 
     overflow: 'visible' 
@@ -286,7 +307,6 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
     position: 'relative', 
     overflow: 'visible' 
   };
-
 
   const buttonStyle: CSSProperties = {
     display: 'flex',
@@ -312,7 +332,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
               type="checkbox"
               className="mailingCheckboxInput"
               checked={legalOwnerData.mailingAddressDifferent || false}
-              onChange={(e) => handleInfoChange('mailingAddressDifferent', e.target.checked)}
+              onChange={(e) => handleMailingCheckboxChange(e.target.checked)}
               style={{ margin: 0 }}
             />
             If mailing address is different
@@ -439,7 +459,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
         </div>
       </div>
 
-              {/* Mailing Address Section (shows only when checkbox is checked) */}
+      {/* Mailing Address Section (shows only when checkbox is checked) */}
       {legalOwnerData.mailingAddressDifferent && (
         <div className="addressWrapper" style={{ marginTop: '30px', position: 'relative' }}>
           <h3 className="addressHeading" style={{ marginBottom: '15px' }}>Mailing Address</h3>
@@ -455,11 +475,11 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
               />
             </div>
             <div className="formGroup aptField">
-              <label className="formLabel">PO Box No</label>
+              <label className="formLabel">APT./SPACE/STE.#</label>
               <input
                 className="formInputt aptInput"
                 type="text"
-                placeholder="PO Box No"
+                placeholder="APT./SPACE/STE.#"
                 value={legalOwnerData.mailingAddress?.poBox || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'poBox', e.target.value)}
               />

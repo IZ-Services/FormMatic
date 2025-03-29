@@ -52,8 +52,12 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData 
   }, []);
 
   const handleChange = (field: keyof PlateSelectionType, value: any) => {
-
     const currentInfo = (formData.plateSelection || initialPlateSelection) as PlateSelectionType;
+    
+
+    if (field === 'plateType' && currentInfo.plateType === value) {
+      value = '';
+    }
     
     const newData = { ...currentInfo, [field]: value };
     
@@ -174,7 +178,17 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData 
         {plateSelection.plateType === 'Veterans\' Organization' && (
           <div className="inputContainer">
             <label className="inputLabel">(PROVIDE ORGANIZATIONAL CODE OF DECAL)</label>
-            <p className="inputNote">List of Logos can be found at https://www.calvet.ca.gov/VetServices/Pages/License-Plates.aspx</p>
+            <p className="inputNote">
+              List of Logos can be found at{' '}
+              <a 
+                href="https://www.calvet.ca.gov/VetServices/Pages/License-Plates.aspx" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="linkText"
+              >
+                https://www.calvet.ca.gov/VetServices/Pages/License-Plates.aspx
+              </a>
+            </p>
             <input
               type="text"
               className="textInput"
