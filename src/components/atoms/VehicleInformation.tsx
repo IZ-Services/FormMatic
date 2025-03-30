@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { useScenarioContext } from '../../context/ScenarioContext';
 import './VehicleInformation.css';
@@ -29,6 +29,7 @@ interface VehicleInformationProps {
     vehicleInformation?: VehicleInformationType;
     vehicleTransactionDetails?: {
       isMotorcycle?: boolean;
+      isOutOfStateTitle?: boolean;
     };
     vehicleType?: {
       isMotorcycle?: boolean;
@@ -73,14 +74,11 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
     ...propFormData
   };
 
-
   const shouldHideMileageFields = () => {
-
     if (formData.hideMileageFields) {
       return true;
     }
     
-
     return !!(
       activeScenarios && (
         activeScenarios["Add Lienholder"] ||
@@ -92,13 +90,13 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
   };
 
   const hideMileageFields = isDuplicateRegistrationMode || shouldHideMileageFields();
+  const isMotorcycle = 
+    formData.vehicleType?.isMotorcycle === true || 
+    formData.vehicleTransactionDetails?.isMotorcycle === true;
+  const isTrailerCoach = formData.vehicleType?.isTrailerCoach === true;
+  
 
-
-  useEffect(() => {
-    console.log("Active Scenarios:", activeScenarios);
-    console.log("Should hide mileage fields:", hideMileageFields);
-    console.log("Direct hideMileageFields prop:", formData.hideMileageFields);
-  }, [activeScenarios, hideMileageFields, formData.hideMileageFields]);
+  const isOutOfStateTitle = formData.vehicleTransactionDetails?.isOutOfStateTitle === true;
 
   useEffect(() => {
     if (!formData.vehicleInformation) {
@@ -111,20 +109,20 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
   }, []);
 
   useEffect(() => {
-    const isCurrentlyMotorcycle = formData.vehicleType?.isMotorcycle === true;
     const currentInfo = (formData.vehicleInformation || {}) as VehicleInformationType;
     
-    if (!isCurrentlyMotorcycle && currentInfo.engineNumber) {
+
+    if (!isOutOfStateTitle && currentInfo.isKilometers) {
       const newInfo = {
         ...currentInfo,
-        engineNumber: ''
+        isKilometers: false
       };
       updateField('vehicleInformation', newInfo);
       if (onChange) {
         onChange(newInfo);
       }
     }
-  }, [formData.vehicleType?.isMotorcycle]);
+  }, [isOutOfStateTitle]);
 
   const handleVehicleInfoChange = (field: keyof VehicleInformationType, value: string | boolean) => {
     const currentInfo = (formData.vehicleInformation || {}) as VehicleInformationType;
@@ -151,9 +149,6 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
       onChange(newInfo);
     }
   };
-
-  const isMotorcycle = formData.vehicleType?.isMotorcycle === true;
-  const isTrailerCoach = formData.vehicleType?.isTrailerCoach === true;
 
   return (
     <div className="vehicleInformationWrapper">
@@ -317,18 +312,22 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
               />
               Mileage Exceeds Mechanical Limit
             </label>
-            <div style={{ marginLeft: '10px', display: 'flex', alignItems: 'center' }}>
-              <label className="checkboxLabel" style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', marginBottom: '0' }}>
-                <input
-                  type="checkbox"
-                  checked={(formData.vehicleInformation as VehicleInformationType)?.isKilometers || false}
-                  onChange={(e) => handleVehicleInfoChange('isKilometers', e.target.checked)}
-                  className="checkboxInput"
-                  style={{ marginRight: '5px' }}
-                />
-                If kilometers check this box
-              </label>
-            </div>
+            
+            {/* Only show kilometers checkbox if out of state title is checked */}
+            {isOutOfStateTitle && (
+              <div style={{ marginLeft: '10px', display: 'flex', alignItems: 'center' }}>
+                <label className="checkboxLabel" style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', marginBottom: '0' }}>
+                  <input
+                    type="checkbox"
+                    checked={(formData.vehicleInformation as VehicleInformationType)?.isKilometers || false}
+                    onChange={(e) => handleVehicleInfoChange('isKilometers', e.target.checked)}
+                    className="checkboxInput"
+                    style={{ marginRight: '5px' }}
+                  />
+                  If kilometers check this box
+                </label>
+              </div>
+            )}
           </div>
         </div>
       )}

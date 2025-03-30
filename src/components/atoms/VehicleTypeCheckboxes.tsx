@@ -17,9 +17,20 @@ interface VehicleInformationType {
   [key: string]: any;
 }
 
+interface VehicleTransactionDetailsData {
+  withTitle?: boolean;
+  currentLienholder?: boolean;
+  isMotorcycle?: boolean;
+  isGift?: boolean;
+  isFamilyTransfer?: boolean;
+  isSmogExempt?: boolean;
+  isOutOfStateTitle?: boolean;
+}
+
 interface FormDataType {
   vehicleType?: VehicleTypeData;
   vehicleInformation?: VehicleInformationType;
+  vehicleTransactionDetails?: VehicleTransactionDetailsData;
   owners?: any[];
 }
 
@@ -57,28 +68,80 @@ const VehicleType: React.FC<VehicleTypeProps> = ({
     setTypeData(mergedData);
   }, [combinedFormData?.vehicleType]);
 
+
+  useEffect(() => {
+    const transactionDetails = combinedFormData?.vehicleTransactionDetails;
+    if (transactionDetails && transactionDetails.isMotorcycle !== undefined) {
+
+      if (transactionDetails.isMotorcycle !== typeData.isMotorcycle) {
+        console.log("Syncing motorcycle state from transaction details:", transactionDetails.isMotorcycle);
+        
+        const newData = { 
+          ...typeData,
+          isMotorcycle: transactionDetails.isMotorcycle 
+        };
+        
+
+        if (transactionDetails.isMotorcycle) {
+          newData.isAuto = false;
+          newData.isOffHighway = false;
+          newData.isTrailerCoach = false;
+        }
+        
+        setTypeData(newData);
+        updateField('vehicleType', newData);
+        
+        if (onChange) {
+          onChange(newData);
+        }
+      }
+    }
+  }, [combinedFormData?.vehicleTransactionDetails?.isMotorcycle]);
+
   const handleCheckboxChange = (field: keyof VehicleTypeData) => {
     const newValue = !typeData[field];
     
     const newData = { 
       ...typeData,
       [field]: newValue
-    };    if (newValue) {
+    };
+    
+    if (newValue) {
       Object.keys(newData).forEach((key) => {
         if (key !== field) {
           newData[key as keyof VehicleTypeData] = false;
         }
       });
-    }    const currentVehicleInfo = combinedFormData.vehicleInformation || {};
-    const vehicleInfoUpdates: Partial<VehicleInformationType> = {...currentVehicleInfo};    if (field === 'isMotorcycle' && !newValue && currentVehicleInfo.engineNumber) {
+    }
+    
+    const currentVehicleInfo = combinedFormData.vehicleInformation || {};
+    const vehicleInfoUpdates: Partial<VehicleInformationType> = {...currentVehicleInfo};
+    
+    if (field === 'isMotorcycle' && !newValue && currentVehicleInfo.engineNumber) {
       vehicleInfoUpdates.engineNumber = '';
-    }    if (field === 'isTrailerCoach' && !newValue) {
+    }
+    
+    if (field === 'isTrailerCoach' && !newValue) {
       if (currentVehicleInfo.length || currentVehicleInfo.width) {
         vehicleInfoUpdates.length = '';
         vehicleInfoUpdates.width = '';
       }
-    }    if (vehicleInfoUpdates !== currentVehicleInfo) {
+    }
+    
+    if (vehicleInfoUpdates !== currentVehicleInfo) {
       updateField('vehicleInformation', vehicleInfoUpdates);
+    }
+    
+
+    if (field === 'isMotorcycle') {
+      const currentTransactionDetails = combinedFormData.vehicleTransactionDetails || {};
+      if (currentTransactionDetails.isMotorcycle !== newValue) {
+        console.log(`Syncing motorcycle state to transaction details: ${newValue}`);
+        updateField('vehicleTransactionDetails', {
+          ...currentTransactionDetails,
+          isMotorcycle: newValue
+        });
+      }
     }
     
     console.log(`Changing ${field} to:`, newValue);

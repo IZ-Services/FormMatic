@@ -69,6 +69,7 @@ interface LegalOwnerProps {
     legalOwnerInformation?: LegalOwnerType;
     vehicleTransactionDetails?: {
       currentLienholder?: boolean;
+      isOutOfStateTitle?: boolean;
     };
   };
   onChange?: (data: LegalOwnerType) => void;
@@ -156,15 +157,20 @@ const states = [
 ];
 
 const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData, onChange }) => {
+  const { formData: contextFormData, updateField } = useFormContext();
+  
   const [legalOwnerData, setLegalOwnerData] = useState<LegalOwnerType>(
     propFormData?.legalOwnerInformation || initialLegalOwner
   );
   const [eltError, setEltError] = useState<string>('');
-  const { updateField } = useFormContext();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
   const stateDropdownRef = useRef<HTMLDivElement>(null);
   const mailingStateDropdownRef = useRef<HTMLDivElement>(null);
+
+
+  const formData = { ...contextFormData, ...propFormData };
+  const isOutOfStateTitle = formData?.vehicleTransactionDetails?.isOutOfStateTitle === true;
 
   useEffect(() => {
     if (!propFormData?.legalOwnerInformation) {
@@ -175,6 +181,28 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
       }
     }
   }, []);
+
+
+  useEffect(() => {
+    if (!isOutOfStateTitle && legalOwnerData.mailingAddressDifferent) {
+      const newData = { 
+        ...legalOwnerData,
+        mailingAddressDifferent: false,
+        mailingAddress: {
+          street: '',
+          poBox: '',
+          city: '',
+          state: '',
+          zip: ''
+        }
+      };
+      setLegalOwnerData(newData);
+      updateField('legalOwnerInformation', newData);
+      if (onChange) {
+        onChange(newData);
+      }
+    }
+  }, [isOutOfStateTitle]);
 
   useEffect(() => {
     const hasCurrentLienholder = propFormData?.vehicleTransactionDetails?.currentLienholder === true;
@@ -324,20 +352,22 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
 
   return (
     <div className="releaseWrapper" style={{ ...containerStyle, marginBottom: '30px' }}>
-      <div className="headerRow" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+      <div className="headerRow" style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'baseline', marginBottom: '15px' }}>
         <h3 className="releaseHeading" style={{ margin: 0 }}>Legal Owner of Record</h3>
-        <div className="mailingCheckboxWrapper">
-          <label className="mailingCheckboxLabel" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input
-              type="checkbox"
-              className="mailingCheckboxInput"
-              checked={legalOwnerData.mailingAddressDifferent || false}
-              onChange={(e) => handleMailingCheckboxChange(e.target.checked)}
-              style={{ margin: 0 }}
-            />
-            If mailing address is different
-          </label>
-        </div>
+        {isOutOfStateTitle && (
+          <div className="mailingCheckboxWrapper">
+            <label className="mailingCheckboxLabel" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="checkbox"
+                className="mailingCheckboxInput"
+                checked={legalOwnerData.mailingAddressDifferent || false}
+                onChange={(e) => handleMailingCheckboxChange(e.target.checked)}
+                style={{ margin: 0 }}
+              />
+              If mailing address is different
+            </label>
+          </div>
+        )}
       </div>
       
       {/* Name and ELT fields in one row */}
@@ -460,7 +490,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
       </div>
 
       {/* Mailing Address Section (shows only when checkbox is checked) */}
-      {legalOwnerData.mailingAddressDifferent && (
+      {isOutOfStateTitle && legalOwnerData.mailingAddressDifferent && (
         <div className="addressWrapper" style={{ marginTop: '30px', position: 'relative' }}>
           <h3 className="addressHeading" style={{ marginBottom: '15px' }}>Mailing Address</h3>
           <div className="streetAptGroup">

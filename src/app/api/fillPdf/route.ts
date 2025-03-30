@@ -40,14 +40,14 @@ export async function POST(request: Request) {
 
     console.log('Complete formData:', JSON.stringify(formData));
 
-   // Replace the "if (isMultipleTransfer)" block with this code:
+
 
 if (isMultipleTransfer) {
   console.log('Multiple transfer structure detected, restructuring data...');
   try {
-    // Create structure but preserve existing data instead of setting empty objects
+
     const restructuredData = {
-      // Keep existing data or initialize empty if not present
+
       owners: formData.owners || formData.newOwners?.owners || [],
       vehicleInformation: formData.vehicleInformation || {},
       sellerInfo: { 
@@ -84,7 +84,7 @@ if (isMultipleTransfer) {
     formData = restructuredData;
   } catch (error) {
     console.error('Error restructuring data:', error);
-    // Keep the original formData instead of replacing with empty objects
+
     console.log('Keeping original formData due to restructuring error');
   }
 }
@@ -342,6 +342,8 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     }
     safeSetCheckbox('Check Box181', true);
 safeSetCheckbox('Check Box183', true);
+safeSetCheckbox('Check Box34', true);
+safeSetCheckbox('Check Box36', true);
 
     let vinSetInText56 = false;
     
@@ -3150,7 +3152,7 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     giftCheckbox: 'Gift Box',
     tradeCheckbox: 'Gift Box1',
     
-    countyField: 'county.0.0',
+    countyField: 'county.0.0',  //trailer
     sellercountyField: 'county residence or county where vehicle or vessle is princi.0',
     newregownercountyField :'County of residence',
     
@@ -3277,12 +3279,14 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
   
   const vehicleInfo = formData.vehicleInformation || {};
   
-  const county = formData.trailerLocation?.county || addressData.county || '';
+  const county = formData.trailerLocation?.county || '';
   const sellerCounty = sellerAddress.county || '';
+  const ownercounty = addressData.county || '';
+  
   safeSetText(fieldMapping.newregownercountyField, sellerCounty);
   const hasNewOwner = owners && owners.length > 0;
   if (hasNewOwner) {
-    safeSetText(fieldMapping.sellercountyField, sellerCounty);
+    safeSetText(fieldMapping.sellercountyField, ownercounty);
   }
   const formatSellerName = (seller: any) => {
     return [
@@ -3858,8 +3862,7 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     'SELLER 1 LICENSE': { x: 490, y: 216 },
     'SELLER 2 LICENSE': { x: 495, y: 192 },
     'SELLER 3 LICENSE': { x: 495, y: 168 },
-    'BUYER 1 ADDRESS': { x: 45, y: 274 },
-    'SELLER 1 ADDRESS': { x: 45, y: 140 },
+
     'BUYER 1 PHONE': { x: 495, y: 275 },
     'SELLER 1 PHONE': { x: 495, y: 140 },
     'NOT ACTUAL MILEAGE': { x: 60, y: 530 },
@@ -3877,20 +3880,7 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     return [person.firstName, person.middleName, person.lastName].filter(Boolean).join(' ');
   };
   
-  const formatAddress = (address: any) => {
-    if (!address) return '';
-    
-    console.log("Formatting address:", JSON.stringify(address));
-    
-    const street =  address.street? `Street: ${address.street}` : '';
-    const apt = address.apt ? `  Apt/Space: ${address.apt}` : '';
-    const city = address.city ? `  City: ${address.city}` : '';
-    const state = address.state ? `  State: ${address.state}` : '';
-    const zip = address.zip ? `  Zip: ${address.zip}` : '';
-    
-    const parts = [street, apt, city, state, zip].filter(Boolean);
-    return parts.join(' ');
-  };
+
   
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -3932,6 +3922,161 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
   console.log("Seller regular address:", JSON.stringify(sellerRegularAddress));
   console.log("Seller mailing address:", JSON.stringify(sellerMailingAddress));
   
+
+
+  try {
+    const sellerStreetField = form.getTextField('text_60czib');
+    const sellerCityField = form.getTextField('text_61pxrx');
+    const sellerStateField = form.getTextField('text_62cqaf');
+    const sellerZipField = form.getTextField('text_63psgg');
+    
+
+    const sellerAddressToUse = sellerMailingAddress || sellerRegularAddress;
+    
+    if (sellerStreetField) {
+      sellerStreetField.setText(sellerAddressToUse.street || '');
+      console.log(`Set seller street: ${sellerAddressToUse.street || ''}`);
+    }
+    
+    if (sellerCityField) {
+      sellerCityField.setText(sellerAddressToUse.city || '');
+      console.log(`Set seller city: ${sellerAddressToUse.city || ''}`);
+    }
+    
+    if (sellerStateField) {
+      sellerStateField.setText(sellerAddressToUse.state || '');
+      console.log(`Set seller state: ${sellerAddressToUse.state || ''}`);
+    }
+    
+    if (sellerZipField) {
+      sellerZipField.setText(sellerAddressToUse.zip || '');
+      console.log(`Set seller zip: ${sellerAddressToUse.zip || ''}`);
+    }
+  } catch (error) {
+    console.error('Error setting seller address fields:', error);
+    
+
+    const sellerAddressToUse = sellerMailingAddress || sellerRegularAddress;
+    
+
+    if (sellerAddressToUse.street) {
+      firstPage.drawText(sellerAddressToUse.street, {
+        x: 45,
+        y: 140,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (sellerAddressToUse.city) {
+      firstPage.drawText(sellerAddressToUse.city, {
+        x: 45,
+        y: 128,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (sellerAddressToUse.state) {
+      firstPage.drawText(sellerAddressToUse.state, {
+        x: 190,
+        y: 128,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (sellerAddressToUse.zip) {
+      firstPage.drawText(sellerAddressToUse.zip, {
+        x: 230,
+        y: 128,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+  }
+  
+
+  try {
+    const ownerStreetField = form.getTextField('text_67vkky');
+    const ownerCityField = form.getTextField('text_66evl');
+    const ownerStateField = form.getTextField('text_65bzof');
+    const ownerZipField = form.getTextField('text_64xthv');
+    
+
+    const buyerAddressToUse = buyerMailingAddress || buyerRegularAddress;
+    
+    if (ownerStreetField) {
+      ownerStreetField.setText(buyerAddressToUse.street || '');
+      console.log(`Set buyer street: ${buyerAddressToUse.street || ''}`);
+    }
+    
+    if (ownerCityField) {
+      ownerCityField.setText(buyerAddressToUse.city || '');
+      console.log(`Set buyer city: ${buyerAddressToUse.city || ''}`);
+    }
+    
+    if (ownerStateField) {
+      ownerStateField.setText(buyerAddressToUse.state || '');
+      console.log(`Set buyer state: ${buyerAddressToUse.state || ''}`);
+    }
+    
+    if (ownerZipField) {
+      ownerZipField.setText(buyerAddressToUse.zip || '');
+      console.log(`Set buyer zip: ${buyerAddressToUse.zip || ''}`);
+    }
+  } catch (error) {
+    console.error('Error setting buyer address fields:', error);
+    
+
+    const buyerAddressToUse = buyerMailingAddress || buyerRegularAddress;
+    
+
+    if (buyerAddressToUse.street) {
+      firstPage.drawText(buyerAddressToUse.street, {
+        x: 45,
+        y: 274,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (buyerAddressToUse.city) {
+      firstPage.drawText(buyerAddressToUse.city, {
+        x: 45,
+        y: 262,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (buyerAddressToUse.state) {
+      firstPage.drawText(buyerAddressToUse.state, {
+        x: 190,
+        y: 262,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (buyerAddressToUse.zip) {
+      firstPage.drawText(buyerAddressToUse.zip, {
+        x: 230,
+        y: 262,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+  }
+  
   for (const [label, position] of Object.entries(textPositions)) {
     let value = '';
     
@@ -3956,23 +4101,20 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     else if (label === 'MOTORCYCLE ENGINE NUMBER') value = vehicleInfo.engineNumber || '';
  
     else if (label === 'POA DATE 1') {
- 
-      if (sellerInfo && sellerInfo.sellers && sellerInfo.sellers.length > 0 && sellerInfo.sellers[0].saleDate) {
-        value = sellerInfo.sellers[0].saleDate || '';
-        console.log(`Found seller's sale date for POA DATE 1: ${value}`);
-      } else {
-        console.log('No seller sale date found for POA DATE 1, leaving empty');
-        value = '';
-      }
+
+      const currentDate = new Date();
+      value = formatDate(currentDate.toISOString());
+      console.log(`Using current date for POA DATE 1: ${value}`);
     }
     else if (label === 'POA DATE 2') {
- 
-      if (sellerInfo && sellerInfo.sellers && sellerInfo.sellers.length > 1 && sellerInfo.sellers[1].saleDate) {
-        value = sellerInfo.sellers[1].saleDate || '';
-        console.log(`Found second seller's sale date for POA DATE 2: ${value}`);
+
+      if (Array.isArray(owners) && owners.length > 1) {
+        const currentDate = new Date();
+        value = formatDate(currentDate.toISOString());
+        console.log(`Using current date for POA DATE 2 (because there are ${owners.length} owners): ${value}`);
       } else {
-        console.log('No second seller sale date found for POA DATE 2, leaving empty');
-        value = '';
+        console.log('Less than 2 new registration owners, skipping POA DATE 2 field');
+        continue;
       }
     }
     if (powerOfAttorneyData.dates && powerOfAttorneyData.dates.length > 2) {
@@ -3987,8 +4129,22 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
       value = powerOfAttorneyData.appointee || '';
       console.log(`Found appointee value: ${value}`);
     }
-    else if (label === 'I/We') value = formatFullName(sellers[0]) || '';
-    else if (label === 'to') value = formatFullName(owners[0]) || '';
+    else if (label === 'I/We') {
+
+      if (Array.isArray(sellers) && sellers.length > 0) {
+        const sellerNames = sellers.map(seller => formatFullName(seller)).filter(Boolean);
+        value = sellerNames.join(', ');
+        console.log(`Using all sellers for I/We field: ${value}`);
+      }
+    }
+    else if (label === 'to') {
+
+      if (Array.isArray(owners) && owners.length > 0) {
+        const ownerNames = owners.map(owner => formatFullName(owner)).filter(Boolean);
+        value = ownerNames.join(', ');
+        console.log(`Using all owners for 'to' field: ${value}`);
+      }
+    }
     else if (label === 'SELLING PRICE') {
       if (Array.isArray(owners) && owners.length > 0 && owners[0].purchaseValue) {
         value = owners[0].purchaseValue.toString();
@@ -4019,16 +4175,24 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
         console.log(`Found buyer 1 value: ${value}`);
       }
     }
+
     else if (label === 'BUYER 2') {
       if (Array.isArray(owners) && owners.length > 1) {
         value = formatFullName(owners[1]) || '';
         console.log(`Found buyer 2 value: ${value}`);
+      } else {
+        console.log('No buyer 2 found, skipping BUYER 2 field');
+        continue;
       }
     }
+
     else if (label === 'BUYER 3') {
       if (Array.isArray(owners) && owners.length > 2) {
         value = formatFullName(owners[2]) || '';
         console.log(`Found buyer 3 value: ${value}`);
+      } else {
+        console.log('No buyer 3 found, skipping BUYER 3 field');
+        continue;
       }
     }
    
@@ -4038,26 +4202,78 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
         console.log(`Found seller 1 value: ${value}`);
       }
     }
+
     else if (label === 'SELLER 2') {
       if (Array.isArray(sellers) && sellers.length > 1) {
         value = formatFullName(sellers[1]) || '';
         console.log(`Found seller 2 value: ${value}`);
+      } else {
+        console.log('No seller 2 found, skipping SELLER 2 field');
+        continue;
       }
     }
+
     else if (label === 'SELLER 3') {
       if (Array.isArray(sellers) && sellers.length > 2) {
         value = formatFullName(sellers[2]) || '';
         console.log(`Found seller 3 value: ${value}`);
+      } else {
+        console.log('No seller 3 found, skipping SELLER 3 field');
+        continue;
       }
     }
     
- 
-    else if (label === 'BUYER 1 DOP' || label === 'BUYER 2 DOP' || label === 'BUYER 3 DOP' || 
-             label === 'SELLER 1 DOP' || label === 'SELLER 2 DOP' || label === 'SELLER 3 DOP') {
-      value = formatDate(seller1SaleDate);
-      console.log(`Using seller1's sale date for ${label}: ${value}`);
+
+    else if (label === 'BUYER 1 DOP') {
+      if (Array.isArray(owners) && owners.length > 0) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for BUYER 1 DOP: ${value}`);
+      }
+    }
+    else if (label === 'BUYER 2 DOP') {
+      if (Array.isArray(owners) && owners.length > 1) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for BUYER 2 DOP: ${value}`);
+      } else {
+        console.log('No buyer 2 found, skipping BUYER 2 DOP field');
+        continue;
+      }
+    }
+    else if (label === 'BUYER 3 DOP') {
+      if (Array.isArray(owners) && owners.length > 2) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for BUYER 3 DOP: ${value}`);
+      } else {
+        console.log('No buyer 3 found, skipping BUYER 3 DOP field');
+        continue;
+      }
+    }
+    else if (label === 'SELLER 1 DOP') {
+      if (Array.isArray(sellers) && sellers.length > 0) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for SELLER 1 DOP: ${value}`);
+      }
+    }
+    else if (label === 'SELLER 2 DOP') {
+      if (Array.isArray(sellers) && sellers.length > 1) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for SELLER 2 DOP: ${value}`);
+      } else {
+        console.log('No seller 2 found, skipping SELLER 2 DOP field');
+        continue;
+      }
+    }
+    else if (label === 'SELLER 3 DOP') {
+      if (Array.isArray(sellers) && sellers.length > 2) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for SELLER 3 DOP: ${value}`);
+      } else {
+        console.log('No seller 3 found, skipping SELLER 3 DOP field');
+        continue;
+      }
     }
     
+
     else if (label === 'BUYER 1 LICENSE') {
       if (Array.isArray(owners) && owners.length > 0) {
         value = owners[0].licenseNumber || '';
@@ -4068,12 +4284,18 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
       if (Array.isArray(owners) && owners.length > 1) {
         value = owners[1].licenseNumber || '';
         console.log(`Found buyer 2 license: ${value}`);
+      } else {
+        console.log('No buyer 2 found, skipping BUYER 2 LICENSE field');
+        continue;
       }
     }
     else if (label === 'BUYER 3 LICENSE') {
       if (Array.isArray(owners) && owners.length > 2) {
         value = owners[2].licenseNumber || '';
         console.log(`Found buyer 3 license: ${value}`);
+      } else {
+        console.log('No buyer 3 found, skipping BUYER 3 LICENSE field');
+        continue;
       }
     }
     
@@ -4087,30 +4309,22 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
       if (Array.isArray(sellers) && sellers.length > 1) {
         value = sellers[1].licenseNumber || '';
         console.log(`Found seller 2 license: ${value}`);
+      } else {
+        console.log('No seller 2 found, skipping SELLER 2 LICENSE field');
+        continue;
       }
     }
     else if (label === 'SELLER 3 LICENSE') {
       if (Array.isArray(sellers) && sellers.length > 2) {
         value = sellers[2].licenseNumber || '';
         console.log(`Found seller 3 license: ${value}`);
-      }
-    }
-    
-    else if (label === 'BUYER 1 ADDRESS') {
-      const addressToUse = buyerMailingAddressDifferent ? buyerMailingAddress : buyerRegularAddress;
-      value = formatAddress(addressToUse);
-      console.log(`Formatted buyer address: ${value}`);
-    }
-    
-    else if (label === 'SELLER 1 ADDRESS') {
-      if (sellerMailingAddressDifferent) {
-        value = formatAddress(sellerMailingAddress);
-        console.log(`Found seller 1 mailing address (different): ${value}`);
       } else {
-        value = formatAddress(sellerRegularAddress);
-        console.log(`Using seller regular address: ${value}`);
+        console.log('No seller 3 found, skipping SELLER 3 LICENSE field');
+        continue;
       }
     }
+    
+
     
     else if (label === 'BUYER 1 PHONE') {
       if (Array.isArray(owners) && owners.length > 0) {
@@ -4141,10 +4355,21 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     if (value) {
       console.log(`Drawing text for ${label} at (${position.x}, ${position.y}): "${value}"`);
       
+
+      let fontSize = 10;
+      
+
+      if ((label === 'I/We' || label === 'to') && value.length > 30) {
+
+
+        fontSize = Math.max(6, 10 - ((value.length - 30) / 10));
+        console.log(`Reducing font size for ${label} to ${fontSize} (${value.length} characters)`);
+      }
+      
       firstPage.drawText(value, {
         x: position.x,
         y: position.y,
-        size: 10,
+        size: fontSize,
         font: font,
         color: rgb(0, 0, 0),
       });

@@ -12,6 +12,13 @@ interface VehicleTransactionDetailsData {
   isOutOfStateTitle?: boolean;
 }
 
+interface VehicleTypeData {
+  isAuto?: boolean;
+  isMotorcycle?: boolean;
+  isOffHighway?: boolean;
+  isTrailerCoach?: boolean;
+}
+
 interface OwnerData {
   firstName?: string;
   middleName?: string;
@@ -50,6 +57,7 @@ interface VehicleInformationType {
 interface FormDataType {
   vehicleTransactionDetails?: VehicleTransactionDetailsData;
   vehicleInformation?: VehicleInformationType;
+  vehicleType?: VehicleTypeData;
   owners?: OwnerData[];
 }
 
@@ -93,6 +101,29 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     setTransactionData(mergedData);
   }, [combinedFormData?.vehicleTransactionDetails]);
 
+
+  useEffect(() => {
+    const vehicleType = combinedFormData?.vehicleType;
+    if (vehicleType && vehicleType.isMotorcycle !== undefined) {
+
+      if (vehicleType.isMotorcycle !== transactionData.isMotorcycle) {
+        console.log("Syncing motorcycle state from vehicle type:", vehicleType.isMotorcycle);
+        
+        const newData = { 
+          ...transactionData,
+          isMotorcycle: vehicleType.isMotorcycle 
+        };
+        
+        setTransactionData(newData);
+        updateField('vehicleTransactionDetails', newData);
+        
+        if (onChange) {
+          onChange(newData);
+        }
+      }
+    }
+  }, [combinedFormData?.vehicleType?.isMotorcycle]);
+
   const handleCheckboxChange = (field: keyof VehicleTransactionDetailsData) => {
     const newValue = !transactionData[field];
     
@@ -108,7 +139,6 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     if (field === 'isFamilyTransfer' && newValue) {
       newData.isGift = false;
 
-      newData.isSmogExempt = true;
     }     
     
     if (field === 'currentLienholder' && !newValue) {
@@ -147,6 +177,29 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
           giftValue: ''
         }));
         updateField('owners', updatedOwners);
+      }
+    }
+    
+
+    if (field === 'isMotorcycle') {
+      const currentVehicleType = combinedFormData.vehicleType || {};
+      
+      if (currentVehicleType.isMotorcycle !== newValue) {
+        console.log(`Syncing motorcycle state to vehicle type: ${newValue}`);
+        
+        const newVehicleType = {
+          ...currentVehicleType,
+          isMotorcycle: newValue
+        };
+        
+
+        if (newValue) {
+          newVehicleType.isAuto = false;
+          newVehicleType.isOffHighway = false;
+          newVehicleType.isTrailerCoach = false;
+        }
+        
+        updateField('vehicleType', newVehicleType);
       }
     }
     

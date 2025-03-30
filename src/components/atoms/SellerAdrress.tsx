@@ -271,7 +271,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
   };
 
   const handleCheckboxChange = (field: keyof FormData, checked: boolean) => {
-
     if (hideMailingAddress && field === 'sellerMailingAddressDifferent') {
       return;
     }
@@ -281,7 +280,11 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     const newData = { ...addressData };
     newData[field] = checked;
     
-    if (field === 'sellerMailingAddressDifferent' && checked) {
+
+    if (field === 'sellerMailingAddressDifferent' && !checked) {
+      newData.sellerMailingAddress = { ...initialAddress };
+      console.log("Clearing mailing address fields:", newData.sellerMailingAddress);
+    } else if (field === 'sellerMailingAddressDifferent' && checked) {
       if (!newData.sellerMailingAddress || Object.keys(newData.sellerMailingAddress).length === 0) {
         newData.sellerMailingAddress = { ...initialAddress };
       }
@@ -295,7 +298,8 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     } else {
       updateField(String(field), checked);
       
-      if (field === 'sellerMailingAddressDifferent' && checked) {
+
+      if (field === 'sellerMailingAddressDifferent') {
         updateField('sellerMailingAddress', newData.sellerMailingAddress);
       }
     }
@@ -490,7 +494,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
 
       <div className="addressWrapper">
         <div className="addressCheckboxWrapper">
-          <h3 className="addressHeading">Residential Address</h3>
+          <h4 className="addressHeading">Address</h4>
           {/* Only show the mailing address checkbox if not hidden */}
           {!hideMailingAddress && (
             <div className="checkboxSection">

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('Remove Lienholder form submission test', async ({ page }) => {
-  // Increase the timeout for this test
+
   test.setTimeout(60000);
   
   await page.goto('http://localhost:3000/');
@@ -98,11 +98,11 @@ test('Remove Lienholder form submission test', async ({ page }) => {
       });
     } else {
       try {
-        // Fixed: Removed timeout parameter from title()
+
         const pageTitle = await page1.title();
         console.log(`Current page title: ${pageTitle}`);
         
-        // Fixed: Removed timeout parameter from content()
+
         const pageContent = await page1.content();
         const hasSuccessIndicator = pageContent.includes('success') || 
                                  pageContent.includes('saved') || 
@@ -116,14 +116,14 @@ test('Remove Lienholder form submission test', async ({ page }) => {
           });
         }
         
-        // Try screenshot with a separate timeout option
+
         try {
-          // Most versions of Playwright do accept a timeout for screenshot()
+
           await page1.screenshot({ 
             path: 'save-result-page.png', 
             timeout: 5000 
           }).catch(() => {
-            // If timeout parameter isn't supported, try without it
+
             return page1.screenshot({ path: 'save-result-page.png' });
           });
           
@@ -147,7 +147,7 @@ test('Remove Lienholder form submission test', async ({ page }) => {
     });
   }
   
-  // Final successful test message
+
   console.log('TEST PASSED: Form was filled and submitted, popup window was created');
   test.info().annotations.push({
     type: 'Final Status',

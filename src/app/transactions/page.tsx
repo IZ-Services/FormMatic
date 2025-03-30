@@ -14,7 +14,7 @@ import { Dayjs } from 'dayjs';
 import Loading from '../../components/pages/Loading';
 import { useAppContext } from '@/context';
 
-// Import all transaction components
+
 import SimpleTransfer from '../../components/molecules/SimpleTransfer';
 import MultipleTransfer from '../../components/molecules/MultipleTransfer';
 import DuplicateTitle from '../../components/molecules/DuplicateTitle';
@@ -41,7 +41,7 @@ interface ITransaction {
   createdAt: string;
 }
 
-// Map all transaction types to their respective components
+
 const transactionComponents: Record<string, React.FC<{ formData: any }>> = {
   'Simple Transfer': SimpleTransfer,
   'Multiple Transfer': MultipleTransfer,
@@ -157,7 +157,7 @@ export default function Transactions() {
       return;
     }
     
-    // Debug log to check transaction type
+
     console.log('Transaction type:', clientToEdit.transactionType);
     console.log('Available components:', Object.keys(transactionComponents));
     
@@ -192,7 +192,7 @@ export default function Transactions() {
     }
   };
 
-  // Add a function to go back to the transactions list
+
   const handleBackToTransactions = () => {
     setSelectedTransaction(null);
   };

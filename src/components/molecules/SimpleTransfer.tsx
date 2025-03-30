@@ -72,8 +72,12 @@ export default function SimpleTransfer({ formData, onDataChange }: SimpleTransfe
         )}
 
         <VehicalInformation formData={formValues}/>
-        <Seller formData={formValues} />
-        <SellerAddress formData={formValues} />
+        <Seller 
+        formData={{
+          hideDateOfBirth: true,
+
+        }}
+      />        <SellerAddress formData={formValues} />
         {isCurrentLienholder && (
           <LegalOwnerOfRecord formData={formValues} />
         )}
@@ -91,7 +95,7 @@ export default function SimpleTransfer({ formData, onDataChange }: SimpleTransfe
         {isOutOfStateTitle && (
           <OutOfStateVehicles formData={formValues} />
         )}  
-        <NewLien formData={formValues} />
+        {/* <NewLien formData={formValues} /> */}
         <PowerOfAttorney formData={formValues} />
          {isSmogExempt && (
           <SmogExemption formData={formValues} />

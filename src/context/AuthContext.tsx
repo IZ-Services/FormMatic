@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, createContext, useState, useEffect } from 'react';
+import React, { useContext, createContext, useState, useEffect, useRef } from 'react';
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
@@ -13,7 +13,7 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 import { auth, initFirebase } from '../firebase-config';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import axios from 'axios';
 import { deleteUser, getAuth } from "firebase/auth";
 import { getCookie } from '@/utils/cookie';
@@ -30,25 +30,71 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+
+let lastPath = '';
+
+const ORIGINAL_PATH_KEY = 'originalPath';
+
 export const AuthContextProvider = ({ children }: Readonly<{ children: React.ReactNode }>) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const [isPageRefresh, setIsPageRefresh] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+
+    if (typeof window !== 'undefined' && !initializedRef.current) {
+      initializedRef.current = true;
+      
+
+      const isRefresh = 
+        window.performance && 
+        window.performance.navigation && 
+        window.performance.navigation.type === 1;
+      
+      if (isRefresh || document.referrer === '') {
+        console.log('PAGE REFRESH DETECTED');
+        setIsPageRefresh(true);
+        
+
+        if (pathname !== '/' && pathname !== '/home') {
+          sessionStorage.setItem(ORIGINAL_PATH_KEY, pathname);
+          console.log('Stored original path:', pathname);
+        }
+      } else {
+        console.log('NORMAL NAVIGATION');
+      }
+    }
+    
+
+    if (lastPath !== pathname) {
+      console.log(`Path changed from ${lastPath || 'initial'} to ${pathname}`);
+      lastPath = pathname;
+    }
+  }, [pathname]);
 
   const checkSession = async () => {
     try {
+      console.log('Checking session at path:', pathname);
       const response = await axios.get('/api/checkSession', { 
         withCredentials: true 
       });
       
       if (response.data.user && auth.currentUser) {
         setUser(auth.currentUser);
+        console.log('Session valid, user authenticated');
       } else if (auth.currentUser) {
         console.log('Session invalid, logging out');
         await logout();
+      } else {
+        console.log('No authenticated user in checkSession');
       }
     } catch (error) {
       console.error('Session check error:', error);
@@ -147,7 +193,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
 
     const db = getFirestore(app);
     const userRef = doc(db, 'users', user.uid);
-
+    
     if (diffDays < 7) {
       setIsSubscribed(true);
       setLoading(false);
@@ -170,12 +216,34 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
           }
 
           setIsSubscribed(userData.isSubscribed);
-          if (!userData.isSubscribed) {
+          
+
+          if (isPageRefresh) {
+            console.log('Skipping redirect due to page refresh');
+            setLoading(false);
+            return;
+          }
+          
+
+          if (!userData.isSubscribed && pathname === '/home' && !isPageRefresh) {
+            console.log('Redirecting from /home to /signUp due to subscription check');
             router.push('/signUp');
           }
         } else {
           setIsSubscribed(false);
-          router.push('/signUp');
+          
+
+          if (isPageRefresh) {
+            console.log('Skipping redirect due to page refresh (no user doc)');
+            setLoading(false);
+            return;
+          }
+          
+
+          if (pathname === '/home' && !isPageRefresh) {
+            console.log('Redirecting from /home to /signUp (no user doc)');
+            router.push('/signUp');
+          }
         }
       } catch (error) {
         console.error('Error in subscription check:', error);
@@ -185,7 +253,19 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
     });
 
     return () => unsubscribeSnapshot();
-  }, [user, sessionChecked, router]);
+  }, [user, sessionChecked, router, pathname, isPageRefresh]);
+
+
+  useEffect(() => {
+    if (!loading && user && isPageRefresh) {
+      const originalPath = sessionStorage.getItem(ORIGINAL_PATH_KEY);
+      if (originalPath && originalPath !== pathname && pathname === '/home') {
+        console.log('Restoring original path:', originalPath);
+        router.push(originalPath);
+        sessionStorage.removeItem(ORIGINAL_PATH_KEY);
+      }
+    }
+  }, [loading, user, router, pathname, isPageRefresh]);
 
   if (!sessionChecked) {
     return <Loading />;

@@ -6,6 +6,7 @@
   z-index: 10;
   transition: transform 0.3s ease-in-out;
   pointer-events: none; /* This makes the wrapper not block interactions when closed */
+  max-height: 80vh; /* Limit maximum height to 80% of viewport height */
 }
 
 .type-container-wrapper.open {
@@ -16,16 +17,19 @@
   border: 1px solid #ccc;
   padding: 15px;
   width: 700px;
-  height: 500px;
+  max-height: 80vh; /* Max height as percentage of viewport height */
   background-color: white;
-  box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.05);
   border-radius: 6px;
   margin-top: 8px;
   transform: translateX(120%);
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
   opacity: 0;
   visibility: hidden;
-  margin-right: 30px; 
+  margin-right: 30px;
+  overflow-y: auto; /* Enable vertical scrolling */
+  display: flex;
+  flex-direction: column;
 }
 
 .type-container.show {
@@ -40,6 +44,8 @@
   gap: 16px;
   justify-content: center;
   align-items: start;
+  overflow-y: auto; /* Enable scrolling in the sections container */
+  flex-grow: 1; /* Allow this to grow and fill available space */
 }
 
 .transaction-header {
@@ -110,7 +116,7 @@
   border: .7px solid black;
   border-radius: 12px 12px 0 0;
   cursor: pointer;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
   font-weight: bold;
   font-size: 16px;
   text-align: center;
@@ -122,8 +128,8 @@
   white-space: nowrap;
   height: 34px;
   writing-mode: horizontal-tb;
-  pointer-events: auto; /* The tab should always be clickable */
-  z-index: 11; /* Ensure the tab is above other elements */
+  pointer-events: auto;
+  z-index: 11; 
 }
 
 .close-icon {
@@ -136,11 +142,26 @@
   background: #ffffff;
 }
 
+.header-container {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 2;
+  padding: 10px 0;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.transaction-item {
+  margin-bottom: 15px;
+}
+
 @media (max-width: 1629px) { 
   .type-container {
     width: 600px;
     margin-right: 30px;
-    overflow-y: auto; 
   }
 
   .transactionSections {
@@ -154,7 +175,6 @@
   .type-container {
     width: 400px;
     margin-right: 30px;
-    overflow-y: auto; 
   }
 
   .transactionSections {
@@ -175,7 +195,6 @@
     transform: translateX(120%);
     margin-right: 30px;
     width: 300px;
-    overflow-y: auto; 
   }
 
   .type-container.show {
@@ -223,20 +242,12 @@
   }
 }
 
-.type-container {
-  position: relative; /* Ensure proper positioning context */
-}
-
 .close-button {
-  position: sticky;
-  top: 10px;
-  float: right;
   background: transparent;
   border: none;
   cursor: pointer;
-  z-index: 2; /* Ensure it stays above content */
-  margin-bottom: 10px;
-  margin-right: 10px;
+  z-index: 2;
+  margin-left: auto;
 }
 
 .close-icon {

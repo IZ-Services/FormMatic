@@ -197,15 +197,15 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Format phone number function - formats to (XXX) XXX-XXXX
+
   const formatPhoneNumber = (value: string): string => {
-    // Remove all non-digit characters
+
     const digits = value.replace(/\D/g, '');
     
-    // Limit to 10 digits
+
     const limitedDigits = digits.slice(0, 10);
     
-    // Format the phone number
+
     if (limitedDigits.length === 0) {
       return '';
     } else if (limitedDigits.length <= 3) {
@@ -217,12 +217,12 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     }
   };
 
-  // Format date as MM/DD/YYYY
+
   const formatDate = (value: string): string => {
-    // Remove non-digit characters
+
     const digits = value.replace(/\D/g, '');
     
-    // Format as MM/DD/YYYY
+
     if (digits.length <= 2) {
       return digits;
     } else if (digits.length <= 4) {
@@ -235,12 +235,12 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
   const handleReleaseInfoChange = (field: keyof ReleaseInformationType, value: any) => {
     let formattedValue = value;
 
-    // Apply formatting for phone number
+
     if (field === 'phoneNumber') {
       formattedValue = formatPhoneNumber(value);
     }
     
-    // Apply formatting for date
+
     if (field === 'date') {
       formattedValue = formatDate(value);
     }

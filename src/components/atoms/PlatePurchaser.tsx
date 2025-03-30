@@ -162,15 +162,15 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
     ).join(' ');
   };
   
-  // Phone number formatter - formats and limits to 10 digits
+
   const formatPhoneNumber = (value: string): string => {
-    // Remove all non-digit characters
+
     const digits = value.replace(/\D/g, '');
     
-    // Limit to 10 digits
+
     const limitedDigits = digits.slice(0, 10);
     
-    // Format the phone number
+
     if (limitedDigits.length === 0) {
       return '';
     } else if (limitedDigits.length <= 3) {

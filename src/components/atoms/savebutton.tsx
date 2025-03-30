@@ -348,7 +348,7 @@ const handlePdfDisplay = async (transactionId: string) => {
     }
     
     else {
-      formTypes = ['Reg227', 'DMVREG262'];
+      formTypes = ['DMVREG262','Reg227' ];
       
       if (formData.vehicleTransactionDetails?.isFamilyTransfer || 
           formData.vehicleTransactionDetails?.isGift ||
@@ -515,8 +515,8 @@ const openPdfs = async (transactionId: string) => {
         
         for (let i = 0; i < allTransactionIds.length; i++) {
           const transactionId = allTransactionIds[i];
-          const transferForms = [`Reg227`, `DMVREG262`];
-          
+          const transferForms = [ `DMVREG262`,`Reg227`];
+
           for (const formType of transferForms) {
             const response = await fetch('/api/fillPdf', {
               method: 'POST',

@@ -44,7 +44,6 @@ const TypeContainer: React.FC = () => {
       setSelectedSubsection(scenarioName);
     }
 
-
     if (scenarioName === 'Duplicate Stickers') {
       if (isChecked) {
         setActiveSubOptions(prev => ({
@@ -61,7 +60,6 @@ const TypeContainer: React.FC = () => {
       }
     }
     
-
     if (scenarioName === 'Name Change' && !isChecked) {
       setActiveSubOptions(prev => {
         const updated = { ...prev };
@@ -72,7 +70,6 @@ const TypeContainer: React.FC = () => {
       });
     }
     
-
     if (scenarioName === 'Personalized Plates' && !isChecked) {
       setActiveSubOptions(prev => {
         const updated = { ...prev };
@@ -89,9 +86,7 @@ const TypeContainer: React.FC = () => {
     const optionKey = `${parentName}-${subOptionName}`;
     console.log(`Selecting sub-option: ${optionKey}, checked: ${isChecked}`);
     
-
     if (parentName === 'Name Change' && isChecked) {
-
       const updatedOptions = { ...activeSubOptions };
       Object.keys(updatedOptions).forEach(key => {
         if (key.startsWith('Name Change-')) {
@@ -99,13 +94,11 @@ const TypeContainer: React.FC = () => {
         }
       });
       
-
       updatedOptions[optionKey] = true;
       
       console.log('Updated activeSubOptions for Name Change:', updatedOptions);
       setActiveSubOptions(updatedOptions);
       
-
       if (!activeScenarios['Name Change']) {
         console.log('Auto-selecting Name Change parent option');
         setActiveScenarios(prev => ({
@@ -114,9 +107,7 @@ const TypeContainer: React.FC = () => {
         }));
       }
     } 
-
     else if (parentName === 'Personalized Plates' && isChecked) {
-
       const updatedOptions = { ...activeSubOptions };
       Object.keys(updatedOptions).forEach(key => {
         if (key.startsWith('Personalized Plates-')) {
@@ -124,13 +115,11 @@ const TypeContainer: React.FC = () => {
         }
       });
       
-
       updatedOptions[optionKey] = true;
       
       console.log('Updated activeSubOptions for Personalized Plates:', updatedOptions);
       setActiveSubOptions(updatedOptions);
       
-
       if (!activeScenarios['Personalized Plates']) {
         console.log('Auto-selecting Personalized Plates parent option');
         setActiveScenarios(prev => ({
@@ -140,7 +129,6 @@ const TypeContainer: React.FC = () => {
       }
     } 
     else {
-
       setActiveSubOptions(prev => {
         const updated = {
           ...prev,
@@ -159,9 +147,12 @@ const TypeContainer: React.FC = () => {
       </button>
 
       <div className={`type-container ${isOpen ? "show" : ""}`}>
-        <button className="close-button" onClick={() => setIsOpen(false)}>
-          <XMarkIcon className="close-icon" />
-        </button>
+        <div className="header-container">
+          <h2>Transactions</h2>
+          <button className="close-button" onClick={() => setIsOpen(false)}>
+            <XMarkIcon className="close-icon" />
+          </button>
+        </div>
 
         <div className="transactionSections">
           {scenarios.map(({ transactionType, subsections }) => (
