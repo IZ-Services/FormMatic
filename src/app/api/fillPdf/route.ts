@@ -5160,7 +5160,7 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     "County": "sellerAddress.county",
 
     "Mailing address": "sellerMailingAddress.street",
-    "Apt 2": "sellerMailingAddress.apt",
+    "Apt 2": "sellerMailingAddress.poBox",
     "City2": "sellerMailingAddress.city",
     "state2": "sellerMailingAddress.state",
     "zip code2": "sellerMailingAddress.zip",
