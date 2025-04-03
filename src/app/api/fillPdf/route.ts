@@ -2987,7 +2987,20 @@ try {
 
 async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string, transactionType?: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
-  const isSimpleTransfer = effectiveTransactionType === "Simple Transfer";
+  
+  // Normalize transaction type for Multiple Transfer cases
+  let normalizedTransactionType = effectiveTransactionType;
+  
+  // Check if it's a Multiple Transfer with numbering pattern
+  if (effectiveTransactionType && effectiveTransactionType.startsWith("Multiple Transfer")) {
+    normalizedTransactionType = "Multiple Transfer";
+  }
+
+  const isSimpleTransfer = normalizedTransactionType === "Simple Transfer";
+  const isMultipleTransfer = normalizedTransactionType === "Multiple Transfer";
+
+  console.log(`Transaction type is ${effectiveTransactionType}, normalized to ${normalizedTransactionType}, isMultipleTransfer = ${isMultipleTransfer}`);
+  
   console.log(`Transaction type is ${effectiveTransactionType}, isSimpleTransfer = ${isSimpleTransfer}`);
   
   const form = pdfDoc.getForm();
@@ -3358,7 +3371,10 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     safeSetText(fieldMapping.seller1Name, formatSellerName(seller1));
     safeSetText(fieldMapping.seller1NamePrint, formatOwnerName(seller1));
     safeSetText(fieldMapping.seller1State, seller1.state || '');
-    if (!isSimpleTransfer) {
+
+
+    
+    if (!isSimpleTransfer && !isMultipleTransfer) {
       safeSetText(fieldMapping.sellerNamePrint, formatOwnerName(seller1));
       
       if (seller1.phone) {
@@ -3376,8 +3392,8 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
           return `${month}/${day}/${year}`;
         };
         const currentDate = getCurrentDate();
-
         safeSetText(fieldMapping.sellerDate, formatDate(currentDate));
+
       
     }
     
@@ -5386,13 +5402,13 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     }
   }
   
-  if (!dataToUse.sellerMailingAddressDifferent && dataToUse.sellerAddress) {
-    safeSetText("Mailing address", dataToUse.sellerAddress.street || '');
-    safeSetText("Apt 2", dataToUse.sellerAddress.apt || '');
-    safeSetText("City2", dataToUse.sellerAddress.city || '');
-    safeSetText("state2", dataToUse.sellerAddress.state || '');
-    safeSetText("zip code2", dataToUse.sellerAddress.zip || '');
-  }
+  // if (dataToUse.sellerMailingAddressDifferent) {
+  //   safeSetText("Mailing address", dataToUse.sellerAddress.street || '');
+  //   safeSetText("Apt 2", dataToUse.sellerAddress.apt || '');
+  //   safeSetText("City2", dataToUse.sellerAddress.city || '');
+  //   safeSetText("state2", dataToUse.sellerAddress.state || '');
+  //   safeSetText("zip code2", dataToUse.sellerAddress.zip || '');
+  // }
 
   if (isFilingPNOTransfer) {
     console.log('Processing Filing PNO Transfer transaction type');

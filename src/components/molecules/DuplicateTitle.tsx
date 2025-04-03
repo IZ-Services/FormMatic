@@ -113,8 +113,9 @@ export default function DuplicateTitleTransfer({ formData }: DuplicateTitleTrans
         />
 <Seller
         formData={{
-          
-          limitOwnerCount: true
+          hideDateOfBirth: true,
+          limitOwnerCount: true,
+          hideDateOfSale: true,
 
         }}
       />        <SellerAddress formData={formValues} />

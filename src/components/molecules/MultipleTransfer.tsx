@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Address from '../atoms/Address';
 import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
-import NewLien from '../atoms/NewLienHolder';
+// import NewLien from '../atoms/NewLienHolder';
 import VehicalInformation from '../atoms/VehicleInformation';
 import Seller from '../atoms/Seller';
 import SaveButton from '../atoms/savebutton';
@@ -292,13 +292,13 @@ const TransferForm: React.FC<TransferFormProps> = ({
         isMultipleTransfer={true} 
       />
       
-      <NewLien 
+      {/* <NewLien 
         formData={componentFormData}
         onChange={(data: LienHolder) => {
           handleFieldChange('newLien', data);
         }}
       />
-      
+       */}
       <PowerOfAttorney 
         formData={componentFormData}
         onChange={(data: PowerOfAttorneyData) => {

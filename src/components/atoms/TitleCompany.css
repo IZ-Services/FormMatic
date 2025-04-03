@@ -1,0 +1,33 @@
+.titleFieldWrapper {
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 400px; /* Sets a specific maximum width */
+  }
+  
+  .titleFieldLabel {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .titleFieldInput {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.2s ease;
+  }
+  
+  .titleFieldInput:focus {
+    outline: none;
+    border-color: #0066cc;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .titleFieldWrapper {
+      max-width: 100%;
+    }
+  }

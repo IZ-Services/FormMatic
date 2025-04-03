@@ -9,6 +9,7 @@ import './Simpletransfer.css';
 import TypeContainer from '../layouts/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
 import SellerAddress from '../atoms/SellerAdrress';
+import TitleField from '../atoms/TitleCompany';
 
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
@@ -107,7 +108,7 @@ export default function DuplicateRegistrationTransfer({ formData }: DuplicateReg
           formData={formValues}
           isDuplicateRegistrationMode={true}
         />
-        
+
         <SellerSection 
         formData={{
           hideDateOfSale: true,
@@ -116,6 +117,8 @@ export default function DuplicateRegistrationTransfer({ formData }: DuplicateReg
 
         }}
       />
+                      <TitleField formData={formData} />
+
         <SellerAddress formData={formValues} />
         
         <SaveButton 

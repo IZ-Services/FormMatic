@@ -5,7 +5,7 @@ import { FormDataProvider, useFormContext } from '../../app/api/formDataContext/
 import { ScenarioProvider, useScenarioContext } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
 import TypeContainer from '../layouts/TransactionsContainer';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import SellerAddress from '../atoms/SellerAdrress';
 import LicensePlate from '../atoms/LicensePlate';
 import VehicleInformation from '../atoms/VehicleInformation';
@@ -39,6 +39,8 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
   const FormContent = () => {
     const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
     const { updateField } = useFormContext();
+    // Add a ref to track previous activeSubOptions state
+    const prevActiveSubOptionsRef = useRef<any>(null);
 
     useEffect(() => {
       if (formValues) {
@@ -48,18 +50,38 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
       }
     }, [formValues]);
 
+    // Fix for the infinite update cycle - only update when values actually change
     useEffect(() => {
-      if (activeSubOptions) {
+      // Check if activeSubOptions exists
+      if (!activeSubOptions) return;
+      
+      // Get the current checkbox states
+      const monthChecked = !!activeSubOptions['Duplicate Stickers-Month'];
+      const yearChecked = !!activeSubOptions['Duplicate Stickers-Year'];
+      
+      // Get previous states from the ref
+      const prevMonth = prevActiveSubOptionsRef.current?.month;
+      const prevYear = prevActiveSubOptionsRef.current?.year;
+      
+      // Only update if the values have actually changed
+      if (prevMonth !== monthChecked || prevYear !== yearChecked) {
+        // Update the form data
         updateField('duplicateStickers', {
-          month: !!activeSubOptions['Duplicate Stickers-Month'],
-          year: !!activeSubOptions['Duplicate Stickers-Year']
+          month: monthChecked,
+          year: yearChecked
         });
+        
+        // Save current state to the ref
+        prevActiveSubOptionsRef.current = {
+          month: monthChecked,
+          year: yearChecked
+        };
       }
-    }, [activeSubOptions, updateField]);
+    }, [activeSubOptions]);
+    // Remove updateField from the dependency array to break the cycle
 
     const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
     
- 
     const [isMotorcycle, setIsMotorcycle] = useState<boolean>(
       contextFormData?.vehicleTransactionDetails?.isMotorcycle || false
     );
@@ -74,14 +96,12 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
       const newValue = !isMotorcycle;
       setIsMotorcycle(newValue);
       
- 
       const currentDetails = contextFormData?.vehicleTransactionDetails || {};
       updateField('vehicleTransactionDetails', {
         ...currentDetails,
         isMotorcycle: newValue
       });
       
- 
       if (!newValue) {
         const currentVehicleInfo = contextFormData.vehicleInformation || {};
         if (currentVehicleInfo.engineNumber) {
@@ -121,20 +141,21 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
           formData={formValues}
           isDuplicateRegistrationMode={true}
         /> 
-                <TitleField formData={formData} />
        
-                <Seller
-        formData={{
-          hideDateOfSale: true,
-          hideDateOfBirth: true ,
-          limitOwnerCount: true
+        <Seller
+          formData={{
+            hideDateOfSale: true,
+            hideDateOfBirth: true,
+            limitOwnerCount: true
+          }}
+        />
+                <TitleField formData={formData} />
 
-        }}
-      />
         <SellerAddress formData={formValues} />
+
         <ItemRequested formData={formValues}/>
 
-        <LicensePlate formData={formData} />
+        {/* <LicensePlate formData={formData} /> */}
         
         <SaveButton 
           transactionType="Duplicate Stickers"

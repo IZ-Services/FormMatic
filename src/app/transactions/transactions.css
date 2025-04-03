@@ -290,6 +290,42 @@ body {
 .transaction-heading {
   font-size: 24px;
   font-weight: bold;
-  text-align: center;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 15px;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: #000000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  align-self: flex-start;
+  margin-bottom: 15px;
+}
+
+.back-button:hover {
+  background-color: #ffffff;
+  color: #000000;
+  transform: scale(1.05);
+  box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.back-button:active {
+  transform: scale(0.98);
+}
+
+.transaction-header {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   margin-bottom: 20px;
 }

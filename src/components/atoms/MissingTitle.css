@@ -1,83 +1,138 @@
-.releaseWrapper {
+.missingTitleWrapper {
   margin-bottom: 24px;
   width: 100%;
+  max-width: 400px; /* Added max-width to limit the component size */
+  position: relative; /* Add position relative to contain absolute elements */
 }
 
-.headerRow {
-  margin-bottom: 16px;
+.missingTitleHeader {
+  margin-bottom: 12px;
 }
 
-.releaseHeading {
+.missingTitleTitle {
   font-weight: 700;
   padding-top: 10px;
-  margin-bottom: 10px;
+  /* text-decoration: underline; */
+  margin-bottom: 20px;
 }
 
-.checkboxes {
+.missingTitleContent {
   display: flex;
-  flex-wrap: wrap;
-  gap: 15px 24px;
-  margin-bottom: 16px;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.checkbox-section {
-  flex: 0 0 auto;
-  min-width: fit-content;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.checkbox-label input {
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
-}
-
-.other-input-container {
-  margin-top: 8px;
-  margin-bottom: 16px;
-  max-width: 400px;
-}
-
-.text-input {
+.dropdownContainer {
+  position: relative;
   width: 100%;
-  padding: 10px 14px;
+}
+
+.dropdownButton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 14px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #333;
   transition: border-color 0.2s ease;
 }
 
-.text-input:focus {
+.dropdownButton:hover {
+  border-color: #999;
+}
+
+.dropdownIcon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
+
+.dropdownIcon.rotate {
+  transform: rotate(180deg);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  padding: 0;
+  margin: 4px 0 0 0;
+  list-style: none;
+  max-width: 100%; /* Ensure dropdown menu doesn't exceed parent width */
+}
+
+.dropdownItem {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdownItem:hover {
+  background-color: #f5f5f5;
+}
+
+.inputContainer {
+  margin-top: 8px;
+}
+
+.inputLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #555;
+}
+
+.textInput {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.textInput:focus {
   outline: none;
   border-color: #0066cc;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .checkboxes {
-    gap: 12px 20px;
+  .missingTitleWrapper {
+    max-width: 100%; /* Allow full width on mobile but with padding */
+    padding: 0;
   }
   
-  .checkbox-label {
-    font-size: 13px;
-  }
-}
-
-/* Smaller screens - switch to vertical layout when space is limited */
-@media (max-width: 480px) {
-  .checkboxes {
-    flex-direction: column;
-    gap: 10px;
+  .missingTitleTitle {
+    font-size: 16px;
   }
   
-  .checkbox-section {
+  .dropdownButton, .textInput {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .dropdownContainer {
     width: 100%;
+    flex-direction: column;
+  }
+  
+  .dropdownMenu {
+    width: 100%;
+    left: 0;
+    right: 0;
   }
 }

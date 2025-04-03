@@ -70,8 +70,9 @@ export default function CommercialVehicleTransfer({ formData, onDataChange }: Co
           hideDateOfSale: true
         }}
       />
-        <SellerAddress formData={formValues} />
-        <VehicalInformation formData={formValues} />
+      <SellerAddress 
+        hideOutOfState={true}/>
+       <VehicalInformation formData={formValues} />
         <VehicleWeightInfo formData={formValues} />
         <NewRegisteredOwners formData={formValues} />
         <Address formData={formValues} />

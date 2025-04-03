@@ -118,9 +118,11 @@ export default function DuplicatePlatesAndStickersTransfer({ formData }: Duplica
 
         }}
       />
+              <TitleField formData={formData} />
+
         <SellerAddress formData={formValues} />
+
         <ItemRequested formData={formValues}/>
-        <TitleField formData={formData} />
 
         <LicensePlate formData={formData} />
         

@@ -211,7 +211,7 @@ export default function Transactions() {
             className="back-button" 
             onClick={handleBackToTransactions}
           >
-            ← Back to Transactions
+            Back to Transactions
           </button>
           <h2 className="transaction-heading">Edit Transaction</h2>
         </div>

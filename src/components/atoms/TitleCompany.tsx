@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
+import './TitleCompany.css'; // You'll need to create this CSS file
 
 interface TitleFieldProps {
   formData?: {
@@ -31,24 +32,32 @@ const TitleField: React.FC<TitleFieldProps> = ({ formData: propFormData, onChang
     }
   }, []);
   
+  // Function to capitalize the first letter
+  const capitalizeFirstLetter = (str: string): string => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+  
   const handleTitleChange = (value: string) => {
     console.log(`Updating title to:`, value);
     
-    const newData = { title: value };
+    // Apply capitalization
+    const capitalizedValue = capitalizeFirstLetter(value);
+    const newData = { title: capitalizedValue };
     setTitleData(newData);
     
     if (onChange) {
       onChange(newData);
     } else {
-      updateField('title', value);
+      updateField('title', capitalizedValue);
     }
   };
   
   return (
-    <div className="formGroup">
-      <label className="formLabel">Title if Signing for a Company</label>
+    <div className="titleFieldWrapper">
+      <label className="titleFieldLabel">Title if Signing for a Company</label>
       <input
-        className="formInputt"
+        className="titleFieldInput"
         type="text"
         placeholder="Enter title"
         value={titleData.title}

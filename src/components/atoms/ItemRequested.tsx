@@ -193,7 +193,7 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
 
       <div className="checkbox-grid">
         {/* Group 1: Lost, Stolen, Destroyed/Mutilated - Mutually exclusive */}
-        <div className="checkbox-row">
+        <div className="checkbox-roww">
           <label className={`checkbox-label ${isDuplicateRegistrationMode ? 'disabled' : ''}`}>
             <input
               type="checkbox"
@@ -226,7 +226,7 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
         </div>
 
         {/* Group 2: Not Received from DMV, Not Received from Prior Owner - Mutually exclusive */}
-        <div className="checkbox-row">
+        <div className="checkbox-roww">
           <label className={`checkbox-label ${isDuplicateRegistrationMode ? 'disabled' : ''}`}>
             <input
               type="checkbox"
@@ -248,7 +248,7 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
           </label>
         </div>
 
-        <div className="checkbox-row">
+        <div className="checkbox-roww">
           <div className={`surrendered-section ${isDuplicateRegistrationMode ? 'disabled' : ''}`}>
             <label className={`checkbox-label ${isDuplicateRegistrationMode ? 'disabled' : ''}`}>
               <input
@@ -286,7 +286,7 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
           </div>
         </div>
 
-        <div className="checkbox-row">
+        <div className="checkbox-roww">
           <label className={`checkbox-label ${isDuplicateRegistrationMode ? 'disabled' : ''}`}>
             <input
               type="checkbox"
@@ -298,7 +298,7 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
           </label>
         </div>
 
-        <div className="checkbox-row">
+        <div className="checkbox-roww">
           <label className={`checkbox-label ${isDuplicateRegistrationMode ? 'disabled' : ''}`}>
             <input
               type="checkbox"
@@ -310,7 +310,7 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
           </label>
         </div>
 
-        <div className="checkbox-row">
+        <div className="checkbox-roww">
           <label className={`checkbox-label ${isDuplicateRegistrationMode ? 'disabled' : ''}`}>
             <input
               type="checkbox"
@@ -322,7 +322,7 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
           </label>
         </div>
 
-        <div className="checkbox-row">
+        <div className="checkbox-roww">
           <div className="other-section">
             <label className={isDuplicateRegistrationMode ? 'checkbox-label' : 'checkbox-label'}>
               <input

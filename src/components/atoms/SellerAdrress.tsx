@@ -25,6 +25,7 @@ interface SellerAddressProps {
   onChange?: (data: FormData) => void;
   isMultipleTransfer?: boolean;
   hideMailingOption?: boolean;
+  hideOutOfState?: boolean;
 }
 
 const initialAddress: Address = {
@@ -62,19 +63,30 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
   formData: propFormData, 
   onChange, 
   isMultipleTransfer = false,
-  hideMailingOption = false
+  hideMailingOption = false,
+  hideOutOfState = false
 }) => {
   const cleanedFormData = cleanFormData(propFormData);
   const { activeScenarios } = useScenarioContext();
   
+  // Function to determine whether to show the out-of-state checkbox
+  const shouldShowOutOfStateCheckbox = () => {
+    if (hideOutOfState) {
+      return true;
+    }
+    return !!(
+      activeScenarios && (
+        activeScenarios["Commercial Vehicle"]
+      )
+    );
+  };
 
+  // Function to determine whether to hide the mailing option
   const shouldHideMailingOption = () => {
-
     if (hideMailingOption) {
       return true;
     }
     
-
     return !!(
       activeScenarios && (
         activeScenarios["Salvage"]
@@ -83,6 +95,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
   };
   
   const hideMailingAddress = shouldHideMailingOption();
+  const showOutOfStateCheckbox = shouldShowOutOfStateCheckbox();
   
   const [addressData, setAddressData] = useState<FormData>({
     sellerMailingAddressDifferent: hideMailingAddress ? false : (cleanedFormData?.sellerMailingAddressDifferent || false),
@@ -95,12 +108,12 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     updateField: (section: string, value: any) => void;
   };
 
-
   useEffect(() => {
     console.log("Should hide mailing option:", hideMailingAddress);
+    console.log("Should show out-of-state checkbox:", showOutOfStateCheckbox);
     console.log("Active scenarios:", activeScenarios);
     console.log("Direct hideMailingOption prop:", hideMailingOption);
-  }, [hideMailingAddress, activeScenarios, hideMailingOption]);
+  }, [hideMailingAddress, showOutOfStateCheckbox, activeScenarios, hideMailingOption]);
 
   useEffect(() => {
     if (propFormData) {
@@ -114,7 +127,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
         newData.sellerMailingAddressDifferent = cleanedProps.sellerMailingAddressDifferent;
         hasChanges = true;
       } else if (hideMailingAddress && newData.sellerMailingAddressDifferent) {
-
         newData.sellerMailingAddressDifferent = false;
         hasChanges = true;
       }
@@ -149,7 +161,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
           updateField('sellerMailingAddress', addressData.sellerMailingAddress);
         }
       } else {
-
         updateField('sellerMailingAddressDifferent', false);
       }
     }
@@ -280,7 +291,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     const newData = { ...addressData };
     newData[field] = checked;
     
-
     if (field === 'sellerMailingAddressDifferent' && !checked) {
       newData.sellerMailingAddress = { ...initialAddress };
       console.log("Clearing mailing address fields:", newData.sellerMailingAddress);
@@ -298,13 +308,11 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     } else {
       updateField(String(field), checked);
       
-
       if (field === 'sellerMailingAddressDifferent') {
         updateField('sellerMailingAddress', newData.sellerMailingAddress);
       }
     }
   };
-
 
   const handleOutOfStateChange = (checked: boolean) => {
     const newData = { ...addressData };
@@ -337,7 +345,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown]);
-
 
   const renderStateDropdown = (addressType: keyof FormData, value: string | undefined) => {
     const dropdownId = String(addressType);
@@ -520,7 +527,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
               value={addressData.sellerAddress?.street || ''}
               onChange={(e) => {
                 const value = e.target.value;
-
                 const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
                 handleAddressChange('sellerAddress', 'street', capitalizedValue);
               }}
@@ -547,7 +553,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
               value={addressData.sellerAddress?.city || ''}
               onChange={(e) => {
                 const value = e.target.value;
-
                 const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
                 handleAddressChange('sellerAddress', 'city', capitalizedValue);
               }}
@@ -563,7 +568,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
               value={addressData.sellerAddress?.county || ''}
               onChange={(e) => {
                 const value = e.target.value;
-
                 const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
                 handleAddressChange('sellerAddress', 'county', capitalizedValue);
               }}
@@ -585,15 +589,17 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
           </div>
         </div>
         
-        {/* New Out-of-State Checkbox */}
-        <div className="out-of-state-checkbox">
-          <input
-            type="checkbox"
-            checked={!!addressData.sellerAddress?.isOutOfState}
-            onChange={(e) => handleOutOfStateChange(e.target.checked)}
-          />
-          <p>If no California county and used out-of-state, check this box</p>
-        </div>
+        {/* New Out-of-State Checkbox - Only show when Commercial Vehicle is selected */}
+        {showOutOfStateCheckbox && (
+          <div className="out-of-state-checkbox">
+            <input
+              type="checkbox"
+              checked={!!addressData.sellerAddress?.isOutOfState}
+              onChange={(e) => handleOutOfStateChange(e.target.checked)}
+            />
+            <p>If no California county and used out-of-state, check this box</p>
+          </div>
+        )}
       </div>
 
       {/* Mailing Address - only show if checkbox is checked AND mailing option is not hidden */}
@@ -610,7 +616,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
                 value={addressData.sellerMailingAddress?.street || ''}
                 onChange={(e) => {
                   const value = e.target.value;
-
                   const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
                   handleAddressChange('sellerMailingAddress', 'street', capitalizedValue);
                 }}
@@ -637,7 +642,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
                 value={addressData.sellerMailingAddress?.city || ''}
                 onChange={(e) => {
                   const value = e.target.value;
-
                   const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
                   handleAddressChange('sellerMailingAddress', 'city', capitalizedValue);
                 }}
