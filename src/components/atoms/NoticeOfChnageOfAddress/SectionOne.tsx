@@ -51,7 +51,7 @@ const SectionOne: React.FC<SectionOneProps> = ({ formData: propFormData }) => {
     } else if (field === 'firstName' && value.length > 9) {
       hasError = true;
     } else if (field === 'driverLicenseId' && value.length > 0 && value.length < 8) {
-      // Show error when driver license ID is less than 8 characters (but only if some input exists)
+
       hasError = true;
     }
     

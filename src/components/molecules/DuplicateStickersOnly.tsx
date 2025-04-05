@@ -39,7 +39,7 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
   const FormContent = () => {
     const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
     const { updateField } = useFormContext();
-    // Add a ref to track previous activeSubOptions state
+
     const prevActiveSubOptionsRef = useRef<any>(null);
 
     useEffect(() => {
@@ -50,35 +50,35 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
       }
     }, [formValues]);
 
-    // Fix for the infinite update cycle - only update when values actually change
+
     useEffect(() => {
-      // Check if activeSubOptions exists
+
       if (!activeSubOptions) return;
       
-      // Get the current checkbox states
+
       const monthChecked = !!activeSubOptions['Duplicate Stickers-Month'];
       const yearChecked = !!activeSubOptions['Duplicate Stickers-Year'];
       
-      // Get previous states from the ref
+
       const prevMonth = prevActiveSubOptionsRef.current?.month;
       const prevYear = prevActiveSubOptionsRef.current?.year;
       
-      // Only update if the values have actually changed
+
       if (prevMonth !== monthChecked || prevYear !== yearChecked) {
-        // Update the form data
+
         updateField('duplicateStickers', {
           month: monthChecked,
           year: yearChecked
         });
         
-        // Save current state to the ref
+
         prevActiveSubOptionsRef.current = {
           month: monthChecked,
           year: yearChecked
         };
       }
     }, [activeSubOptions]);
-    // Remove updateField from the dependency array to break the cycle
+
 
     const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
     

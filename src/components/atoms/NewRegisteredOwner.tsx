@@ -565,7 +565,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       const value = e.target.value;
       
       if (/^[a-zA-Z0-9]*$/.test(value)) {
-        // Convert to uppercase for all letters
+
         handleOwnerFieldChange(index, 'licenseNumber', value.toUpperCase());
       }
     }}

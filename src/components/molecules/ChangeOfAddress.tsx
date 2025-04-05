@@ -48,7 +48,7 @@ export default function ChangeOfAddressTransfer({ formData, onDataChange }: Chan
       }
     }, [formValues]);
 
-    // Check if leased vehicle is checked
+
     const isLeasedVehicle = contextFormData?.checkboxOptions?.leasedVehicle === true;
     const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
     const isSmogExempt = contextFormData?.vehicleTransactionDetails?.isSmogExempt === true;

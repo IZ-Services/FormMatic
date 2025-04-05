@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFormContext } from '../../../app/api/formDataContext/formDataContextProvider';
 import '../Checkboxes.css';
-import LeasingCompanyField from './LeasingCompanyField'; // Import the new component
+import LeasingCompanyField from './LeasingCompanyField';
 
 interface CheckboxState {
   leasedVehicle: boolean;

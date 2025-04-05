@@ -263,8 +263,8 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
         /* Make sure the dropdown container is above everything else */
         .state-field {
           position: relative;
-          // flex: 0 0 120px;
-          // z-index: 1000; /* Add z-index to the container */
+
+
         }
 
         .state-dropdown-item {

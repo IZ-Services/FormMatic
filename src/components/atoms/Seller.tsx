@@ -28,7 +28,7 @@ interface FormData {
   hideDateOfSale?: boolean;
   hideDateOfBirth?: boolean;
   limitOwnerCount?: boolean;
-  forceSingleOwner?: boolean; // Added property for explicit force single owner
+  forceSingleOwner?: boolean;
   [key: string]: any;
 }
 
@@ -77,14 +77,14 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     ...propFormData
   };
 
-  // Determine if single owner should be forced
+
   const shouldForceSingleOwner = () => {
-    // Explicit prop takes precedence
+
     if (formData.forceSingleOwner) {
       return true;
     }
     
-    // Check for scenarios that require forcing single owner
+
     return !!(
       activeScenarios && (
         activeScenarios["Salvage"] ||
@@ -98,7 +98,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
   const hideDateOfBirth = !!formData.hideDateOfBirth || shouldHideDateOfBirth();
   const limitOwnerCount = !!formData.limitOwnerCount || shouldLimitOwnerCount();
 
-  // Log state for debugging
+
   useEffect(() => {
     console.log("Force Single Owner in Seller:", forceSingleOwner);
     console.log("Should hide date of sale:", hideDateOfSale);
@@ -151,10 +151,10 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     );
   }
 
-  // Get available seller count options based on constraints
+
   const getSellerCountOptions = () => {
     if (forceSingleOwner) {
-      return ['1']; // Only one option if forcing single owner
+      return ['1'];
     } else if (limitOwnerCount) {
       return ['1', '2'];
     } else if (activeScenarios && activeScenarios["Duplicate Title"] === true) {
@@ -163,12 +163,12 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     return ['1', '2', '3'];
   };
 
-  // Enforce single owner if required
+
   useEffect(() => {
     if (forceSingleOwner && formData.sellerInfo?.sellerCount !== '1') {
       const newSellerCount = '1';
       
-      // If we have sellers, keep only the first one
+
       if (formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 1) {
         const newSellers = [formData.sellerInfo.sellers[0]];
         
@@ -184,7 +184,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
           onChange(newSellerInfo);
         }
       } else {
-        // Just update the count
+
         updateField('sellerInfo', {
           ...formData.sellerInfo,
           sellerCount: newSellerCount
@@ -200,7 +200,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     }
   }, [forceSingleOwner, formData.sellerInfo?.sellerCount]);
 
-  // Similar effect for limitOwnerCount
+
   useEffect(() => {
     if (limitOwnerCount && formData.sellerInfo?.sellerCount === '3') {
       const newSellerCount = '2';
@@ -427,7 +427,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
   };
 
   const handleCountChange = (count: string) => {
-    // If forcing single owner, always use '1'
+
     if (forceSingleOwner) {
       count = '1';
     } else if (limitOwnerCount && count === '3') {
@@ -551,7 +551,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
               onChange={(e) =>{ 
                 const value = e.target.value;
                 if (/^[a-zA-Z0-9]*$/.test(value)) {
-                  // Convert to uppercase for all letters
+
                   handleSellerChange(index, 'licenseNumber', value.toUpperCase());
                 }
               }}

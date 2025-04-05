@@ -197,11 +197,11 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Function to capitalize the first letter of each word
+
   const capitalizeWords = (value: string): string => {
     if (!value) return '';
     
-    // Split the string by spaces and other word boundaries
+
     return value.replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
@@ -236,13 +236,13 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
   const handleReleaseInfoChange = (field: keyof ReleaseInformationType, value: any) => {
     let formattedValue = value;
 
-    // Apply specific formatting for phone and date
+
     if (field === 'phoneNumber') {
       formattedValue = formatPhoneNumber(value);
     } else if (field === 'date') {
       formattedValue = formatDate(value);
     } else if (typeof value === 'string') {
-      // Apply capitalization to text fields (except phone and date)
+
       formattedValue = capitalizeWords(value);
     }
 
@@ -271,7 +271,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
   };
 
   const handleAddressChange = (addressType: 'address' | 'mailingAddress', field: keyof Address, value: string) => {
-    // Apply capitalization to address fields
+
     const capitalizedValue = typeof value === 'string' ? capitalizeWords(value) : value;
     
     const newData = { ...releaseData };

@@ -59,11 +59,11 @@ const cleanFormData = (data: any): any => {
   return result;
 };
 
-// Function to capitalize the first letter of each word
+
 const capitalizeWords = (value: string): string => {
   if (!value) return '';
   
-  // Split the string by spaces and other word boundaries
+
   return value.replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
@@ -77,7 +77,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
   const cleanedFormData = cleanFormData(propFormData);
   const { activeScenarios } = useScenarioContext();
   
-  // Function to determine whether to show the out-of-state checkbox
+
   const shouldShowOutOfStateCheckbox = () => {
     if (hideOutOfState) {
       return true;
@@ -89,7 +89,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     );
   };
 
-  // Function to determine whether to hide the mailing option
+
   const shouldHideMailingOption = () => {
     if (hideMailingOption) {
       return true;
@@ -267,7 +267,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     
     const currentSection = (newData[section] as Address) || {};
     
-    // Apply capitalization to text fields if the value is a string
+
     let processedValue = value;
     if (typeof value === 'string' && field !== 'zip' && field !== 'state') {
       processedValue = capitalizeWords(value);

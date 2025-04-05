@@ -2988,10 +2988,10 @@ try {
 async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string, transactionType?: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
   
-  // Normalize transaction type for Multiple Transfer cases
+
   let normalizedTransactionType = effectiveTransactionType;
   
-  // Check if it's a Multiple Transfer with numbering pattern
+
   if (effectiveTransactionType && effectiveTransactionType.startsWith("Multiple Transfer")) {
     normalizedTransactionType = "Multiple Transfer";
   }
@@ -3165,7 +3165,7 @@ async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
     giftCheckbox: 'Gift Box',
     tradeCheckbox: 'Gift Box1',
     
-    countyField: 'county.0.0',  //trailer
+    countyField: 'county.0.0',
     sellercountyField: 'county residence or county where vehicle or vessle is princi.0',
     newregownercountyField :'County of residence',
     
@@ -5402,13 +5402,13 @@ async function modifyReg156Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     }
   }
   
-  // if (dataToUse.sellerMailingAddressDifferent) {
-  //   safeSetText("Mailing address", dataToUse.sellerAddress.street || '');
-  //   safeSetText("Apt 2", dataToUse.sellerAddress.apt || '');
-  //   safeSetText("City2", dataToUse.sellerAddress.city || '');
-  //   safeSetText("state2", dataToUse.sellerAddress.state || '');
-  //   safeSetText("zip code2", dataToUse.sellerAddress.zip || '');
-  // }
+
+
+
+
+
+
+
 
   if (isFilingPNOTransfer) {
     console.log('Processing Filing PNO Transfer transaction type');
@@ -5698,14 +5698,14 @@ function mapLeasingCompany(form:any, formData:any) {
     let isLeased = false;
     let leasingCompanyName = '';
     
-    // Check for data in checkboxOptions
+
     if (formData && formData.checkboxOptions) {
       isLeased = formData.checkboxOptions.leasedVehicle;
       leasingCompanyName = formData.checkboxOptions.leasingCompanyName || '';
       console.log(`Using data from checkboxOptions: isLeased=${isLeased}, company="${leasingCompanyName}"`);
     }
 
-    // Check for data in leasedVehicles if not found in checkboxOptions
+
     if ((!leasingCompanyName || leasingCompanyName.trim() === '') && formData && formData.leasedVehicles) {
       if (formData.leasedVehicles.isLeased && formData.leasedVehicles.leasingCompanyName) {
         isLeased = formData.leasedVehicles.isLeased;
@@ -5714,14 +5714,14 @@ function mapLeasingCompany(form:any, formData:any) {
       }
     }
     
-    // Check for direct properties if not found in other objects
+
     if ((!leasingCompanyName || leasingCompanyName.trim() === '') && formData && formData.isLeased !== undefined) {
       isLeased = formData.isLeased;
       leasingCompanyName = formData.leasingCompanyName || '';
       console.log(`Using data from direct LeasedVehiclesData: isLeased=${isLeased}, company="${leasingCompanyName}"`);
     }
     
-    // If no leasing data or company name is found, exit
+
     if (!isLeased || !leasingCompanyName || leasingCompanyName.trim() === '') {
       console.log('Vehicle is not leased or no company name provided, skipping');
       return;
@@ -5729,7 +5729,7 @@ function mapLeasingCompany(form:any, formData:any) {
     
     console.log('Final values: isLeased=', isLeased, 'companyName=', leasingCompanyName);
     
-    // Define the field names for the individual leasing company characters
+
     const leasingCoFields = [
       "leasing co.0",
       "leasing co.1",
@@ -5758,7 +5758,7 @@ function mapLeasingCompany(form:any, formData:any) {
     const companyName = leasingCompanyName.toUpperCase();
     console.log(`Setting leasing company name: "${companyName}"`);
     
-    // Fill in the character fields
+
     for (let i = 0; i < companyName.length && i < leasingCoFields.length; i++) {
       try {
         const field = form.getTextField(leasingCoFields[i]);
@@ -5777,7 +5777,7 @@ function mapLeasingCompany(form:any, formData:any) {
   } catch (e) {
     console.warn('Error setting leasing company fields:', e);
     
-    // Fallback attempt with a single field
+
     try {
       console.log('Attempting fallback with single field');
       const singleFieldNames = [
