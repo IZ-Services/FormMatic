@@ -5695,18 +5695,17 @@ function mapLeasingCompany(form:any, formData:any) {
     formData ? JSON.stringify(formData) : 'undefined');
   
   try {
-
-
     let isLeased = false;
     let leasingCompanyName = '';
     
-
+    // Check for data in checkboxOptions
     if (formData && formData.checkboxOptions) {
       isLeased = formData.checkboxOptions.leasedVehicle;
       leasingCompanyName = formData.checkboxOptions.leasingCompanyName || '';
       console.log(`Using data from checkboxOptions: isLeased=${isLeased}, company="${leasingCompanyName}"`);
     }
 
+    // Check for data in leasedVehicles if not found in checkboxOptions
     if ((!leasingCompanyName || leasingCompanyName.trim() === '') && formData && formData.leasedVehicles) {
       if (formData.leasedVehicles.isLeased && formData.leasedVehicles.leasingCompanyName) {
         isLeased = formData.leasedVehicles.isLeased;
@@ -5715,34 +5714,14 @@ function mapLeasingCompany(form:any, formData:any) {
       }
     }
     
-
+    // Check for direct properties if not found in other objects
     if ((!leasingCompanyName || leasingCompanyName.trim() === '') && formData && formData.isLeased !== undefined) {
       isLeased = formData.isLeased;
       leasingCompanyName = formData.leasingCompanyName || '';
       console.log(`Using data from direct LeasedVehiclesData: isLeased=${isLeased}, company="${leasingCompanyName}"`);
     }
     
-
-    const transactionData = {
-      "checkboxOptions": {
-        "leasedVehicle": true,
-        "notUsCitizen": false,
-        "doNotUseForVoterRegistration": false,
-        "leasingCompanyName": "INSIDER (SMC-PVT) LTD, LONDON "
-      }
-    };
-    
-    console.log('Transaction data check - isLeased:', transactionData.checkboxOptions.leasedVehicle);
-    console.log('Transaction data check - company:', transactionData.checkboxOptions.leasingCompanyName);
-    
-
-    if ((!leasingCompanyName || leasingCompanyName.trim() === '') && transactionData && transactionData.checkboxOptions) {
-      isLeased = transactionData.checkboxOptions.leasedVehicle;
-      leasingCompanyName = transactionData.checkboxOptions.leasingCompanyName || '';
-      console.log(`Using hardcoded transaction data: isLeased=${isLeased}, company="${leasingCompanyName}"`);
-    }
-    
-
+    // If no leasing data or company name is found, exit
     if (!isLeased || !leasingCompanyName || leasingCompanyName.trim() === '') {
       console.log('Vehicle is not leased or no company name provided, skipping');
       return;
@@ -5750,7 +5729,7 @@ function mapLeasingCompany(form:any, formData:any) {
     
     console.log('Final values: isLeased=', isLeased, 'companyName=', leasingCompanyName);
     
-
+    // Define the field names for the individual leasing company characters
     const leasingCoFields = [
       "leasing co.0",
       "leasing co.1",
@@ -5779,7 +5758,7 @@ function mapLeasingCompany(form:any, formData:any) {
     const companyName = leasingCompanyName.toUpperCase();
     console.log(`Setting leasing company name: "${companyName}"`);
     
-
+    // Fill in the character fields
     for (let i = 0; i < companyName.length && i < leasingCoFields.length; i++) {
       try {
         const field = form.getTextField(leasingCoFields[i]);
@@ -5798,7 +5777,7 @@ function mapLeasingCompany(form:any, formData:any) {
   } catch (e) {
     console.warn('Error setting leasing company fields:', e);
     
-
+    // Fallback attempt with a single field
     try {
       console.log('Attempting fallback with single field');
       const singleFieldNames = [
@@ -5808,7 +5787,6 @@ function mapLeasingCompany(form:any, formData:any) {
         "LeasingCompany"
       ];
       
-
       let companyName = '';
       if (formData && formData.checkboxOptions && formData.checkboxOptions.leasingCompanyName) {
         companyName = formData.checkboxOptions.leasingCompanyName;
@@ -5816,9 +5794,6 @@ function mapLeasingCompany(form:any, formData:any) {
         companyName = formData.leasedVehicles.leasingCompanyName;
       } else if (formData && formData.leasingCompanyName) {
         companyName = formData.leasingCompanyName;
-      } else {
-
-        companyName = "INSIDER (SMC-PVT) LTD, LONDON ";
       }
       
       if (!companyName || companyName.trim() === '') {

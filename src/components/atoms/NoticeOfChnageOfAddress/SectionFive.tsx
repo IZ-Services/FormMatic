@@ -55,8 +55,6 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
     
     const newValue = currentEntry[field] === 'inside' ? undefined : 'inside';
     
-    // Removed the conditional clearing of fields when checkboxes are unchecked
-    
     currentEntry[field] = newValue;
     newEntries[index] = currentEntry;
     
@@ -106,28 +104,29 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
             )}
           </div>
 
-          <div className="input-group">
-            <label className="input-label">CALIFORNIA PLATE/CF/PLACARD NO.</label>
-            <input
-              type="text"
-              className="form-input"
-              value={entry.plateCfNumber || ''}
-              onChange={(e) => handleEntryChange(index, 'plateCfNumber', e.target.value.toUpperCase())}
-              maxLength={8}
-              // Removed the disabled attribute to make field always typeable
-            />
-          </div>
+          {/* Wrap input groups in a single row */}
+          <div className="input-row">
+            <div className="input-group">
+              <label className="input-label">CALIFORNIA PLATE/CF/PLACARD NO.</label>
+              <input
+                type="text"
+                className="form-input"
+                value={entry.plateCfNumber || ''}
+                onChange={(e) => handleEntryChange(index, 'plateCfNumber', e.target.value.toUpperCase())}
+                maxLength={8}
+              />
+            </div>
 
-          <div className="input-group">
-            <label className="input-label">LAST 17 POSITIONS OF VEHICLE ID OR VESSEL HULL ID NUMBER</label>
-            <input
-              type="text"
-              className="form-input"
-              value={entry.vehicleHullId || ''}
-              onChange={(e) => handleEntryChange(index, 'vehicleHullId', e.target.value.toUpperCase())}
-              maxLength={17}
-              // Removed the disabled attribute to make field always typeable
-            />
+            <div className="input-group">
+              <label className="input-labell">LAST 17 POSITIONS OF VEHICLE ID OR VESSEL HULL ID NUMBER</label>
+              <input
+                type="text"
+                className="form-input"
+                value={entry.vehicleHullId || ''}
+                onChange={(e) => handleEntryChange(index, 'vehicleHullId', e.target.value.toUpperCase())}
+                maxLength={17}
+              />
+            </div>
           </div>
 
           <div className="checkbox-group">
