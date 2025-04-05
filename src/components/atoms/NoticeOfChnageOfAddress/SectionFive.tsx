@@ -23,7 +23,6 @@ const initialVehicleEntry: VehicleEntry = {
   registeredLocation: undefined
 };
 
-
 const MAX_VEHICLES = 3;
 
 const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => {
@@ -54,21 +53,9 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
     const newEntries = [...vehicleEntries];
     const currentEntry = { ...newEntries[index] };
     
-
     const newValue = currentEntry[field] === 'inside' ? undefined : 'inside';
     
-
-    if (newValue === undefined) {
-
-      if (field === 'leased') {
-        currentEntry.plateCfNumber = '';
-      }
-      
-
-      if (field === 'registeredLocation') {
-        currentEntry.vehicleHullId = '';
-      }
-    }
+    // Removed the conditional clearing of fields when checkboxes are unchecked
     
     currentEntry[field] = newValue;
     newEntries[index] = currentEntry;
@@ -78,7 +65,6 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
   };
 
   const addNewEntry = () => {
-
     if (vehicleEntries.length < MAX_VEHICLES) {
       const newEntries = [...vehicleEntries, { ...initialVehicleEntry }];
       setVehicleEntries(newEntries);
@@ -87,10 +73,8 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
   };
 
   const deleteEntry = (index: number) => {
-
     const newEntries = vehicleEntries.filter((_, i) => i !== index);
     
-
     if (newEntries.length === 0) {
       newEntries.push({ ...initialVehicleEntry });
     }
@@ -130,7 +114,7 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
               value={entry.plateCfNumber || ''}
               onChange={(e) => handleEntryChange(index, 'plateCfNumber', e.target.value.toUpperCase())}
               maxLength={8}
-              disabled={entry.leased !== 'inside'}
+              // Removed the disabled attribute to make field always typeable
             />
           </div>
 
@@ -142,7 +126,7 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
               value={entry.vehicleHullId || ''}
               onChange={(e) => handleEntryChange(index, 'vehicleHullId', e.target.value.toUpperCase())}
               maxLength={17}
-              disabled={entry.registeredLocation !== 'inside'}
+              // Removed the disabled attribute to make field always typeable
             />
           </div>
 

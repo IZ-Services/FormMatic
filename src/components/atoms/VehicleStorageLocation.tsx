@@ -198,7 +198,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
 
       <div className="vehicleFirstGroup">
         <div className="vehicleFormItem">
-        <label className="formLabel">FROM: MONTH, DAY, YEAR</label>
+        <label className="formLabe">FROM: MONTH, DAY, YEAR</label>
         <input
             className="makeInput"
             type="text"
@@ -208,7 +208,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
           />
         </div>
         <div className="vehicleFormItem">
-        <label className="formLabel">TO: MONTH, DAY, YEAR</label>
+        <label className="formLabe">TO: MONTH, DAY, YEAR</label>
         <input
             className="odometerInput"
             type="text"
