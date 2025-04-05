@@ -3,15 +3,17 @@ import { useFormContext } from '../../../app/api/formDataContext/formDataContext
 import './LeasingCompanyField.css';
 
 interface LeasingCompanyFieldProps {
-  value?: string;
-  onChange?: (value: string) => void;
+  formData?: {
+    checkboxOptions?: {
+      leasingCompanyName?: string;
+    };
+  };
 }
 
-const LeasingCompanyField: React.FC<LeasingCompanyFieldProps> = ({ 
-  value = '', 
-  onChange 
-}) => {
-  const [companyName, setCompanyName] = useState<string>(value);
+const LeasingCompanyField: React.FC<LeasingCompanyFieldProps> = ({ formData: propFormData }) => {
+  const [companyName, setCompanyName] = useState<string>(
+    propFormData?.checkboxOptions?.leasingCompanyName || ''
+  );
   const { updateField, formData: contextFormData } = useFormContext();
 
   // Function to capitalize the first letter of each word
@@ -22,32 +24,30 @@ const LeasingCompanyField: React.FC<LeasingCompanyFieldProps> = ({
     return value.replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  // Update local state when prop value changes
+  // Update local state when form data changes
   useEffect(() => {
-    setCompanyName(value);
-  }, [value]);
+    if (propFormData?.checkboxOptions?.leasingCompanyName !== undefined) {
+      setCompanyName(propFormData.checkboxOptions.leasingCompanyName);
+    }
+  }, [propFormData]);
 
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
+    const value = e.target.value;
     
     // Capitalize the first letter of each word
-    const capitalizedValue = capitalizeWords(newValue);
+    const capitalizedValue = capitalizeWords(value);
     
     setCompanyName(capitalizedValue);
     
-    // Call the onChange handler if provided
-    if (onChange) {
-      onChange(capitalizedValue);
-    } else {
-      // Fallback to using context if no onChange prop is provided
-      const currentCheckboxOptions = contextFormData.checkboxOptions || {};
-      
-      updateField('checkboxOptions', {
-        ...currentCheckboxOptions,
-        leasingCompanyName: capitalizedValue
-      });
-    }
+    // Get current checkbox options from context
+    const currentCheckboxOptions = contextFormData.checkboxOptions || {};
+    
+    // Update the form context with the new leasing company name
+    updateField('checkboxOptions', {
+      ...currentCheckboxOptions,
+      leasingCompanyName: capitalizedValue
+    });
   };
 
   return (
@@ -60,7 +60,6 @@ const LeasingCompanyField: React.FC<LeasingCompanyFieldProps> = ({
           value={companyName}
           onChange={handleInputChange}
           maxLength={30}
-          placeholder="Enter leasing company name"
         />
       </div>
     </div>
