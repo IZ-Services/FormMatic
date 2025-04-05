@@ -89,7 +89,7 @@
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .nameStatementOption {
-      flex-direction: column;
+      flex-direction: row;
       align-items: flex-start;
     }
     
