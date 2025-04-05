@@ -183,7 +183,7 @@ const TypeContainer: React.FC = () => {
               <div className="subsections">
                 {subsections.map((subsection, index) =>
                   typeof subsection === "string" ? (
-                    <label key={index} className="checkbox-label">
+                    <label key={index} className="checkbox-labelllll">
                       <input 
                         type="checkbox" 
                         className="checkbox"
@@ -194,7 +194,7 @@ const TypeContainer: React.FC = () => {
                     </label>
                   ) : (
                     <div key={subsection.name} className="subsection-group">
-                      <label className="checkbox-label">
+                      <label className="checkbox-labelllll">
                         <input 
                           type="checkbox" 
                           className="checkbox"

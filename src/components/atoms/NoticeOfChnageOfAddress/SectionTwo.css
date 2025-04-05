@@ -183,3 +183,14 @@
         max-width: 35ch; /* Limits to approximately 35 characters */
       }
 }
+
+
+@media (max-width: 891px) {
+   
+      .formLabelll {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60ch; 
+      }
+}
