@@ -554,32 +554,33 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
           </div>
 
           <div className="newRegSecondGroup">
-            <div className="newRegInfo">
-              <label className="registeredOwnerLabel">Driver License Number</label>
-              <input
-                className={`registeredOwnerLicenseInput ${shouldShowValidationError(index, 'licenseNumber') ? 'validation-error' : ''}`}
-                type="text"
-                placeholder="Driver License Number (8 digits)"
-                value={owner.licenseNumber}
-                onChange={(e) => {
-                  const value = e.target.value;
-                 
-                  if (/^[a-zA-Z0-9]*$/.test(value)) {
-                    handleOwnerFieldChange(index, 'licenseNumber', value);
-                  }
-                }}
-                maxLength={8}
-                inputMode="numeric"
-                pattern="\d{8}"
-              />
-              {shouldShowValidationError(index, 'licenseNumber') ? (
-                <p className="validation-message">License number is required</p>
-              ) : (
-                owner.licenseNumber && owner.licenseNumber.length < 8 && (
-                  <p className="validation-message">License number must be 8 digits</p>
-                )
-              )}
-            </div>
+          <div className="newRegInfo">
+  <label className="registeredOwnerLabel">Driver License Number</label>
+  <input
+    className={`registeredOwnerLicenseInput ${shouldShowValidationError(index, 'licenseNumber') ? 'validation-error' : ''}`}
+    type="text"
+    placeholder="Driver License Number (8 digits)"
+    value={owner.licenseNumber}
+    onChange={(e) => {
+      const value = e.target.value;
+      
+      if (/^[a-zA-Z0-9]*$/.test(value)) {
+        // Convert to uppercase for all letters
+        handleOwnerFieldChange(index, 'licenseNumber', value.toUpperCase());
+      }
+    }}
+    maxLength={8}
+    inputMode="numeric"
+    pattern="\d{8}"
+  />
+  {shouldShowValidationError(index, 'licenseNumber') ? (
+    <p className="validation-message">License number is required</p>
+  ) : (
+    owner.licenseNumber && owner.licenseNumber.length < 8 && (
+      <p className="validation-message">License number must be 8 digits</p>
+    )
+  )}
+</div>
 
             <div className="regStateWrapper">
               <label className="registeredOwnerLabel">State</label>

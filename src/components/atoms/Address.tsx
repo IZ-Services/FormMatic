@@ -124,9 +124,7 @@ const inlineCheckboxStyles = `
   width: 100%;
 }
 
-.state-field {
-  flex: 0 0 120px;
-}
+
 
 .state-label {
   display: block;
@@ -604,7 +602,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
           <div className="formGroup streetField">
             <label className="formLabel">Street</label>
             <input
-              className="formInputt"
+              className="formInput"
               type="text"
               placeholder="Street"
               value={addressData.address?.street || ''}
@@ -614,7 +612,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
           <div className="formGroup aptField">
             <label className="formLabel">APT./SPACE/STE.#</label>
             <input
-              className="formInputt"
+              className="formInput"
               type="text"
               placeholder="APT./SPACE/STE.#"
               value={addressData.address?.apt || ''}
@@ -626,7 +624,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
           <div className="cityFieldCustomWidth">
             <label className="formLabel">City</label>
             <input
-              className="cityInputt"
+              className="cityInputtt"
               type="text"
               placeholder="City"
               value={addressData.address?.city || ''}
@@ -640,7 +638,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
           <div className="formGroup zipCodeField">
             <label className="formLabel">ZIP Code</label>
             <input
-              className="formInputt"
+              className="formInput"
               type="text"
               placeholder="Zip Code"
               value={addressData.address?.zip || ''}
@@ -652,7 +650,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
         <div className="countyField">
   <label className="formLabel">County</label>
   <input
-    className="countyInput"
+    className="cityInputtt"
     type="text"
     placeholder="County"
     value={addressData.address?.county || ''}
@@ -669,7 +667,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup streetField">
               <label className="formLabel">Street</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="Street"
                 value={addressData.mailingAddress?.street || ''}
@@ -679,7 +677,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup aptField">
               <label className="formLabel">APT./SPACE/STE.#</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="APT./SPACE/STE.#"
                 value={addressData.mailingAddress?.poBox || ''}
@@ -691,7 +689,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
-                className="cityInputt"
+                className="cityInputtt"
                 type="text"
                 placeholder="City"
                 value={addressData.mailingAddress?.city || ''}
@@ -704,7 +702,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="ZIP Code"
                 value={addressData.mailingAddress?.zip || ''}
@@ -723,7 +721,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup streetField">
               <label className="formLabel">Street</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="Street"
                 value={addressData.lesseeAddress?.street || ''}
@@ -733,7 +731,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup aptField">
               <label className="formLabel">APT./SPACE/STE.#</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="APT./SPACE/STE.#"
                 value={addressData.lesseeAddress?.apt || ''}
@@ -745,7 +743,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
-                className="cityInputt"
+                className="cityInputtt"
                 type="text"
                 placeholder="City"
                 value={addressData.lesseeAddress?.city || ''}
@@ -758,7 +756,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="ZIP Code"
                 value={addressData.lesseeAddress?.zip || ''}
@@ -777,7 +775,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup streetField">
               <label className="formLabel">Street</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="Street"
                 value={addressData.trailerLocation?.street || ''}
@@ -787,7 +785,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup aptField">
               <label className="formLabel">APT./SPACE/STE.#</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="APT./SPACE/STE.#"
                 value={addressData.trailerLocation?.apt || ''}
@@ -799,7 +797,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
-                className="cityInputt"
+                className="cityInputtt"
                 type="text"
                 placeholder="City"
                 value={addressData.trailerLocation?.city || ''}
@@ -812,7 +810,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="ZIP Code"
                 value={addressData.trailerLocation?.zip || ''}
@@ -823,7 +821,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
           <div className="countyField">
             <label className="formLabel">County</label>
             <input
-              className="countyInput"
+              className="cityInputtt"
               type="text"
               placeholder="County"
               value={addressData.trailerLocation?.county || ''}

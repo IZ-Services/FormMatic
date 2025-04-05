@@ -223,7 +223,7 @@ const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
 
       <div className="cityStateZipGroupp" style={cityStateZipStyle}>
         <div className="cityFieldCustomWidth">
-          <label className="formLabel">CITY - DO NOT ABBREVIATE</label>
+          <label className="formLabell">CITY - DO NOT ABBREVIATE</label>
           <input
             className="cityInputt"
             type="text"

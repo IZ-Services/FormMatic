@@ -44,6 +44,7 @@ const TypeContainer: React.FC = () => {
       setSelectedSubsection(scenarioName);
     }
 
+    // Handle Duplicate Stickers sub-options
     if (scenarioName === 'Duplicate Stickers') {
       if (isChecked) {
         setActiveSubOptions(prev => ({
@@ -60,16 +61,27 @@ const TypeContainer: React.FC = () => {
       }
     }
     
-    if (scenarioName === 'Name Change' && !isChecked) {
-      setActiveSubOptions(prev => {
-        const updated = { ...prev };
-        delete updated['Name Change-Name Correction'];
-        delete updated['Name Change-Legal Name Change'];
-        delete updated['Name Change-Name Discrepancy'];
-        return updated;
-      });
+    // Handle Name Change sub-options - automatically check the Name Correction option
+    if (scenarioName === 'Name Change') {
+      if (isChecked) {
+        setActiveSubOptions(prev => ({
+          ...prev,
+          'Name Change-Name Correction': true,
+          'Name Change-Legal Name Change': false,
+          'Name Change-Name Discrepancy': false
+        }));
+      } else {
+        setActiveSubOptions(prev => {
+          const updated = { ...prev };
+          delete updated['Name Change-Name Correction'];
+          delete updated['Name Change-Legal Name Change'];
+          delete updated['Name Change-Name Discrepancy'];
+          return updated;
+        });
+      }
     }
     
+    // Handle Personalized Plates sub-options
     if (scenarioName === 'Personalized Plates' && !isChecked) {
       setActiveSubOptions(prev => {
         const updated = { ...prev };
@@ -86,19 +98,28 @@ const TypeContainer: React.FC = () => {
     const optionKey = `${parentName}-${subOptionName}`;
     console.log(`Selecting sub-option: ${optionKey}, checked: ${isChecked}`);
     
-    if (parentName === 'Name Change' && isChecked) {
+    if (parentName === 'Name Change') {
       const updatedOptions = { ...activeSubOptions };
-      Object.keys(updatedOptions).forEach(key => {
-        if (key.startsWith('Name Change-')) {
-          updatedOptions[key] = false;
-        }
-      });
-      
-      updatedOptions[optionKey] = true;
+      // If a different option is being checked
+      if (isChecked) {
+        // Uncheck all other Name Change options
+        Object.keys(updatedOptions).forEach(key => {
+          if (key.startsWith('Name Change-')) {
+            updatedOptions[key] = false;
+          }
+        });
+        
+        // Check the selected option
+        updatedOptions[optionKey] = true;
+      } else {
+        // If the user is unchecking a Name Change option, allow it
+        updatedOptions[optionKey] = false;
+      }
       
       console.log('Updated activeSubOptions for Name Change:', updatedOptions);
       setActiveSubOptions(updatedOptions);
       
+      // Auto-select parent if not already selected
       if (!activeScenarios['Name Change']) {
         console.log('Auto-selecting Name Change parent option');
         setActiveScenarios(prev => ({

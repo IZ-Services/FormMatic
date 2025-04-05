@@ -29,7 +29,6 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
     'Not Received From Prior Owner', 
     'Not Received From DMV (Allow 30 days from issue date)', 
     'Illegible/Mutilated (Attach old title)',
-    'Other'
   ];
 
   useEffect(() => {
@@ -72,7 +71,7 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
       
       <div className="missingTitleContent">
         <div 
-          className="dropdownContainer"
+          className="dropdownContainerr"
           ref={dropdownRef}
         >
           <div

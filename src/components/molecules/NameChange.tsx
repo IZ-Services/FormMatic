@@ -3,13 +3,10 @@ import VehicalInformation from '../atoms/VehicleInformation';
 import Seller from '../atoms/Seller';
 import SaveButton from '../atoms/savebutton';
 import { FormDataProvider, useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
-import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
 import TypeContainer from '../layouts/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
 import NameStatement from '../atoms/NameStatement';
-import SellerAddress from '../atoms/SellerAdrress';
-import TitleStatus from '../atoms/TitleStatus';
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
   isSmogExempt?: boolean;
@@ -47,13 +44,11 @@ export default function NameChangeTransfer({ formData, onDataChange }: NameChang
       }
     }, [formValues]);
 
-    const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
-    const isSmogExempt = contextFormData?.vehicleTransactionDetails?.isSmogExempt === true;
 
     return (
       <div className='wholeForm'>
         <TypeContainer />
-        <TitleStatus formData={formValues}/>
+        {/* <TitleStatus formData={formValues}/> */}
 
         <VehicalInformation 
         formData={{
@@ -63,10 +58,12 @@ export default function NameChangeTransfer({ formData, onDataChange }: NameChang
 
         <Seller 
         formData={{
-          hideDateOfSale: true
+          hideDateOfSale: true,
+          hideDateOfBirth: true,
+          forceSingleOwner: true
         }}
       />
-        <SellerAddress formData={formValues} />
+        {/* <SellerAddress formData={formValues} /> */}
         <SaveButton 
           transactionType="Name Change/Correction Transfer"
           onSuccess={() => console.log('Save completed successfully')}

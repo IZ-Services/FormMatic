@@ -28,6 +28,7 @@ interface FormData {
   hideDateOfSale?: boolean;
   hideDateOfBirth?: boolean;
   limitOwnerCount?: boolean;
+  forceSingleOwner?: boolean; // Added property for explicit force single owner
   [key: string]: any;
 }
 
@@ -76,11 +77,35 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     ...propFormData
   };
 
+  // Determine if single owner should be forced
+  const shouldForceSingleOwner = () => {
+    // Explicit prop takes precedence
+    if (formData.forceSingleOwner) {
+      return true;
+    }
+    
+    // Check for scenarios that require forcing single owner
+    return !!(
+      activeScenarios && (
+        activeScenarios["Salvage"] ||
+        activeScenarios["Name Change"]
+      )
+    );
+  };
 
+  const forceSingleOwner = shouldForceSingleOwner();
   const hideDateOfSale = !!formData.hideDateOfSale || shouldHideDateOfSale();
   const hideDateOfBirth = !!formData.hideDateOfBirth || shouldHideDateOfBirth();
   const limitOwnerCount = !!formData.limitOwnerCount || shouldLimitOwnerCount();
 
+  // Log state for debugging
+  useEffect(() => {
+    console.log("Force Single Owner in Seller:", forceSingleOwner);
+    console.log("Should hide date of sale:", hideDateOfSale);
+    console.log("Should hide date of birth:", hideDateOfBirth);
+    console.log("Should limit owner count:", limitOwnerCount);
+    console.log("Active scenarios:", activeScenarios);
+  }, [forceSingleOwner, hideDateOfSale, hideDateOfBirth, limitOwnerCount, activeScenarios]);
 
   function shouldHideDateOfSale() {
     return !!(
@@ -99,7 +124,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     );
   }
 
-
   function shouldHideDateOfBirth() {
     return !!(
       activeScenarios && (
@@ -112,7 +136,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
       )
     );
   }
-
 
   function shouldLimitOwnerCount() {
     return !!(
@@ -128,16 +151,11 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     );
   }
 
-  useEffect(() => {
-    console.log("Should hide date of sale:", hideDateOfSale);
-    console.log("Should hide date of birth:", hideDateOfBirth);
-    console.log("Should limit owner count:", limitOwnerCount);
-    console.log("Active scenarios:", activeScenarios);
-  }, [hideDateOfSale, hideDateOfBirth, limitOwnerCount, activeScenarios]);
-
-
+  // Get available seller count options based on constraints
   const getSellerCountOptions = () => {
-    if (limitOwnerCount) {
+    if (forceSingleOwner) {
+      return ['1']; // Only one option if forcing single owner
+    } else if (limitOwnerCount) {
       return ['1', '2'];
     } else if (activeScenarios && activeScenarios["Duplicate Title"] === true) {
       return ['1', '2'];
@@ -145,12 +163,48 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     return ['1', '2', '3'];
   };
 
+  // Enforce single owner if required
+  useEffect(() => {
+    if (forceSingleOwner && formData.sellerInfo?.sellerCount !== '1') {
+      const newSellerCount = '1';
+      
+      // If we have sellers, keep only the first one
+      if (formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 1) {
+        const newSellers = [formData.sellerInfo.sellers[0]];
+        
+        const newSellerInfo = {
+          ...formData.sellerInfo,
+          sellerCount: newSellerCount,
+          sellers: newSellers
+        };
+        
+        updateField('sellerInfo', newSellerInfo);
+        
+        if (onChange) {
+          onChange(newSellerInfo);
+        }
+      } else {
+        // Just update the count
+        updateField('sellerInfo', {
+          ...formData.sellerInfo,
+          sellerCount: newSellerCount
+        });
+        
+        if (onChange) {
+          onChange({
+            ...formData.sellerInfo,
+            sellerCount: newSellerCount
+          });
+        }
+      }
+    }
+  }, [forceSingleOwner, formData.sellerInfo?.sellerCount]);
 
+  // Similar effect for limitOwnerCount
   useEffect(() => {
     if (limitOwnerCount && formData.sellerInfo?.sellerCount === '3') {
       const newSellerCount = '2';
       
-
       if (formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 2) {
         const newSellers = formData.sellerInfo.sellers.slice(0, 2);
         
@@ -166,7 +220,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
           onChange(newSellerInfo);
         }
       } else {
-
         updateField('sellerInfo', {
           ...formData.sellerInfo,
           sellerCount: newSellerCount
@@ -340,7 +393,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     }
   };
 
-
   useEffect(() => {
     if (hideDateOfSale && (!formData.sellerInfo?.sellers?.[0]?.saleDate || formData.sellerInfo.sellers[0].saleDate === '')) {
       const currentDate = new Date();
@@ -348,12 +400,10 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
       
       console.log('Setting current date for hidden sale date field:', formattedDate);
       
-
       const sellers = [...(formData.sellerInfo?.sellers || [])];
       if (sellers.length > 0) {
         sellers[0] = { ...sellers[0], saleDate: formattedDate };
         
-
         for (let i = 1; i < sellers.length; i++) {
           sellers[i] = { ...sellers[i], saleDate: formattedDate };
         }
@@ -377,8 +427,10 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
   };
 
   const handleCountChange = (count: string) => {
-
-    if (limitOwnerCount && count === '3') {
+    // If forcing single owner, always use '1'
+    if (forceSingleOwner) {
+      count = '1';
+    } else if (limitOwnerCount && count === '3') {
       count = '2';
     }
     
@@ -432,9 +484,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown]);
 
- 
   const validateDateFormat = (dateString: string): boolean => {
- 
     const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
     return dateRegex.test(dateString);
   };
@@ -501,7 +551,8 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
               onChange={(e) =>{ 
                 const value = e.target.value;
                 if (/^[a-zA-Z0-9]*$/.test(value)) {
-                  handleSellerChange(index, 'licenseNumber', e.target.value);
+                  // Convert to uppercase for all letters
+                  handleSellerChange(index, 'licenseNumber', value.toUpperCase());
                 }
               }}
               maxLength={8}
@@ -614,30 +665,33 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     <div className="seller-section">
       <div className="sellerHeader">
         <h3 className="sellerHeading">Registered Owner(s)</h3>
-        <div className="howManyWrapper">
-          <button
-            onClick={() => setOpenDropdown(openDropdown?.type === 'count' ? null : { type: 'count' })}
-            className="howManyDropDown"
-          >
-            {formData.sellerInfo?.sellerCount || 'How Many'}
-            <ChevronDownIcon
-              className={`howManyIcon ${openDropdown?.type === 'count' ? 'rotate' : ''}`}
-            />
-          </button>
-          {openDropdown?.type === 'count' && (
-            <ul ref={dropdownRef} className="howManyMenu">
-              {getSellerCountOptions().map((option, index) => (
-                <li
-                  className="howManyLists"
-                  key={index}
-                  onClick={() => handleCountChange(option)}
-                >
-                  {option}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {/* Hide dropdown completely if forcing single owner */}
+        {!forceSingleOwner && (
+          <div className="howManyWrapper">
+            <button
+              onClick={() => setOpenDropdown(openDropdown?.type === 'count' ? null : { type: 'count' })}
+              className="howManyDropDown"
+            >
+              {formData.sellerInfo?.sellerCount || 'How Many'}
+              <ChevronDownIcon
+                className={`howManyIcon ${openDropdown?.type === 'count' ? 'rotate' : ''}`}
+              />
+            </button>
+            {openDropdown?.type === 'count' && (
+              <ul ref={dropdownRef} className="howManyMenu">
+                {getSellerCountOptions().map((option, index) => (
+                  <li
+                    className="howManyLists"
+                    key={index}
+                    onClick={() => handleCountChange(option)}
+                  >
+                    {option}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
       {renderSellerForms()}

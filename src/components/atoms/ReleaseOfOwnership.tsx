@@ -197,15 +197,19 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Function to capitalize the first letter of each word
+  const capitalizeWords = (value: string): string => {
+    if (!value) return '';
+    
+    // Split the string by spaces and other word boundaries
+    return value.replace(/\b\w/g, (char) => char.toUpperCase());
+  };
 
   const formatPhoneNumber = (value: string): string => {
-
     const digits = value.replace(/\D/g, '');
     
-
     const limitedDigits = digits.slice(0, 10);
     
-
     if (limitedDigits.length === 0) {
       return '';
     } else if (limitedDigits.length <= 3) {
@@ -217,12 +221,9 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     }
   };
 
-
   const formatDate = (value: string): string => {
-
     const digits = value.replace(/\D/g, '');
     
-
     if (digits.length <= 2) {
       return digits;
     } else if (digits.length <= 4) {
@@ -235,14 +236,14 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
   const handleReleaseInfoChange = (field: keyof ReleaseInformationType, value: any) => {
     let formattedValue = value;
 
-
+    // Apply specific formatting for phone and date
     if (field === 'phoneNumber') {
       formattedValue = formatPhoneNumber(value);
-    }
-    
-
-    if (field === 'date') {
+    } else if (field === 'date') {
       formattedValue = formatDate(value);
+    } else if (typeof value === 'string') {
+      // Apply capitalization to text fields (except phone and date)
+      formattedValue = capitalizeWords(value);
     }
 
     const newData = { ...releaseData, [field]: formattedValue };
@@ -270,10 +271,13 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
   };
 
   const handleAddressChange = (addressType: 'address' | 'mailingAddress', field: keyof Address, value: string) => {
+    // Apply capitalization to address fields
+    const capitalizedValue = typeof value === 'string' ? capitalizeWords(value) : value;
+    
     const newData = { ...releaseData };
     newData[addressType] = {
       ...(newData[addressType] || {}),
-      [field]: value
+      [field]: capitalizedValue
     };
     setReleaseData(newData);
     updateField('releaseInformation', newData);
@@ -313,7 +317,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     <div className="releaseWrapper" style={containerStyle}>
       <div className="headerRow">
         <h3 className="releaseHeading">Lien Release</h3>
-        <div className="checkboxSection">
+        <div className="checkboxSectionn">
           <input
             type="checkbox"
             className="checkBoxAddress"
@@ -326,11 +330,11 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
 
       <div className="releaseFormGroup">
         <div className="bankNameField">
-          <label className="releaseFormLabel">Name of Bank, Finance Company, or Individual(s) Having a Lien on this Vehicle</label>
+          <label className="releaseFormLabel">Name of bank, finance company, or individual(s) having a lien on this vehicle</label>
           <input
-            className="releaseFormInput"
+            className="formInput"
             type="text"
-            placeholder="Name of Bank, Finance Company, or Individual(s)"
+            placeholder="Name of bank, finance company, or individual(s)"
             value={releaseData.name || ''}
             onChange={(e) => handleReleaseInfoChange('name', e.target.value)}
           />
@@ -341,7 +345,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
         <div className="formGroup streetField">
           <label className="formLabel">Street</label>
           <input
-            className="formInputt"
+            className="formInput"
             type="text"
             placeholder="Street"
             value={releaseData.address?.street || ''}
@@ -349,11 +353,11 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
           />
         </div>
         <div className="formGroup aptField">
-          <label className="formLabel">APT./SPACE/STE.#</label>
+          <label className="formLabel">Apt./space/ste.#</label>
           <input
-            className="formInputt"
+            className="formInput"
             type="text"
-            placeholder="APT./SPACE/STE.#"
+            placeholder="Apt./space/ste.#"
             value={releaseData.address?.apt || ''}
             onChange={(e) => handleAddressChange('address', 'apt', e.target.value)}
           />
@@ -364,7 +368,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
         <div className="cityFieldCustomWidth">
           <label className="formLabel">City</label>
           <input
-            className="cityInputt"
+            className="cityInputtt"
             type="text"
             placeholder="City"
             value={releaseData.address?.city || ''}
@@ -406,11 +410,11 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
           )}
         </div>
         <div className="formGroup zipCodeField">
-          <label className="formLabel">ZIP Code</label>
+          <label className="formLabel">Zip code</label>
           <input
-            className="formInputt"
+            className="formInput"
             type="text"
-            placeholder="Zip Code"
+            placeholder="Zip code"
             value={releaseData.address?.zip || ''}
             onChange={(e) => handleAddressChange('address', 'zip', e.target.value)}
           />
@@ -424,28 +428,28 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
             <input
               className="registeredDateInput"
               type="text"
-              placeholder="MM/DD/YYYY"
+              placeholder="Mm/dd/yyyy"
               value={releaseData.date || ''}
               onChange={(e) => handleReleaseInfoChange('date', e.target.value)}
               maxLength={10}
             />
           </div>
           <div className="formGroup phoneField">
-            <label className="releaseFormLabel">Phone Number</label>
+            <label className="releaseFormLabel">Phone number</label>
             <input
-              className="formInputt"
+              className="formInput"
               type="tel"
-              placeholder="(XXX) XXX-XXXX"
+              placeholder="Phone number"
               value={releaseData.phoneNumber || ''}
               onChange={(e) => handleReleaseInfoChange('phoneNumber', e.target.value)}
             />
           </div>
           <div className="agentNameInline">
-          <label className="releaseFormLabel">Printed Name of Authorized Agent</label>
+          <label className="releaseFormLabel">Printed name of authorized agent</label>
           <input
             className="agentFormInput"
             type="text"
-            placeholder="Full Name"
+            placeholder="Full name"
             value={releaseData.authorizedAgentName || ''}
             onChange={(e) => handleReleaseInfoChange('authorizedAgentName', e.target.value)}
           />
@@ -454,9 +458,9 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
 
         <div className="authorizedAgentGroup">
           <div className="formGroup agentTitleField">
-            <label className="releaseFormLabel">Title of Authorized Agent Signing for Company</label>
+            <label className="releaseFormLabel">Title of authorized agent signing for company</label>
             <input
-              className="formInputt"
+              className="formInput"
               type="text"
               placeholder="Title"
               value={releaseData.authorizedAgentTitle || ''}
@@ -473,7 +477,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
             <div className="formGroup streetField">
               <label className="formLabel">Street</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="Street"
                 value={releaseData.mailingAddress?.street || ''}
@@ -481,11 +485,11 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
               />
             </div>
             <div className="formGroup aptField">
-              <label className="formLabel">APT./SPACE/STE.#</label>
+              <label className="formLabel">Apt./space/ste.#</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
-                placeholder="APT./SPACE/STE.#"
+                placeholder="Apt./space/ste.#"
                 value={releaseData.mailingAddress?.poBox || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'poBox', e.target.value)}
               />
@@ -537,11 +541,11 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
               )}
             </div>
             <div className="formGroup zipCodeField">
-              <label className="formLabel">ZIP Code</label>
+              <label className="formLabel">Zip code</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
-                placeholder="ZIP Code"
+                placeholder="Zip code"
                 value={releaseData.mailingAddress?.zip || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'zip', e.target.value)}
               />

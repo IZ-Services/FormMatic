@@ -59,6 +59,14 @@ const cleanFormData = (data: any): any => {
   return result;
 };
 
+// Function to capitalize the first letter of each word
+const capitalizeWords = (value: string): string => {
+  if (!value) return '';
+  
+  // Split the string by spaces and other word boundaries
+  return value.replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 const SellerAddress: React.FC<SellerAddressProps> = ({ 
   formData: propFormData, 
   onChange, 
@@ -259,9 +267,15 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     
     const currentSection = (newData[section] as Address) || {};
     
+    // Apply capitalization to text fields if the value is a string
+    let processedValue = value;
+    if (typeof value === 'string' && field !== 'zip' && field !== 'state') {
+      processedValue = capitalizeWords(value);
+    }
+    
     const updatedSection = {
       ...currentSection,
-      [field]: value
+      [field]: processedValue
     };
     
     newData[section] = updatedSection as any;
@@ -276,7 +290,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
       updateField(String(section), updatedSection);
       
       if (isMultipleTransfer) {
-        console.log(`Multiple transfer update for ${section}.${field}:`, value);
+        console.log(`Multiple transfer update for ${section}.${field}:`, processedValue);
       }
     }
   };
@@ -470,9 +484,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
           transform: rotate(180deg);
         }
 
-        .state-field {
-          flex: 0 0 120px;
-        }
+        
 
         .state-label {
           display: block;
@@ -521,21 +533,17 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
           <div className="formGroup streetField">
             <label className="formLabel">Street</label>
             <input
-              className="formInputt"
+              className="formInput"
               type="text"
               placeholder="Street"
               value={addressData.sellerAddress?.street || ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-                handleAddressChange('sellerAddress', 'street', capitalizedValue);
-              }}
+              onChange={(e) => handleAddressChange('sellerAddress', 'street', e.target.value)}
             />
           </div>
           <div className="formGroup aptField">
             <label className="formLabel">APT./SPACE/STE.#</label>
             <input
-              className="formInputt"
+              className="formInput"
               type="text"
               placeholder="APT./SPACE/STE.#"
               value={addressData.sellerAddress?.apt || ''}
@@ -547,30 +555,22 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
           <div className="cityFieldCustomWidth">
             <label className="formLabel">City</label>
             <input
-              className="cityInputt"
+              className="cityInputtt"
               type="text"
               placeholder="City"
               value={addressData.sellerAddress?.city || ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-                handleAddressChange('sellerAddress', 'city', capitalizedValue);
-              }}
+              onChange={(e) => handleAddressChange('sellerAddress', 'city', e.target.value)}
             />
           </div>
 
           <div className="cityFieldCustomWidth">
             <label className="formLabel">County</label>
             <input
-              className="cityInputt"
+              className="cityInputtt"
               type="text"
               placeholder="County"
               value={addressData.sellerAddress?.county || ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-                handleAddressChange('sellerAddress', 'county', capitalizedValue);
-              }}
+              onChange={(e) => handleAddressChange('sellerAddress', 'county', e.target.value)}
             />
           </div>
           
@@ -580,7 +580,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
           <div className="formGroup zipCodeField">
             <label className="formLabel">ZIP Code</label>
             <input
-              className="formInputt"
+              className="formInput"
               type="text"
               placeholder="Zip Code"
               value={addressData.sellerAddress?.zip || ''}
@@ -610,21 +610,17 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
             <div className="formGroup streetField">
               <label className="formLabel">Street</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="Street"
                 value={addressData.sellerMailingAddress?.street || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-                  handleAddressChange('sellerMailingAddress', 'street', capitalizedValue);
-                }}
+                onChange={(e) => handleAddressChange('sellerMailingAddress', 'street', e.target.value)}
               />
             </div>
             <div className="formGroup aptField">
               <label className="formLabel">APT./SPACE/STE.#</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="APT./SPACE/STE.#"
                 value={addressData.sellerMailingAddress?.poBox || ''}
@@ -636,15 +632,11 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
-                className="cityInputt"
+                className="cityInputtt"
                 type="text"
                 placeholder="City"
                 value={addressData.sellerMailingAddress?.city || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-                  handleAddressChange('sellerMailingAddress', 'city', capitalizedValue);
-                }}
+                onChange={(e) => handleAddressChange('sellerMailingAddress', 'city', e.target.value)}
               />
             </div>
 
@@ -654,7 +646,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
-                className="formInputt"
+                className="formInput"
                 type="text"
                 placeholder="ZIP Code"
                 value={addressData.sellerMailingAddress?.zip || ''}

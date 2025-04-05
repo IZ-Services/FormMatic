@@ -140,13 +140,13 @@
   }
   
   @media (max-width: 768px) {
-    .streetAptGroup {
+    /* .streetAptGroup {
       flex-direction: column;
     }
-    
-    .cityStateZipGroupp {
+     */
+    /* .cityStateZipGroupp {
       flex-direction: column;
-    }
+    } */
     
     .cityFieldCustomWidth, .zipCodeField, .regStateWrapper {
       width: 100%;

@@ -45,17 +45,16 @@ const SectionOne: React.FC<SectionOneProps> = ({ formData: propFormData }) => {
   const handleInputChange = (field: keyof SectionOneData, value: string) => {
     const capitalizedValue = capitalizeFirstLetter(value);
     
-
     let hasError = false;
-    if (field === 'lastName' && value.length >= 20) {
+    if (field === 'lastName' && value.length > 20) {
       hasError = true;
-    } else if (field === 'firstName' && value.length >= 9) {
+    } else if (field === 'firstName' && value.length > 9) {
       hasError = true;
-    } else if (field === 'driverLicenseId' && value.length >= 8) {
+    } else if (field === 'driverLicenseId' && value.length > 0 && value.length < 8) {
+      // Show error when driver license ID is less than 8 characters (but only if some input exists)
       hasError = true;
     }
     
-
     setErrors(prev => ({
       ...prev,
       [field]: hasError
@@ -151,7 +150,7 @@ const SectionOne: React.FC<SectionOneProps> = ({ formData: propFormData }) => {
               onChange={(e) => handleInputChange('driverLicenseId', e.target.value)}
               maxLength={8}
             />
-            {errors.driverLicenseId && <div className="error-message">Maximum 8 characters</div>}
+            {errors.driverLicenseId && <div className="error-message">Must be exactly 8 characters</div>}
           </div>
         </div>
       </div>

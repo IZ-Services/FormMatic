@@ -67,6 +67,19 @@
     color: #444;
 }
 
+.formLabell {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #444;
+}
+.formLabelll {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #444;
+}
+
 .formInputt {
     width: 100%;
     padding: 8px;
@@ -151,9 +164,22 @@
 }
 
 @media (max-width: 768px) {
-    .streetAptGroup,
+    /* .streetAptGroup,
     .cityStateZipGroupp {
         flex-direction: column;
         gap: 10px;
-    }
+    } */
+
+    .formLabell {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 6ch; /* Limits to approximately 35 characters */
+      }
+      .formLabelll {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 35ch; /* Limits to approximately 35 characters */
+      }
 }

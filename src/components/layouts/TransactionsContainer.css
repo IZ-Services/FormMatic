@@ -36,6 +36,8 @@
   transform: translateX(0);
   opacity: 1;
   visibility: visible;
+  height: 580px;
+
 }
 
 .transactionSections {
@@ -45,7 +47,8 @@
   justify-content: center;
   align-items: start;
   overflow-y: auto; /* Enable scrolling in the sections container */
-  flex-grow: 1; /* Allow this to grow and fill available space */
+  max-height: calc(80vh - 80px); /* Subtract header height */
+  padding-bottom: 15px; /* Add padding at bottom for spacing */
 }
 
 .transaction-header {
@@ -152,6 +155,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid #eee;
 }
 
 .transaction-item {
@@ -167,7 +171,8 @@
   .transactionSections {
     display: grid;
     grid-template-columns: repeat(2, 1fr); 
-    gap: 12px; 
+    gap: 12px;
+    max-height: calc(80vh - 80px);
   }
 }
 
@@ -180,7 +185,8 @@
   .transactionSections {
     display: grid;
     grid-template-columns: repeat(2, 1fr); 
-    gap: 12px; 
+    gap: 12px;
+    max-height: calc(80vh - 80px);
   }
 }
 
@@ -195,15 +201,18 @@
     transform: translateX(120%);
     margin-right: 30px;
     width: 300px;
+
   }
 
   .type-container.show {
     transform: translateX(0);
+    height: 580px;
   }
 
   .transactionSections {
     grid-template-columns: 1fr; 
-    gap: 12px; 
+    gap: 12px;
+    max-height: calc(80vh - 80px);
   }
 
   .side-tab {

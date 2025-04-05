@@ -57,6 +57,7 @@
 
 .input-group {
   margin-bottom: 15px;
+  position: relative; /* Add positioning context for the label */
 }
 
 .input-label {
@@ -65,6 +66,8 @@
   margin-bottom: 5px;
   text-transform: uppercase;
   color: #333;
+  width: 100%; /* Ensure label takes full width of its container */
+  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 .standard-input {
@@ -94,6 +97,16 @@
   width: 50px;
 }
 
+/* Add truncation for input labels when screen width is between 838px and 768px */
+@media (max-width: 838px) and (min-width: 768px) {
+  .input-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 35ch; /* Limits to approximately 35 characters */
+  }
+}
+
 @media (max-width: 768px) {
   .name-row, .id-row {
     flex-direction: column;
@@ -114,7 +127,7 @@
   .form-content {
     padding: 10px;
   }
-
+  
   .standard-input {
     font-size: 12px;
     padding: 6px;

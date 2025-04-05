@@ -22,7 +22,7 @@
   gap: 16px;
 }
 
-.dropdownContainer {
+.dropdownContainerr {
   position: relative;
   width: 100%;
 }
@@ -125,7 +125,7 @@
     font-size: 14px;
   }
   
-  .dropdownContainer {
+  .dropdownContainerr {
     width: 100%;
     flex-direction: column;
   }

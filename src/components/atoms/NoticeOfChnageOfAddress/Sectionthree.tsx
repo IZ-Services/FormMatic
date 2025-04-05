@@ -263,8 +263,8 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
         /* Make sure the dropdown container is above everything else */
         .state-field {
           position: relative;
-          flex: 0 0 120px;
-          z-index: 1000; /* Add z-index to the container */
+          // flex: 0 0 120px;
+          // z-index: 1000; /* Add z-index to the container */
         }
 
         .state-dropdown-item {
@@ -407,7 +407,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
 
       <div className="cityStateZipGroupp">
         <div className="cityFieldCustomWidth">
-          <label className="formLabel">CITY - DO NOT ABBREVIATE</label>
+          <label className="formLabell">CITY - DO NOT ABBREVIATE</label>
           <input
             className="cityInputt"
             type="text"
@@ -492,7 +492,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
 
           <div className="cityStateZipGroupp">
             <div className="cityFieldCustomWidth">
-              <label className="formLabel">CITY - DO NOT ABBREVIATE</label>
+              <label className="formLabelll">CITY - DO NOT ABBREVIATE</label>
               <input
                 className="cityInputt"
                 type="text"
@@ -567,7 +567,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
 
           <div className="cityStateZipGroupp">
             <div className="cityFieldCustomWidth">
-              <label className="formLabel">CITY - DO NOT ABBREVIATE - USE FIRST 16 CHARACTERS IN CITY NAME</label>
+              <label className="formLabelll">CITY - DO NOT ABBREVIATE - USE FIRST 16 CHARACTERS IN CITY NAME</label>
               <input
                 className="cityInputt"
                 type="text"

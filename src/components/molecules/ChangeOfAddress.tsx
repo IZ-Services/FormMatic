@@ -13,6 +13,7 @@ import VoterAddressUpdate from '../atoms/VoterAddressUpdate';
 import LeasedVehicles from '../atoms/LeasedVehiclesData';
 import CitizenshipQuestion from '../atoms/CitizenshipQuestion;';
 import CheckboxOptions from '../atoms/NoticeOfChnageOfAddress/CheckBoxOptions';
+import LeasingCompanyField from '../atoms/NoticeOfChnageOfAddress/LeasingCompanyField';
 interface FormContextData {
   [key: string]: any;
 }
@@ -24,10 +25,13 @@ interface ChangeOfAddressTransferProps {
 
 export default function ChangeOfAddressTransfer({ formData, onDataChange }: ChangeOfAddressTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
+  
   useEffect(() => {
     if (onDataChange) {
-      onDataChange(formData);     }
+      onDataChange(formData);
+    }
   }, [formData]);
+  
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
@@ -44,6 +48,8 @@ export default function ChangeOfAddressTransfer({ formData, onDataChange }: Chan
       }
     }, [formValues]);
 
+    // Check if leased vehicle is checked
+    const isLeasedVehicle = contextFormData?.checkboxOptions?.leasedVehicle === true;
     const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
     const isSmogExempt = contextFormData?.vehicleTransactionDetails?.isSmogExempt === true;
 
@@ -55,9 +61,10 @@ export default function ChangeOfAddressTransfer({ formData, onDataChange }: Chan
         <SectionTwo formData={formValues} />
         <SectionThree formData={formValues} />
         <SectionFive formData={formValues} />
-        {/* <VoterAddressUpdate formData={formValues} /> */}
-        {/* <CitizenshipQuestion formData={formValues} /> */}
-        {/* <LeasedVehicles formData={formValues} /> */}
+        
+        {/* Show LeasedVehicles component if leased vehicle checkbox is checked */}
+        {isLeasedVehicle && <LeasingCompanyField formData={formValues} />}
+        
         <SaveButton 
           transactionType="Change Of Address Transfer"
           onSuccess={() => console.log('Save completed successfully')}

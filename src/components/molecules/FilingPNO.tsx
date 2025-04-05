@@ -11,7 +11,7 @@ import PlannedNonoperation from '../atoms/PlannedNonoperation';
 import FilingPnoCheckboxes from '../atoms/FilingPnoCheckboxes';
 import SellerAddress from '../atoms/SellerAdrress';
 import VehicleStorageLocation from '../atoms/VehicleStorageLocation';
-
+import TitleField from '../atoms/TitleCompany';
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
 }
@@ -63,7 +63,6 @@ export default function FilingPNOTransfer({ formData, onDataChange }: FilingPNOP
         <TypeContainer />
         <FilingPnoCheckboxes formData={formValues} />
         
-        {/* Only render Seller and SellerAddress components if PNO card is requested */}
         {isPnoCardRequested && (
           <>
 <Seller
@@ -75,10 +74,12 @@ export default function FilingPNOTransfer({ formData, onDataChange }: FilingPNOP
         }}
       />
             <SellerAddress formData={formValues} />
+            <TitleField formData={formValues} />
           </>
+          
         )}
         
-        <VehicleStorageLocation formData={formValues} />
+        {/* <VehicleStorageLocation formData={formValues} /> */}
         <PlannedNonoperation formData={formValues} />
         <SaveButton 
           transactionType="Filing PNO Transfer"

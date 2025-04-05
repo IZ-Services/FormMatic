@@ -59,7 +59,8 @@ export default function SalvageTransfer({ formData, onDataChange }: SalvageTrans
       />            <Seller formData= {formValues} />
  <SellerAddress 
         hideMailingOption={true}
-      />        <NewRegisteredOwners   formData={{
+      />        
+      <NewRegisteredOwners   formData={{
           forceSingleOwner: true
         }}
       />

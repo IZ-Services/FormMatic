@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFormContext } from '../../../app/api/formDataContext/formDataContextProvider';
 import '../Checkboxes.css';
+import LeasingCompanyField from './LeasingCompanyField'; // Import the new component
 
 interface CheckboxState {
   leasedVehicle: boolean;
@@ -46,7 +47,7 @@ const CheckboxOptions: React.FC<CheckboxOptionsProps> = ({ formData: propFormDat
     updateField('checkboxOptions', updatedCheckboxes);
   };
 
-  const handleInputChange = (value: string) => {
+  const handleLeasingCompanyNameChange = (value: string) => {
     const updatedCheckboxes = {
       ...checkboxes,
       leasingCompanyName: value
@@ -58,63 +59,52 @@ const CheckboxOptions: React.FC<CheckboxOptionsProps> = ({ formData: propFormDat
 
   return (
     <div className="releaseWrapper">
-    <div className="headerRow">
-      <h3 className="releaseHeading">Transaction Details</h3>
-    </div>
+      <div className="headerRow">
+        <h3 className="releaseHeading">Transaction Details</h3>
+      </div>
 
-    <div className="checkbox-options-container">
-      <div className="checkbox-group">
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            name="leasedVehicle"
-            checked={checkboxes.leasedVehicle}
-            onChange={handleCheckboxChange}
-            className="checkbox-input"
-          />
-          <span className="checkbox-text">Leased Vehicle</span>
-        </label>
-        
-        {checkboxes.leasedVehicle && (
-          <div className="leasing-company-field">
-            <label className="input-label">LEASING COMPANY'S NAME</label>
+      <div className="checkbox-options-container">
+        <div className="checkbox-group">
+          <label className="checkbox-label">
             <input
-              type="text"
-              className="standard-input"
-              value={checkboxes.leasingCompanyName || ''}
-              onChange={(e) => handleInputChange(e.target.value)}
-              maxLength={30}
+              type="checkbox"
+              name="leasedVehicle"
+              checked={checkboxes.leasedVehicle}
+              onChange={handleCheckboxChange}
+              className="checkbox-input"
             />
-          </div>
-        )}
-      </div>
+            <span className="checkbox-text">Leased Vehicle</span>
+          </label>
+          
+         
+        </div>
 
-      <div className="checkbox-group">
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            name="notUsCitizen"
-            checked={checkboxes.notUsCitizen}
-            onChange={handleCheckboxChange}
-            className="checkbox-input"
-          />
-          <span className="checkbox-text">Not a United States Citizen</span>
-        </label>
-      </div>
+        <div className="checkbox-group">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              name="notUsCitizen"
+              checked={checkboxes.notUsCitizen}
+              onChange={handleCheckboxChange}
+              className="checkbox-input"
+            />
+            <span className="checkbox-text">Not a United States Citizen</span>
+          </label>
+        </div>
 
-      <div className="checkbox-group">
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            name="doNotUseForVoterRegistration"
-            checked={checkboxes.doNotUseForVoterRegistration}
-            onChange={handleCheckboxChange}
-            className="checkbox-input"
-          />
-          <span className="checkbox-text">Do not use my new address for voter registration purposes</span>
-        </label>
+        <div className="checkbox-group">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              name="doNotUseForVoterRegistration"
+              checked={checkboxes.doNotUseForVoterRegistration}
+              onChange={handleCheckboxChange}
+              className="checkbox-input"
+            />
+            <span className="checkbox-text">Do not use my new address for voter registration purposes</span>
+          </label>
+        </div>
       </div>
-    </div>
     </div>
   );
 };

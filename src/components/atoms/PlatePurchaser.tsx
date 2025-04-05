@@ -331,7 +331,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                 <input
                   type="tel"
                   className="infoInput"
-                  placeholder="(XXX) XXX-XXXX"
+                  placeholder="Phone Number"
                   value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.phoneNumber || ''}
                   onChange={(e) => handlePurchaserChange('phoneNumber', e.target.value)}
                 />
@@ -430,7 +430,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                 <input
                   type="tel"
                   className="infoInput"
-                  placeholder="(XXX) XXX-XXXX"
+                  placeholder="Phone Number"
                   value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.phoneNumber || ''}
                   onChange={(e) => handleOwnerChange('phoneNumber', e.target.value)}
                   disabled={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
