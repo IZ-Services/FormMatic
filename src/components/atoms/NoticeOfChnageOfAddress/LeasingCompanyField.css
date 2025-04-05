@@ -1,0 +1,34 @@
+.leasing-company-container {
+    margin-top: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .newRegFormItem {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .formLabel {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    color: #444;
+  }
+  
+  .formInput {
+    /* Set a specific width */
+    width: 300px;
+    max-width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    font-size: 14px;
+  }
+  
+  /* Responsive adjustment for smaller screens */
+  @media (max-width: 768px) {
+    .formInput {
+      width: 100%;
+    }
+  }
