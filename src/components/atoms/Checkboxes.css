@@ -130,3 +130,10 @@
       margin-left: 20px;
     }
   }
+
+  @media (max-width: 646px) {
+    .checkbox-options-container {
+      flex-direction: column;
+    }
+
+  }
