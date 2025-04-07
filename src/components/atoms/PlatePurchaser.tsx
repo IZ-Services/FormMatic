@@ -37,7 +37,7 @@ const initialPersonInfo: PersonInfoType = {
 const initialPlatePurchaserOwner: PlatePurchaserOwnerType = {
   sameAsOwner: false,
   purchaser: { ...initialPersonInfo },
-  owner: { ...initialPersonInfo }
+  owner: { ...initialPersonInfo } // Ensure owner is always defined with initial values
 };
 
 const states = [
@@ -98,14 +98,51 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const purchaserStateRef = useRef<HTMLUListElement>(null);
   const ownerStateRef = useRef<HTMLUListElement>(null);
-
-  const formData = {
-    ...contextFormData,
-    ...propFormData
+  
+  // Use a derived state to ensure we always have defined values
+  const getFormDataSafely = () => {
+    const combined = {
+      ...contextFormData,
+      ...propFormData
+    };
+    
+    // If platePurchaserOwner is missing or undefined, use initial state
+    if (!combined.platePurchaserOwner) {
+      return {
+        ...combined,
+        platePurchaserOwner: initialPlatePurchaserOwner
+      };
+    }
+    
+    // Ensure purchaser object is fully defined
+    const purchaser = {
+      ...initialPersonInfo,
+      ...(combined.platePurchaserOwner.purchaser || {})
+    };
+    
+    // Ensure owner object is fully defined
+    const owner = {
+      ...initialPersonInfo,
+      ...(combined.platePurchaserOwner.owner || {})
+    };
+    
+    // Return merged data with all fields guaranteed to be defined
+    return {
+      ...combined,
+      platePurchaserOwner: {
+        sameAsOwner: combined.platePurchaserOwner.sameAsOwner || false,
+        purchaser,
+        owner
+      }
+    };
   };
+  
+  // Get safe form data with all required fields defined
+  const safeFormData = getFormDataSafely();
 
+  // Initialize form data if needed
   useEffect(() => {
-    if (!formData.platePurchaserOwner) {
+    if (!contextFormData.platePurchaserOwner) {
       updateField('platePurchaserOwner', initialPlatePurchaserOwner);
     }
   }, []);
@@ -137,14 +174,14 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
   }, [openDropdown]);
 
   const handleSameAsOwnerChange = (checked: boolean) => {
-    const currentInfo = { ...(formData.platePurchaserOwner || initialPlatePurchaserOwner) };
+    const currentInfo = { ...safeFormData.platePurchaserOwner };
     
     if (checked) {
       currentInfo.sameAsOwner = true;
       currentInfo.owner = { ...currentInfo.purchaser };
     } else {
       currentInfo.sameAsOwner = false;
-      currentInfo.owner = { ...initialPersonInfo };
+      // Don't reset owner to empty - keep the values but make them editable
     }
     
     updateField('platePurchaserOwner', currentInfo);
@@ -162,15 +199,10 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
     ).join(' ');
   };
   
-
   const formatPhoneNumber = (value: string): string => {
-
     const digits = value.replace(/\D/g, '');
-    
-
     const limitedDigits = digits.slice(0, 10);
     
-
     if (limitedDigits.length === 0) {
       return '';
     } else if (limitedDigits.length <= 3) {
@@ -183,7 +215,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
   };
 
   const handlePurchaserChange = (field: keyof PersonInfoType, value: string) => {
-    const currentInfo = { ...(formData.platePurchaserOwner || initialPlatePurchaserOwner) };     
+    const currentInfo = { ...safeFormData.platePurchaserOwner };
     
     let formattedValue = value;
     if (field === 'phoneNumber') {
@@ -194,7 +226,8 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
       formattedValue = capitalizeFirstLetter(value);
     }
     
-    currentInfo.purchaser = { ...currentInfo.purchaser, [field]: formattedValue };     
+    currentInfo.purchaser = { ...currentInfo.purchaser, [field]: formattedValue };
+    
     if (currentInfo.sameAsOwner) {
       currentInfo.owner = { ...currentInfo.purchaser };
     }
@@ -202,34 +235,51 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
     updateField('platePurchaserOwner', currentInfo);
   };
 
-  const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
-    const currentInfo = { ...(formData.platePurchaserOwner || initialPlatePurchaserOwner) };     
-    
-    let formattedValue = value;
-    if (field === 'phoneNumber') {
-      formattedValue = formatPhoneNumber(value);
-    } else if (field === 'fullName') {
-      formattedValue = capitalizeWords(value);
-    } else if (field !== 'state') {
-      formattedValue = capitalizeFirstLetter(value);
-    }
-    
-    if (!currentInfo.owner) {
-      currentInfo.owner = { ...initialPersonInfo };
-    }
-    
-    currentInfo.owner = { ...currentInfo.owner, [field]: formattedValue };
-    updateField('platePurchaserOwner', currentInfo);
+const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
+  const currentInfo = { ...safeFormData.platePurchaserOwner };
+  
+  let formattedValue = value;
+  if (field === 'phoneNumber') {
+    formattedValue = formatPhoneNumber(value);
+  } else if (field === 'fullName') {
+    formattedValue = capitalizeWords(value);
+  } else if (field !== 'state') {
+    formattedValue = capitalizeFirstLetter(value);
+  }
+  
+  // Ensure owner exists with default values if it's undefined
+  if (!currentInfo.owner) {
+    currentInfo.owner = { ...initialPersonInfo };
+  }
+  
+  // Now it's safe to update the owner
+  currentInfo.owner = {
+    ...currentInfo.owner,
+    [field]: formattedValue
   };
   
-  const handlePurchaserStateSelect = (abbreviation: string) => {     
-    handlePurchaserChange('state', abbreviation);     
+  updateField('platePurchaserOwner', currentInfo);
+};
+
+  
+  const handlePurchaserStateSelect = (abbreviation: string) => {
+    handlePurchaserChange('state', abbreviation);
     setOpenDropdown(null);
   };
   
-  const handleOwnerStateSelect = (abbreviation: string) => {     
-    handleOwnerChange('state', abbreviation);     
+  const handleOwnerStateSelect = (abbreviation: string) => {
+    handleOwnerChange('state', abbreviation);
     setOpenDropdown(null);
+  };
+
+  // Get safe values for form fields with empty string fallbacks
+  const getSafeValue = (path: string[], defaultValue = ''): string => {
+    let current: any = safeFormData;
+    for (const key of path) {
+      if (current === undefined || current === null) return defaultValue;
+      current = current[key];
+    }
+    return current === undefined || current === null ? defaultValue : current;
   };
 
   return (
@@ -239,7 +289,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
         <label className="sameAsOwnerLabel">
           <input
             type="checkbox"
-            checked={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
+            checked={safeFormData.platePurchaserOwner.sameAsOwner}
             onChange={(e) => handleSameAsOwnerChange(e.target.checked)}
             className="sameAsOwnerCheckbox"
           />
@@ -259,7 +309,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                 type="text"
                 className="infoInput"
                 placeholder="Enter full name"
-                value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.fullName || ''}
+                value={getSafeValue(['platePurchaserOwner', 'purchaser', 'fullName'])}
                 onChange={(e) => handlePurchaserChange('fullName', e.target.value)}
               />
             </div>
@@ -271,7 +321,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                   type="text"
                   className="infoInput"
                   placeholder="Enter street address or PO box"
-                  value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.streetAddress || ''}
+                  value={getSafeValue(['platePurchaserOwner', 'purchaser', 'streetAddress'])}
                   onChange={(e) => handlePurchaserChange('streetAddress', e.target.value)}
                 />
               </div>
@@ -282,7 +332,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                   type="text"
                   className="infoInput"
                   placeholder="Enter city"
-                  value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.city || ''}
+                  value={getSafeValue(['platePurchaserOwner', 'purchaser', 'city'])}
                   onChange={(e) => handlePurchaserChange('city', e.target.value)}
                 />
               </div>
@@ -296,7 +346,9 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                     onClick={() => setOpenDropdown(openDropdown === 'purchaserState' ? null : 'purchaserState')}
                     className="regStateDropDown purchaser-state-button"
                   >
-                    {(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.state || 'State'}
+                    {getSafeValue(['platePurchaserOwner', 'purchaser', 'state']) ? 
+                      getSafeValue(['platePurchaserOwner', 'purchaser', 'state']) : 
+                      'STATE'}
                     <ChevronDownIcon className={`regIcon ${openDropdown === 'purchaserState' ? 'rotate' : ''}`} />
                   </button>
                   {openDropdown === 'purchaserState' && (
@@ -321,7 +373,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                   type="text"
                   className="infoInput"
                   placeholder="Enter ZIP code"
-                  value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.zipCode || ''}
+                  value={getSafeValue(['platePurchaserOwner', 'purchaser', 'zipCode'])}
                   onChange={(e) => handlePurchaserChange('zipCode', e.target.value)}
                 />
               </div>
@@ -332,7 +384,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                   type="tel"
                   className="infoInput"
                   placeholder="Phone Number"
-                  value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.purchaser?.phoneNumber || ''}
+                  value={getSafeValue(['platePurchaserOwner', 'purchaser', 'phoneNumber'])}
                   onChange={(e) => handlePurchaserChange('phoneNumber', e.target.value)}
                 />
               </div>
@@ -352,9 +404,9 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                 type="text"
                 className="infoInput"
                 placeholder="Enter full name"
-                value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.fullName || ''}
+                value={getSafeValue(['platePurchaserOwner', 'owner', 'fullName'])}
                 onChange={(e) => handleOwnerChange('fullName', e.target.value)}
-                disabled={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
+                disabled={safeFormData.platePurchaserOwner.sameAsOwner}
               />
             </div>
             
@@ -365,9 +417,9 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                   type="text"
                   className="infoInput"
                   placeholder="Enter street address or PO box"
-                  value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.streetAddress || ''}
+                  value={getSafeValue(['platePurchaserOwner', 'owner', 'streetAddress'])}
                   onChange={(e) => handleOwnerChange('streetAddress', e.target.value)}
-                  disabled={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
+                  disabled={safeFormData.platePurchaserOwner.sameAsOwner}
                 />
               </div>
               
@@ -377,9 +429,9 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                   type="text"
                   className="infoInput"
                   placeholder="Enter city"
-                  value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.city || ''}
+                  value={getSafeValue(['platePurchaserOwner', 'owner', 'city'])}
                   onChange={(e) => handleOwnerChange('city', e.target.value)}
-                  disabled={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
+                  disabled={safeFormData.platePurchaserOwner.sameAsOwner}
                 />
               </div>
             </div>
@@ -389,12 +441,14 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                 <label className="infoLabel">State</label>
                 <div className="regStateWrapper">
                   <button
-                    onClick={() => !((formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner) && 
+                    onClick={() => !safeFormData.platePurchaserOwner.sameAsOwner && 
                       setOpenDropdown(openDropdown === 'ownerState' ? null : 'ownerState')}
                     className="regStateDropDown owner-state-button"
-                    disabled={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
+                    disabled={safeFormData.platePurchaserOwner.sameAsOwner}
                   >
-                    {(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.state || 'State'}
+                    {getSafeValue(['platePurchaserOwner', 'owner', 'state']) ? 
+                      getSafeValue(['platePurchaserOwner', 'owner', 'state']) : 
+                      'STATE'}
                     <ChevronDownIcon className={`regIcon ${openDropdown === 'ownerState' ? 'rotate' : ''}`} />
                   </button>
                   {openDropdown === 'ownerState' && (
@@ -419,9 +473,9 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                   type="text"
                   className="infoInput"
                   placeholder="Enter ZIP code"
-                  value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.zipCode || ''}
+                  value={getSafeValue(['platePurchaserOwner', 'owner', 'zipCode'])}
                   onChange={(e) => handleOwnerChange('zipCode', e.target.value)}
-                  disabled={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
+                  disabled={safeFormData.platePurchaserOwner.sameAsOwner}
                 />
               </div>
               
@@ -431,9 +485,9 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
                   type="tel"
                   className="infoInput"
                   placeholder="Phone Number"
-                  value={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.owner?.phoneNumber || ''}
+                  value={getSafeValue(['platePurchaserOwner', 'owner', 'phoneNumber'])}
                   onChange={(e) => handleOwnerChange('phoneNumber', e.target.value)}
-                  disabled={(formData.platePurchaserOwner as PlatePurchaserOwnerType)?.sameAsOwner}
+                  disabled={safeFormData.platePurchaserOwner.sameAsOwner}
                 />
               </div>
             </div>

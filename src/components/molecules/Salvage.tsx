@@ -12,6 +12,7 @@ import VehicleInformation from '../atoms/VehicleInformation';
 import Seller from '../atoms/Seller';
 import SellerAddress from '../atoms/SellerAdrress';
 import Address from '../atoms/Address';
+import AgentName from '../atoms/AgentName';
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
   isSmogExempt?: boolean;
@@ -56,14 +57,16 @@ export default function SalvageTransfer({ formData, onDataChange }: SalvageTrans
         formData={{
           hideMileageFields: true
         }}
-      />            <Seller formData= {formValues} />
+      />
+                  <Seller formData= {formValues} />
+      <AgentName formData={formValues} />
  <SellerAddress 
         hideMailingOption={true}
       />        
-      <NewRegisteredOwners   formData={{
+      {/* <NewRegisteredOwners   formData={{
           forceSingleOwner: true
         }}
-      />
+      /> */}
         <LicensePlateDisposition formData={formValues} />
         <SaveButton 
           transactionType="Salvage Title Transfer"

@@ -199,7 +199,7 @@
 
 /* Kids Plate Option */
 .kidsPlateOption {
-  display: flex;
+  display: none;
   flex-direction: column;
   margin-bottom: 20px;
 }
@@ -359,9 +359,11 @@
   flex-grow: 1;
   margin-left: 10px;
 }
-
+.uppercase-input {
+  text-transform: uppercase;
+}
 /* Responsive styles */
-@media (max-width: 768px) {
+@media (max-width: 770px) {
   .sequentialInputs {
     flex-direction: column;
     gap: 10px;

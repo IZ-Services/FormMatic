@@ -1165,8 +1165,12 @@ async function modifyReg488cPdf(fileBytes: ArrayBuffer, formData: any, effective
       
       if (sellerFullName) {
         safeSetText('PRINTED NAME OF INSURANCE CO. OR APPLICANT1', sellerFullName);
-        safeSetText('PRINTED NAME OF AGENT', sellerFullName);
       }
+      
+      if (formData.agentName) {
+        safeSetText('PRINTED NAME OF AGENT', formData.agentName);
+      }
+    
       
       if (seller.licenseNumber) {
         safeSetText('DL OR ID NUMBER1', seller.licenseNumber || '');
@@ -2636,10 +2640,10 @@ async function modifyREG195Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
               safeSetText("DOB-Day.2", day.charAt(1));
               
  
-              safeSetText("DOB-Yr.0", year.charAt(0));
-              safeSetText("DOB-Yr.1.0", year.charAt(1));
-              safeSetText("DOB-Yr.1.1", year.charAt(2));
-              safeSetText("DOB-Yr.1.2", year.charAt(3));
+              safeSetText("DOB-Yr.0", year.charAt(3));
+              safeSetText("DOB-Yr.1.0", year.charAt(2));
+              safeSetText("DOB-Yr.1.1", year.charAt(0));
+              safeSetText("DOB-Yr.1.2", year.charAt(1));
               
               console.log(`Set DOB fields - Month: ${month}, Day: ${day}, Year: ${year}`);
             } else {

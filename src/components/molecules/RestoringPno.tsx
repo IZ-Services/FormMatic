@@ -66,8 +66,12 @@ export default function RestoringPNOTransfer({ formData, onDataChange }: Restori
     return (
       <div className='wholeForm'>
         <TypeContainer />
-        <VehicleInformation formData={formValues} />
-        <NewRegisteredOwners formData={modifiedFormData} />
+        <VehicleInformation formData={{
+          
+          hideMileageFields: true,
+          
+        }}/>
+        <NewRegisteredOwners formData={{modifiedFormData, forceSingleOwner: true, hideLicenseField: true, hideStateField: true}} />
         {/* <StatementOfFacts formData={formValues} /> */}
         <SaveButton
           transactionType="Restoring PNO Transfer"

@@ -163,17 +163,21 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
               <div className="sequentialDetails">
                 <h4 className="sequentialTitle">Sequential plates will be assigned to:</h4>
                 <div className="sequentialInputs">
+                <div className="sequentialInput">
+  <label className="sequentialLabel">CURRENT LICENSE PLATE NUMBER</label>
+  <input
+    type="text"
+    className="textInput uppercase-input" 
+    value={(formData.selectConfiguration as SelectConfigurationType)?.currentLicensePlate || ''}
+    onChange={(e) => {
+      const value = e.target.value.slice(0, 7);
+      handleChange('currentLicensePlate', value);
+    }}
+    maxLength={7} 
+  />
+</div>
                   <div className="sequentialInput">
-                    <label className="sequentialLabel">CURRENT LICENSE PLATE NUMBER</label>
-                    <input
-                      type="text"
-                      className="textInput"
-                      value={(formData.selectConfiguration as SelectConfigurationType)?.currentLicensePlate || ''}
-                      onChange={(e) => handleChange('currentLicensePlate', e.target.value)}
-                    />
-                  </div>
-                  <div className="sequentialInput">
-                    <label className="sequentialLabel">FULL VEHICLE IDENTIFICATION NUMBER <span className="requiredText">(REQUIRED)</span></label>
+                    <label className="sequentialLabel">FULL VEHICLE IDENTIFICATION NUMBER</label>
                     <input
                       type="text"
                       className="textInput"

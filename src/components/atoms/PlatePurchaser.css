@@ -2,8 +2,7 @@
   background-color: #ffffff;
   margin-bottom: 20px;
   margin-top: 20px;
-  max-width: 1000px;  /* Added to control the overall width */
-  margin-left: auto;
+  max-width: 1000px;  
   margin-right: auto;
 }
 
@@ -121,9 +120,7 @@
   margin-bottom: 15px;
 }
 
-.stateField {
-  flex: 1;
-}
+
 
 .zipField {
   flex: 1;

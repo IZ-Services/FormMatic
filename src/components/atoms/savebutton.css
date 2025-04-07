@@ -1,11 +1,9 @@
 .saveButtonContainer {
-  display: flex
-  ;
-      justify-content: flex-start;
-      margin-top: 20px;
-      gap: 10px;
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 20px;
+  gap: 10px;
 }
-
 
 .saveButton {
   width: 90px;
@@ -21,18 +19,16 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: background-color 0.3s ease, transform 0.1s ease;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .saveButton:hover {
-  background-color: #ffffff;
-  transform: scale(1.05);
-  color: #000;
+  background-color: #333333;
+  color: white;
 }
 
 .saveButton:active {
-  background-color: #1e7e34;
   transform: scale(0.98);
 }
 
@@ -41,12 +37,50 @@
   color: #6c757d;
   cursor: not-allowed;
   box-shadow: none;
+  transform: none;
+}
+
+.printButton {
+  width: 90px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: #FFF;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.printButton:hover {
+  background-color: #000000;
+  color: #fff;
+}
+
+.printButton:active {
+  transform: scale(0.98);
+  background-color: #333333;
+}
+
+.printButton.disabled {
+  background-color: #dcdcdc;
+  color: #6c757d;
+  cursor: not-allowed;
+  box-shadow: none;
+  border-color: #dcdcdc;
+  transform: none;
 }
 
 /* .spinner {
   width: 20px; 
   height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.6);
+  border: 3px solid rgba(255, 255, 255, 0.3);
   border-top: 3px solid white;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -56,42 +90,6 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 } */
-
-
-.nextButton {
-  background-color: #FFF;
-  color: #000;
-  border: 1px solid;
-  padding: 12px 24px;
-  font-size: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  display: flex
-;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.nextButton:hover {
-  background-color: #000000;
-  transform: scale(1.05);
-  color: #fff;
-}
-
-.nextButton:active {
-  background-color: #0056b3;
-  transform: scale(0.98);
-}
-
-.nextButton.disabled {
-  background-color: #dcdcdc;
-  color: #6c757d;
-  cursor: not-allowed;
-  box-shadow: none;
-}
 
 .modalOverlay {
   position: fixed;
@@ -179,11 +177,8 @@ h2 {
 }
 
 .closeButton:hover {
-  background-color: #fff;
-  color: #000;
+  background-color: #333333;
 }
-
-/* Add these styles to your savebutton.css or create a new validation.css file */
 
 /* Validation error styling for inputs */
 .validation-error {
@@ -247,7 +242,7 @@ h2 {
 }
 
 .continue-button {
-  background-color: #2196f3;
+  background-color: #000000;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -256,5 +251,5 @@ h2 {
 }
 
 .continue-button:hover {
-  background-color: #0d8af0;
+  background-color: #333333;
 }

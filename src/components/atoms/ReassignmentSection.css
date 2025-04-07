@@ -102,7 +102,6 @@
   font-size: 15px;
 }
 
-/* Responsive styles */
 @media (max-width: 768px) {
   .reassignmentInputRow {
     grid-template-columns: 1fr;

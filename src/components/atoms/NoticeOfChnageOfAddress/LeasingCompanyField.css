@@ -17,8 +17,7 @@
   }
   
   .formInput {
-    /* Set a specific width */
-    width: 300px;
+
     max-width: 100%;
     padding: 8px;
     border: 1px solid #ccc;

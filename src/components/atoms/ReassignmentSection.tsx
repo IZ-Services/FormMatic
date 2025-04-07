@@ -80,16 +80,22 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({ formData: pro
       
       <div className="reassignmentContent">
         <div className="reassignmentInputRow">
-          <div className="reassignmentInput">
-            <label className="reassignmentLabel">SPECIAL INTEREST LICENSE PLATE NUMBER</label>
-            <input
-              type="text"
-              className="textInput"
-              value={(formData.reassignmentSection as ReassignmentSectionType)?.specialInterestLicensePlate || ''}
-              onChange={(e) => handleChange('specialInterestLicensePlate', e.target.value)}
-              placeholder="Enter plate number"
-            />
-          </div>
+    
+<div className="reassignmentInput">
+  <label className="reassignmentLabel">SPECIAL INTEREST LICENSE PLATE NUMBER</label>
+  <input
+    type="text"
+    className="textInput"
+    value={(formData.reassignmentSection as ReassignmentSectionType)?.specialInterestLicensePlate || ''}
+    onChange={(e) => {
+      // Convert to uppercase and limit to 7 characters
+      const value = e.target.value.toUpperCase().slice(0, 7);
+      handleChange('specialInterestLicensePlate', value);
+    }}
+    placeholder="Enter plate number"
+    maxLength={7}
+  />
+</div>
           
           <div className="reassignmentInput">
             <label className="reassignmentLabel">REMOVED FROM (VEHICLE IDENTIFICATION NUMBER)</label>

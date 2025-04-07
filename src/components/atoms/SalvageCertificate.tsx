@@ -94,8 +94,8 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propF
       <h3 className="section-title">Salvage Certificate</h3>
 
       <div className="form-grid">
-        <div className="input-row">
-          <div className="input-group">
+        <div className="input-roww">
+          <div className="input-groupp">
             <label className="input-label">State of last registration</label>
             <input
               type="text"
@@ -106,7 +106,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propF
               maxLength={20}
             />
           </div>
-          <div className="input-group">
+          <div className="input-groupp">
             <label className="input-label">Date registration expires</label>
             <input
               type="text"
@@ -118,8 +118,8 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propF
             />
           </div>
         </div>
-        <div className="input-row">
-          <div className="input-group">
+        <div className="input-roww">
+          <div className="input-groupp">
             <label className="input-label">Cost/value</label>
             <input
               type="text"
@@ -130,7 +130,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propF
               maxLength={20}
             />
           </div>
-          <div className="input-group">
+          <div className="input-groupp">
             <label className="input-label">Claim number</label>
             <input
               type="text"
@@ -142,8 +142,8 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propF
             />
           </div>
         </div>
-        <div className="input-row">
-          <div className="input-group">
+        <div className="input-roww">
+          <div className="input-groupp">
             <label className="input-label">Date wrecked</label>
             <input
               type="text"
@@ -154,7 +154,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propF
               maxLength={10}
             />
           </div>
-          <div className="input-group">
+          <div className="input-groupp">
             <label className="input-label">Date stolen</label>
             <input
               type="text"
@@ -165,7 +165,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propF
               maxLength={10}
             />
           </div>
-          <div className="input-group">
+          <div className="input-groupp">
             <label className="input-label">Date recovered</label>
             <input
               type="text"
