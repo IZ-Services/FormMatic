@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, createContext, useState, useEffect, useRef } from 'react';
+import React, { useContext, createContext, useState, useEffect } from 'react';
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
@@ -13,7 +13,7 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 import { auth, initFirebase } from '../firebase-config';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { deleteUser, getAuth } from "firebase/auth";
 import { getCookie } from '@/utils/cookie';
@@ -30,77 +30,31 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-let lastPath = '';
-
-const ORIGINAL_PATH_KEY = 'originalPath';
-
 export const AuthContextProvider = ({ children }: Readonly<{ children: React.ReactNode }>) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [subscriptionChecked, setSubscriptionChecked] = useState(false);
-
-  const [isPageRefresh, setIsPageRefresh] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
-
-  const initializedRef = useRef(false);
-  const redirectInProgressRef = useRef(false);
-  const shouldShowLoadingRef = useRef(true); 
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !initializedRef.current) {
-      initializedRef.current = true;
-      shouldShowLoadingRef.current = true; 
-      
-      const isRefresh = 
-        window.performance && 
-        window.performance.navigation && 
-        window.performance.navigation.type === 1;
-      
-      if (isRefresh || document.referrer === '') {
-        console.log('PAGE REFRESH DETECTED');
-        setIsPageRefresh(true);
-        setLoading(true); 
-        
-        if (pathname !== '/' && pathname !== '/home') {
-          sessionStorage.setItem(ORIGINAL_PATH_KEY, pathname);
-          console.log('Stored original path:', pathname);
-        }
-      } else {
-        console.log('NORMAL NAVIGATION');
-      }
-    }
-    
-    if (lastPath !== pathname) {
-      console.log(`Path changed from ${lastPath || 'initial'} to ${pathname}`);
-      lastPath = pathname;
-    }
-  }, [pathname]);
 
   const checkSession = async () => {
     try {
-      console.log('Checking session at path:', pathname);
       const response = await axios.get('/api/checkSession', { 
         withCredentials: true 
       });
       
       if (response.data.user && auth.currentUser) {
         setUser(auth.currentUser);
-        console.log('Session valid, user authenticated');
       } else if (auth.currentUser) {
         console.log('Session invalid, logging out');
         await logout();
-      } else {
-        console.log('No authenticated user in checkSession');
       }
     } catch (error) {
       console.error('Session check error:', error);
     } finally {
       setSessionChecked(true);
- 
+      setLoading(false);
     }
   };
 
@@ -165,8 +119,9 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         }
       } catch (error) {
         console.error('Error in auth state change:', error);
+      } finally {
+        setLoading(false);
       }
- 
     });
 
     return () => unsubscribe();
@@ -174,15 +129,13 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
 
   useEffect(() => {
     if (!sessionChecked || !user?.uid) {
-      if (!user) {
-        setLoading(false); 
-      }
+      setLoading(false);
       return;
     }
 
+    setLoading(true);
     const creationTime = user.metadata?.creationTime;
     if (!creationTime) {
-      setSubscriptionChecked(true);
       setLoading(false);
       return;
     }
@@ -194,10 +147,9 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
 
     const db = getFirestore(app);
     const userRef = doc(db, 'users', user.uid);
-    
+
     if (diffDays < 7) {
       setIsSubscribed(true);
-      setSubscriptionChecked(true);
       setLoading(false);
       return;
     }
@@ -218,72 +170,24 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
           }
 
           setIsSubscribed(userData.isSubscribed);
-          setSubscriptionChecked(true);
-          setLoading(false);
-          
+          if (!userData.isSubscribed) {
+            router.push('/signUp');
+          }
         } else {
           setIsSubscribed(false);
-          setSubscriptionChecked(true);
-          setLoading(false);
+          router.push('/signUp');
         }
       } catch (error) {
         console.error('Error in subscription check:', error);
-        setSubscriptionChecked(true);
+      } finally {
         setLoading(false);
       }
     });
 
     return () => unsubscribeSnapshot();
-  }, [user, sessionChecked, logout]);
+  }, [user, sessionChecked, router]);
 
- 
-  useEffect(() => {
- 
-    if (!sessionChecked || !subscriptionChecked) {
-      setLoading(true);
-      return;
-    }
-    
- 
-    if (subscriptionChecked && user && !redirectInProgressRef.current) {
-      if (isPageRefresh) {
- 
-        const originalPath = sessionStorage.getItem(ORIGINAL_PATH_KEY);
-        if (originalPath && originalPath !== pathname && pathname === '/home') {
-          console.log('Restoring original path:', originalPath);
-          redirectInProgressRef.current = true;
-          setLoading(true); 
-          router.push(originalPath);
-          sessionStorage.removeItem(ORIGINAL_PATH_KEY);
-          return;
-        }
-      }
-      
- 
-      if (!isSubscribed && pathname === '/home') {
-        console.log('Redirecting from /home to /signUp due to subscription check');
-        redirectInProgressRef.current = true;
-        setLoading(true); 
-        router.push('/signUp');
-        return;
-      }
-      
- 
-      setLoading(false);
-    } else if (!user) {
- 
-      setLoading(false);
-    }
-    
- 
-    if (redirectInProgressRef.current && pathname !== '/home') {
-      redirectInProgressRef.current = false;
-    }
-  }, [sessionChecked, subscriptionChecked, user, isSubscribed, pathname, router, isPageRefresh]);
-
- 
-  if (loading || !sessionChecked || !subscriptionChecked) {
-    console.log('Showing Loading component from AuthContext');
+  if (!sessionChecked) {
     return <Loading />;
   }
 
