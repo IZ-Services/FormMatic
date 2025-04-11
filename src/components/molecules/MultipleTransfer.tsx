@@ -1,7 +1,7 @@
+'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Address from '../atoms/Address';
 import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
-
 import VehicalInformation from '../atoms/VehicleInformation';
 import Seller from '../atoms/Seller';
 import SaveButton from '../atoms/savebutton';
@@ -111,7 +111,9 @@ const TransferForm: React.FC<TransferFormProps> = ({
     updateField: (key: string, value: any) => void;
   };
   
-  const [localFormValues, setLocalFormValues] = useState<Record<string, any>>({});   useEffect(() => {
+  const [localFormValues, setLocalFormValues] = useState<Record<string, any>>({});
+
+  useEffect(() => {
     if (formData) {
       const updatedValues = { ...localFormValues };
       let hasChanges = false;
@@ -129,35 +131,59 @@ const TransferForm: React.FC<TransferFormProps> = ({
         setLocalFormValues(updatedValues);
       }
     }
-  }, [formData, index, updateField, localFormValues]);   useEffect(() => {
-    if (sharedVehicleInfo && Object.keys(sharedVehicleInfo).length > 0) {       const currentVehicleInfo = localFormValues.vehicleInformation || {};        const updatedVehicleInfo = {
+  }, [formData, index, updateField, localFormValues]);
+
+  useEffect(() => {
+    if (sharedVehicleInfo && Object.keys(sharedVehicleInfo).length > 0) {
+      const currentVehicleInfo = localFormValues.vehicleInformation || {};
+      
+      const updatedVehicleInfo = {
         ...currentVehicleInfo,
         ...sharedVehicleInfo
-      };       if (JSON.stringify(currentVehicleInfo) !== JSON.stringify(updatedVehicleInfo)) {
-        console.log(`Transfer ${index}: Syncing vehicle info:`, sharedVehicleInfo);         handleFieldChange('vehicleInformation', updatedVehicleInfo);
+      };
+      
+      if (JSON.stringify(currentVehicleInfo) !== JSON.stringify(updatedVehicleInfo)) {
+        console.log(`Transfer ${index}: Syncing vehicle info:`, sharedVehicleInfo);
+        
+        handleFieldChange('vehicleInformation', updatedVehicleInfo);
         updateField(`transfer${index}_vehicleInformation`, updatedVehicleInfo);
       }
     }
-  }, [sharedVehicleInfo, localFormValues, index, updateField]);   const handleFieldChange = useCallback((key: string, value: any) => {
+  }, [sharedVehicleInfo, localFormValues, index, updateField]);
+
+  const handleFieldChange = useCallback((key: string, value: any) => {
     setLocalFormValues(prev => {
-      const updated = { ...prev, [key]: value };       setTimeout(() => {
+      const updated = { ...prev, [key]: value };
+      
+      setTimeout(() => {
         const normalizedData = normalizeFieldData(key, value, updated);
         onDataChange(normalizedData, index);
       }, 0);
       
       return updated;
     });
-  }, [onDataChange, index]);   const normalizeFieldData = (key: string, value: any, allValues: Record<string, any>) => {     const result = { ...allValues };     if (key === 'newOwners' && value?.owners) {       result.owners = value.owners;
+  }, [onDataChange, index]);
+
+  const normalizeFieldData = (key: string, value: any, allValues: Record<string, any>) => {
+    const result = { ...allValues };
+    
+    if (key === 'newOwners' && value?.owners) {
+      result.owners = value.owners;
     }
     
-    if (key === 'seller' && value) {       if (!value.sellers && typeof value === 'object') {         result.seller = {
+    if (key === 'seller' && value) {
+      if (!value.sellers && typeof value === 'object') {
+        result.seller = {
           ...value,
           sellers: [value]
         };
       }
     }
     
-    if (key === 'address' && value) {       result.address = value;       if (value.mailingAddressDifferent !== undefined) {
+    if (key === 'address' && value) {
+      result.address = value;
+      
+      if (value.mailingAddressDifferent !== undefined) {
         result.mailingAddressDifferent = Boolean(value.mailingAddressDifferent);
       }
       if (value.lesseeAddressDifferent !== undefined) {
@@ -168,29 +194,49 @@ const TransferForm: React.FC<TransferFormProps> = ({
       }
     }
     
-    if (key === 'sellerAddress' && value) {       result.sellerAddress = value;       if (value.sellerMailingAddressDifferent !== undefined) {
+    if (key === 'sellerAddress' && value) {
+      result.sellerAddress = value;
+      
+      if (value.sellerMailingAddressDifferent !== undefined) {
         result.sellerMailingAddressDifferent = Boolean(value.sellerMailingAddressDifferent);
       }
     }
     
     return result;
-  };   const handleVehicleInfoChange = useCallback((data: VehicleInformationType) => {     handleFieldChange('vehicleInformation', data);     updateField(`transfer${index}_vehicleInformation`, data);     const syncedFields: VehicleInformationType = {};     const fieldsToSync = ['hullId', 'make', 'year'];     let hasChanges = false;
+  };
+
+  const handleVehicleInfoChange = useCallback((data: VehicleInformationType) => {
+    handleFieldChange('vehicleInformation', data);
+    updateField(`transfer${index}_vehicleInformation`, data);
+    
+    const syncedFields: VehicleInformationType = {};
+    const fieldsToSync = ['hullId', 'make', 'year'];
+    let hasChanges = false;
+    
     fieldsToSync.forEach(field => {
       if (data[field] !== undefined && 
           data[field] !== localFormValues?.vehicleInformation?.[field]) {
         syncedFields[field] = data[field];
         hasChanges = true;
       }
-    });     if (hasChanges) {
+    });
+    
+    if (hasChanges) {
       console.log(`Transfer ${index}: Requesting sync for fields:`, 
-                  Object.keys(syncedFields).join(', '));       setTimeout(() => {
+                  Object.keys(syncedFields).join(', '));
+      
+      setTimeout(() => {
         onDataChange({
           _syncVehicleInfo: syncedFields
         }, index);
       }, 0);
     }
-  }, [handleFieldChange, updateField, onDataChange, index, localFormValues]);   const isCurrentLienholderChecked = 
-    contextFormData?.[`transfer${index}_vehicleTransactionDetails`]?.currentLienholder === true;   const getComponentFormData = () => {
+  }, [handleFieldChange, updateField, onDataChange, index, localFormValues]);
+
+  const isCurrentLienholderChecked = 
+    contextFormData?.[`transfer${index}_vehicleTransactionDetails`]?.currentLienholder === true;
+
+  const getComponentFormData = () => {
     const prefix = `transfer${index}_`;
     const result: Record<string, any> = {};
     
@@ -204,7 +250,9 @@ const TransferForm: React.FC<TransferFormProps> = ({
     return result;
   };
   
-  const componentFormData = getComponentFormData();   if (!isActive) {
+  const componentFormData = getComponentFormData();
+
+  if (!isActive) {
     return null;
   }
 
@@ -222,7 +270,8 @@ const TransferForm: React.FC<TransferFormProps> = ({
       
       <VehicalInformation 
         formData={componentFormData}
-        onChange={handleVehicleInfoChange}       />
+        onChange={handleVehicleInfoChange}
+      />
       
       <Seller 
         formData={componentFormData}
@@ -268,7 +317,9 @@ const TransferForm: React.FC<TransferFormProps> = ({
       <NewRegisteredOwners 
         formData={componentFormData}
         onChange={(data: { owners: OwnerData[]; howMany: string }) => {
-          handleFieldChange('newOwners', data);           if (data && data.owners) {
+          handleFieldChange('newOwners', data);
+          
+          if (data && data.owners) {
             updateField(`transfer${index}_owners`, data.owners);
           }
         }}
@@ -277,7 +328,9 @@ const TransferForm: React.FC<TransferFormProps> = ({
       <Address 
         formData={componentFormData}
         onChange={(data: FormData) => {
-          handleFieldChange('address', data);           if (data.mailingAddressDifferent !== undefined) {
+          handleFieldChange('address', data);
+          
+          if (data.mailingAddressDifferent !== undefined) {
             updateField(`transfer${index}_mailingAddressDifferent`, Boolean(data.mailingAddressDifferent));
           }
           
@@ -312,12 +365,21 @@ const TransferForm: React.FC<TransferFormProps> = ({
 const MultipleTransfer: React.FC<MultipleTransferProps> = ({ formData, onDataChange }) => {
   const [numberOfTransfers, setNumberOfTransfers] = useState<number>(1);
   const [transfersData, setTransfersData] = useState<TransferData[]>(Array(5).fill({}));
-  const [activeTransferIndex, setActiveTransferIndex] = useState<number>(0);   const [sharedVehicleInfo, setSharedVehicleInfo] = useState<VehicleInformationType>({});
+  const [activeTransferIndex, setActiveTransferIndex] = useState<number>(0);
+  const [sharedVehicleInfo, setSharedVehicleInfo] = useState<VehicleInformationType>({});
+  const { setTransactionType } = useFormContext();
+  
+ 
+  useEffect(() => {
+    setTransactionType("Multiple Transfer");
+  }, [setTransactionType]);
   
   useEffect(() => {
     if (formData) {
       if (formData.transfersData) {
-        setTransfersData(formData.transfersData);         if (formData.transfersData[0]?.vehicleInformation) {
+        setTransfersData(formData.transfersData);
+        
+        if (formData.transfersData[0]?.vehicleInformation) {
           const { hullId, make, year } = formData.transfersData[0].vehicleInformation;
           if (hullId || make || year) {
             setSharedVehicleInfo({
@@ -332,51 +394,73 @@ const MultipleTransfer: React.FC<MultipleTransferProps> = ({ formData, onDataCha
         setNumberOfTransfers(formData.numberOfTransfers);
       }
     }
-  }, [formData]); const handleTransferDataChange = useCallback((data: any, index: number) => {
-  setTransfersData(prev => {
-    const newTransfersData = [...prev];     if (data._syncVehicleInfo) {       setSharedVehicleInfo(current => ({
-        ...current,
-        ...data._syncVehicleInfo
-      }));       const { _syncVehicleInfo, ...restData } = data;       const processedData = prepareTransferDataStructure(restData);
-      newTransfersData[index] = {
-        ...newTransfersData[index],
-        ...processedData
-      };
-    } else {       const processedData = prepareTransferDataStructure(data);
-      newTransfersData[index] = {
-        ...newTransfersData[index],
-        ...processedData
-      };
+  }, [formData]);
+
+  const handleTransferDataChange = useCallback((data: any, index: number) => {
+    setTransfersData(prev => {
+      const newTransfersData = [...prev];
+      
+      if (data._syncVehicleInfo) {
+        setSharedVehicleInfo(current => ({
+          ...current,
+          ...data._syncVehicleInfo
+        }));
+        
+        const { _syncVehicleInfo, ...restData } = data;
+        
+        const processedData = prepareTransferDataStructure(restData);
+        newTransfersData[index] = {
+          ...newTransfersData[index],
+          ...processedData
+        };
+      } else {
+        const processedData = prepareTransferDataStructure(data);
+        newTransfersData[index] = {
+          ...newTransfersData[index],
+          ...processedData
+        };
+      }
+      
+      if (onDataChange) {
+        setTimeout(() => {
+          onDataChange({
+            numberOfTransfers,
+            transfersData: newTransfersData
+          });
+        }, 0);
+      }
+      
+      return newTransfersData;
+    });
+  }, [numberOfTransfers, onDataChange]);
+
+  const prepareTransferDataStructure = (data: any): TransferData => {
+    const result = { ...data };
+    
+    if (result.newOwners && Array.isArray(result.newOwners.owners)) {
+      result.owners = result.newOwners.owners;
+    } else if (!result.owners) {
+      result.owners = [];
     }
     
-    if (onDataChange) {
-      setTimeout(() => {
-        onDataChange({
-          numberOfTransfers,
-          transfersData: newTransfersData
-        });
-      }, 0);
+    if (result.address && result.address.address) {
+      result.address = result.address.address;
     }
     
-    return newTransfersData;
-  });
-}, [numberOfTransfers, onDataChange]); const prepareTransferDataStructure = (data: any): TransferData => {
-  const result = { ...data };   if (result.newOwners && Array.isArray(result.newOwners.owners)) {     result.owners = result.newOwners.owners;
-  } else if (!result.owners) {
-    result.owners = [];
-  }   if (result.address && result.address.address) {     result.address = result.address.address;
-  }   if (result.sellerAddress && result.sellerAddress.sellerAddress) {
-    result.sellerAddress = result.sellerAddress.sellerAddress;
-  }   result.sellerMailingAddressDifferent = 
-    result.sellerMailingAddressDifferent !== undefined ? 
-    Boolean(result.sellerMailingAddressDifferent) : false;
+    if (result.sellerAddress && result.sellerAddress.sellerAddress) {
+      result.sellerAddress = result.sellerAddress.sellerAddress;
+    }
     
-  result.mailingAddressDifferent = 
-    result.mailingAddressDifferent !== undefined ? 
-    Boolean(result.mailingAddressDifferent) : false;
-    
-  return result;
-};
+    result.sellerMailingAddressDifferent = 
+      result.sellerMailingAddressDifferent !== undefined ? 
+      Boolean(result.sellerMailingAddressDifferent) : false;
+      
+    result.mailingAddressDifferent = 
+      result.mailingAddressDifferent !== undefined ? 
+      Boolean(result.mailingAddressDifferent) : false;
+      
+    return result;
+  };
 
   const handleNumberOfTransfersChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const newValue = parseInt(e.target.value, 10);

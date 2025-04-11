@@ -1,4 +1,4 @@
-/* Add these styles to your existing PlateSelection.css file */
+ 
 
 .checklistRow {
   display: flex;
@@ -8,7 +8,7 @@
 
 .checklistColumn {
   flex: 1;
-  min-width: 0; /* Prevents overflow issues */
+  min-width: 0;  
 }
 
 .categoryTitle {
@@ -39,7 +39,7 @@
   cursor: pointer;
 }
 
-/* Make additional input fields stand out */
+ 
 .inputContainer {
   margin-top: 15px;
   padding: 15px;
@@ -47,7 +47,7 @@
   max-width: 600px;
 }
 
-/* Responsive adjustments */
+ 
 @media (max-width: 768px) {
   .checklistRow {
     flex-direction: column;

@@ -3,9 +3,11 @@ import { useFormContext } from '../../app/api/formDataContext/formDataContextPro
 import './Checkboxes.css';
 
 interface CommercialVehicleData {
-  isBus?: boolean;
-  isLimo?: boolean;
-  isTaxi?: boolean;
+  isCommercial: boolean;
+  isBus: boolean;
+  isLimo: boolean;
+  isTaxi: boolean;
+  hasLienHolder: boolean; 
 }
 
 interface FormDataType {
@@ -30,40 +32,65 @@ const CommercialCheckboxes: React.FC<CommercialCheckboxesProps> = ({
   };
   
   const [commercialData, setCommercialData] = useState<CommercialVehicleData>({
+    isCommercial: false,
     isBus: false,
     isLimo: false,
-    isTaxi: false
+    isTaxi: false,
+    hasLienHolder: false 
   });
 
   useEffect(() => {
     const mergedData: CommercialVehicleData = {
+      isCommercial: false,
       isBus: false,
       isLimo: false,
       isTaxi: false,
+      hasLienHolder: false, 
       ...combinedFormData?.commercialVehicle
     };
+    
+ 
+    if (!mergedData.isCommercial) {
+      mergedData.isCommercial = mergedData.isBus || mergedData.isLimo || mergedData.isTaxi;
+    }
+    
     setCommercialData(mergedData);
   }, [combinedFormData?.commercialVehicle]);
 
-  const handleCheckboxChange = (field: keyof CommercialVehicleData) => {
-    const newValue = !commercialData[field];
+  const handleCommercialChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const isChecked = event.target.checked;
     
     const newData = { 
       ...commercialData,
-      [field]: newValue
+      isCommercial: isChecked,
+ 
+      isBus: isChecked,
+      isLimo: false,
+      isTaxi: false
     };
     
-
-    if (newValue) {
-      Object.keys(newData).forEach((key) => {
-        if (key !== field) {
-          newData[key as keyof CommercialVehicleData] = false;
-        }
-      });
-    }
-    
-    console.log(`Changing ${field} to:`, newValue);
+    console.log("Commercial checkbox changed to:", isChecked);
     console.log("New commercial vehicle data:", newData);
+    console.log("Adding Reg590 form for commercial vehicle type: Bus");
+
+    setCommercialData(newData);
+    updateField('commercialVehicle', newData);
+    
+    if (onChange) {
+      onChange(newData);
+    }
+  };
+
+  const handleLienHolderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const isChecked = event.target.checked;
+    
+    const newData = { 
+      ...commercialData,
+      hasLienHolder: isChecked
+    };
+    
+    console.log("Lien holder checkbox changed to:", isChecked);
+    console.log("Updated vehicle data:", newData);
 
     setCommercialData(newData);
     updateField('commercialVehicle', newData);
@@ -84,32 +111,21 @@ const CommercialCheckboxes: React.FC<CommercialCheckboxesProps> = ({
           <label className="checkbox-label">
             <input
               type="checkbox"
-              checked={commercialData.isBus || false}
-              onChange={() => handleCheckboxChange('isBus')}
+              checked={commercialData.isCommercial}
+              onChange={handleCommercialChange}
             />
-            Bus
+            Commercial Vehicle (Bus/Limo/Taxi)
           </label>
         </div>
-
+        
         <div className="checkbox-section">
           <label className="checkbox-label">
             <input
               type="checkbox"
-              checked={commercialData.isLimo || false}
-              onChange={() => handleCheckboxChange('isLimo')}
+              checked={commercialData.hasLienHolder}
+              onChange={handleLienHolderChange}
             />
-            Limousine
-          </label>
-        </div>
-
-        <div className="checkbox-section">
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              checked={commercialData.isTaxi || false}
-              onChange={() => handleCheckboxChange('isTaxi')}
-            />
-            Taxi
+            Current Lien Holder
           </label>
         </div>
       </div>

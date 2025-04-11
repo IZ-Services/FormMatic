@@ -13,25 +13,99 @@ interface LicensePlateProps {
   };
 }
 
-const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) => {
-  const [licensePlateData, setLicensePlateData] = useState<LicensePlateData>(
-    propFormData?.licensePlate || {}
-  );
-  const { updateField } = useFormContext();
+ 
+export const LICENSE_PLATE_STORAGE_KEY = 'formmatic_license_plate';
 
+ 
+export const clearLicensePlateStorage = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(LICENSE_PLATE_STORAGE_KEY);
+    console.log('License plate data cleared from localStorage');
+  }
+};
+
+const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) => {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [licensePlateData, setLicensePlateData] = useState<LicensePlateData>({});
+  const { updateField, clearFormTriggered } = useFormContext();
+
+ 
+  const defaultLicensePlateData: LicensePlateData = {
+    oneMissingPlate: false,
+    twoMissingPlates: false
+  };
+
+ 
   useEffect(() => {
-    if (propFormData?.licensePlate) {
+    if (clearFormTriggered) {
+      console.log('Clear form triggered in LicensePlate component');
+      clearLicensePlateStorage();
+      setLicensePlateData(defaultLicensePlateData);
+      
+ 
+      updateField('licensePlate', defaultLicensePlateData);
+    }
+  }, [clearFormTriggered]);
+  
+ 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isInitialized) {
+      try {
+        const savedData = localStorage.getItem(LICENSE_PLATE_STORAGE_KEY);
+        
+        if (savedData) {
+          console.log("Loading license plate data from localStorage");
+          const parsedData = JSON.parse(savedData);
+          
+ 
+          const mergedData = {
+            ...parsedData,
+            ...(propFormData?.licensePlate || {})
+          };
+          
+          setLicensePlateData(mergedData);
+          
+ 
+          updateField('licensePlate', mergedData);
+        } else if (propFormData?.licensePlate) {
+ 
+          setLicensePlateData(propFormData.licensePlate);
+        }
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error loading saved license plate data:', error);
+        setIsInitialized(true);
+        
+ 
+        if (propFormData?.licensePlate) {
+          setLicensePlateData(propFormData.licensePlate);
+        }
+      }
+    }
+  }, []);
+
+ 
+  useEffect(() => {
+    if (isInitialized && propFormData?.licensePlate) {
       setLicensePlateData(propFormData.licensePlate);
     }
-  }, [propFormData]);
+  }, [propFormData, isInitialized]);
 
   const handleLicensePlateChange = (field: keyof LicensePlateData, value: boolean) => {
     const newData = { 
-      ...licensePlateData,       oneMissingPlate: field === 'oneMissingPlate' ? value : false,
+      ...licensePlateData,
+      oneMissingPlate: field === 'oneMissingPlate' ? value : false,
       twoMissingPlates: field === 'twoMissingPlates' ? value : false
     };
+    
     setLicensePlateData(newData);
     updateField('licensePlate', newData);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(LICENSE_PLATE_STORAGE_KEY, JSON.stringify(newData));
+    }
   };
 
   return (
@@ -41,10 +115,6 @@ const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) =
       </div>
 
       <div className="license-plate-content">
-        {/* <p className="section-description">
-          Complete only if address is different than DMV records (California Vehicle Code (CVC) §4466)
-        </p> */}
-
         <div className="license-plate-options">
           <label className="checkbox-label">
             <input
@@ -64,18 +134,6 @@ const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) =
             Two license plates are missing or one plate is missing for a single-plate commercial truck tractor, motorcycle, or trailer
           </label>
         </div>
-
-        {/* <div className="important-note">
-          <p>
-            <strong>Important:</strong> If license plate(s) were stolen or missing, you must:
-            <ul>
-              <li>Appear in person at a DMV office</li>
-              <li>Bring proof of ownership documents</li>
-              <li>Bring Driver License or Identification Card</li>
-              <li>If stolen, bring a police report</li>
-            </ul>
-          </p>
-        </div> */}
       </div>
     </div>
   );

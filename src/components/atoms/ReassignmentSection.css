@@ -25,7 +25,7 @@
   padding: 0 10px 20px 10px;
 }
 
-/* Input fields layout */
+ 
 .reassignmentInputRow {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -36,6 +36,7 @@
 
 .reassignmentInput {
   width: 100%;
+  min-width: 0;  
 }
 
 .reassignmentLabel {
@@ -52,7 +53,7 @@
   font-size: 14px;
 }
 
-/* Options row */
+ 
 .reassignmentOptionsRow {
   display: flex;
   flex-wrap: wrap;
@@ -102,6 +103,17 @@
   font-size: 15px;
 }
 
+ 
+@media (max-width: 880px) {
+  .reassignmentLabel {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
 @media (max-width: 768px) {
   .reassignmentInputRow {
     grid-template-columns: 1fr;
@@ -115,6 +127,4 @@
   .retainSection, .releaseSection {
     width: 100%;
   }
-  
- 
 }

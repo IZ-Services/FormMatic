@@ -65,9 +65,9 @@
   font-size: 14px;
 }
 
-/* Style for the form dropdown to match other inputs */
+ 
 .form-dropdown {
-  height: 38px; /* Match height with other inputs */
+  height: 38px;  
 }
 
 .form-dropdown .dropdown-selected {

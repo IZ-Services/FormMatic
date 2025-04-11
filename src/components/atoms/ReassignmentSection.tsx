@@ -86,49 +86,58 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({ formData: pro
   <input
     type="text"
     className="textInput"
-    value={(formData.reassignmentSection as ReassignmentSectionType)?.specialInterestLicensePlate || ''}
+    value={formData.reassignmentSection ? formData.reassignmentSection.specialInterestLicensePlate || '' : ''}
     onChange={(e) => {
-      // Convert to uppercase and limit to 7 characters
+ 
       const value = e.target.value.toUpperCase().slice(0, 7);
       handleChange('specialInterestLicensePlate', value);
     }}
-    placeholder="Enter plate number"
+    placeholder="ENTER PLATE NUMBER"
     maxLength={7}
+    style={{ textTransform: 'uppercase' }}
   />
 </div>
           
-          <div className="reassignmentInput">
-            <label className="reassignmentLabel">REMOVED FROM (VEHICLE IDENTIFICATION NUMBER)</label>
-            <input
-              type="text"
-              className="textInput"
-              value={(formData.reassignmentSection as ReassignmentSectionType)?.removedFrom || ''}
-              onChange={(e) => handleChange('removedFrom', e.target.value)}
-              placeholder="Enter VIN"
-            />
-          </div>
+<div className="reassignmentInput">
+  <label className="reassignmentLabel">REMOVED FROM (VEHICLE IDENTIFICATION NUMBER)</label>
+  <input
+    type="text"
+    className="textInput"
+    value={formData.reassignmentSection ? formData.reassignmentSection.removedFrom || '' : ''}
+    onChange={(e) => handleChange('removedFrom', e.target.value.toUpperCase())}
+    placeholder="ENTER VIN"
+    maxLength={17}
+    style={{ textTransform: 'uppercase' }}
+  />
+</div>
+
           
-          <div className="reassignmentInput">
-            <label className="reassignmentLabel">PLACED ON (CURRENT LICENSE PLATE)</label>
-            <input
-              type="text"
-              className="textInput"
-              value={(formData.reassignmentSection as ReassignmentSectionType)?.placedOnLicensePlate || ''}
-              onChange={(e) => handleChange('placedOnLicensePlate', e.target.value)}
-              placeholder="Enter license plate"
-            />
-          </div>
+<div className="reassignmentInput">
+  <label className="reassignmentLabel">PLACED ON (CURRENT LICENSE PLATE)</label>
+  <input
+    type="text"
+    className="textInput"
+    value={formData.reassignmentSection ? formData.reassignmentSection.placedOnLicensePlate || '' : ''}
+    onChange={(e) => handleChange('placedOnLicensePlate', e.target.value.toUpperCase())}
+    placeholder="ENTER LICENSE PLATE"
+    maxLength={7}
+    style={{ textTransform: 'uppercase' }}
+  />
+</div>
           
-          <div className="reassignmentInput">
-            <label className="reassignmentLabel">PLACED ON (VEHICLE IDENTIFICATION NUMBER)</label>
-            <input
-              type="text"
-              className="textInput"
-              value={(formData.reassignmentSection as ReassignmentSectionType)?.placedOnVehicle || ''}
-              onChange={(e) => handleChange('placedOnVehicle', e.target.value)}
-              placeholder="Enter VIN"
-            />
-          </div>
+         
+<div className="reassignmentInput">
+  <label className="reassignmentLabel">PLACED ON (VEHICLE IDENTIFICATION NUMBER)</label>
+  <input
+    type="text"
+    className="textInput"
+    value={formData.reassignmentSection ? formData.reassignmentSection.placedOnVehicle || '' : ''}
+    onChange={(e) => handleChange('placedOnVehicle', e.target.value.toUpperCase())}
+    placeholder="ENTER VIN"
+    maxLength={17}
+    style={{ textTransform: 'uppercase' }}
+  />
+</div>
         </div>
         
         <div className="reassignmentOptionsRow">
@@ -136,7 +145,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({ formData: pro
             <label className="optionLabel">
               <input
                 type="checkbox"
-                checked={(formData.reassignmentSection as ReassignmentSectionType)?.retainInterest || false}
+                checked={formData.reassignmentSection ? formData.reassignmentSection.retainInterest || false : false}
                 onChange={(e) => handleChange('retainInterest', e.target.checked)}
                 className="optionCheckbox"
               />
@@ -148,10 +157,10 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({ formData: pro
             <label className="feeLabel">
               <input
                 type="checkbox"
-                checked={(formData.reassignmentSection as ReassignmentSectionType)?.feeEnclosed || false}
+                checked={formData.reassignmentSection ? formData.reassignmentSection.feeEnclosed || false : false}
                 onChange={(e) => handleChange('feeEnclosed', e.target.checked)}
                 className="feeCheckbox"
-                disabled={!(formData.reassignmentSection as ReassignmentSectionType)?.retainInterest}
+                disabled={!formData.reassignmentSection || !formData.reassignmentSection.retainInterest}
               />
               <span className="feeText">Fee enclosed</span>
             </label>
@@ -161,7 +170,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({ formData: pro
             <label className="optionLabel">
               <input
                 type="checkbox"
-                checked={(formData.reassignmentSection as ReassignmentSectionType)?.releaseInterestDMV || false}
+                checked={formData.reassignmentSection ? formData.reassignmentSection.releaseInterestDMV || false : false}
                 onChange={(e) => handleChange('releaseInterestDMV', e.target.checked)}
                 className="optionCheckbox"
               />
@@ -171,7 +180,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({ formData: pro
             <label className="optionLabel">
               <input
                 type="checkbox"
-                checked={(formData.reassignmentSection as ReassignmentSectionType)?.releaseInterestNewOwner || false}
+                checked={formData.reassignmentSection ? formData.reassignmentSection.releaseInterestNewOwner || false : false}
                 onChange={(e) => handleChange('releaseInterestNewOwner', e.target.checked)}
                 className="optionCheckbox"
               />

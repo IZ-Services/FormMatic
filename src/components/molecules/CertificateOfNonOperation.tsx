@@ -24,22 +24,28 @@ interface FormContextData {
 interface CertificateOfNonOperationProps {
   formData?: any;
   onDataChange?: (data: any) => void;
-
 }
 
 export default function CertificateOfNonOperationTransfer({ formData, onDataChange }:CertificateOfNonOperationProps) {
   const [formValues, setFormValues] = useState(formData || {});
+  
   useEffect(() => {
     if (onDataChange) {
-      onDataChange(formData);     }
-  }, [formData]);
+      onDataChange(formData);
+    }
+  }, [formData, onDataChange]);
+  
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
-    const { updateField } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+
+ 
+    useEffect(() => {
+      setTransactionType("Certificate Of Non-Operation Transfer");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -47,8 +53,10 @@ export default function CertificateOfNonOperationTransfer({ formData, onDataChan
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
 
+ 
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
 
     return (
       <div className='wholeForm'>

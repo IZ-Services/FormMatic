@@ -16,28 +16,42 @@ interface VehicleTransactionDetailsData {
   isMotorcycle?: boolean;
 }
 
+interface VehicleInfo {
+  engineNumber?: string;
+  [key: string]: any;
+}
+
 interface FormContextData {
   vehicleTransactionDetails?: VehicleTransactionDetailsData;
-  vehicleInformation?: any;
+  vehicleInformation?: VehicleInfo;
   [key: string]: any;
 }
 
 interface DuplicateRegistrationTransferProps {
   formData?: any;
+  onDataChange?: (data: any) => void;
 }
 
-export default function DuplicateRegistrationTransfer({ formData }: DuplicateRegistrationTransferProps) {
+export default function DuplicateRegistrationTransfer({ formData, onDataChange }: DuplicateRegistrationTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
+
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange(formData);
+    }
+  }, [formData, onDataChange]);
 
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData, updateField } = useFormContext() as { 
-      formData: FormContextData;
-      updateField: (key: string, value: any) => void;
-    };
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+
+ 
+    useEffect(() => {
+      setTransactionType("Duplicate Registration Transfer");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -45,32 +59,33 @@ export default function DuplicateRegistrationTransfer({ formData }: DuplicateReg
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
 
+ 
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
+    
     const [isMotorcycle, setIsMotorcycle] = useState<boolean>(
-      contextFormData?.vehicleTransactionDetails?.isMotorcycle || false
+      vehicleTransactionDetails.isMotorcycle || false
     );
 
     useEffect(() => {
-      if (contextFormData?.vehicleTransactionDetails?.isMotorcycle !== undefined) {
-        setIsMotorcycle(contextFormData.vehicleTransactionDetails.isMotorcycle);
+      if (vehicleTransactionDetails.isMotorcycle !== undefined) {
+        setIsMotorcycle(vehicleTransactionDetails.isMotorcycle);
       }
-    }, [contextFormData?.vehicleTransactionDetails?.isMotorcycle]);
+    }, [vehicleTransactionDetails.isMotorcycle]);
 
     const handleMotorcycleChange = () => {
       const newValue = !isMotorcycle;
       setIsMotorcycle(newValue);
       
- 
       const currentDetails = contextFormData?.vehicleTransactionDetails || {};
       updateField('vehicleTransactionDetails', {
         ...currentDetails,
         isMotorcycle: newValue
       });
       
- 
       if (!newValue) {
-        const currentVehicleInfo = contextFormData.vehicleInformation || {};
+        const currentVehicleInfo = (contextFormData.vehicleInformation || {}) as VehicleInfo;
         if (currentVehicleInfo.engineNumber) {
           updateField('vehicleInformation', {
             ...currentVehicleInfo,
@@ -110,14 +125,13 @@ export default function DuplicateRegistrationTransfer({ formData }: DuplicateReg
         />
 
         <SellerSection 
-        formData={{
-          hideDateOfSale: true,
-          hideDateOfBirth: true,
-          limitOwnerCount: true
-
-        }}
-      />
-                      <TitleField formData={formData} />
+          formData={{
+            hideDateOfSale: true,
+            hideDateOfBirth: true,
+            limitOwnerCount: true
+          }}
+        />
+        <TitleField formData={formValues} />
 
         <SellerAddress formData={formValues} />
         

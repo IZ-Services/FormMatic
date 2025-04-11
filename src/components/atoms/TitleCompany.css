@@ -1,7 +1,7 @@
 .titleFieldWrapper {
     margin-bottom: 20px;
     width: 100%;
-    max-width: 400px; /* Sets a specific maximum width */
+    max-width: 400px;  
   }
   
   .titleFieldLabel {
@@ -27,7 +27,7 @@
     border-color: #0066cc;
   }
   
-  /* Responsive adjustments */
+   
   @media (max-width: 768px) {
     .titleFieldWrapper {
       max-width: 100%;

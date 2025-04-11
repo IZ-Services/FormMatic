@@ -30,7 +30,6 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-
 let lastPath = '';
 
 const ORIGINAL_PATH_KEY = 'originalPath';
@@ -41,19 +40,21 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [subscriptionChecked, setSubscriptionChecked] = useState(false);
 
   const [isPageRefresh, setIsPageRefresh] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   const initializedRef = useRef(false);
+  const redirectInProgressRef = useRef(false);
+  const shouldShowLoadingRef = useRef(true); 
 
   useEffect(() => {
-
     if (typeof window !== 'undefined' && !initializedRef.current) {
       initializedRef.current = true;
+      shouldShowLoadingRef.current = true; 
       
-
       const isRefresh = 
         window.performance && 
         window.performance.navigation && 
@@ -62,8 +63,8 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       if (isRefresh || document.referrer === '') {
         console.log('PAGE REFRESH DETECTED');
         setIsPageRefresh(true);
+        setLoading(true); 
         
-
         if (pathname !== '/' && pathname !== '/home') {
           sessionStorage.setItem(ORIGINAL_PATH_KEY, pathname);
           console.log('Stored original path:', pathname);
@@ -73,7 +74,6 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       }
     }
     
-
     if (lastPath !== pathname) {
       console.log(`Path changed from ${lastPath || 'initial'} to ${pathname}`);
       lastPath = pathname;
@@ -100,7 +100,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
       console.error('Session check error:', error);
     } finally {
       setSessionChecked(true);
-      setLoading(false);
+ 
     }
   };
 
@@ -165,9 +165,8 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
         }
       } catch (error) {
         console.error('Error in auth state change:', error);
-      } finally {
-        setLoading(false);
       }
+ 
     });
 
     return () => unsubscribe();
@@ -175,13 +174,15 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
 
   useEffect(() => {
     if (!sessionChecked || !user?.uid) {
-      setLoading(false);
+      if (!user) {
+        setLoading(false); 
+      }
       return;
     }
 
-    setLoading(true);
     const creationTime = user.metadata?.creationTime;
     if (!creationTime) {
+      setSubscriptionChecked(true);
       setLoading(false);
       return;
     }
@@ -196,6 +197,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
     
     if (diffDays < 7) {
       setIsSubscribed(true);
+      setSubscriptionChecked(true);
       setLoading(false);
       return;
     }
@@ -216,58 +218,72 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
           }
 
           setIsSubscribed(userData.isSubscribed);
+          setSubscriptionChecked(true);
+          setLoading(false);
           
-
-          if (isPageRefresh) {
-            console.log('Skipping redirect due to page refresh');
-            setLoading(false);
-            return;
-          }
-          
-
-          if (!userData.isSubscribed && pathname === '/home' && !isPageRefresh) {
-            console.log('Redirecting from /home to /signUp due to subscription check');
-            router.push('/signUp');
-          }
         } else {
           setIsSubscribed(false);
-          
-
-          if (isPageRefresh) {
-            console.log('Skipping redirect due to page refresh (no user doc)');
-            setLoading(false);
-            return;
-          }
-          
-
-          if (pathname === '/home' && !isPageRefresh) {
-            console.log('Redirecting from /home to /signUp (no user doc)');
-            router.push('/signUp');
-          }
+          setSubscriptionChecked(true);
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error in subscription check:', error);
-      } finally {
+        setSubscriptionChecked(true);
         setLoading(false);
       }
     });
 
     return () => unsubscribeSnapshot();
-  }, [user, sessionChecked, router, pathname, isPageRefresh]);
+  }, [user, sessionChecked, logout]);
 
-
+ 
   useEffect(() => {
-    if (!loading && user && isPageRefresh) {
-      const originalPath = sessionStorage.getItem(ORIGINAL_PATH_KEY);
-      if (originalPath && originalPath !== pathname && pathname === '/home') {
-        console.log('Restoring original path:', originalPath);
-        router.push(originalPath);
-        sessionStorage.removeItem(ORIGINAL_PATH_KEY);
-      }
+ 
+    if (!sessionChecked || !subscriptionChecked) {
+      setLoading(true);
+      return;
     }
-  }, [loading, user, router, pathname, isPageRefresh]);
+    
+ 
+    if (subscriptionChecked && user && !redirectInProgressRef.current) {
+      if (isPageRefresh) {
+ 
+        const originalPath = sessionStorage.getItem(ORIGINAL_PATH_KEY);
+        if (originalPath && originalPath !== pathname && pathname === '/home') {
+          console.log('Restoring original path:', originalPath);
+          redirectInProgressRef.current = true;
+          setLoading(true); 
+          router.push(originalPath);
+          sessionStorage.removeItem(ORIGINAL_PATH_KEY);
+          return;
+        }
+      }
+      
+ 
+      if (!isSubscribed && pathname === '/home') {
+        console.log('Redirecting from /home to /signUp due to subscription check');
+        redirectInProgressRef.current = true;
+        setLoading(true); 
+        router.push('/signUp');
+        return;
+      }
+      
+ 
+      setLoading(false);
+    } else if (!user) {
+ 
+      setLoading(false);
+    }
+    
+ 
+    if (redirectInProgressRef.current && pathname !== '/home') {
+      redirectInProgressRef.current = false;
+    }
+  }, [sessionChecked, subscriptionChecked, user, isSubscribed, pathname, router, isPageRefresh]);
 
-  if (!sessionChecked) {
+ 
+  if (loading || !sessionChecked || !subscriptionChecked) {
+    console.log('Showing Loading component from AuthContext');
     return <Loading />;
   }
 

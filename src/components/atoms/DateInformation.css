@@ -48,7 +48,7 @@
   .dateInput:focus {
     outline: none;
     border-color: #c5cdd6;
-    /* box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15); */
+     
   }
   
   @media (max-width: 768px) {

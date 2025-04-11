@@ -17,7 +17,7 @@ interface PersonalisedPlatesTransferProps {
 }
 
 export default function PersonalisedPlatesTransfer({ formData, onDataChange }: PersonalisedPlatesTransferProps) {
-  // Initialize with empty object instead of undefined
+ 
   const [formValues, setFormValues] = useState(formData || {});
   
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function PersonalisedPlatesTransfer({ formData, onDataChange }: P
   }, [formData, onDataChange]);
   
   useEffect(() => {
-    // Ensure we're not setting to undefined
+ 
     setFormValues(formData || {});
   }, [formData]);
 
@@ -41,20 +41,25 @@ export default function PersonalisedPlatesTransfer({ formData, onDataChange }: P
 }
 
 const FormContent = ({ formValues }: { formValues: any }) => {
-  const { formData: contextFormData, updateField, clearField } = useFormContext();
+  const { formData: contextFormData, updateField, clearField, setTransactionType } = useFormContext();
   const { activeScenarios, activeSubOptions } = useScenarioContext();
   const prevActiveOptionRef = useRef<string | null>(null);
   const initialLoadRef = useRef(true);
 
-  // Initialize a local state to safely store cleared values
-  // This prevents uncontrolled to controlled switching
+ 
+  useEffect(() => {
+    setTransactionType("Personalized Plates");
+  }, [setTransactionType]);
+
+ 
+ 
   const [safeFormData, setSafeFormData] = useState<Record<string, any>>({});
 
   useEffect(() => {
     if (formValues) {
-      // Update both context and local safe data
+ 
       Object.entries(formValues).forEach(([key, value]) => {
-        // Ensure values are never undefined
+ 
         const safeValue = value === undefined ? '' : value;
         updateField(key, safeValue);
         setSafeFormData(prev => ({ ...prev, [key]: safeValue }));
@@ -78,7 +83,13 @@ const FormContent = ({ formValues }: { formValues: any }) => {
 
   const currentActiveOption = getCurrentActiveOption();
 
-  // Define all relevant fields by category
+ 
+  useEffect(() => {
+    const transactionType = getTransactionType();
+    setTransactionType(transactionType);
+  }, [isOrderSelected, isExchangeSelected, isReplaceSelected, isReassignSelected, setTransactionType]);
+
+ 
   const commonFields = [
     'plateSelection', 
     'plateType'
@@ -97,7 +108,7 @@ const FormContent = ({ formValues }: { formValues: any }) => {
     'kidsPlateSymbol',
     'sequential',
     'currentLicensePlate',
-    'selectConfiguration'  // Add the component name itself if needed
+    'selectConfiguration' 
   ];
   
   const replacementFields = [
@@ -110,7 +121,7 @@ const FormContent = ({ formValues }: { formValues: any }) => {
     'plateWasMutilated',
     'plateWasStolen',
     'specialInterestLicensePlateNumber',
-    'replacementSection'  // Add the component name itself if needed
+    'replacementSection' 
   ];
   
   const reassignmentFields = [
@@ -129,10 +140,10 @@ const FormContent = ({ formValues }: { formValues: any }) => {
     'dewfw',
     'dedes',
     'dscds',
-    'reassignmentSection'  // Add the component name itself if needed
+    'reassignmentSection' 
   ];
 
-  // This function clears fields and updates safeFormData to maintain controlled inputs
+ 
   const clearFieldGroup = (fields: string[]) => {
     const updates: Record<string, string> = {};
     
@@ -141,24 +152,24 @@ const FormContent = ({ formValues }: { formValues: any }) => {
         console.log(`Clearing field: ${field}`);
         clearField(field);
         
-        // Set to empty string (or appropriate default) in safeFormData
-        // instead of undefined to avoid controlled/uncontrolled switch
+ 
+ 
         updates[field] = '';
       }
     });
     
-    // Batch update the safe data
+ 
     if (Object.keys(updates).length > 0) {
       setSafeFormData(prev => ({ ...prev, ...updates }));
     }
   };
 
-  // Function to clear all fields except the ones needed for the current option
+ 
   const clearAllExceptCurrent = (currentOption: string | null) => {
-    // Always preserve common fields
+ 
     const fieldsToPreserve = [...commonFields];
     
-    // Add fields to preserve based on current option
+ 
     if (currentOption === 'order' || currentOption === 'exchange') {
       fieldsToPreserve.push(...configurationFields);
     }
@@ -171,22 +182,22 @@ const FormContent = ({ formValues }: { formValues: any }) => {
       fieldsToPreserve.push(...reassignmentFields);
     }
     
-    // Get all keys from context form data
+ 
     const allFields = Object.keys(contextFormData);
     
-    // Determine which fields to clear
+ 
     const fieldsToClear = allFields.filter(field => 
       !fieldsToPreserve.includes(field) && 
-      // Don't clear platePurchaserOwner or other essential shared data
+ 
       !field.includes('platePurchaserOwner') &&
       !field.includes('plateSelection')
     );
     
-    // Clear those fields
+ 
     clearFieldGroup(fieldsToClear);
   };
 
-  // Effect to handle option changes
+ 
   useEffect(() => {
     if (initialLoadRef.current) {
       initialLoadRef.current = false;
@@ -194,28 +205,28 @@ const FormContent = ({ formValues }: { formValues: any }) => {
       return;
     }
 
-    // If the option has changed
+ 
     if (currentActiveOption !== prevActiveOptionRef.current) {
       console.log(`Option changed from ${prevActiveOptionRef.current} to ${currentActiveOption}`);
       
-      // Clear everything except fields needed for the new option
+ 
       clearAllExceptCurrent(currentActiveOption);
       
-      // When switching from one option to another, ensure specific fields are cleared
+ 
       
-      // If we were in reassign mode but now we're not
+ 
       if (prevActiveOptionRef.current === 'reassign' && currentActiveOption !== 'reassign') {
         console.log('Clearing all reassignment fields');
         clearFieldGroup(reassignmentFields);
       }
       
-      // If we were in replace mode but now we're not
+ 
       if (prevActiveOptionRef.current === 'replace' && currentActiveOption !== 'replace') {
         console.log('Clearing all replacement fields');
         clearFieldGroup(replacementFields);
       }
       
-      // If we were in order/exchange mode but now we're not
+ 
       if ((prevActiveOptionRef.current === 'order' || prevActiveOptionRef.current === 'exchange') && 
           currentActiveOption !== 'order' && currentActiveOption !== 'exchange') {
         console.log('Clearing all configuration fields');
@@ -241,8 +252,8 @@ const FormContent = ({ formValues }: { formValues: any }) => {
     return "Personalized Plates";
   };
 
-  // A derived prop object that combines contextFormData with safeFormData
-  // This ensures child components never receive undefined values
+ 
+ 
   const safeProps = {
     ...safeFormData,
     ...contextFormData

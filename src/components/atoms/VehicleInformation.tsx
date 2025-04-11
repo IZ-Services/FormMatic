@@ -95,7 +95,6 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
     formData.vehicleTransactionDetails?.isMotorcycle === true;
   const isTrailerCoach = formData.vehicleType?.isTrailerCoach === true;
   
-
   const isOutOfStateTitle = formData.vehicleTransactionDetails?.isOutOfStateTitle === true;
 
   useEffect(() => {
@@ -111,7 +110,6 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
   useEffect(() => {
     const currentInfo = (formData.vehicleInformation || {}) as VehicleInformationType;
     
-
     if (!isOutOfStateTitle && currentInfo.isKilometers) {
       const newInfo = {
         ...currentInfo,
@@ -152,13 +150,13 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
 
   return (
     <div className="vehicleInformationWrapper">
-      <div className="vehicleHeaderContainer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="vehicleHeaderContainer">
         <h3 className="vehicleInformationHeading">Vehicle Information</h3>
       </div>
       <div className="vehicleFirstGroup">
         {isMotorcycle && (
           <div className="vehicleFormItem">
-            <label className="yearlabel">Motorcycle Engine Number</label>
+            <label>Motorcycle Engine Number</label>
             <input
               className="yearInput"
               type="text"
@@ -169,7 +167,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
           </div>
         )}
         <div className="vehicleFormItem">
-          <label className="yearlabel">Vehicle/Hull Identification Number</label>
+          <label>Vehicle/Hull Identification Number</label>
           <input
             className="makeInput"
             type="text"
@@ -179,7 +177,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
           />
         </div>
         <div className="vehicleFormItem">
-          <label className="yearlabel">Vehicle License Plate or Vessel CF Number</label>
+          <label>Vehicle License Plate or Vessel CF Number</label>
           <input
             className="odometerInput"
             type="text"
@@ -192,7 +190,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
       
       <div className="vehicleFirstGroup">
         <div className="vehicleFormItem">
-          <label className="yearlabel">Year of Vehicle</label>
+          <label>Year of Vehicle</label>
           <input
             className="yearInput"
             type="text"
@@ -206,7 +204,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
           />
         </div>
         <div className="vehicleFormItem">
-          <label className="yearlabel">Make of Vehicle OR Vessel Builder</label>
+          <label>Make of Vehicle OR Vessel Builder</label>
           <input
             className="makeInput"
             type="text"
@@ -237,7 +235,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
       {isTrailerCoach && (
         <div className="vehicleFirstGroup">
           <div className="vehicleFormItem">
-            <label className="yearlabel">Length (IN)</label>
+            <label>Length (IN)</label>
             <input
               className="yearInput"
               type="text"
@@ -251,7 +249,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             />
           </div>
           <div className="vehicleFormItem">
-            <label className="yearlabel">Width (IN)</label>
+            <label>Width (IN)</label>
             <input
               className="makeInput"
               type="text"
@@ -272,7 +270,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
         <div className="mileageRow">
           <div className="mileageField" style={{ display: 'flex', alignItems: 'center' }}>
             <div style={{ flexGrow: 1 }}>
-              <label className="yearlabel">Mileage of Vehicle</label>
+              <label>Mileage of Vehicle</label>
               <input
                 className="yearInput"
                 type="text"
@@ -316,7 +314,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             {/* Only show kilometers checkbox if out of state title is checked */}
             {isOutOfStateTitle && (
               <div style={{ marginLeft: '10px', display: 'flex', alignItems: 'center' }}>
-                <label className="checkboxLabel" style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', marginBottom: '0' }}>
+                <label className="checkboxLabel">
                   <input
                     type="checkbox"
                     checked={(formData.vehicleInformation as VehicleInformationType)?.isKilometers || false}

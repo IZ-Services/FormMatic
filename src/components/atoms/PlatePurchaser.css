@@ -44,7 +44,7 @@
 
 .personColumn {
   width: 100%;
-  max-width: 800px;  /* Control the max width of each column */
+  max-width: 800px;   
 }
 
 .ownerColumn {
@@ -99,7 +99,7 @@
   border: 1px solid #ddd;
 }
 
-/* New layout styles for the rows */
+ 
 .addressCityRow {
   display: flex;
   gap: 15px;
@@ -130,7 +130,7 @@
   flex: 2;
 }
 
-/* State dropdown styles */
+ 
 .regStateWrapper {
   position: relative;
 }
@@ -193,7 +193,7 @@
   background-color: #f0f0f0;
 }
 
-/* Responsive styles */
+ 
 @media (max-width: 768px) {
   .purchaserOwnerHeader {
     flex-direction: column;

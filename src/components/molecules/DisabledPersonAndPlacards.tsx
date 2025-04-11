@@ -35,17 +35,24 @@ interface DisabledPersonPlacardsProps {
 
 export default function DisabledPersonPlacards({ formData, onDataChange }: DisabledPersonPlacardsProps) {
   const [formValues, setFormValues] = useState(formData || {});
+  
   useEffect(() => {
     if (onDataChange) {
-      onDataChange(formData);     }
-  }, [formData]);
+      onDataChange(formData);
+    }
+  }, [formData, onDataChange]);
+  
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
-    const { updateField } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+
+ 
+    useEffect(() => {
+      setTransactionType("Disabled Person and Placards");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -53,10 +60,13 @@ export default function DisabledPersonPlacards({ formData, onDataChange }: Disab
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
 
-    const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
-    const isSmogExempt = contextFormData?.vehicleTransactionDetails?.isSmogExempt === true;
+ 
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
+    
+    const isCurrentLienholder = vehicleTransactionDetails.currentLienholder === true;
+    const isSmogExempt = vehicleTransactionDetails.isSmogExempt === true;
 
     return (
       <div className='wholeForm'>
@@ -64,15 +74,17 @@ export default function DisabledPersonPlacards({ formData, onDataChange }: Disab
         {/* <VehicleTransactionDetails formData={formValues} />
 
         <VehicalInformation formData={formValues}/> */}
-<Seller
-        formData={{
-          hideDateOfSale: true,
-          forceSingleOwner: true
-          // hideDateOfBirth: true
-        }}
-      />
-        <SellerAddress formData={formValues} />
-        {isCurrentLienholder && (
+        <Seller
+          formData={{
+            hideDateOfSale: true,
+            forceSingleOwner: true
+ 
+          }}
+        />
+<SellerAddress 
+  formData={formValues} 
+  showMailingCounty={true}
+/>        {isCurrentLienholder && (
           <LegalOwnerOfRecord formData={formValues} />
         )}
         <DisabledPersonParkingForm formData={formValues} />

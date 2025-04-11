@@ -16,14 +16,14 @@
 
 .formGroup {
   margin-bottom: 15px;
-  width: 100%; /* Ensure form groups take full width */
+  width: 100%;  
 }
 
 .formLabel {
   display: block;
   font-size: 14px;
   margin-bottom: 5px;
-  width: 100%; /* Ensure label takes full width of its container */
+  width: 100%;  
 }
 
 .vehicleInformationWrapper .formInput.engineNumberInput {
@@ -70,15 +70,16 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 15px;
-  width: 100%; /* Ensure container takes full width */
+  width: 100%;  
 }
 
 .vehicleFormItem {
   flex: 1 1;
   margin-right: 10px;
-  /* Ensure fixed width or constrained growth for form items */
-  max-width: calc(50% - 10px); /* Account for margin-right */
-  position: relative; /* Position context for yearlabel */
+   
+  max-width: calc(50% - 10px);  
+  position: relative;  
+  min-width: 0;  
 }
 
 .yearInput {
@@ -97,14 +98,14 @@
   font-size: 14px;
 }
 
-/* New combined mileage and checkboxes row */
+ 
 .mileageRow {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 20px;
   margin-bottom: 15px;
-  width: 100%; /* Ensure container takes full width */
+  width: 100%;  
 }
 
 .mileageField {
@@ -115,7 +116,7 @@
 .mileageCheckboxes {
   flex: 1;
   display: flex;
-  /* flex-wrap: wrap; */
+   
   gap: 20px;
   align-items: center;
 }
@@ -142,15 +143,28 @@
   font-size: 14px;
 }
 
-.yearlabel {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 14px;
-  font-weight: 400;
-  width: 100%; /* Ensure label takes full width of its container */
+ 
+.vehicleFirstGroup label, 
+.mileageField label,
+.vehicleInformationWrapper label:not(.checkboxLabel) {
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  width: 100% !important;
+  font-size: 14px !important;
+  margin-bottom: 5px !important;
+  font-weight: normal !important;
+  box-sizing: border-box !important;
 }
 
-/* Media query for responsive design */
+ 
+.vehicleFirstGroup:first-of-type:has(> :nth-child(3)) .vehicleFormItem {
+  max-width: calc(33.33% - 10px) !important;
+  flex: 0 1 calc(33.33% - 10px) !important;
+}
+
+ 
 @media (max-width: 768px) {
   .mileageRow {
     flex-direction: column;
@@ -169,32 +183,36 @@
 }
 
 @media (max-width: 702px) {
-  .yearlabel {
-    font-size: 12px;
+  .vehicleFirstGroup label, 
+  .mileageField label,
+  .vehicleInformationWrapper label:not(.checkboxLabel) {
+    font-size: 12px !important;
   }
 }
 
 @media (max-width: 625px) {
-  .yearlabel {
-    font-size: 11px;
+  .vehicleFirstGroup label, 
+  .mileageField label,
+  .vehicleInformationWrapper label:not(.checkboxLabel) {
+    font-size: 11px !important;
   }
 }
 
 @media (max-width: 586px) {
   .vehicleFirstGroup {
-    flex-wrap: wrap; /* Allow items to wrap if needed */
+    flex-wrap: wrap;  
   }
   
   .vehicleFormItem {
-    min-width: 45%; /* Ensure minimum width */
+    min-width: 45%;
+    margin-top: 10px;
+     
   }
   
-  .yearlabel {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
-    width: 100%; /* Full width of parent container */
-    box-sizing: border-box; /* Include padding in width calculation */
+   
+  .vehicleFirstGroup:first-of-type:has(> :nth-child(3)) .vehicleFormItem {
+    max-width: 100% !important;
+    flex: 0 1 100% !important;
+    margin-bottom: 10px;
   }
 }

@@ -37,7 +37,7 @@ const initialPersonInfo: PersonInfoType = {
 const initialPlatePurchaserOwner: PlatePurchaserOwnerType = {
   sameAsOwner: false,
   purchaser: { ...initialPersonInfo },
-  owner: { ...initialPersonInfo } // Ensure owner is always defined with initial values
+  owner: { ...initialPersonInfo } 
 };
 
 const states = [
@@ -99,14 +99,14 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
   const purchaserStateRef = useRef<HTMLUListElement>(null);
   const ownerStateRef = useRef<HTMLUListElement>(null);
   
-  // Use a derived state to ensure we always have defined values
+ 
   const getFormDataSafely = () => {
     const combined = {
       ...contextFormData,
       ...propFormData
     };
     
-    // If platePurchaserOwner is missing or undefined, use initial state
+ 
     if (!combined.platePurchaserOwner) {
       return {
         ...combined,
@@ -114,19 +114,19 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
       };
     }
     
-    // Ensure purchaser object is fully defined
+ 
     const purchaser = {
       ...initialPersonInfo,
       ...(combined.platePurchaserOwner.purchaser || {})
     };
     
-    // Ensure owner object is fully defined
+ 
     const owner = {
       ...initialPersonInfo,
       ...(combined.platePurchaserOwner.owner || {})
     };
     
-    // Return merged data with all fields guaranteed to be defined
+ 
     return {
       ...combined,
       platePurchaserOwner: {
@@ -137,10 +137,10 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
     };
   };
   
-  // Get safe form data with all required fields defined
+ 
   const safeFormData = getFormDataSafely();
 
-  // Initialize form data if needed
+ 
   useEffect(() => {
     if (!contextFormData.platePurchaserOwner) {
       updateField('platePurchaserOwner', initialPlatePurchaserOwner);
@@ -181,7 +181,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
       currentInfo.owner = { ...currentInfo.purchaser };
     } else {
       currentInfo.sameAsOwner = false;
-      // Don't reset owner to empty - keep the values but make them editable
+ 
     }
     
     updateField('platePurchaserOwner', currentInfo);
@@ -247,12 +247,12 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
     formattedValue = capitalizeFirstLetter(value);
   }
   
-  // Ensure owner exists with default values if it's undefined
+ 
   if (!currentInfo.owner) {
     currentInfo.owner = { ...initialPersonInfo };
   }
   
-  // Now it's safe to update the owner
+ 
   currentInfo.owner = {
     ...currentInfo.owner,
     [field]: formattedValue
@@ -272,7 +272,7 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
     setOpenDropdown(null);
   };
 
-  // Get safe values for form fields with empty string fallbacks
+ 
   const getSafeValue = (path: string[], defaultValue = ''): string => {
     let current: any = safeFormData;
     for (const key of path) {

@@ -11,7 +11,7 @@
 }
 
 .statusSection, .radioSection {
-  padding: 15px;
+  padding: 0px 15px;
 }
 
 .statusNote {
@@ -37,7 +37,7 @@
 
 .checkbox-input {
   margin-right: 8px;
-  margin-top: 3px; /* Align checkbox with the first line of text */
+  margin-top: 3px;  
   flex-shrink: 0;
 }
 

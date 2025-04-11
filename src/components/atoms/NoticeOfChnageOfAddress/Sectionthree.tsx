@@ -215,7 +215,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
 
   return (
     <div className="releaseWrapper">
-      {/* Fixed styles for state dropdown to prevent it from being cut off */}
+      { }
       <style>{`
         .state-dropdown-wrapper {
           position: relative;
@@ -248,7 +248,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
           position: absolute;
           top: 100%;
           left: 0;
-          z-index: 9999; /* Significantly increased z-index to ensure it appears above all other elements */
+          z-index: 9999;  
           width: 100%;
           height: 170px;
           max-height: 300px;
@@ -260,7 +260,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
           margin-top: 2px;
         }
 
-        /* Make sure the dropdown container is above everything else */
+         
         .state-field {
           position: relative;
 
@@ -283,13 +283,13 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
           color: #212529;
         }
 
-        /* Ensure the dropdown doesn't get cut off */
+         
         .cityStateZipGroupp {
           position: relative;
-          overflow: visible !important; /* Ensure the container doesn't clip overflow */
+          overflow: visible !important;  
         }
 
-        /* Make sure parent wrapper doesn't hide the dropdown */
+         
         .releaseWrapper {
           overflow: visible !important;
         }
@@ -323,7 +323,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
           color: #333;
         }
         
-        /* New styles for checkbox row */
+         
         .checkbox-row {
           display: flex;
           flex-direction: row;
@@ -345,7 +345,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
         <h3 className="releaseHeading">New or Correct Residence or Business Address</h3>
       </div>
       
-      {/* Moved both checkboxes into a single row */}
+      { }
       <div className="checkbox-row">
         <label className="checkbox-label">
           <input
@@ -418,7 +418,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
           />
         </div>
         
-        {/* New State Dropdown Component */}
+        { }
         {renderStateDropdown('address', 'residential', sectionData.address?.state)}
         
         <div className="formGroup zipCodeField">
@@ -434,7 +434,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
         </div>
       </div>
 
-      {/* Added County field based on the image */}
+      { }
       <div className="releaseForm">
         <label className="releaseFormLabel">COUNTY - DO NOT ABBREVIATE</label>
         <input
@@ -503,7 +503,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
               />
             </div>
             
-            {/* New State Dropdown for Mailing */}
+            { }
             {renderStateDropdown('mailingAddress', 'mailing', sectionData.mailingAddress?.state)}
             
             <div className="formGroup zipCodeField">
@@ -521,7 +521,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
         </div>
       )}
 
-      {/* Trailer Coach or Vessel Address Section */}
+      { }
       {sectionData.hasTrailerVessel && (
         <div>
           <div className="headerRow">
@@ -578,7 +578,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
               />
             </div>
             
-            {/* New State Dropdown for Trailer/Vessel */}
+            { }
             {renderStateDropdown('trailerVesselAddress', 'trailerVessel', sectionData.trailerVesselAddress?.state)}
             
             <div className="formGroup zipCodeField">
@@ -594,7 +594,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
             </div>
           </div>
 
-          {/* County field for Trailer/Vessel */}
+          { }
           <div className="releaseForm">
             <label className="releaseFormLabel">COUNTY - DO NOT ABBREVIATE</label>
             <input

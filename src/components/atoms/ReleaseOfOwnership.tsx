@@ -3,8 +3,17 @@ import React, { useState, useRef, useEffect, CSSProperties } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import './ReleaseOfOwnership.css';
-import { cert } from 'firebase-admin/app';
 
+ 
+export const RELEASE_OWNERSHIP_STORAGE_KEY = 'formmatic_release_ownership';
+
+ 
+export const clearReleaseOwnershipStorage = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(RELEASE_OWNERSHIP_STORAGE_KEY);
+    console.log('Release of ownership data cleared from localStorage');
+  }
+};
 
 const dropdownStyles: Record<string, CSSProperties> = {
   dropdownWrapper: {
@@ -156,10 +165,9 @@ const states = [
 ];
 
 const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propFormData }) => {
-  const [releaseData, setReleaseData] = useState<ReleaseInformationType>(
-    propFormData?.releaseInformation || initialReleaseInformation
-  );
-  const { updateField } = useFormContext();
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [releaseData, setReleaseData] = useState<ReleaseInformationType>(initialReleaseInformation);
+  const { updateField, clearFormTriggered } = useFormContext();
   
   const [showRegStateDropdown, setShowRegStateDropdown] = useState(false);
   const [showMailingStateDropdown, setShowMailingStateDropdown] = useState(false);
@@ -167,11 +175,63 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
   const regStateDropdownRef = useRef<HTMLDivElement>(null);
   const mailingStateDropdownRef = useRef<HTMLDivElement>(null);
 
+ 
   useEffect(() => {
-    if (propFormData?.releaseInformation) {
+    if (clearFormTriggered) {
+      console.log('Clear form triggered in ReleaseOfOwnership component');
+      clearReleaseOwnershipStorage();
+      setReleaseData(initialReleaseInformation);
+      
+ 
+      updateField('releaseInformation', initialReleaseInformation);
+    }
+  }, [clearFormTriggered]);
+  
+ 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isInitialized) {
+      try {
+        const savedData = localStorage.getItem(RELEASE_OWNERSHIP_STORAGE_KEY);
+        
+        if (savedData) {
+          console.log("Loading release of ownership data from localStorage");
+          const parsedData = JSON.parse(savedData);
+          
+ 
+          const mergedData = {
+            ...initialReleaseInformation,
+            ...parsedData,
+            ...(propFormData?.releaseInformation || {})
+          };
+          
+          setReleaseData(mergedData);
+          
+ 
+          updateField('releaseInformation', mergedData);
+        } else if (propFormData?.releaseInformation) {
+ 
+          setReleaseData(propFormData.releaseInformation);
+        }
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error loading saved release of ownership data:', error);
+        setIsInitialized(true);
+        
+ 
+        if (propFormData?.releaseInformation) {
+          setReleaseData(propFormData.releaseInformation);
+        }
+      }
+    }
+  }, []);
+
+ 
+  useEffect(() => {
+    if (isInitialized && propFormData?.releaseInformation) {
       setReleaseData(propFormData.releaseInformation);
     }
-  }, [propFormData]);
+  }, [propFormData, isInitialized]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -197,11 +257,8 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-
   const capitalizeWords = (value: string): string => {
     if (!value) return '';
-    
-
     return value.replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
@@ -236,19 +293,22 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
   const handleReleaseInfoChange = (field: keyof ReleaseInformationType, value: any) => {
     let formattedValue = value;
 
-
     if (field === 'phoneNumber') {
       formattedValue = formatPhoneNumber(value);
     } else if (field === 'date') {
       formattedValue = formatDate(value);
     } else if (typeof value === 'string') {
-
       formattedValue = capitalizeWords(value);
     }
 
     const newData = { ...releaseData, [field]: formattedValue };
     setReleaseData(newData);
     updateField('releaseInformation', newData);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(RELEASE_OWNERSHIP_STORAGE_KEY, JSON.stringify(newData));
+    }
   };
 
   const handleMailingCheckboxChange = (checked: boolean) => {
@@ -268,10 +328,14 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     
     setReleaseData(newData);
     updateField('releaseInformation', newData);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(RELEASE_OWNERSHIP_STORAGE_KEY, JSON.stringify(newData));
+    }
   };
 
   const handleAddressChange = (addressType: 'address' | 'mailingAddress', field: keyof Address, value: string) => {
-
     const capitalizedValue = typeof value === 'string' ? capitalizeWords(value) : value;
     
     const newData = { ...releaseData };
@@ -281,6 +345,11 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     };
     setReleaseData(newData);
     updateField('releaseInformation', newData);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(RELEASE_OWNERSHIP_STORAGE_KEY, JSON.stringify(newData));
+    }
   };
   
   const handleStateSelect = (addressType: 'address' | 'mailingAddress', stateAbbreviation: string) => {
@@ -445,15 +514,15 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
             />
           </div>
           <div className="agentNameInline">
-          <label className="releaseFormLabel">Printed name of authorized agent</label>
-          <input
-            className="agentFormInput"
-            type="text"
-            placeholder="Full name"
-            value={releaseData.authorizedAgentName || ''}
-            onChange={(e) => handleReleaseInfoChange('authorizedAgentName', e.target.value)}
-          />
-        </div>
+            <label className="releaseFormLabel">Printed name of authorized agent</label>
+            <input
+              className="agentFormInput"
+              type="text"
+              placeholder="Full name"
+              value={releaseData.authorizedAgentName || ''}
+              onChange={(e) => handleReleaseInfoChange('authorizedAgentName', e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="authorizedAgentGroup">

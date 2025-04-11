@@ -39,15 +39,19 @@ export default function LienHolderAdditionTransfer({ formData, onDataChange }: L
     if (onDataChange) {
       onDataChange(formData);
     }
-  }, [formData]);
+  }, [formData, onDataChange]);
   
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
-    const { updateField } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+
+ 
+    useEffect(() => {
+      setTransactionType("Lien Holder Addition");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -55,17 +59,20 @@ export default function LienHolderAdditionTransfer({ formData, onDataChange }: L
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
 
-
+ 
     useEffect(() => {
       if (!contextFormData.vehicleTransactionDetails) {
         updateField('vehicleTransactionDetails', {});
       }
-    }, []);
+    }, [contextFormData, updateField]);
 
-    const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
-    const withTitle = contextFormData?.vehicleTransactionDetails?.withTitle === true;
+ 
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
+    
+    const isCurrentLienholder = vehicleTransactionDetails.currentLienholder === true;
+    const withTitle = vehicleTransactionDetails.withTitle === true;
 
     return (
       <div className='wholeForm'>
@@ -75,17 +82,17 @@ export default function LienHolderAdditionTransfer({ formData, onDataChange }: L
         <TitleStatus formData={formValues} />
         
         <VehicalInformation 
-        formData={{
-          hideMileageFields: true
-        }}
-      />        <Seller
-        formData={{
-          hideDateOfSale: true ,
-          hideDateOfBirth: true,
-          limitOwnerCount: true
-
-        }}
-      />
+          formData={{
+            hideMileageFields: true
+          }}
+        />
+        <Seller
+          formData={{
+            hideDateOfSale: true,
+            hideDateOfBirth: true,
+            limitOwnerCount: true
+          }}
+        />
         <SellerAddress formData={formValues} />
         
         {/* Only show MissingTitle component when "Without Title" is selected */}

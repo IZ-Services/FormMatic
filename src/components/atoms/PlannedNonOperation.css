@@ -122,10 +122,10 @@
   height: 18px;
 }
 
-/* Responsive adjustments */
+ 
 @media (max-width: 768px) {
   .pnoTable {
-    min-width: 600px; /* Ensure table is scrollable on small screens */
+    min-width: 600px;  
   }
   
   .deleteIcon {

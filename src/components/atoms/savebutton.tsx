@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
+import { useScenarioContext } from '../../context/ScenarioContext';
 import { UserAuth } from '../../context/AuthContext';
 import './savebutton.css';
 import { PDFDocument } from 'pdf-lib';
@@ -72,15 +73,18 @@ interface FormData {
 }
 
 const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, multipleTransferData }) => {
-  const { formData, updateField } = useFormContext() as { 
+  const { formData, updateField, clearAllFormData } = useFormContext() as { 
     formData: FormData; 
-    updateField: (field: string, value: any) => void 
+    updateField: (field: string, value: any) => void;
+    clearAllFormData: () => void;
   };
   
+  const { clearPersistedScenarios } = useScenarioContext();
   const { user } = UserAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const [showClearConfirmDialog, setShowClearConfirmDialog] = useState(false);
   
   const isDuplicatePlatesOrStickers = 
     transactionType === "Duplicate Plates & Stickers" || 
@@ -229,6 +233,17 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
     }
     
     handleSave();
+  };
+
+  const handleClearForm = () => {
+    setShowClearConfirmDialog(true);
+  };
+
+  const confirmClearForm = () => {
+    clearAllFormData();
+    clearPersistedScenarios();
+    setShowClearConfirmDialog(false);
+    window.location.reload(); 
   };
 
   const mergePDFs = async (pdfBlobs: { blob: Blob, title: string }[]): Promise<Blob> => {
@@ -477,12 +492,12 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
     setIsPrinting(true);
     
     try {
-      // Check if we have a transaction ID already (form is saved)
+ 
       if (formData._id) {
-        // If form is already saved, just open PDFs
+ 
         await handlePdfDisplay(formData._id);
       } else {
-        // If form isn't saved, tell user to save first
+ 
         alert('Please save the form before printing.');
       }
     } catch (error: any) {
@@ -589,7 +604,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
           const saveResult = await saveResponse.json();
           const { transactionId } = saveResult;
           
-          // Update form data with the new ID
+ 
           updateField('_id', transactionId);
           updateField('_showValidationErrors', false);
           
@@ -620,7 +635,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
           const saveResult = await saveResponse.json();
           const { transactionId } = saveResult;
           
-          // Update form data with the new ID
+ 
           updateField('_id', transactionId);
           updateField('_showValidationErrors', false);
           
@@ -657,6 +672,14 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
       >
         {isPrinting ? <div className="spinner"></div> : 'Print'}
       </button>
+      
+      <button
+        onClick={handleClearForm}
+        className="clearButton"
+        type="button"
+      >
+        Clear Form
+      </button>
 
       {showValidationDialog && (
         <div className="validation-dialog-overlay">
@@ -677,6 +700,31 @@ const SaveButton: React.FC<SaveButtonProps> = ({ transactionType, onSuccess, mul
                 type="button"
               >
                 Continue Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {showClearConfirmDialog && (
+        <div className="validation-dialog-overlay">
+          <div className="validation-dialog">
+            <h3>Clear Form Data</h3>
+            <p>Are you sure you want to clear all form data? This cannot be undone.</p>
+            <div className="validation-buttons">
+              <button 
+                className="cancel-button" 
+                onClick={() => setShowClearConfirmDialog(false)}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button 
+                className="continue-button" 
+                onClick={confirmClearForm}
+                type="button"
+              >
+                Clear All Data
               </button>
             </div>
           </div>

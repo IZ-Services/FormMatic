@@ -13,28 +13,59 @@ const publishableKey = getStripePublishableKey();
 const stripePromise = loadStripe(publishableKey);
 
 export default function SignUp() {
-  const { user, isSubscribed } = UserAuth();
-  const [loading, setLoading] = useState(true);
+  const { user, isSubscribed, loading: authLoading } = UserAuth();
+  const [pageLoading, setPageLoading] = useState(true);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const router = useRouter();
   const hasFetchedClientSecret = useRef(false);
+  const redirectInProgressRef = useRef(false);
+  const mountedRef = useRef(false);
 
+ 
   useEffect(() => {
-    if (!user) {
-      router.push('/');
-    } else if (isSubscribed === true) {
-      router.push('/home');
-      setLoading(false);
-    } else if (isSubscribed === false) {
-      setLoading(false);
-    }
-  }, [user, isSubscribed, router]);
+    mountedRef.current = true;
+    console.log('SignUp component mounted, authLoading:', authLoading);
+    
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
+ 
+  useEffect(() => {
+    if (authLoading) {
+      console.log('Auth still loading, waiting...');
+      return;
+    }
+    
+    console.log('Auth loaded, user:', !!user, 'isSubscribed:', isSubscribed);
+    
+    if (!user && !redirectInProgressRef.current && mountedRef.current) {
+      redirectInProgressRef.current = true;
+      console.log('No user, redirecting to home');
+      router.push('/');
+      return;
+    } 
+    
+    if (isSubscribed === true && !redirectInProgressRef.current && mountedRef.current) {
+      redirectInProgressRef.current = true;
+      console.log('User is subscribed, redirecting to home');
+      router.push('/home');
+      return;
+    }
+    
+    if (isSubscribed === false && mountedRef.current) {
+      console.log('User not subscribed, showing signup page');
+      setPageLoading(false);
+    }
+  }, [user, isSubscribed, router, authLoading]);
+
+ 
   useEffect(() => {
     const fetchClientSecret = async () => {
-      if (hasFetchedClientSecret.current || !user || clientSecret || isSubscribed) return;
+      if (hasFetchedClientSecret.current || !user || clientSecret || isSubscribed || authLoading) return;
 
       hasFetchedClientSecret.current = true;
 
@@ -85,9 +116,11 @@ export default function SignUp() {
     }, 20000);
 
     return () => clearTimeout(timeoutId);
-  }, [user, clientSecret, isSubscribed]);
+  }, [user, clientSecret, isSubscribed, authLoading]);
 
-  if (loading) {
+ 
+  if (authLoading || pageLoading) {
+    console.log('Showing Loading component from SignUp');
     return <Loading />;
   }
 

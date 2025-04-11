@@ -32,7 +32,7 @@
   }
   
   .checkbox-section {
-    /* flex: 1 1; */
+     
     min-width: 150px;
   }
   
@@ -45,7 +45,7 @@
   .checkbox-label input {
     margin-right: 10px;
     width: 18px;
-    /* height: 18px; */
+     
   }
   
   .checkbox-label input:disabled {

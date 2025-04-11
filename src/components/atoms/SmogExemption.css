@@ -100,7 +100,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 22px; /* Matches the height of other checkbox labels */
+  height: 22px;  
 }
 
 .otherInput {
@@ -109,7 +109,7 @@
   border-radius: 4px;
   font-size: 14px;
   width: 200px;
-  height: 22px; /* Consistent height */
+  height: 22px;  
   box-sizing: border-box;
   vertical-align: middle;
   margin: 0;
@@ -134,10 +134,7 @@
   font-style: italic;
 }
 
-/* input[type="checkbox"]:focus {
-  outline: 2px solid #0066ff;
-  outline-offset: 2px;
-} */
+
 
 .otherInput:focus {
   outline: none;
@@ -145,7 +142,7 @@
   box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
 }
 
-/* Responsive styles */
+ 
 @media (max-width: 768px) {
   .subCheckboxGroup {
     flex-direction: column;

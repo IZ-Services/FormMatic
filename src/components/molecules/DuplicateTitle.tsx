@@ -16,27 +16,52 @@ interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
 }
 
+interface LegalOwnerInfo {
+  name?: string;
+  address?: {
+    street?: string;
+    apt?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+  };
+  date?: string;
+  phoneNumber?: string;
+  authorizedAgentName?: string;
+  authorizedAgentTitle?: string;
+}
+
 interface FormContextData {
   vehicleTransactionDetails?: VehicleTransactionDetailsData;
+  legalOwnerInformation?: LegalOwnerInfo;
   [key: string]: any;
 }
 
 interface DuplicateTitleTransferProps {
   formData?: any;
+  onDataChange?: (data: any) => void;
 }
 
-export default function DuplicateTitleTransfer({ formData }: DuplicateTitleTransferProps) {
+export default function DuplicateTitleTransfer({ formData, onDataChange }: DuplicateTitleTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
+
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange(formData);
+    }
+  }, [formData, onDataChange]);
 
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData, updateField } = useFormContext() as { 
-      formData: FormContextData;
-      updateField: (key: string, value: any) => void;
-    };
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+
+ 
+    useEffect(() => {
+      setTransactionType("Duplicate Title Transfer");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -44,30 +69,31 @@ export default function DuplicateTitleTransfer({ formData }: DuplicateTitleTrans
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
+
+ 
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
 
     const [hasLienholder, setHasLienholder] = useState<boolean>(
-      contextFormData?.vehicleTransactionDetails?.currentLienholder || false
+      vehicleTransactionDetails.currentLienholder || false
     );
 
     useEffect(() => {
-      if (contextFormData?.vehicleTransactionDetails?.currentLienholder !== undefined) {
-        setHasLienholder(contextFormData.vehicleTransactionDetails.currentLienholder);
+      if (vehicleTransactionDetails.currentLienholder !== undefined) {
+        setHasLienholder(vehicleTransactionDetails.currentLienholder);
       }
-    }, [contextFormData?.vehicleTransactionDetails?.currentLienholder]);
+    }, [vehicleTransactionDetails.currentLienholder]);
 
     const handleLienholderChange = () => {
       const newValue = !hasLienholder;
       setHasLienholder(newValue);
       
-
       const currentDetails = contextFormData?.vehicleTransactionDetails || {};
       updateField('vehicleTransactionDetails', {
         ...currentDetails,
         currentLienholder: newValue
       });
       
-
       if (!newValue) {
         updateField('legalOwnerInformation', {
           name: 'NONE',
@@ -89,7 +115,7 @@ export default function DuplicateTitleTransfer({ formData }: DuplicateTitleTrans
     return (
       <div className='wholeForm'>
         <TypeContainer />
-                <div className="lienholderCheckboxWrapper">
+        <div className="lienholderCheckboxWrapper">
           <div className="headerRow">
             <h3 className="releaseHeading">Transaction Details</h3>
           </div>
@@ -111,14 +137,14 @@ export default function DuplicateTitleTransfer({ formData }: DuplicateTitleTrans
           formData={formValues}
           isDuplicateRegistrationMode={true}
         />
-<Seller
-        formData={{
-          hideDateOfBirth: true,
-          limitOwnerCount: true,
-          hideDateOfSale: true,
-
-        }}
-      />        <SellerAddress formData={formValues} />
+        <Seller
+          formData={{
+            hideDateOfBirth: true,
+            limitOwnerCount: true,
+            hideDateOfSale: true,
+          }}
+        />
+        <SellerAddress formData={formValues} />
         <MissingTitle formData={formValues} />
         {hasLienholder && (
           <LegalOwnerOfRecord formData={formValues} />

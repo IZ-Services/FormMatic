@@ -23,7 +23,7 @@
   padding: 0 10px 0px 10px;
 }
 
-/* Vehicle Type Section */
+ 
 .vehicleTypeSection {
   border-bottom: 1px solid #eee;
   padding-bottom: 15px;
@@ -60,7 +60,7 @@
   font-style: italic;
 }
 
-/* Plate Type Section */
+ 
 .plateTypeSection {
   border-bottom: 1px solid #eee;
   padding-bottom: 15px;
@@ -102,9 +102,9 @@
 .sequentialDetails {
   margin-left: 30px;
   margin-top: 10px;
-  /* border: 1px solid #eee; */
-  /* padding: 15px; */
-  /* background-color: #f9f9f9;*/
+   
+   
+   
 }
 
 .sequentialTitle {
@@ -141,12 +141,6 @@
   color: #d00;
   font-style: italic;
 }
-/*   
-.personalizedSection {
-  padding: 15px;
-  border: 1px solid #eee;
-  background-color: #f9f9f9;
-} */
 
 .personalizedTitle {
   font-size: 16px;
@@ -174,7 +168,7 @@
   margin-bottom: 20px;
 }
 
-/* Centering Option */
+ 
 .centeringOption {
   margin-bottom: 15px;
   padding: 10px;
@@ -197,7 +191,7 @@
   height: 18px;
 }
 
-/* Kids Plate Option */
+ 
 .kidsPlateOption {
   display: none;
   flex-direction: column;
@@ -309,14 +303,14 @@
   font-size: 14px;
 }
 
-/* Note Section */
+ 
 .noteSection {
   border-top: 1px solid #ddd;
   padding-top: 15px;
   margin-bottom: 15px;
 }
 
-/* Pickup Section */
+ 
 .pickupSection {
   display: flex;
   flex-wrap: wrap;
@@ -362,7 +356,7 @@
 .uppercase-input {
   text-transform: uppercase;
 }
-/* Responsive styles */
+ 
 @media (max-width: 770px) {
   .sequentialInputs {
     flex-direction: column;
@@ -395,7 +389,7 @@
     width: 100%;
   }
   
-  /* Responsive fixes for Kids Plate Symbol section */
+   
   .kidsPlateOption {
     flex-direction: column;
   }

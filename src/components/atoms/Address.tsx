@@ -124,8 +124,6 @@ const inlineCheckboxStyles = `
   width: 100%;
 }
 
-
-
 .state-label {
   display: block;
   margin-bottom: 5px;
@@ -159,6 +157,7 @@ interface FormData {
 interface FormContextType {
   formData: Record<string, any>;
   updateField: (field: string, value: any) => void;
+  clearFormTriggered?: number | null;
 }
 
 interface AddressProps {
@@ -203,19 +202,34 @@ const emptyAddress: AddressData = {
   county: ''
 };
 
-const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isMultipleTransfer = false }) => {
  
-  const [addressData, setAddressData] = useState<FormData>({
-    mailingAddressDifferent: propFormData?.mailingAddressDifferent || false,
-    lesseeAddressDifferent: propFormData?.lesseeAddressDifferent || false,
-    trailerLocationDifferent: propFormData?.trailerLocationDifferent || false,
-    address: propFormData?.address || { ...initialAddressData },
-    mailingAddress: propFormData?.mailingAddress || { ...initialAddressData, poBox: '' },
-    lesseeAddress: propFormData?.lesseeAddress || { ...initialAddressData },
-    trailerLocation: propFormData?.trailerLocation || { ...initialAddressData }
-  });
+export const ADDRESS_STORAGE_KEY = 'formmatic_address_data';
 
-  const { updateField } = useFormContext() as FormContextType;
+ 
+export const clearAddressStorage = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(ADDRESS_STORAGE_KEY);
+    console.log('Address data cleared from localStorage');
+  }
+};
+
+const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isMultipleTransfer = false }) => {
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+ 
+  const defaultAddressData: FormData = {
+    mailingAddressDifferent: false,
+    lesseeAddressDifferent: false,
+    trailerLocationDifferent: false,
+    address: { ...initialAddressData },
+    mailingAddress: { ...initialAddressData, poBox: '' },
+    lesseeAddress: { ...initialAddressData },
+    trailerLocation: { ...initialAddressData }
+  };
+  
+  const [addressData, setAddressData] = useState<FormData>(defaultAddressData);
+
+  const { updateField, clearFormTriggered } = useFormContext() as FormContextType;
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRefs = {
     address: useRef<HTMLDivElement>(null),
@@ -224,10 +238,90 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     trailerLocation: useRef<HTMLDivElement>(null),
   };
   
-
  
   useEffect(() => {
-    if (propFormData) {
+    if (clearFormTriggered) {
+      console.log('Clear form triggered in Address component');
+      clearAddressStorage();
+      setAddressData(defaultAddressData);
+      
+ 
+      updateField('address', { ...initialAddressData });
+      updateField('mailingAddressDifferent', false);
+      updateField('lesseeAddressDifferent', false);
+      updateField('trailerLocationDifferent', false);
+      updateField('mailingAddress', { ...emptyMailingAddress });
+      updateField('lesseeAddress', { ...emptyAddress });
+      updateField('trailerLocation', { ...emptyAddress });
+    }
+  }, [clearFormTriggered]);
+  
+ 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isInitialized) {
+      try {
+        const savedData = localStorage.getItem(ADDRESS_STORAGE_KEY);
+        
+        if (savedData) {
+          console.log("Loading address data from localStorage");
+          const parsedData = JSON.parse(savedData);
+          
+ 
+          const mergedData = {
+            ...defaultAddressData,
+            ...parsedData,
+            ...propFormData
+          };
+          
+          setAddressData(mergedData);
+          
+ 
+          updateField('address', mergedData.address);
+          updateField('mailingAddressDifferent', !!mergedData.mailingAddressDifferent);
+          updateField('lesseeAddressDifferent', !!mergedData.lesseeAddressDifferent);
+          updateField('trailerLocationDifferent', !!mergedData.trailerLocationDifferent);
+          
+          if (mergedData.mailingAddressDifferent) {
+            updateField('mailingAddress', mergedData.mailingAddress);
+          }
+          
+          if (mergedData.lesseeAddressDifferent) {
+            updateField('lesseeAddress', mergedData.lesseeAddress);
+          }
+          
+          if (mergedData.trailerLocationDifferent) {
+            updateField('trailerLocation', mergedData.trailerLocation);
+          }
+          
+          if (onChange) {
+            onChange(mergedData);
+          }
+        } else {
+ 
+          const mergedData = {
+            ...defaultAddressData,
+            ...propFormData
+          };
+          setAddressData(mergedData);
+        }
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error loading saved address data:', error);
+        setIsInitialized(true);
+        
+ 
+        const mergedData = {
+          ...defaultAddressData,
+          ...propFormData
+        };
+        setAddressData(mergedData);
+      }
+    }
+  }, []);
+ 
+  useEffect(() => {
+    if (isInitialized && propFormData) {
       const newData = { ...addressData };
       let hasChanges = false;
 
@@ -271,20 +365,23 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
 
       if (hasChanges) {
         setAddressData(newData);
+        
+ 
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+        }
       }
     }
-  }, [propFormData]);
+  }, [propFormData, isInitialized]);
 
  
   useEffect(() => {
- 
-    if (!onChange) {
+    if (isInitialized && !onChange) {
  
       if (addressData.address && typeof addressData.address === 'object') {
         updateField('address', addressData.address);
       }
       
- 
       if (typeof addressData.mailingAddressDifferent === 'boolean') {
         updateField('mailingAddressDifferent', addressData.mailingAddressDifferent);
       }
@@ -297,7 +394,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
         updateField('trailerLocationDifferent', addressData.trailerLocationDifferent);
       }
       
- 
       if (addressData.mailingAddressDifferent && addressData.mailingAddress && 
           typeof addressData.mailingAddress === 'object') {
         updateField('mailingAddress', addressData.mailingAddress);
@@ -313,7 +409,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
         updateField('trailerLocation', addressData.trailerLocation);
       }
     }
-  }, []);
+  }, [addressData, isInitialized]);
 
   const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as Element;
@@ -346,6 +442,11 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     console.log(`Updating ${section}.${field} to:`, value);
     console.log("New section data:", updatedSection);
     
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+    }
+    
     if (onChange) {
       onChange(newData);
     } else {
@@ -360,7 +461,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     const newData = { ...addressData };
     newData[field] = checked;
     
-
     if (!checked) {
       switch (field) {
         case 'mailingAddressDifferent':
@@ -384,7 +484,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
       }
     }
     
-
     if (field === 'lesseeAddressDifferent' && checked) {
       newData.trailerLocationDifferent = false;
       if (!onChange) {
@@ -402,6 +501,11 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     }
     
     setAddressData(newData);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+    }
     
     if (onChange) {
       onChange(newData);
@@ -494,9 +598,9 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
           >
             {value || 'STATE'}
             <ChevronDownIcon 
-  className={`${openDropdown === dropdownId ? 'rotate' : ''}`}
-  style={{ width: '18px', height: '18px' }} 
-/>
+              className={`${openDropdown === dropdownId ? 'rotate' : ''}`}
+              style={{ width: '18px', height: '18px' }} 
+            />
           </button>
           
           {openDropdown === dropdownId && (

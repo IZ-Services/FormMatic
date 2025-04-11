@@ -1,0 +1,109 @@
+.commercial-vehicle-wrapper {
+    margin-top: 20px;
+    width: 100%;
+  }
+  
+  .commercial-heading {
+    margin-bottom: 15px;
+  }
+  
+  .commercial-heading h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+  }
+  
+  .commercial-fields-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+    margin-bottom: 15px;
+  }
+  
+  .commercial-field-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+  }
+  
+  .commercial-field-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 400;
+    font-size: 14px;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  
+  .form-control:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+  }
+  
+  .weight-type-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 5px;
+  }
+  
+  .weight-type-option {
+    display: flex;
+    align-items: center;
+  }
+  
+   
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .checkbox-input {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+  
+  .checkbox-text {
+    font-size: 14px;
+  }
+  
+   
+  .validation-error {
+    border: 2px solid #ff0000 !important;
+    background-color: #fffafa;
+  }
+  
+  .validation-message {
+    color: #ff0000;
+    font-size: 12px;
+    margin-top: 4px;
+    margin-bottom: 0;
+    text-align: left;
+    width: 100%;
+  }
+  
+   
+  @media screen and (max-width: 768px) {
+    .commercial-fields-container {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .commercial-field-group {
+      width: 100%;
+    }
+  }

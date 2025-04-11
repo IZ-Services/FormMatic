@@ -331,6 +331,65 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
       }
     };
     
+ 
+    if (effectiveTransactionType === "Commercial Vehicle Transfer") {
+      safeSetCheckbox('Check Box24', true);
+      console.log('Commercial Vehicle Transfer detected, checked Check Box24');
+    }
+    if (formData.commercialVehicleQuestions) {
+      const cvQuestions = formData.commercialVehicleQuestions;
+      
+ 
+      if (cvQuestions.isForHire === true) {
+        safeSetCheckbox('Check Box31', true);
+        console.log('Vehicle used for transportation for hire: YES (Check Box31)');
+      } else if (cvQuestions.isForHire === false) {
+        safeSetCheckbox('Check Box34', true);
+        console.log('Vehicle used for transportation for hire: NO (Check Box34)');
+      }
+      
+ 
+      if (cvQuestions.isCommercialOverWeight === true) {
+        safeSetCheckbox('Check Box35', true);
+        console.log('Commercial vehicle over weight: YES (Check Box35)');
+      } else if (cvQuestions.isCommercialOverWeight === false) {
+        safeSetCheckbox('Check Box36', true);
+        console.log('Commercial vehicle over weight: NO (Check Box36)');
+      }
+    } 
+
+ 
+    if (formData.commercialVehicleInfo) {
+      const commercialInfo = formData.commercialVehicleInfo;
+      
+ 
+      if (commercialInfo.bodyModelType) {
+        safeSetText('Text17', commercialInfo.bodyModelType);
+        console.log('Successfully set Body Model Type (Text17) to', commercialInfo.bodyModelType);
+      }
+      
+ 
+      if (commercialInfo.numberOfAxles) {
+        safeSetText('Text49', commercialInfo.numberOfAxles);
+        console.log('Successfully set Number of Axles (Text20) to', commercialInfo.numberOfAxles);
+      }
+      
+ 
+      if (commercialInfo.unladenWeight) {
+        safeSetText('Text50', commercialInfo.unladenWeight);
+        console.log('Successfully set Unladen Weight (Text21) to', commercialInfo.unladenWeight);
+      }
+      
+ 
+      if (commercialInfo.isEstimatedWeight === true) {
+        safeSetCheckbox('Check Box55', true);
+        console.log('Successfully set Estimated Weight checkbox (Check Box55) to true');
+      } else if (commercialInfo.isEstimatedWeight === false) {
+        safeSetCheckbox('Check Box51', true);
+        console.log('Successfully set Actual Weight checkbox (Check Box51) to true');
+      }
+    }
+    
     try {
       const today = new Date();
       const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
@@ -341,9 +400,8 @@ async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveT
       console.error('Error setting date:', error);
     }
     safeSetCheckbox('Check Box181', true);
-safeSetCheckbox('Check Box183', true);
-safeSetCheckbox('Check Box34', true);
-safeSetCheckbox('Check Box36', true);
+    safeSetCheckbox('Check Box183', true);
+
 
     let vinSetInText56 = false;
     
@@ -464,6 +522,7 @@ safeSetCheckbox('Check Box36', true);
 
       if (owner.licenseNumber) {
         safeSetText('Text6', owner.licenseNumber);
+        safeSetText('Text13', owner.licenseNumber); 
         safeSetText('Text35', owner.licenseNumber);
         
 
@@ -650,7 +709,7 @@ if (formData.lesseeAddressDifferent && formData.lesseeAddress) {
   }
   
   if (lesseeAddress.zip) {
-    safeSetText('text112', lesseeAddress.zip);
+    safeSetText('Text112', lesseeAddress.zip);
   }
 }
 
@@ -1018,7 +1077,6 @@ if (formData.trailerLocationDifferent && formData.trailerLocation) {
     return await emptyPdf.save();
   }
 }
-
 async function modifyReg488cPdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
   try {
     const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: false });
@@ -1323,8 +1381,8 @@ async function modifyReg4008Pdf(fileBytes: ArrayBuffer, formData: any, effective
       
       safeSetText('Address.0.0', streetApt);
       
-      safeSetCheckbox('Check Box1', true);
-      
+      const isOutOfState = address.isOutOfState === true;
+      safeSetCheckbox('Check Box1', isOutOfState);
       if (address.county) {
         safeSetText('Address.0.1', address.county);
         console.log(`Successfully filled county field Address.0.1 with: ${address.county}`);
@@ -1382,27 +1440,94 @@ async function modifyReg4008Pdf(fileBytes: ArrayBuffer, formData: any, effective
       }
     }
     
-    if (formData.vehicleWeightInfo && formData.vehicleWeightInfo.length > 0) {
-      const maxVehicles = Math.min(formData.vehicleWeightInfo.length, 2);
+ 
+    if (formData.vehicleDeclaration?.vehicles && formData.vehicleDeclaration.vehicles.length > 0) {
+      const vehicles = formData.vehicleDeclaration.vehicles;
+      const maxVehicles = Math.min(vehicles.length, 2); 
       
       for (let i = 0; i < maxVehicles; i++) {
-        const vehicle = formData.vehicleWeightInfo[i];
+        const vehicle = vehicles[i];
         const suffix = i === 0 ? '.0' : '.1';
         
-        if (vehicle.vehicleOperatedUnder) {
+ 
+        if (vehicle.licenseNumber) {
+          safeSetText(`License- 1${suffix}`, vehicle.licenseNumber.toUpperCase());
+        }
+        
+ 
+        if (vehicle.vin) {
+          safeSetText(`VIN- 1${suffix}`, vehicle.vin);
+        }
+        
+ 
+        if (vehicle.make) {
+          try {
+            const field = form.getTextField(`Make -1${suffix}`);
+            if (field) {
+              field.setText(vehicle.make);
+              
+ 
+              if (vehicle.make.length > 6) {
+                const fontSize = vehicle.make.length > 10 ? 7 : 8; 
+                field.setFontSize(fontSize);
+              }
+              console.log(`Successfully filled field: Make -1${suffix} with: ${vehicle.make}`);
+            }
+          } catch (error) {
+            console.error(`Error filling Make field:`, error);
+          }
+        }
+        
+ 
+        const isUnder10001 = 
+          vehicle.gvwWeight?.includes('NONE') || 
+          vehicle.cgwWeight?.includes('NONE');
+          
+        if (isUnder10001) {
           safeSetText(`Under 10,001 pounds${suffix}`, 'X');
         }
         
-        if (vehicle.gvwValue) {
-          safeSetText(`GVW -1${suffix}`, vehicle.gvwValue);
+ 
+        if (vehicle.gvwWeight && !vehicle.gvwWeight.includes('NONE')) {
+          try {
+            const field = form.getTextField(`GVW -1${suffix}`);
+            if (field) {
+              field.setText(vehicle.gvwWeight);
+              
+ 
+              const textLength = vehicle.gvwWeight.length;
+              if (textLength > 10) {
+                field.setFontSize(8); 
+              }
+              console.log(`Successfully filled field: GVW -1${suffix} with: ${vehicle.gvwWeight}`);
+            }
+          } catch (error) {
+            console.error(`Error filling GVW field:`, error);
+          }
         }
         
-        if (vehicle.cgwValue) {
-          safeSetText(`CGW -1${suffix}`, vehicle.cgwValue);
+ 
+        if (vehicle.cgwWeight && !vehicle.cgwWeight.includes('NONE')) {
+          try {
+            const field = form.getTextField(`CGW -1${suffix}`);
+            if (field) {
+              field.setText(vehicle.cgwWeight);
+              
+ 
+              const textLength = vehicle.cgwWeight.length;
+              if (textLength > 10) {
+                field.setFontSize(8); 
+              }
+              console.log(`Successfully filled field: CGW -1${suffix} with: ${vehicle.cgwWeight}`);
+            }
+          } catch (error) {
+            console.error(`Error filling CGW field:`, error);
+          }
         }
         
-        if (vehicle.firstOperatedDate) {
-          safeSetText(`Date 1st operated-1${suffix}`, vehicle.firstOperatedDate);
+ 
+        if (vehicle.dateOperated) {
+          safeSetText(`Date 1st operated-1${suffix}`, vehicle.dateOperated);
         }
       }
     }
@@ -2555,7 +2680,6 @@ async function modifyREG195Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
  
     const processSellerInfo = () => {
       try {
- 
         const nameField = form.getTextField("Name or organization name");
         if (nameField && formData.sellerInfo?.sellers?.[0]) {
           const seller = formData.sellerInfo.sellers[0];
@@ -2563,12 +2687,11 @@ async function modifyREG195Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
           const firstName = seller.firstName || '';
           const middleName = seller.middleName || '';
           
- 
           let fullName = lastName;
           if (firstName || middleName) {
             fullName += ', ' + firstName;
             if (middleName) {
-              fullName += ' ' + middleName;
+              fullName += ', ' + middleName; 
             }
           }
           
@@ -2579,10 +2702,8 @@ async function modifyREG195Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
  
         const dlNumber = formData.sellerInfo?.sellers?.[0]?.licenseNumber || '';
         if (dlNumber) {
- 
           const dlChars = String(dlNumber).split('');
           
- 
           for (let i = 0; i < dlChars.length && i < 8; i++) {
             const fieldName = `DL No.${i}`;
             const field = form.getTextField(fieldName);
@@ -2593,19 +2714,15 @@ async function modifyREG195Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
           }
         }
         
- 
         if (formData.sellerAddress) {
- 
           safeSetText("Residence or organization address", formData.sellerAddress.street || '');
           safeSetText("Apt/Space.1", formData.sellerAddress.apt || '');
           safeSetText("city", formData.sellerAddress.city || '');
           safeSetText("county", formData.sellerAddress.county || '');
- 
           safeSetText("Applicant-State", formData.sellerInfo?.sellers?.[0]?.state || '');
           safeSetText("Applicant-Zip Code", formData.sellerAddress.zip || '');
         }
         
- 
         if (formData.sellerMailingAddressDifferent) {          
           if (formData.sellerMailingAddress) {
             safeSetText("Residence or organization address if different", formData.sellerMailingAddress.street || '');
@@ -2617,13 +2734,11 @@ async function modifyREG195Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
           }
         }
         
- 
         try {
           const dobString = formData.sellerInfo?.sellers?.[0]?.dob || '';
           if (dobString) {
             console.log(`Processing seller DOB: ${dobString}`);
             
- 
             const dobParts = dobString.split('/');
             
             if (dobParts.length === 3) {
@@ -2631,15 +2746,12 @@ async function modifyREG195Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
               const day = dobParts[1].padStart(2, '0'); 
               const year = dobParts[2]; 
               
- 
               safeSetText("DOB-Mo1", month.charAt(0));
               safeSetText("DOB-Mo2", month.charAt(1));
               
- 
               safeSetText("DOB-Day.1", day.charAt(0));
               safeSetText("DOB-Day.2", day.charAt(1));
               
- 
               safeSetText("DOB-Yr.0", year.charAt(3));
               safeSetText("DOB-Yr.1.0", year.charAt(2));
               safeSetText("DOB-Yr.1.1", year.charAt(0));
@@ -2654,20 +2766,15 @@ async function modifyREG195Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
           console.error('Error setting DOB fields:', error);
         }
         
- 
         try {
           const phoneNumber = formData.sellerInfo?.sellers?.[0]?.phone || '';
           if (phoneNumber) {
- 
             const cleanedPhone = phoneNumber.replace(/\D/g, '');
             
             if (cleanedPhone.length >= 3) {
- 
               const areaCode = cleanedPhone.substring(0, 3);
- 
               const mainNumber = cleanedPhone.substring(3);
               
- 
               safeSetText("Area Code", areaCode);
               safeSetText("Daytime phone no", mainNumber);
               console.log(`Set phone fields - Area code: ${areaCode}, Main: ${mainNumber}`);
@@ -2680,7 +2787,6 @@ async function modifyREG195Pdf(fileBytes: ArrayBuffer, formData: any): Promise<U
         console.error('Error processing seller information:', error);
       }
     };
-
     const processDisabledPersonParkingInfo = async () => {
       try {
         if (formData.disabledPersonParkingInfo) {
@@ -3922,36 +4028,33 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
  
   const seller1SaleDate = sellers.length > 0 ? sellers[0].saleDate : '';
   
+ 
   const buyerMailingAddressDifferent = formData.mailingAddressDifferent || false;
-  const buyerRegularAddress = formData.address || {};
   const buyerMailingAddress = buyerMailingAddressDifferent ? 
                             (formData.mailingAddress || {}) : 
-                            buyerRegularAddress;
+                            (formData.residenceAddress || {}); 
   
   console.log("Buyer mailing address different?", buyerMailingAddressDifferent);
-  console.log("Buyer regular address:", JSON.stringify(buyerRegularAddress));
   console.log("Buyer mailing address:", JSON.stringify(buyerMailingAddress));
 
   const sellerMailingAddressDifferent = formData.sellerMailingAddressDifferent || false;
-  const sellerRegularAddress = formData.sellerAddress || {};
   const sellerMailingAddress = sellerMailingAddressDifferent ? 
                                (formData.sellerMailingAddress || {}) : 
-                               sellerRegularAddress;
+                               (formData.sellerResidenceAddress || {}); 
                             
   console.log("Seller mailing address different?", sellerMailingAddressDifferent);
-  console.log("Seller regular address:", JSON.stringify(sellerRegularAddress));
   console.log("Seller mailing address:", JSON.stringify(sellerMailingAddress));
   
 
+ 
+  const sellerAddressToUse = sellerMailingAddress || {};
+  const buyerAddressToUse = buyerMailingAddress || {};
 
   try {
     const sellerStreetField = form.getTextField('text_60czib');
     const sellerCityField = form.getTextField('text_61pxrx');
     const sellerStateField = form.getTextField('text_62cqaf');
     const sellerZipField = form.getTextField('text_63psgg');
-    
-
-    const sellerAddressToUse = sellerMailingAddress || sellerRegularAddress;
     
     if (sellerStreetField) {
       sellerStreetField.setText(sellerAddressToUse.street || '');
@@ -3975,10 +4078,7 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
   } catch (error) {
     console.error('Error setting seller address fields:', error);
     
-
-    const sellerAddressToUse = sellerMailingAddress || sellerRegularAddress;
-    
-
+ 
     if (sellerAddressToUse.street) {
       firstPage.drawText(sellerAddressToUse.street, {
         x: 45,
@@ -4027,9 +4127,6 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
     const ownerStateField = form.getTextField('text_65bzof');
     const ownerZipField = form.getTextField('text_64xthv');
     
-
-    const buyerAddressToUse = buyerMailingAddress || buyerRegularAddress;
-    
     if (ownerStreetField) {
       ownerStreetField.setText(buyerAddressToUse.street || '');
       console.log(`Set buyer street: ${buyerAddressToUse.street || ''}`);
@@ -4052,10 +4149,7 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
   } catch (error) {
     console.error('Error setting buyer address fields:', error);
     
-
-    const buyerAddressToUse = buyerMailingAddress || buyerRegularAddress;
-    
-
+ 
     if (buyerAddressToUse.street) {
       firstPage.drawText(buyerAddressToUse.street, {
         x: 45,
@@ -4380,8 +4474,6 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
       
 
       if ((label === 'I/We' || label === 'to') && value.length > 30) {
-
-
         fontSize = Math.max(6, 10 - ((value.length - 30) / 10));
         console.log(`Reducing font size for ${label} to ${fontSize} (${value.length} characters)`);
       }
@@ -4420,7 +4512,6 @@ async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promis
   return await pdfDoc.save();
 }
 
-
 async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactionType?: string): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
   
@@ -4430,7 +4521,8 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   
   console.log('===== COMPLETE FORM DATA =====');
   console.log(JSON.stringify(formData, null, 2));
-  console.log('=============================');  console.log('Transaction type passed directly:', transactionType);
+  console.log('=============================');
+  console.log('Transaction type passed directly:', transactionType);
   console.log('Raw formData object type property:', formData.type);
   
   if (!transactionType) {
@@ -4446,7 +4538,8 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     } else if (formData.formData && formData.formData.type) {
       transactionType = formData.formData.type;
       console.log(`Found transaction type in formData.formData.type: "${transactionType}"`);
-    } else {      transactionType = "Regular Transfer";
+    } else {
+      transactionType = "Regular Transfer";
       console.log(`No transaction type found anywhere, using default: "Regular Transfer"`);
     }
   } else {
@@ -4492,7 +4585,6 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     lessorOperatorBox: 'Lessor/lessee operator box',
     individualAddedBox: 'Individual(s) being added as registered owner(s).*',
     
- 
     firstSamePerson: 'text_71uait',
     secondSamePerson: 'text_72rrpr',
     misspelledNameCorrection: 'text_73xplb',
@@ -4500,7 +4592,23 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     fromName: 'text_75ujtd',
     isSamePersonCheckbox: 'checkbox_76urox',
     isNameMisspelledCheckbox: 'checkbox_77lxng',
-    isChangingNameCheckbox: 'checkbox_78tyvm'
+    isChangingNameCheckbox: 'checkbox_78tyvm',
+    
+ 
+    marketValueField: 'text_70xghh',
+    changeCostField: 'text_71tqjp',
+    changeDateField: 'text_72knux',
+    unladenWeightChangedCheckbox: 'checkbox_76bcix',
+    unladenWeightReasonField: 'UNLADEN WEIGHT',
+    motiveChangedCheckbox: 'checkbox_80yjyf',
+    motiveFromField: 'text_70ywcs',
+    motiveToField: 'text_71qeb',
+    bodyTypeChangedCheckbox: 'checkbox_81iyuu',
+    bodyTypeFromField: 'text_72cghv',
+    bodyTypeToField: 'text_73edpt',
+    axlesChangedCheckbox: 'checkbox_82vosg',
+    axlesFromField: 'text_74aiyr',
+    axlesToField: 'text_75aiwg'
   };
   
   const safeSetText = (fieldName: string, value: string) => {
@@ -4569,14 +4677,12 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
     return { areaCode, mainNumber };
   };
   
- 
   const processNameStatement = () => {
     try {
       if (formData.nameStatement) {
         const nameStatement = formData.nameStatement;
         console.log('Processing name statement data:', JSON.stringify(nameStatement, null, 2));
         
- 
         if (nameStatement.isSamePerson) {
           safeSetCheckbox(fieldMapping.isSamePersonCheckbox, true);
           
@@ -4588,7 +4694,6 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
           safeSetCheckbox(fieldMapping.isSamePersonCheckbox, false);
         }
         
- 
         if (nameStatement.isNameMisspelled) {
           safeSetCheckbox(fieldMapping.isNameMisspelledCheckbox, true);
           safeSetText(fieldMapping.misspelledNameCorrection, nameStatement.misspelledNameCorrection || '');
@@ -4596,7 +4701,6 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
           safeSetCheckbox(fieldMapping.isNameMisspelledCheckbox, false);
         }
         
- 
         if (nameStatement.isChangingName) {
           safeSetCheckbox(fieldMapping.isChangingNameCheckbox, true);
           
@@ -4614,6 +4718,67 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   };
 
  
+  const processVehicleBodyChange = () => {
+    try {
+      if (formData.vehicleBodyChange) {
+        const bodyChangeData = formData.vehicleBodyChange;
+        console.log('Processing vehicle body change data:', JSON.stringify(bodyChangeData, null, 2));
+        
+ 
+        if (bodyChangeData.marketValue) {
+          safeSetText(fieldMapping.marketValueField, bodyChangeData.marketValue || '');
+          console.log(`Set market value to: ${bodyChangeData.marketValue}`);
+        }
+        
+ 
+        if (bodyChangeData.changeCost) {
+          safeSetText(fieldMapping.changeCostField, bodyChangeData.changeCost || '');
+          console.log(`Set change cost to: ${bodyChangeData.changeCost}`);
+        }
+        
+ 
+        if (bodyChangeData.changeDate) {
+          const formattedDate = formatDate(bodyChangeData.changeDate);
+          safeSetText(fieldMapping.changeDateField, formattedDate || '');
+          console.log(`Set change date to: ${formattedDate}`);
+        }
+        
+ 
+        if (bodyChangeData.unladenWeightChanged) {
+          safeSetCheckbox(fieldMapping.unladenWeightChangedCheckbox, true);
+          safeSetText(fieldMapping.unladenWeightReasonField, bodyChangeData.unladenWeightReason || '');
+          console.log(`Set unladen weight change: ${bodyChangeData.unladenWeightReason}`);
+        }
+        
+ 
+        if (bodyChangeData.motiveChanged) {
+          safeSetCheckbox(fieldMapping.motiveChangedCheckbox, true);
+          safeSetText(fieldMapping.motiveFromField, bodyChangeData.motiveFrom || '');
+          safeSetText(fieldMapping.motiveToField, bodyChangeData.motiveTo || '');
+          console.log(`Set motive power change from "${bodyChangeData.motiveFrom}" to "${bodyChangeData.motiveTo}"`);
+        }
+        
+ 
+        if (bodyChangeData.bodyTypeChanged) {
+          safeSetCheckbox(fieldMapping.bodyTypeChangedCheckbox, true);
+          safeSetText(fieldMapping.bodyTypeFromField, bodyChangeData.bodyTypeFrom || '');
+          safeSetText(fieldMapping.bodyTypeToField, bodyChangeData.bodyTypeTo || '');
+          console.log(`Set body type change from "${bodyChangeData.bodyTypeFrom}" to "${bodyChangeData.bodyTypeTo}"`);
+        }
+        
+ 
+        if (bodyChangeData.axlesChanged) {
+          safeSetCheckbox(fieldMapping.axlesChangedCheckbox, true);
+          safeSetText(fieldMapping.axlesFromField, bodyChangeData.axlesFrom || '');
+          safeSetText(fieldMapping.axlesToField, bodyChangeData.axlesTo || '');
+          console.log(`Set axles change from "${bodyChangeData.axlesFrom}" to "${bodyChangeData.axlesTo}"`);
+        }
+      }
+    } catch (error) {
+      console.error('Error processing vehicle body change information:', error);
+    }
+  };
+  
   const sellerInfo = formData.sellerInfo || {};
   const sellers = sellerInfo.sellers || [];
   const seller = sellers.length > 0 ? sellers[0] : null;
@@ -4625,20 +4790,16 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   const vehicleInfo = formData.vehicleInformation || {};
   const addressData = formData.address || {};
   
- 
   const owners = formData.owners || [];
   const newRegOwner = Array.isArray(owners) && owners.length > 0 ? owners[0] : null;
   
- 
   const processPersonalInfo = () => {
     try {
- 
       let lastName = '';
       let firstName = '';
       let middleName = '';
       let phoneNumber = '';
       
- 
       if (newRegOwner) {
         console.log('Using owner data for personal information');
         lastName = newRegOwner.lastName || '';
@@ -4646,7 +4807,6 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
         middleName = newRegOwner.middleName || '';
         phoneNumber = newRegOwner.phoneNumber || '';
       } 
- 
       else if (seller) {
         console.log('Falling back to seller data for personal information');
         lastName = seller.lastName || '';
@@ -4655,12 +4815,10 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
         phoneNumber = seller.phone || '';
       }
       
- 
       safeSetText(fieldMapping.ownerLastName, lastName);
       safeSetText(fieldMapping.ownerFirstName, firstName);
       safeSetText(fieldMapping.ownerMiddleName, middleName);
       
- 
       const { areaCode, mainNumber } = formatPhone(phoneNumber);
       safeSetText(fieldMapping.ownerPhoneAreaCode, areaCode);
       safeSetText(fieldMapping.ownerPhoneNumber, mainNumber);
@@ -4672,17 +4830,25 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   };
   
   processPersonalInfo();
-  
-  if (isGift && newRegOwner?.marketValue) {
-    safeSetText(fieldMapping.currentMarketValue, newRegOwner.marketValue.toString());
-    console.log(`Set market value to: ${newRegOwner.marketValue}`);
+  if (newRegOwner) {
+    if (isGift && newRegOwner.marketValue) {
+ 
+      safeSetText(fieldMapping.currentMarketValue, newRegOwner.marketValue.toString());
+      console.log(`Gift transaction: Set current market value to: ${newRegOwner.marketValue}`);
+    } else if (!isGift && newRegOwner.purchasePrice) {
+ 
+      safeSetText(fieldMapping.currentMarketValue, newRegOwner.purchasePrice.toString());
+      console.log(`Non-gift transaction: Set current market value to purchase price: ${newRegOwner.purchasePrice}`);
+    }
   }
   
   safeSetText(fieldMapping.vehicleLicensePlate, vehicleInfo.licensePlate || '');
   safeSetText(fieldMapping.vehicleVin, vehicleInfo.vin || vehicleInfo.hullId || '');
   
   const yearMakeValue = [vehicleInfo.year || '', vehicleInfo.make || ''].filter(Boolean).join(' ');
-  safeSetText(fieldMapping.vehicleYearMake, yearMakeValue);  if (isRestoringPNOTransfer) {
+  safeSetText(fieldMapping.vehicleYearMake, yearMakeValue);
+  
+  if (isRestoringPNOTransfer) {
     const pnoStatement = "The vehicle was previously placed on Planned Non Operation (PNO) status I now intend to operate it on public roads and I am submitting payment for registration fees and for any late fees penalities.";
     console.log('Setting PNO restoration Statement of Facts:', pnoStatement);
     safeSetText(fieldMapping.statementOfFacts, pnoStatement);
@@ -4739,6 +4905,9 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   
   processNameStatement();
   
+ 
+  processVehicleBodyChange();
+  
   const currentDate = new Date();
   const formattedCurrentDate = currentDate.toLocaleDateString('en-US', { 
     month: '2-digit', 
@@ -4754,7 +4923,6 @@ async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactio
   
   return await pdfDoc.save();
 }
-
 
 
 async function modifyReg101Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {

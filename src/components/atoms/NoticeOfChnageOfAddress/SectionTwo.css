@@ -1,7 +1,7 @@
 .releaseWrapper {
     font-family: Arial, sans-serif;
     margin-bottom: 20px;
-    position: relative; /* Add this to create a new stacking context */
+    position: relative;  
 }
 
 .headerRow {
@@ -124,7 +124,7 @@
 .regIcon {
     width: 20px;
     height: 20px;
-    transition: transform 0.2s ease; /* Fixed 'ease' typo */
+    transition: transform 0.2s ease;  
 }
 
 .regIcon.rotate {
@@ -141,8 +141,8 @@
     border-radius: 2px;
     max-height: 200px;
     overflow-y: auto;
-    z-index: 1000; /* Increased z-index */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Added shadow to make dropdown more visible */
+    z-index: 1000;  
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
 }
 
 .regStateLists {
@@ -164,23 +164,18 @@
 }
 
 @media (max-width: 768px) {
-    /* .streetAptGroup,
-    .cityStateZipGroupp {
-        flex-direction: column;
-        gap: 10px;
-    } */
 
     .formLabell {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 6ch; /* Limits to approximately 35 characters */
+        max-width: 6ch;  
       }
       .formLabelll {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 35ch; /* Limits to approximately 35 characters */
+        max-width: 35ch;  
       }
 }
 

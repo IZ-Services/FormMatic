@@ -72,13 +72,17 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
       <div className="replacementContent">
         <div className="replacementTopRow">
           <div className="specialInterestContainer">
-            <label className="specialInterestLabel">Special Interest License Plate Number</label>
+            <label className="specialInterestLabel">SPECIAL INTEREST LICENSE PLATE NUMBER</label>
             <input
               type="text"
               className="specialInterestInput"
-              value={(formData.replacementSection as ReplacementSectionType)?.specialInterestLicensePlate || ''}
-              onChange={(e) => handleChange('specialInterestLicensePlate', e.target.value)}
-              placeholder="Enter plate number"
+              value={formData.replacementSection 
+                ? (formData.replacementSection.specialInterestLicensePlate || '').toUpperCase() 
+                : ''}
+              onChange={(e) => handleChange('specialInterestLicensePlate', e.target.value.toUpperCase())}
+              placeholder="ENTER PLATE NUMBER"
+              maxLength={7}
+              style={{ textTransform: 'uppercase' }}
             />
           </div>
           
@@ -95,7 +99,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
                 <label key={option} className="checkboxLabel">
                   <input
                     type="checkbox"
-                    checked={(formData.replacementSection as ReplacementSectionType)?.ineed === option}
+                    checked={formData.replacementSection ? formData.replacementSection.ineed === option : false}
                     onChange={() => handleChange('ineed', option)}
                     className="checkboxInput"
                   />
@@ -112,7 +116,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
                 <label key={status} className="checkboxLabel">
                   <input
                     type="checkbox"
-                    checked={(formData.replacementSection as ReplacementSectionType)?.plateStatus === status}
+                    checked={formData.replacementSection ? formData.replacementSection.plateStatus === status : false}
                     onChange={() => handleChange('plateStatus', status)}
                     className="checkboxInput"
                   />
@@ -135,7 +139,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
                 className="dropdownButton"
                 onClick={() => setOpenDropdown(openDropdown === 'ineed' ? null : 'ineed')}
               >
-                <span>{(formData.replacementSection as ReplacementSectionType)?.ineed || 'Select option'}</span>
+                <span>{formData.replacementSection ? formData.replacementSection.ineed || 'Select option' : 'Select option'}</span>
                 <ChevronDownIcon className={`dropdownIcon ${openDropdown === 'ineed' ? 'rotate' : ''}`} />
               </div>
 
@@ -165,7 +169,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
                 className="dropdownButton"
                 onClick={() => setOpenDropdown(openDropdown === 'status' ? null : 'status')}
               >
-                <span>{(formData.replacementSection as ReplacementSectionType)?.plateStatus || 'Select status'}</span>
+                <span>{formData.replacementSection ? formData.replacementSection.plateStatus || 'Select status' : 'Select status'}</span>
                 <ChevronDownIcon className={`dropdownIcon ${openDropdown === 'status' ? 'rotate' : ''}`} />
               </div>
 

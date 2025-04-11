@@ -86,7 +86,7 @@
     max-width: 200px;
   }
   
-  /* Responsive adjustments */
+   
   @media (max-width: 768px) {
     .nameStatementOption {
       flex-direction: row;

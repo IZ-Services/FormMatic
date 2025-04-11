@@ -24,7 +24,8 @@ import OutOfStateVehicles from '../atoms/OutOfStateVehicles';
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
   isSmogExempt?: boolean;
-  isOutOfStateTitle?: boolean;}
+  isOutOfStateTitle?: boolean;
+}
 
 interface FormContextData {
   vehicleTransactionDetails?: VehicleTransactionDetailsData;
@@ -38,17 +39,24 @@ interface SimpleTransferProps {
 
 export default function SimpleTransfer({ formData, onDataChange }: SimpleTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
+  
   useEffect(() => {
     if (onDataChange) {
-      onDataChange(formData);     }
-  }, [formData]);
+      onDataChange(formData);
+    }
+  }, [formData, onDataChange]);
+  
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
-    const { updateField } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+
+ 
+    useEffect(() => {
+      setTransactionType("Simple Transfer");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -56,11 +64,13 @@ export default function SimpleTransfer({ formData, onDataChange }: SimpleTransfe
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
 
-    const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
-    const isSmogExempt = contextFormData?.vehicleTransactionDetails?.isSmogExempt === true;
-    const isOutOfStateTitle = contextFormData?.vehicleTransactionDetails?.isOutOfStateTitle === true;
+ 
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
+    const isCurrentLienholder = vehicleTransactionDetails.currentLienholder === true;
+    const isSmogExempt = vehicleTransactionDetails.isSmogExempt === true;
+    const isOutOfStateTitle = vehicleTransactionDetails.isOutOfStateTitle === true;
 
     return (
       <div className='wholeForm'>
@@ -73,11 +83,11 @@ export default function SimpleTransfer({ formData, onDataChange }: SimpleTransfe
 
         <VehicalInformation formData={formValues}/>
         <Seller 
-        formData={{
-          hideDateOfBirth: true,
-
-        }}
-      />        <SellerAddress formData={formValues} />
+          formData={{
+            hideDateOfBirth: true,
+          }}
+        />
+        <SellerAddress formData={formValues} />
         {isCurrentLienholder && (
           <LegalOwnerOfRecord formData={formValues} />
         )}
@@ -97,7 +107,7 @@ export default function SimpleTransfer({ formData, onDataChange }: SimpleTransfe
         )}  
         {/* <NewLien formData={formValues} /> */}
         <PowerOfAttorney formData={formValues} />
-         {isSmogExempt && (
+        {isSmogExempt && (
           <SmogExemption formData={formValues} />
         )}
         <SaveButton 

@@ -76,7 +76,7 @@
     min-width: 100px;
   }
   
-  /* State dropdown styles */
+   
   .regStateWrapper {
     position: relative;
     flex: 1;
@@ -140,14 +140,7 @@
   }
   
   @media (max-width: 768px) {
-    /* .streetAptGroup {
-      flex-direction: column;
-    }
-     */
-    /* .cityStateZipGroupp {
-      flex-direction: column;
-    } */
-    
+
     .cityFieldCustomWidth, .zipCodeField, .regStateWrapper {
       width: 100%;
     }

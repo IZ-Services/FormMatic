@@ -7,7 +7,7 @@ import { AppWrapper } from '@/context';
 import { AuthContextProvider } from '../context/AuthContext';
 import { ScenarioProvider } from '../context/ScenarioContext';
 import { SessionManager } from '../components/Sessionmanager';
-
+import {LoadingWrapper} from '../context/LoadingWrapper';
 const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({
@@ -22,9 +22,11 @@ export default function RootLayout({
           <SessionManager>
             <ScenarioProvider>
               <AppWrapper>
+                <LoadingWrapper>
                 <div>
                   <main>{children}</main>
                 </div>
+                </LoadingWrapper>
               </AppWrapper>
             </ScenarioProvider>
           </SessionManager>

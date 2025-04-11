@@ -5,11 +5,9 @@
   }
   
   .statementOfErrorHeader {
-    /* display: flex; */
+     
     align-items: center;
     position: relative;
-    /* padding: 15px;
-    border-bottom: 1px solid #ccc; */
   }
   
   .dmvLogo {
@@ -111,7 +109,7 @@
     min-height: 120px;
   }
   
-  /* Responsive styles */
+   
   @media (max-width: 768px) {
     .statementOfErrorHeader {
       flex-direction: column;

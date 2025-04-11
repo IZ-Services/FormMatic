@@ -26,6 +26,7 @@ interface SellerAddressProps {
   isMultipleTransfer?: boolean;
   hideMailingOption?: boolean;
   hideOutOfState?: boolean;
+  showMailingCounty?: boolean; 
 }
 
 const initialAddress: Address = {
@@ -38,6 +39,9 @@ const initialAddress: Address = {
   county: '',
   isOutOfState: false
 };
+
+ 
+export const SELLER_ADDRESS_STORAGE_KEY = 'formmatic_seller_address';
 
 const cleanFormData = (data: any): any => {
   if (!data || typeof data !== 'object') return data;
@@ -59,12 +63,18 @@ const cleanFormData = (data: any): any => {
   return result;
 };
 
-
 const capitalizeWords = (value: string): string => {
   if (!value) return '';
   
-
   return value.replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+ 
+export const clearSellerAddressStorage = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(SELLER_ADDRESS_STORAGE_KEY);
+    console.log('Seller address data cleared from localStorage');
+  }
 };
 
 const SellerAddress: React.FC<SellerAddressProps> = ({ 
@@ -72,11 +82,12 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
   onChange, 
   isMultipleTransfer = false,
   hideMailingOption = false,
-  hideOutOfState = false
+  hideOutOfState = false,
+  showMailingCounty = false 
 }) => {
   const cleanedFormData = cleanFormData(propFormData);
   const { activeScenarios } = useScenarioContext();
-  
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const shouldShowOutOfStateCheckbox = () => {
     if (hideOutOfState) {
@@ -88,7 +99,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
       )
     );
   };
-
 
   const shouldHideMailingOption = () => {
     if (hideMailingOption) {
@@ -105,26 +115,104 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
   const hideMailingAddress = shouldHideMailingOption();
   const showOutOfStateCheckbox = shouldShowOutOfStateCheckbox();
   
-  const [addressData, setAddressData] = useState<FormData>({
-    sellerMailingAddressDifferent: hideMailingAddress ? false : (cleanedFormData?.sellerMailingAddressDifferent || false),
-    sellerAddress: cleanedFormData?.sellerAddress || { ...initialAddress },
-    sellerMailingAddress: cleanedFormData?.sellerMailingAddress || { ...initialAddress }
-  });
+ 
+  const defaultAddressData: FormData = {
+    sellerMailingAddressDifferent: hideMailingAddress ? false : false,
+    sellerAddress: { ...initialAddress },
+    sellerMailingAddress: { ...initialAddress }
+  };
   
-  const { formData: contextFormData, updateField } = useFormContext() as {
+  const [addressData, setAddressData] = useState<FormData>(defaultAddressData);
+  
+  const { formData: contextFormData, updateField, clearFormTriggered } = useFormContext() as {
     formData: Record<string, any>;
     updateField: (section: string, value: any) => void;
+    clearFormTriggered?: number; 
   };
+
+ 
+  useEffect(() => {
+    if (clearFormTriggered) {
+      console.log('Clear form triggered in SellerAddress component');
+      clearSellerAddressStorage();
+      setAddressData(defaultAddressData);
+      
+ 
+      updateField('sellerAddress', { ...initialAddress });
+      updateField('sellerMailingAddressDifferent', false);
+      updateField('sellerMailingAddress', { ...initialAddress });
+    }
+  }, [clearFormTriggered]);
+
+ 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isInitialized) {
+      try {
+        const savedData = localStorage.getItem(SELLER_ADDRESS_STORAGE_KEY);
+        
+        if (savedData) {
+          console.log("Loading seller address data from localStorage");
+          const parsedData = JSON.parse(savedData);
+          
+ 
+          const mergedData = {
+            ...defaultAddressData,
+            ...parsedData,
+            ...cleanedFormData
+          };
+          
+ 
+          if (hideMailingAddress) {
+            mergedData.sellerMailingAddressDifferent = false;
+          }
+          
+          setAddressData(mergedData);
+          
+ 
+          updateField('sellerAddress', mergedData.sellerAddress);
+          updateField('sellerMailingAddressDifferent', mergedData.sellerMailingAddressDifferent);
+          
+          if (mergedData.sellerMailingAddressDifferent && !hideMailingAddress) {
+            updateField('sellerMailingAddress', mergedData.sellerMailingAddress);
+          }
+          
+          if (onChange) {
+            onChange(mergedData);
+          }
+        } else {
+ 
+          const mergedData = {
+            ...defaultAddressData,
+            ...cleanedFormData
+          };
+          setAddressData(mergedData);
+        }
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error loading saved seller address:', error);
+        setIsInitialized(true);
+        
+ 
+        const mergedData = {
+          ...defaultAddressData,
+          ...cleanedFormData
+        };
+        setAddressData(mergedData);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     console.log("Should hide mailing option:", hideMailingAddress);
     console.log("Should show out-of-state checkbox:", showOutOfStateCheckbox);
+    console.log("Should show mailing county field:", showMailingCounty);
     console.log("Active scenarios:", activeScenarios);
     console.log("Direct hideMailingOption prop:", hideMailingOption);
-  }, [hideMailingAddress, showOutOfStateCheckbox, activeScenarios, hideMailingOption]);
+  }, [hideMailingAddress, showOutOfStateCheckbox, showMailingCounty, activeScenarios, hideMailingOption]);
 
   useEffect(() => {
-    if (propFormData) {
+    if (isInitialized && propFormData) {
       const cleanedProps = cleanFormData(propFormData);
       
       const newData = { ...addressData };
@@ -151,31 +239,38 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
 
       if (hasChanges) {
         setAddressData(newData);
-      }
-    }
-  }, [propFormData, hideMailingAddress]);
-
-  useEffect(() => {
-    if (!onChange) {
-      if (addressData.sellerAddress && typeof addressData.sellerAddress === 'object') {
-        updateField('sellerAddress', addressData.sellerAddress);
-      }
-      
-      if (!hideMailingAddress) {
-        updateField('sellerMailingAddressDifferent', !!addressData.sellerMailingAddressDifferent);
         
-        if (addressData.sellerMailingAddressDifferent && addressData.sellerMailingAddress && 
-            typeof addressData.sellerMailingAddress === 'object') {
-          updateField('sellerMailingAddress', addressData.sellerMailingAddress);
+ 
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
         }
-      } else {
-        updateField('sellerMailingAddressDifferent', false);
       }
     }
-  }, [hideMailingAddress]);
+  }, [propFormData, hideMailingAddress, isInitialized]);
 
   useEffect(() => {
-    if (isMultipleTransfer) {
+    if (isInitialized) {
+      if (!onChange) {
+        if (addressData.sellerAddress && typeof addressData.sellerAddress === 'object') {
+          updateField('sellerAddress', addressData.sellerAddress);
+        }
+        
+        if (!hideMailingAddress) {
+          updateField('sellerMailingAddressDifferent', !!addressData.sellerMailingAddressDifferent);
+          
+          if (addressData.sellerMailingAddressDifferent && addressData.sellerMailingAddress && 
+              typeof addressData.sellerMailingAddress === 'object') {
+            updateField('sellerMailingAddress', addressData.sellerMailingAddress);
+          }
+        } else {
+          updateField('sellerMailingAddressDifferent', false);
+        }
+      }
+    }
+  }, [hideMailingAddress, addressData, isInitialized]);
+
+  useEffect(() => {
+    if (isInitialized && isMultipleTransfer) {
       console.log("SellerAddress: Multiple transfer mode detected");
       console.log("Initial addressData:", addressData);
       
@@ -190,7 +285,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
         }
       }
     }
-  }, [isMultipleTransfer, hideMailingAddress]);
+  }, [isMultipleTransfer, hideMailingAddress, isInitialized]);
 
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
@@ -267,7 +362,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     
     const currentSection = (newData[section] as Address) || {};
     
-
     let processedValue = value;
     if (typeof value === 'string' && field !== 'zip' && field !== 'state') {
       processedValue = capitalizeWords(value);
@@ -283,6 +377,11 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     setAddressData(newData);
     
     console.log(`Updated ${section} data:`, updatedSection);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+    }
     
     if (onChange) {
       onChange(newData);
@@ -317,6 +416,11 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     
     setAddressData(newData);
     
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+    }
+    
     if (onChange) {
       onChange(newData);
     } else {
@@ -338,10 +442,29 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     
     setAddressData(newData);
     
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+    }
+    
     if (onChange) {
       onChange(newData);
     } else {
       updateField('sellerAddress', newData.sellerAddress);
+    }
+  };
+
+ 
+  const clearPersistedAddressData = () => {
+    clearSellerAddressStorage();
+    setAddressData(defaultAddressData);
+    
+    if (onChange) {
+      onChange(defaultAddressData);
+    } else {
+      updateField('sellerAddress', defaultAddressData.sellerAddress);
+      updateField('sellerMailingAddressDifferent', defaultAddressData.sellerMailingAddressDifferent);
+      updateField('sellerMailingAddress', defaultAddressData.sellerMailingAddress);
     }
   };
 
@@ -483,8 +606,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
         .rotate {
           transform: rotate(180deg);
         }
-
-        
 
         .state-label {
           display: block;
@@ -639,6 +760,20 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
                 onChange={(e) => handleAddressChange('sellerMailingAddress', 'city', e.target.value)}
               />
             </div>
+
+            {/* Only show county field in mailing address when showMailingCounty is true */}
+            {showMailingCounty && (
+              <div className="cityFieldCustomWidth">
+                <label className="formLabel">County</label>
+                <input
+                  className="cityInputtt"
+                  type="text"
+                  placeholder="County"
+                  value={addressData.sellerMailingAddress?.county || ''}
+                  onChange={(e) => handleAddressChange('sellerMailingAddress', 'county', e.target.value)}
+                />
+              </div>
+            )}
 
             {/* State Dropdown for Mailing Address - New implementation */}
             {renderStateDropdown('sellerMailingAddress', addressData.sellerMailingAddress?.state)}

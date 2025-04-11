@@ -1,230 +1,317 @@
-.vehicle-weight-info {
-    font-family: Arial, sans-serif;
-    margin-bottom: 20px;
+.vehicle-declaration-wrapper {
+  margin-top: 15px;
+}
+
+.declaration-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.declaration-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.howManyWrapper {
+  padding-left: 20px;
+  position: relative;
+  max-width: 130px;
+  flex: 1;
+  margin-right: 10px;
+}
+
+.howManyDropDown {
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  height: 2rem;
+  padding: 0 10px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.howManyIcon {
+  width: 1.2em;
+  height: 1.2em;
+  margin-left: 4px;
+  transition: transform 0.3s ease;
+}
+
+.howManyIcon.rotate {
+  transform: rotate(180deg);
+}
+
+.howManyMenu {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 10;
+  text-align: center;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+.howManyLists {
+  padding: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.howManyLists:hover {
+  background-color: #333;
+  color: white;
+}
+
+.vehicle-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.vehicle-entry {
+  margin-bottom: 30px;
+}
+
+.vehicle-info-section {
+  margin-bottom: 20px;
+}
+
+.vehicle-info-row {
+  margin-bottom: 15px;
+}
+
+.vehicle-info-flex-row {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+}
+
+.vehicle-info-column {
+  width: 100%;
+}
+
+.flex-1 {
+  flex: 1;
+  min-width: 0;  
+}
+
+.vehicle-info-column label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+ 
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+.form-control:disabled {
+  background-color: #f1f1f1;
+  cursor: not-allowed;
+}
+
+ 
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+.capitalize-first {
+  text-transform: capitalize;
+}
+
+
+
+.weight-info-title {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.weight-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.weight-flex-row {
+  flex-direction: row;
+  gap: 15px;
+}
+
+.weight-selector, .date-selector {
+  margin-bottom: 15px;
+}
+
+.weight-selector label, .date-selector label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+}
+
+ 
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+ 
+.dropdown {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 4px;
+  position: relative;
+}
+
+.dropdown-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 30px);
+  display: inline-block;
+  font-size: 14px;
+
+}
+
+.menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.lists {
+  padding: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.lists:hover {
+  background-color: #f3f4f6;
+}
+
+.regIcon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s;
+}
+
+.regIcon.rotate {
+  transform: rotate(180deg);
+}
+
+ 
+.date-input {
+  width: 100%;
+}
+
+ 
+.validation-error {
+  border: 2px solid #ff0000 !important;
+  background-color: #fffafa;
+}
+
+.validation-message {
+  color: #ff0000;
+  font-size: 12px;
+  margin-top: 4px;
+  text-align: left;
+  width: 100%;
+}
+
+ 
+@media screen and (max-width: 992px) {
+  .vehicle-info-flex-row,
+  .weight-flex-row {
+    gap: 10px;
   }
-  
-  .weight-info-header {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    margin-bottom: 15px;
+
+  .form-control,
+  .dropdown,
+  .dropdown-text,
+  label {
+    font-size: 13px;
+  }
+
+  .weight-info-title {
+    font-size: 0.9rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .declaration-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
   
   .howManyWrapper {
-    padding-left: 20px;
-    position: relative;
-    max-width: 130px;
-    flex: 1;
-    margin-right: 10px;
+    margin-top: 10px;
+    padding-left: 0;
   }
   
-  .howManyDropDown {
-    cursor: pointer;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    width: 100%;
-    height: 2rem;
-    padding: 0 10px;
-    box-sizing: border-box;
-  }
-  
-  .howManyIcon {
-    width: 1.2em;
-    height: 1.2em;
-    margin-left: 4px;
-    transition: transform 0.3s ease;
-  }
-  
-  .howManyIcon.rotate {
-    transform: rotate(180deg);
-  }
-  
-  .howManyMenu {
-    position: absolute;
-    top: calc(100% + 5px);
-    left: 0;
-    right: 0;
-    list-style: none;
-    background-color: white;
-    z-index: 1;
-    text-align: center;
-    overflow-y: auto;
-    max-height: 200px;
-  }
-  
-  .howManyLists {
-    padding: 10px;
-    font-size: 12px;
-    cursor: pointer;
-  }
-  
-  .howManyLists:hover {
-    background-color: black;
-    color: white;
-  }
-  
-  .weight-info-heading {
-    font-weight: 600;
-    padding-top: 10px;
-    margin-bottom: 10px;
-    font-size: 20px;
-  }
-  
-  .weight-info-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: 1px solid #525050;
-
-  }
-  
-  .weight-info-row {
-    display: flex;
-    width: 100%;
-  }
-  
-  .weight-info-header-row {
-    font-weight: normal;
-    font-size: 14px;
-    border-bottom: 1px solid #525050;
-    text-align: center;
-  }
-  
-  .weight-instruction-row {
-    text-align: center;
-    font-size: 12px;
-  }
-  
-  .weight-data-row {
-    min-height: 80px;
-  }
-  
-  .weight-data-row:last-child {
-    border-bottom: none;
-  }
-  
-  .weight-info-cell {
-    padding: 10px;
-    display: flex;
+  .vehicle-info-flex-row,
+  .weight-flex-row {
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    gap: 15px;
   }
-  
-  .weight-info-cell:last-child {
-    border-right: none;
-  }
-  
-  .weight-column-1 {
-    width: 20%;
-    text-align: center;
-    font-weight: normal;
-    font-size: 14px;
 
+  .form-control,
+  .dropdown,
+  .dropdown-text,
+  label {
+    font-size: 14px;  
   }
-  
-  .weight-column-2, .weight-column-3 {
-    width: 20%;
-    text-align: center;
-  }
-  
-  .weight-column-4 {
-    width: 40%;
-    text-align: center;
-  }
-  
-  .italic-text {
-    font-style: italic;
-  }
-  
-  .checkbox-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    gap: 8px;
-  }
-  
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-  }
-  
-  .checkbox-label-text {
-    font-size: 14px;
-    text-align: center;
-  }
-  
-  /* X-mark checkbox style */
-  .x-mark-checkbox {
-    width: 25px;
-    height: 25px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    background-color: #fff;
-    border: 1px solid black;
-    
-  }
-  
-  .registeredOwnerInput {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 2px;
-    font-size: 14px;
-  }
-  
-  .registeredOwnerInput::placeholder {
-    color: #999;
-  }
-  
-  .registeredDateInput {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 2px;
-    font-size: 14px;
-  }
-  
-  .registeredDateInput::placeholder {
-    color: #999;
-  }
-  
-  /* Validation error styles */
-  .validation-error {
-    border: 2px solid #ff0000 !important;
-    background-color: #fffafa;
-  }
-  
-  .validation-message {
-    color: #ff0000;
-    font-size: 0.8rem;
-    margin-top: 4px;
-    width: 100%;
-    text-align: left;
-  }
-  
-  /* Responsive adjustments */
-  @media screen and (max-width: 768px) {
-    .weight-info-row {
-      flex-direction: column;
-    }
-    
-    .weight-info-cell {
-      width: 100% !important;
-      border-right: none;
-      border-bottom: 1px solid #000;
-    }
-    
-    .weight-info-cell:last-child {
-      border-bottom: none;
-    }
-  }
+}

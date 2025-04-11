@@ -66,18 +66,29 @@ interface VehicleTransactionDetailsProps {
   onChange?: (data: VehicleTransactionDetailsData) => void;
 }
 
+export const VEHICLE_TRANSACTION_STORAGE_KEY = 'formmatic_transaction_details';
+
+ 
+export const clearVehicleTransactionDetailsStorage = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(VEHICLE_TRANSACTION_STORAGE_KEY);
+    console.log('Vehicle transaction details cleared from localStorage');
+  }
+};
+
 const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({ 
   formData: propFormData,
   onChange 
 }) => {
-  const { formData: contextFormData, updateField } = useFormContext();
+  const { formData: contextFormData, updateField, clearFormTriggered } = useFormContext();
+  const [isInitialized, setIsInitialized] = useState(false);
   
   const combinedFormData: FormDataType = {
     ...contextFormData,
     ...propFormData
   };
   
-  const [transactionData, setTransactionData] = useState<VehicleTransactionDetailsData>({
+  const defaultTransactionData: VehicleTransactionDetailsData = {
     withTitle: false,
     currentLienholder: false,
     isMotorcycle: false,
@@ -85,44 +96,102 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     isFamilyTransfer: false,
     isSmogExempt: false,
     isOutOfStateTitle: false
-  });
+  };
 
+  const [transactionData, setTransactionData] = useState<VehicleTransactionDetailsData>(defaultTransactionData);
+
+ 
   useEffect(() => {
-    const mergedData: VehicleTransactionDetailsData = {
-      withTitle: false,
-      currentLienholder: false,
-      isMotorcycle: false,
-      isGift: false,
-      isFamilyTransfer: false,
-      isSmogExempt: false,
-      isOutOfStateTitle: false,
-      ...combinedFormData?.vehicleTransactionDetails
-    };
-    setTransactionData(mergedData);
-  }, [combinedFormData?.vehicleTransactionDetails]);
+    if (clearFormTriggered) {
+      console.log('Clear form triggered in VehicleTransactionDetails component');
+      clearPersistedTransactionDetails();
+    }
+  }, [clearFormTriggered]);
 
-
+ 
   useEffect(() => {
-    const vehicleType = combinedFormData?.vehicleType;
-    if (vehicleType && vehicleType.isMotorcycle !== undefined) {
+    if (typeof window !== 'undefined' && !isInitialized) {
+      try {
+        const savedData = localStorage.getItem(VEHICLE_TRANSACTION_STORAGE_KEY);
+        
+        if (savedData) {
+          const parsedData = JSON.parse(savedData);
+          
+ 
+          const mergedData = {
+            ...defaultTransactionData,
+            ...parsedData,
+            ...combinedFormData?.vehicleTransactionDetails
+          };
+          
+          setTransactionData(mergedData);
+          
+ 
+          updateField('vehicleTransactionDetails', mergedData);
+          
+          if (onChange) {
+            onChange(mergedData);
+          }
+        } else {
+ 
+          const mergedData = {
+            ...defaultTransactionData,
+            ...combinedFormData?.vehicleTransactionDetails
+          };
+          setTransactionData(mergedData);
+        }
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error loading saved transaction details:', error);
+        setIsInitialized(true);
+        
+ 
+        const mergedData = {
+          ...defaultTransactionData,
+          ...combinedFormData?.vehicleTransactionDetails
+        };
+        setTransactionData(mergedData);
+      }
+    }
+  }, []);
 
-      if (vehicleType.isMotorcycle !== transactionData.isMotorcycle) {
-        console.log("Syncing motorcycle state from vehicle type:", vehicleType.isMotorcycle);
+ 
+  useEffect(() => {
+    if (isInitialized && combinedFormData?.vehicleTransactionDetails) {
+      const mergedData: VehicleTransactionDetailsData = {
+        ...transactionData,
+        ...combinedFormData.vehicleTransactionDetails
+      };
+      setTransactionData(mergedData);
+    }
+  }, [isInitialized, combinedFormData?.vehicleTransactionDetails]);
+
+ 
+  useEffect(() => {
+    if (isInitialized && combinedFormData?.vehicleType?.isMotorcycle !== undefined) {
+      if (combinedFormData.vehicleType.isMotorcycle !== transactionData.isMotorcycle) {
+        console.log("Syncing motorcycle state from vehicle type:", combinedFormData.vehicleType.isMotorcycle);
         
         const newData = { 
           ...transactionData,
-          isMotorcycle: vehicleType.isMotorcycle 
+          isMotorcycle: combinedFormData.vehicleType.isMotorcycle 
         };
         
         setTransactionData(newData);
         updateField('vehicleTransactionDetails', newData);
+        
+ 
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(VEHICLE_TRANSACTION_STORAGE_KEY, JSON.stringify(newData));
+        }
         
         if (onChange) {
           onChange(newData);
         }
       }
     }
-  }, [combinedFormData?.vehicleType?.isMotorcycle]);
+  }, [isInitialized, combinedFormData?.vehicleType?.isMotorcycle]);
 
   const handleCheckboxChange = (field: keyof VehicleTransactionDetailsData) => {
     const newValue = !transactionData[field];
@@ -138,7 +207,6 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     
     if (field === 'isFamilyTransfer' && newValue) {
       newData.isGift = false;
-
     }     
     
     if (field === 'currentLienholder' && !newValue) {
@@ -180,7 +248,6 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
       }
     }
     
-
     if (field === 'isMotorcycle') {
       const currentVehicleType = combinedFormData.vehicleType || {};
       
@@ -192,7 +259,6 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
           isMotorcycle: newValue
         };
         
-
         if (newValue) {
           newVehicleType.isAuto = false;
           newVehicleType.isOffHighway = false;
@@ -209,8 +275,24 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     setTransactionData(newData);
     updateField('vehicleTransactionDetails', newData);
     
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(VEHICLE_TRANSACTION_STORAGE_KEY, JSON.stringify(newData));
+    }
+    
     if (onChange) {
       onChange(newData);
+    }
+  };
+
+ 
+  const clearPersistedTransactionDetails = () => {
+    clearVehicleTransactionDetailsStorage();
+    setTransactionData(defaultTransactionData);
+    updateField('vehicleTransactionDetails', defaultTransactionData);
+    
+    if (onChange) {
+      onChange(defaultTransactionData);
     }
   };
 

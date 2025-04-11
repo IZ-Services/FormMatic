@@ -12,16 +12,19 @@ import FilingPnoCheckboxes from '../atoms/FilingPnoCheckboxes';
 import SellerAddress from '../atoms/SellerAdrress';
 import VehicleStorageLocation from '../atoms/VehicleStorageLocation';
 import TitleField from '../atoms/TitleCompany';
+
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
 }
 
+interface PnoDetailsData {
+  isBeforeRegExpires?: boolean;
+  requestPnoCard?: boolean;
+}
+
 interface FormContextData {
   vehicleTransactionDetails?: VehicleTransactionDetailsData;
-  pnoDetails?: {
-    isBeforeRegExpires?: boolean;
-    requestPnoCard?: boolean;
-  };
+  pnoDetails?: PnoDetailsData;
   [key: string]: any;
 }
 
@@ -37,18 +40,19 @@ export default function FilingPNOTransfer({ formData, onDataChange }: FilingPNOP
     if (onDataChange) {
       onDataChange(formData);
     }
-  }, [formData]);
+  }, [formData, onDataChange]);
   
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
-    const { updateField } = useFormContext();
-    
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
 
-    const isPnoCardRequested = contextFormData?.pnoDetails?.requestPnoCard || false;
+ 
+    useEffect(() => {
+      setTransactionType("Filing PNO Transfer");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -56,7 +60,11 @@ export default function FilingPNOTransfer({ formData, onDataChange }: FilingPNOP
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
+    
+ 
+    const pnoDetails = (contextFormData?.pnoDetails || {}) as PnoDetailsData;
+    const isPnoCardRequested = pnoDetails.requestPnoCard === true;
 
     return (
       <div className='wholeForm'>
@@ -65,18 +73,16 @@ export default function FilingPNOTransfer({ formData, onDataChange }: FilingPNOP
         
         {isPnoCardRequested && (
           <>
-<Seller
-        formData={{
-          hideDateOfSale: true,
-          hideDateOfBirth: true,
-          limitOwnerCount: true
-
-        }}
-      />
+            <Seller
+              formData={{
+                hideDateOfSale: true,
+                hideDateOfBirth: true,
+                limitOwnerCount: true
+              }}
+            />
             <SellerAddress formData={formValues} />
             <TitleField formData={formValues} />
           </>
-          
         )}
         
         {/* <VehicleStorageLocation formData={formValues} /> */}

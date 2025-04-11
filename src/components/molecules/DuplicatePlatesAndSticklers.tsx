@@ -25,18 +25,29 @@ interface FormContextData {
 
 interface DuplicatePlatesAndStickersTransferProps {
   formData?: any;
+  onDataChange?: (data: any) => void;
 }
 
-export default function DuplicatePlatesAndStickersTransfer({ formData }: DuplicatePlatesAndStickersTransferProps) {
+export default function DuplicatePlatesAndStickersTransfer({ formData, onDataChange }: DuplicatePlatesAndStickersTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
+
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange(formData);
+    }
+  }, [formData, onDataChange]);
 
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
-    const { updateField } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+
+ 
+    useEffect(() => {
+      setTransactionType("Duplicate Plates & Stickers");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -44,35 +55,41 @@ export default function DuplicatePlatesAndStickersTransfer({ formData }: Duplica
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
 
-    const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
-    
  
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
+    
+    const isCurrentLienholder = vehicleTransactionDetails.currentLienholder === true;
+    
     const [isMotorcycle, setIsMotorcycle] = useState<boolean>(
-      contextFormData?.vehicleTransactionDetails?.isMotorcycle || false
+      vehicleTransactionDetails.isMotorcycle || false
     );
 
     useEffect(() => {
-      if (contextFormData?.vehicleTransactionDetails?.isMotorcycle !== undefined) {
-        setIsMotorcycle(contextFormData.vehicleTransactionDetails.isMotorcycle);
+      if (vehicleTransactionDetails.isMotorcycle !== undefined) {
+        setIsMotorcycle(vehicleTransactionDetails.isMotorcycle);
       }
-    }, [contextFormData?.vehicleTransactionDetails?.isMotorcycle]);
+    }, [vehicleTransactionDetails.isMotorcycle]);
 
     const handleMotorcycleChange = () => {
       const newValue = !isMotorcycle;
       setIsMotorcycle(newValue);
       
- 
       const currentDetails = contextFormData?.vehicleTransactionDetails || {};
       updateField('vehicleTransactionDetails', {
         ...currentDetails,
         isMotorcycle: newValue
       });
       
- 
       if (!newValue) {
-        const currentVehicleInfo = contextFormData.vehicleInformation || {};
+ 
+        interface VehicleInfo {
+          engineNumber?: string;
+          [key: string]: any;
+        }
+        
+        const currentVehicleInfo = (contextFormData.vehicleInformation || {}) as VehicleInfo;
         if (currentVehicleInfo.engineNumber) {
           updateField('vehicleInformation', {
             ...currentVehicleInfo,
@@ -110,21 +127,20 @@ export default function DuplicatePlatesAndStickersTransfer({ formData }: Duplica
           formData={formValues}
           isDuplicateRegistrationMode={true}
         />        
-<Seller
-        formData={{
-          hideDateOfSale: true ,
-          hideDateOfBirth: true,
-          limitOwnerCount: true
-
-        }}
-      />
-              <TitleField formData={formData} />
+        <Seller
+          formData={{
+            hideDateOfSale: true,
+            hideDateOfBirth: true,
+            limitOwnerCount: true
+          }}
+        />
+        <TitleField formData={formValues} />
 
         <SellerAddress formData={formValues} />
 
         <ItemRequested formData={formValues}/>
 
-        <LicensePlate formData={formData} />
+        <LicensePlate formData={formValues} />
         
         <SaveButton 
           transactionType="Duplicate Plates & Stickers"

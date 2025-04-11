@@ -1,4 +1,4 @@
-/* Keep existing styles */
+ 
 .releaseWrapper {
   font-family: Arial, sans-serif;
   margin-bottom: 20px;
@@ -6,9 +6,9 @@
 
 .releaseFormGroup {
   margin-bottom: 15px;
-  display: flex; /* Make this a flex container */
-  justify-content: space-between; /* Space between bank name and agent name */
-  gap: 20px; /* Add some space between the fields */
+  display: flex;  
+  justify-content: space-between;  
+  gap: 20px;  
 }
 
 .releaseFormLabel {
@@ -48,13 +48,13 @@
   cursor: pointer;
 }
 
-/* Modify the bank name input to take less width */
+ 
 .releaseFormInput {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 2px;
   font-size: 14px;
-  width: 100%; /* Change from 65.2% to 100% for proper flex sizing */
+  width: 100%;  
 }
 
 .releaseFormInput:focus {
@@ -62,14 +62,14 @@
   outline: none;
 }
 
-/* Add styles for the bank name container */
+ 
 .bankNameField {
-  flex: 3; /* Take more space than agent name field */
+  flex: 3;  
 }
 
-/* Add styles for the agent name container that will be placed next to bank name */
+ 
 .agentNameInline {
-  flex: 2; /* Take less space than bank name field */
+  flex: 2;  
 }
 
 .releaseCheckboxGroup {
@@ -151,7 +151,7 @@
   color: #444;
 }
 
-/* Make city field the same size as street field */
+ 
 .cityFieldCustomWidth {
   flex: 1;
   width: 100%;
@@ -163,10 +163,10 @@
   border: 1px solid #ccc;
   border-radius: 2px;
   font-size: 14px;
-  height: 35px; /* Match height with street field */
+  height: 35px;  
 }
 
-/* Arrange date, phone, and agent name in one row */
+ 
 .wrap {
   display: flex;
   flex-direction: column;
@@ -203,9 +203,9 @@
   width: 100%;
 }
 
-/* Agent name field is now moved to be inline with bank name */
+ 
 .agentNameField {
-  display: none; /* Hide the original agent name field since we're moving it */
+  display: none;  
 }
 
 .agentTitleField {
@@ -218,10 +218,10 @@
   border: 1px solid #ccc;
   border-radius: 2px;
   font-size: 14px;
-  height: 35px; /* Make consistent height for all inputs */
+  height: 35px;  
 }
 
-/* Hover effects */
+ 
 .releaseFormInput:hover,
 .releaseYearInput:hover,
 .releaseMakeInput:hover,
@@ -232,7 +232,7 @@
   border-color: #666;
 }
 
-/* Placeholder styling */
+ 
 .releaseFormInput::placeholder,
 .releaseYearInput::placeholder,
 .releaseMakeInput::placeholder,
@@ -243,14 +243,14 @@
   color: #999;
 }
 
-/* Add more specific styles for form input in the agent name field */
+ 
 .agentFormInput {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 2px;
   font-size: 14px;
   width: 100%;
-  height: 35px; /* Make consistent height for all inputs */
+  height: 35px;  
 }
 
 .agentFormInput:focus {
@@ -258,7 +258,7 @@
   outline: none;
 }
 
-/* Add responsive styles for form fields */
+ 
 @media screen and (max-width: 768px) {
   .datePhoneGroup {
     flex-direction: column;
@@ -269,12 +269,12 @@
     width: 100%;
   }
   
-  /* Ensure consistent height for inputs on smaller screens */
+   
   .formInputt, .cityInputt, .registeredDateInput, .agentFormInput, .releaseFormInput {
     height: 35px;
   }
   
-  /* Add some margin bottom to labels to ensure proper spacing when they wrap */
+   
   .releaseFormLabel {
     margin-bottom: 8px;
   }

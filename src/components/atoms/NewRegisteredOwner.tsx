@@ -37,8 +37,8 @@ interface NewRegisteredOwnersProps {
     _showValidationErrors?: boolean;
     isPNORestoration?: boolean;
     forceSingleOwner?: boolean;
-    hideLicenseField?: boolean; // New property to hide license field
-    hideStateField?: boolean;   // New property to hide state field
+    hideLicenseField?: boolean; 
+    hideStateField?: boolean; 
     [key: string]: any;   
   };
   onChange?: (data: { owners: OwnerData[], howMany: string }) => void;
@@ -122,7 +122,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
   
   const isPNORestorationActive = !!formData?.isPNORestoration;
   
-  // New properties for hiding license and state fields
+ 
   const hideLicenseField = !!formData?.hideLicenseField;
   const hideStateField = !!formData?.hideStateField;
 
@@ -152,13 +152,13 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
   const howManyRef = useRef<HTMLUListElement | null>(null);
   
   const shouldShowValidationError = (index: number, field: keyof OwnerData) => {
-    // Skip validation for hidden fields
+ 
     if ((field === 'licenseNumber' && hideLicenseField) ||
         (field === 'state' && hideStateField)) {
       return false;
     }
 
-    // Skip validation for PNO restoration specific fields
+ 
     if (isPNORestorationActive && (field === 'purchaseValue' || field === 'marketValue')) {
       return false;
     }
@@ -220,20 +220,20 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     }
   }, []);   
 
-  // Set default values for hidden fields
+ 
   useEffect(() => {
     if (owners.length > 0) {
       let shouldUpdate = false;
       const newOwners = [...owners];
       
       newOwners.forEach(owner => {
-        // For hidden license field, set a placeholder value if empty
+ 
         if (hideLicenseField && (!owner.licenseNumber || owner.licenseNumber === '')) {
           owner.licenseNumber = 'EXEMPT';
           shouldUpdate = true;
         }
         
-        // For hidden state field, default to California if empty
+ 
         if (hideStateField && (!owner.state || owner.state === '')) {
           owner.state = 'CA';
           shouldUpdate = true;

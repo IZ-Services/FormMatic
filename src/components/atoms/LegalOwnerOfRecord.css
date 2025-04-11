@@ -86,17 +86,17 @@
     flex: 1;
 }
 
-/* LegalOwnerOfRecord.css */
+ 
 
-/* Keep existing styles and add/update these */
+ 
 
-/* Dropdown container */
+ 
 .regStateWrapper {
     position: relative;
     z-index: 5;
   }
   
-  /* Dropdown button */
+   
   .regStateDropDown {
     display: flex;
     align-items: center;
@@ -111,7 +111,7 @@
     cursor: pointer;
   }
   
-  /* Dropdown icon */
+   
   .regIcon {
     width: 20px;
     height: 20px;
@@ -122,7 +122,7 @@
     transform: rotate(180deg);
   }
   
-  /* Dropdown menu */
+   
   .regStateMenu {
     position: absolute;
     top: calc(100% + 2px);
@@ -140,7 +140,7 @@
     list-style: none;
   }
   
-  /* Dropdown list items */
+   
   .regStateLists {
     padding: 12px 16px;
     color: rgb(150 148 148);
@@ -154,7 +154,7 @@
     background-color: #f5f5f5;
   }
   
-  /* Fix parent containers */
+   
   .cityStateZipGroupp {
     position: relative;
     overflow: visible;

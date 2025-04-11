@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
 export interface Subsection {
   name: string;
@@ -20,6 +20,7 @@ interface ScenarioContextType {
   setActiveScenarios: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   activeSubOptions: Record<string, boolean>;
   setActiveSubOptions: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  clearPersistedScenarios: () => void;
 }
 
 const ScenarioContext = createContext<ScenarioContextType | null>(null);
@@ -101,9 +102,79 @@ const scenerios: Scenerio[] = [
 ];
 
 export function ScenarioProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+ 
   const [selectedSubsection, setSelectedSubsection] = useState<string | null>(null);
   const [activeScenarios, setActiveScenarios] = useState<Record<string, boolean>>({});
   const [activeSubOptions, setActiveSubOptions] = useState<Record<string, boolean>>({});
+  const [isInitialized, setIsInitialized] = useState(false);
+
+ 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isInitialized) {
+      try {
+ 
+        const savedSubsection = localStorage.getItem('formmatic_selected_subsection');
+        if (savedSubsection) {
+          setSelectedSubsection(savedSubsection);
+        }
+        
+ 
+        const savedScenarios = localStorage.getItem('formmatic_active_scenarios');
+        if (savedScenarios) {
+          setActiveScenarios(JSON.parse(savedScenarios));
+        }
+        
+ 
+        const savedSubOptions = localStorage.getItem('formmatic_active_sub_options');
+        if (savedSubOptions) {
+          setActiveSubOptions(JSON.parse(savedSubOptions));
+        }
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error loading saved scenario state:', error);
+        setIsInitialized(true);
+      }
+    }
+  }, [isInitialized]);
+
+ 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isInitialized) {
+      if (selectedSubsection) {
+        localStorage.setItem('formmatic_selected_subsection', selectedSubsection);
+      } else {
+        localStorage.removeItem('formmatic_selected_subsection');
+      }
+    }
+  }, [selectedSubsection, isInitialized]);
+
+ 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isInitialized && Object.keys(activeScenarios).length > 0) {
+      localStorage.setItem('formmatic_active_scenarios', JSON.stringify(activeScenarios));
+    }
+  }, [activeScenarios, isInitialized]);
+
+ 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isInitialized && Object.keys(activeSubOptions).length > 0) {
+      localStorage.setItem('formmatic_active_sub_options', JSON.stringify(activeSubOptions));
+    }
+  }, [activeSubOptions, isInitialized]);
+
+ 
+  const clearPersistedScenarios = () => {
+    setSelectedSubsection(null);
+    setActiveScenarios({});
+    setActiveSubOptions({});
+    
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('formmatic_selected_subsection');
+      localStorage.removeItem('formmatic_active_scenarios');
+      localStorage.removeItem('formmatic_active_sub_options');
+    }
+  };
 
   return (
     <ScenarioContext.Provider
@@ -114,7 +185,8 @@ export function ScenarioProvider({ children }: Readonly<{ children: React.ReactN
         activeScenarios,
         setActiveScenarios,
         activeSubOptions,
-        setActiveSubOptions
+        setActiveSubOptions,
+        clearPersistedScenarios
       }}
     >
       {children}

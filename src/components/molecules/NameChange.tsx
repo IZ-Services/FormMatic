@@ -3,10 +3,12 @@ import VehicalInformation from '../atoms/VehicleInformation';
 import Seller from '../atoms/Seller';
 import SaveButton from '../atoms/savebutton';
 import { FormDataProvider, useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
+import { ScenarioProvider } from '../../context/ScenarioContext';
 import './Simpletransfer.css';
 import TypeContainer from '../layouts/TransactionsContainer';
 import React, { useEffect, useState } from 'react';
 import NameStatement from '../atoms/NameStatement';
+
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
   isSmogExempt?: boolean;
@@ -24,17 +26,24 @@ interface NameChangeTransferProps {
 
 export default function NameChangeTransfer({ formData, onDataChange }: NameChangeTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
+  
   useEffect(() => {
     if (onDataChange) {
-      onDataChange(formData);     }
-  }, [formData]);
+      onDataChange(formData);
+    }
+  }, [formData, onDataChange]);
+  
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
-    const { updateField } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+
+ 
+    useEffect(() => {
+      setTransactionType("Name Change/Correction Transfer");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -42,8 +51,10 @@ export default function NameChangeTransfer({ formData, onDataChange }: NameChang
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
 
+ 
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
 
     return (
       <div className='wholeForm'>
@@ -51,18 +62,19 @@ export default function NameChangeTransfer({ formData, onDataChange }: NameChang
         {/* <TitleStatus formData={formValues}/> */}
 
         <VehicalInformation 
-        formData={{
-          hideMileageFields: true
-        }}
-      />            <NameStatement formData={formValues} />
+          formData={{
+            hideMileageFields: true
+          }}
+        />
+        <NameStatement formData={formValues} />
 
         <Seller 
-        formData={{
-          hideDateOfSale: true,
-          hideDateOfBirth: true,
-          forceSingleOwner: true
-        }}
-      />
+          formData={{
+            hideDateOfSale: true,
+            hideDateOfBirth: true,
+            forceSingleOwner: true
+          }}
+        />
         {/* <SellerAddress formData={formValues} /> */}
         <SaveButton 
           transactionType="Name Change/Correction Transfer"
@@ -74,11 +86,11 @@ export default function NameChangeTransfer({ formData, onDataChange }: NameChang
 
   return (
     <FormDataProvider>
-      {/* <ScenarioProvider> */}
+      <ScenarioProvider>
         <div className="simpleTransferWrapper">
           <FormContent />
         </div>
-      {/* </ScenarioProvider> */}
+      </ScenarioProvider>
     </FormDataProvider>
   );
 }

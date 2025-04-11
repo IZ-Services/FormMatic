@@ -13,10 +13,12 @@ import Seller from '../atoms/Seller';
 import SellerAddress from '../atoms/SellerAdrress';
 import Address from '../atoms/Address';
 import AgentName from '../atoms/AgentName';
+
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
   isSmogExempt?: boolean;
-  isOutOfStateTitle?: boolean;}
+  isOutOfStateTitle?: boolean;
+}
 
 interface FormContextData {
   vehicleTransactionDetails?: VehicleTransactionDetailsData;
@@ -30,17 +32,24 @@ interface SalvageTransferProps {
 
 export default function SalvageTransfer({ formData, onDataChange }: SalvageTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
+  
   useEffect(() => {
     if (onDataChange) {
-      onDataChange(formData);     }
-  }, [formData]);
+      onDataChange(formData);
+    }
+  }, [formData, onDataChange]);
+  
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
-    const { updateField } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+
+ 
+    useEffect(() => {
+      setTransactionType("Salvage Title Transfer");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -48,25 +57,29 @@ export default function SalvageTransfer({ formData, onDataChange }: SalvageTrans
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
+
+ 
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
+    
     return (
       <div className='wholeForm'>
         <TypeContainer />
         <SalvageCertificate formData={formValues} />
         <VehicleInformation 
-        formData={{
-          hideMileageFields: true
-        }}
-      />
-                  <Seller formData= {formValues} />
-      <AgentName formData={formValues} />
- <SellerAddress 
-        hideMailingOption={true}
-      />        
-      {/* <NewRegisteredOwners   formData={{
-          forceSingleOwner: true
-        }}
-      /> */}
+          formData={{
+            hideMileageFields: true
+          }}
+        />
+        <Seller formData={formValues} />
+        <AgentName formData={formValues} />
+        <SellerAddress 
+          hideMailingOption={true}
+        />        
+        {/* <NewRegisteredOwners   formData={{
+            forceSingleOwner: true
+          }}
+        /> */}
         <LicensePlateDisposition formData={formValues} />
         <SaveButton 
           transactionType="Salvage Title Transfer"

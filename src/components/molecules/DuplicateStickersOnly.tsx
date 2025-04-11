@@ -12,35 +12,61 @@ import VehicleInformation from '../atoms/VehicleInformation';
 import ItemRequested from '../atoms/ItemRequested';
 import TitleField from '../atoms/TitleCompany';
 
-
 interface VehicleTransactionDetailsData {
   currentLienholder?: boolean;
   isMotorcycle?: boolean;
 }
 
+interface VehicleInfo {
+  engineNumber?: string;
+  [key: string]: any;
+}
+
+interface SubOptionsData {
+  [key: string]: boolean;
+}
+
 interface FormContextData {
   vehicleTransactionDetails?: VehicleTransactionDetailsData;
-  vehicleInformation?: any;
+  vehicleInformation?: VehicleInfo;
+  duplicateStickers?: {
+    month?: boolean;
+    year?: boolean;
+  };
   [key: string]: any;
 }
 
 interface DuplicateStickersTransferProps {
   formData?: any;
+  onDataChange?: (data: any) => void;
 }
 
-export default function DuplicateStickersTransfer({ formData }: DuplicateStickersTransferProps) {
+export default function DuplicateStickersTransfer({ formData, onDataChange }: DuplicateStickersTransferProps) {
   const [formValues, setFormValues] = useState(formData || {});
   const { activeSubOptions } = useScenarioContext(); 
+
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange(formData);
+    }
+  }, [formData, onDataChange]);
 
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
-    const { updateField } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
 
-    const prevActiveSubOptionsRef = useRef<any>(null);
+ 
+    useEffect(() => {
+      setTransactionType("Duplicate Stickers");
+    }, [setTransactionType]);
+
+    const prevActiveSubOptionsRef = useRef<{
+      month?: boolean;
+      year?: boolean;
+    } | null>(null);
 
     useEffect(() => {
       if (formValues) {
@@ -48,49 +74,44 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
           updateField(key, value);
         });
       }
-    }, [formValues]);
-
+    }, [formValues, updateField]);
 
     useEffect(() => {
-
       if (!activeSubOptions) return;
       
-
       const monthChecked = !!activeSubOptions['Duplicate Stickers-Month'];
       const yearChecked = !!activeSubOptions['Duplicate Stickers-Year'];
       
-
       const prevMonth = prevActiveSubOptionsRef.current?.month;
       const prevYear = prevActiveSubOptionsRef.current?.year;
       
-
       if (prevMonth !== monthChecked || prevYear !== yearChecked) {
-
         updateField('duplicateStickers', {
           month: monthChecked,
           year: yearChecked
         });
         
-
         prevActiveSubOptionsRef.current = {
           month: monthChecked,
           year: yearChecked
         };
       }
-    }, [activeSubOptions]);
+    }, [activeSubOptions, updateField]);
 
-
-    const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
+ 
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
+    
+    const isCurrentLienholder = vehicleTransactionDetails.currentLienholder === true;
     
     const [isMotorcycle, setIsMotorcycle] = useState<boolean>(
-      contextFormData?.vehicleTransactionDetails?.isMotorcycle || false
+      vehicleTransactionDetails.isMotorcycle || false
     );
 
     useEffect(() => {
-      if (contextFormData?.vehicleTransactionDetails?.isMotorcycle !== undefined) {
-        setIsMotorcycle(contextFormData.vehicleTransactionDetails.isMotorcycle);
+      if (vehicleTransactionDetails.isMotorcycle !== undefined) {
+        setIsMotorcycle(vehicleTransactionDetails.isMotorcycle);
       }
-    }, [contextFormData?.vehicleTransactionDetails?.isMotorcycle]);
+    }, [vehicleTransactionDetails.isMotorcycle]);
 
     const handleMotorcycleChange = () => {
       const newValue = !isMotorcycle;
@@ -103,7 +124,7 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
       });
       
       if (!newValue) {
-        const currentVehicleInfo = contextFormData.vehicleInformation || {};
+        const currentVehicleInfo = (contextFormData.vehicleInformation || {}) as VehicleInfo;
         if (currentVehicleInfo.engineNumber) {
           updateField('vehicleInformation', {
             ...currentVehicleInfo,
@@ -149,13 +170,13 @@ export default function DuplicateStickersTransfer({ formData }: DuplicateSticker
             limitOwnerCount: true
           }}
         />
-                <TitleField formData={formData} />
+        <TitleField formData={formValues} />
 
         <SellerAddress formData={formValues} />
 
         <ItemRequested formData={formValues}/>
 
-        {/* <LicensePlate formData={formData} /> */}
+        {/* <LicensePlate formData={formValues} /> */}
         
         <SaveButton 
           transactionType="Duplicate Stickers"

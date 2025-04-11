@@ -200,16 +200,17 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData 
         )}
         
         {plateSelection.plateType === 'Duplicate Decal' && (
-          <div className="inputContainer">
-            <label className="inputLabel">CURRENT LICENSE PLATE NUMBER</label>
-            <input
-              type="text"
-              className="textInput"
-              value={plateSelection.duplicateDecalNumber || ''}
-              onChange={(e) => handleChange('duplicateDecalNumber', e.target.value)}
-              placeholder="Enter current license plate number"
-            />
-          </div>
+       <div className="inputContainer">
+       <label className="inputLabel">CURRENT LICENSE PLATE NUMBER</label>
+       <input
+         type="text"
+         className="textInput"
+         value={plateSelection.duplicateDecalNumber ? plateSelection.duplicateDecalNumber.toUpperCase() : ''}
+         onChange={(e) => handleChange('duplicateDecalNumber', e.target.value.toUpperCase())}
+         placeholder="ENTER CURRENT LICENSE PLATE NUMBER"
+         style={{ textTransform: 'uppercase' }}
+       />
+     </div>
         )}
       </div>
     </div>

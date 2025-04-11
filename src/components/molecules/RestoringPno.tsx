@@ -37,15 +37,19 @@ export default function RestoringPNOTransfer({ formData, onDataChange }: Restori
     if (onDataChange) {
       onDataChange(formData);
     }
-  }, [formData]);
+  }, [formData, onDataChange]);
 
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
-    const { updateField } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+
+ 
+    useEffect(() => {
+      setTransactionType("Restoring PNO Transfer");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -53,8 +57,10 @@ export default function RestoringPNOTransfer({ formData, onDataChange }: Restori
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
 
+ 
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
 
     const modifiedFormData = {
       ...formValues,
@@ -67,9 +73,7 @@ export default function RestoringPNOTransfer({ formData, onDataChange }: Restori
       <div className='wholeForm'>
         <TypeContainer />
         <VehicleInformation formData={{
-          
           hideMileageFields: true,
-          
         }}/>
         <NewRegisteredOwners formData={{modifiedFormData, forceSingleOwner: true, hideLicenseField: true, hideStateField: true}} />
         {/* <StatementOfFacts formData={formValues} /> */}

@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
 import { UserAuth } from '../context/AuthContext';
 import { getCookie } from '@/utils/cookie';
+import Loading from '../components/pages/Loading';
 
 export const SessionManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { logout } = UserAuth();
+  const { logout, loading } = UserAuth();
   
   useEffect(() => {
     const channel = new BroadcastChannel('session_management');
@@ -39,6 +40,11 @@ export const SessionManager: React.FC<{ children: React.ReactNode }> = ({ childr
       channel.close();
     };
   }, [logout]);
+
+ 
+  if (loading) {
+    return <Loading />;
+  }
 
   return <>{children}</>;
 };

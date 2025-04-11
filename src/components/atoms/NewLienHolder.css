@@ -59,7 +59,7 @@
 
 .streetAptGroup {
   display: flex;
-  /* justify-content: space-between; */
+   
   gap: 10px;
 }
 
@@ -134,7 +134,7 @@
   flex: 0.42; }
 
 .aptField {
-  /* flex: 1; */
+   
   max-width: 150px;
 }
 

@@ -4,6 +4,17 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './NewLienHolder.css';
 
+ 
+export const NEW_LIEN_HOLDER_STORAGE_KEY = 'formmatic_new_lien_holder';
+
+ 
+export const clearNewLienHolderStorage = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(NEW_LIEN_HOLDER_STORAGE_KEY);
+    console.log('New lien holder data cleared from localStorage');
+  }
+};
+
 interface Address {
   street?: string;
   apt?: string;
@@ -33,12 +44,14 @@ interface FormContextType {
     lienHolder?: LienHolder;
   };
   updateField: (field: string, value: any) => void;
+  clearFormTriggered?: number | null;
 }
 
 interface NewLienHolderProps {
   formData?: {
     lienHolder?: LienHolder;
-  };   onChange?: (data: LienHolder) => void;
+  };
+  onChange?: (data: LienHolder) => void;
 }
 
 const initialAddress: Address = {
@@ -66,31 +79,90 @@ const initialLienHolder: LienHolder = {
 };
 
 const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, onChange }) => {
-  const [lienHolderData, setLienHolderData] = useState<LienHolder>(
-    propFormData?.lienHolder || initialLienHolder
-  );
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [lienHolderData, setLienHolderData] = useState<LienHolder>(initialLienHolder);
   const [eltError, setEltError] = useState<string>('');
-  const { updateField } = useFormContext() as FormContextType;
+  const { updateField, clearFormTriggered } = useFormContext() as FormContextType;
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const regRef = useRef<HTMLUListElement>(null);
   const mailingRef = useRef<HTMLUListElement>(null);
 
+ 
   useEffect(() => {
-    if (propFormData?.lienHolder) {
-      setLienHolderData(propFormData.lienHolder);
-    }
-  }, [propFormData]);
-
-  useEffect(() => {
-    if (!lienHolderData) {
-      const defaultData = initialLienHolder;
-      setLienHolderData(defaultData);
-      updateField('lienHolder', defaultData);       
+    if (clearFormTriggered) {
+      console.log('Clear form triggered in NewLienHolder component');
+      clearNewLienHolderStorage();
+      setLienHolderData(initialLienHolder);
+      
+ 
+      updateField('lienHolder', initialLienHolder);
+      
       if (onChange) {
-        onChange(defaultData);
+        onChange(initialLienHolder);
+      }
+    }
+  }, [clearFormTriggered]);
+  
+ 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isInitialized) {
+      try {
+        const savedData = localStorage.getItem(NEW_LIEN_HOLDER_STORAGE_KEY);
+        
+        if (savedData) {
+          console.log("Loading new lien holder data from localStorage");
+          const parsedData = JSON.parse(savedData);
+          
+ 
+          const mergedData = {
+            ...initialLienHolder,
+            ...parsedData,
+            ...(propFormData?.lienHolder || {})
+          };
+          
+          setLienHolderData(mergedData);
+          
+ 
+          updateField('lienHolder', mergedData);
+          
+          if (onChange) {
+            onChange(mergedData);
+          }
+        } else if (propFormData?.lienHolder) {
+ 
+          setLienHolderData(propFormData.lienHolder);
+        } else {
+ 
+          updateField('lienHolder', initialLienHolder);
+          if (onChange) {
+            onChange(initialLienHolder);
+          }
+        }
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error loading saved new lien holder data:', error);
+        setIsInitialized(true);
+        
+ 
+        if (propFormData?.lienHolder) {
+          setLienHolderData(propFormData.lienHolder);
+        } else {
+          updateField('lienHolder', initialLienHolder);
+          if (onChange) {
+            onChange(initialLienHolder);
+          }
+        }
       }
     }
   }, []);
+
+ 
+  useEffect(() => {
+    if (isInitialized && propFormData?.lienHolder) {
+      setLienHolderData(propFormData.lienHolder);
+    }
+  }, [propFormData, isInitialized]);
 
   const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as Element;
@@ -109,7 +181,13 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
   const handleInputChange = (field: keyof LienHolder, value: any) => {
     const newLienHolder = { ...lienHolderData, [field]: value };
     setLienHolderData(newLienHolder);
-    updateField('lienHolder', newLienHolder);     
+    updateField('lienHolder', newLienHolder);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(NEW_LIEN_HOLDER_STORAGE_KEY, JSON.stringify(newLienHolder));
+    }
+    
     if (onChange) {
       onChange(newLienHolder);
     }
@@ -119,7 +197,6 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
     const newLienHolder = { ...lienHolderData };
     newLienHolder.mailingAddressDifferent = checked;
     
-
     if (!checked) {
       newLienHolder.mailingAddress = {
         street: '',
@@ -132,6 +209,12 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
     
     setLienHolderData(newLienHolder);
     updateField('lienHolder', newLienHolder);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(NEW_LIEN_HOLDER_STORAGE_KEY, JSON.stringify(newLienHolder));
+    }
+    
     if (onChange) {
       onChange(newLienHolder);
     }
@@ -158,7 +241,13 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
       [field]: value
     };
     setLienHolderData(newLienHolder);
-    updateField('lienHolder', newLienHolder);     
+    updateField('lienHolder', newLienHolder);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(NEW_LIEN_HOLDER_STORAGE_KEY, JSON.stringify(newLienHolder));
+    }
+    
     if (onChange) {
       onChange(newLienHolder);
     }

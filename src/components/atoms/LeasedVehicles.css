@@ -79,7 +79,7 @@
   gap: 8px;
 }
 
-/* Validation styles */
+ 
 .validation-error {
   border: 2px solid #ff0000 !important;
   background-color: #fffafa;

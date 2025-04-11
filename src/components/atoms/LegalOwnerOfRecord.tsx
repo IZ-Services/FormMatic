@@ -4,6 +4,16 @@ import { useFormContext } from '../../app/api/formDataContext/formDataContextPro
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import './LegalOwnerOfRecord.css';
 
+ 
+export const LEGAL_OWNER_STORAGE_KEY = 'formmatic_legal_owner';
+
+ 
+export const clearLegalOwnerStorage = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(LEGAL_OWNER_STORAGE_KEY);
+    console.log('Legal owner data cleared from localStorage');
+  }
+};
 
 const dropdownStyles: Record<string, CSSProperties> = {
   dropdownWrapper: {
@@ -70,6 +80,10 @@ interface LegalOwnerProps {
     vehicleTransactionDetails?: {
       currentLienholder?: boolean;
       isOutOfStateTitle?: boolean;
+    };
+    commercialVehicle?: {
+      isCommercial?: boolean;
+      hasLienHolder?: boolean;
     };
   };
   onChange?: (data: LegalOwnerType) => void;
@@ -157,34 +171,95 @@ const states = [
 ];
 
 const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData, onChange }) => {
-  const { formData: contextFormData, updateField } = useFormContext();
+  const { formData: contextFormData, updateField, clearFormTriggered } = useFormContext();
+  const [isInitialized, setIsInitialized] = useState(false);
   
-  const [legalOwnerData, setLegalOwnerData] = useState<LegalOwnerType>(
-    propFormData?.legalOwnerInformation || initialLegalOwner
-  );
+  const [legalOwnerData, setLegalOwnerData] = useState<LegalOwnerType>(initialLegalOwner);
   const [eltError, setEltError] = useState<string>('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
   const stateDropdownRef = useRef<HTMLDivElement>(null);
   const mailingStateDropdownRef = useRef<HTMLDivElement>(null);
 
-
   const formData = { ...contextFormData, ...propFormData };
   const isOutOfStateTitle = formData?.vehicleTransactionDetails?.isOutOfStateTitle === true;
+  const isCommercial = formData?.commercialVehicle?.isCommercial === true || formData?.commercialVehicle?.hasLienHolder === true;
+  
+ 
+  const showMailingOption = isOutOfStateTitle || isCommercial;
 
+ 
   useEffect(() => {
-    if (!propFormData?.legalOwnerInformation) {
-      const initialData = { ...initialLegalOwner };
-      updateField('legalOwnerInformation', initialData);
+    if (clearFormTriggered) {
+      console.log('Clear form triggered in LegalOwnerOfRecord component');
+      clearLegalOwnerStorage();
+      setLegalOwnerData(initialLegalOwner);
+      
+ 
+      updateField('legalOwnerInformation', initialLegalOwner);
+      
       if (onChange) {
-        onChange(initialData);
+        onChange(initialLegalOwner);
+      }
+    }
+  }, [clearFormTriggered]);
+  
+ 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isInitialized) {
+      try {
+        const savedData = localStorage.getItem(LEGAL_OWNER_STORAGE_KEY);
+        
+        if (savedData) {
+          console.log("Loading legal owner data from localStorage");
+          const parsedData = JSON.parse(savedData);
+          
+ 
+          const mergedData = {
+            ...initialLegalOwner,
+            ...parsedData,
+            ...(propFormData?.legalOwnerInformation || {})
+          };
+          
+          setLegalOwnerData(mergedData);
+          
+ 
+          updateField('legalOwnerInformation', mergedData);
+          
+          if (onChange) {
+            onChange(mergedData);
+          }
+        } else if (propFormData?.legalOwnerInformation) {
+ 
+          setLegalOwnerData(propFormData.legalOwnerInformation);
+        } else {
+ 
+          updateField('legalOwnerInformation', initialLegalOwner);
+          if (onChange) {
+            onChange(initialLegalOwner);
+          }
+        }
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error loading saved legal owner data:', error);
+        setIsInitialized(true);
+        
+ 
+        if (propFormData?.legalOwnerInformation) {
+          setLegalOwnerData(propFormData.legalOwnerInformation);
+        } else {
+          updateField('legalOwnerInformation', initialLegalOwner);
+          if (onChange) {
+            onChange(initialLegalOwner);
+          }
+        }
       }
     }
   }, []);
 
-
   useEffect(() => {
-    if (!isOutOfStateTitle && legalOwnerData.mailingAddressDifferent) {
+    if (!showMailingOption && legalOwnerData.mailingAddressDifferent) {
       const newData = { 
         ...legalOwnerData,
         mailingAddressDifferent: false,
@@ -198,14 +273,21 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
       };
       setLegalOwnerData(newData);
       updateField('legalOwnerInformation', newData);
+      
+ 
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LEGAL_OWNER_STORAGE_KEY, JSON.stringify(newData));
+      }
+      
       if (onChange) {
         onChange(newData);
       }
     }
-  }, [isOutOfStateTitle]);
+  }, [showMailingOption]);
 
   useEffect(() => {
-    const hasCurrentLienholder = propFormData?.vehicleTransactionDetails?.currentLienholder === true;
+    const hasCurrentLienholder = propFormData?.vehicleTransactionDetails?.currentLienholder === true ||
+                                propFormData?.commercialVehicle?.hasLienHolder === true;
     if (!hasCurrentLienholder && 
         legalOwnerData && 
         (legalOwnerData.name || 
@@ -224,22 +306,34 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
       const resetData = { ...initialLegalOwner };
       setLegalOwnerData(resetData);
       updateField('legalOwnerInformation', resetData);
+      
+ 
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LEGAL_OWNER_STORAGE_KEY, JSON.stringify(resetData));
+      }
+      
       if (onChange) {
         onChange(resetData);
       }
     }
-  }, [propFormData?.vehicleTransactionDetails?.currentLienholder]); 
+  }, [propFormData?.vehicleTransactionDetails?.currentLienholder, propFormData?.commercialVehicle?.hasLienHolder]); 
 
   useEffect(() => {
-    if (propFormData?.legalOwnerInformation) {
+    if (isInitialized && propFormData?.legalOwnerInformation) {
       setLegalOwnerData(propFormData.legalOwnerInformation);
     }
-  }, [propFormData]);
+  }, [propFormData, isInitialized]);
 
   const handleInfoChange = (field: keyof LegalOwnerType, value: any) => {
     const newData = { ...legalOwnerData, [field]: value };
     setLegalOwnerData(newData);
     updateField('legalOwnerInformation', newData);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(LEGAL_OWNER_STORAGE_KEY, JSON.stringify(newData));
+    }
+    
     if (onChange) {
       onChange(newData);
     }
@@ -249,7 +343,6 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
     const newData = { ...legalOwnerData };
     newData.mailingAddressDifferent = checked;
     
-
     if (!checked && newData.mailingAddress) {
       newData.mailingAddress = {
         street: '',
@@ -262,6 +355,12 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
     
     setLegalOwnerData(newData);
     updateField('legalOwnerInformation', newData);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(LEGAL_OWNER_STORAGE_KEY, JSON.stringify(newData));
+    }
+    
     if (onChange) {
       onChange(newData);
     }
@@ -290,6 +389,12 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
     };
     setLegalOwnerData(newData);
     updateField('legalOwnerInformation', newData);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(LEGAL_OWNER_STORAGE_KEY, JSON.stringify(newData));
+    }
+    
     if (onChange) {
       onChange(newData);
     }
@@ -354,7 +459,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
     <div className="releaseWrapper" style={{ ...containerStyle, marginBottom: '30px' }}>
       <div className="headerRow" style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'baseline', marginBottom: '15px' }}>
         <h3 className="releaseHeading" style={{ margin: 0 }}>Legal Owner of Record</h3>
-        {isOutOfStateTitle && (
+        {showMailingOption && (
           <div className="mailingCheckboxWrapper">
             <label className="mailingCheckboxLabel" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input
@@ -490,7 +595,7 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
       </div>
 
       {/* Mailing Address Section (shows only when checkbox is checked) */}
-      {isOutOfStateTitle && legalOwnerData.mailingAddressDifferent && (
+      {showMailingOption && legalOwnerData.mailingAddressDifferent && (
         <div className="addressWrapper" style={{ marginTop: '30px', position: 'relative' }}>
           <h3 className="addressHeading" style={{ marginBottom: '15px' }}>Mailing Address</h3>
           <div className="streetAptGroup">
@@ -548,7 +653,8 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
               {openDropdown === 'mailing' && (
                 <ul style={{
                   ...dropdownStyles.dropdownMenu,
-                  zIndex: 10000,                  position: 'absolute',
+                  zIndex: 10000,                  
+                  position: 'absolute',
                   maxHeight: '200px'
                 }}>
                   {states.map((state, index) => (

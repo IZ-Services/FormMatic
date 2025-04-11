@@ -11,7 +11,7 @@
   border-bottom: none;
 }
 
-/* Create a flex container for the inputs to appear in a row */
+ 
 .input-row {
   display: flex;
   gap: 15px;
@@ -19,7 +19,7 @@
 }
 
 .input-group {
-  flex: 1; /* Allow each input group to take equal space */
+  flex: 1;  
 }
 
 .input-label {
@@ -155,7 +155,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  /* max-width:56ch; */
+   
 }
 }
 @media (max-width: 768px) {

@@ -14,7 +14,19 @@ import LeasedVehicles from '../atoms/LeasedVehiclesData';
 import CitizenshipQuestion from '../atoms/CitizenshipQuestion;';
 import CheckboxOptions from '../atoms/NoticeOfChnageOfAddress/CheckBoxOptions';
 import LeasingCompanyField from '../atoms/NoticeOfChnageOfAddress/LeasingCompanyField';
+
+interface CheckboxOptionsData {
+  leasedVehicle?: boolean;
+}
+
+interface VehicleTransactionDetailsData {
+  currentLienholder?: boolean;
+  isSmogExempt?: boolean;
+}
+
 interface FormContextData {
+  checkboxOptions?: CheckboxOptionsData;
+  vehicleTransactionDetails?: VehicleTransactionDetailsData;
   [key: string]: any;
 }
 
@@ -30,15 +42,19 @@ export default function ChangeOfAddressTransfer({ formData, onDataChange }: Chan
     if (onDataChange) {
       onDataChange(formData);
     }
-  }, [formData]);
+  }, [formData, onDataChange]);
   
   useEffect(() => {
     setFormValues(formData);
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData } = useFormContext() as { formData: FormContextData };
-    const { updateField } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+
+ 
+    useEffect(() => {
+      setTransactionType("Change Of Address Transfer");
+    }, [setTransactionType]);
 
     useEffect(() => {
       if (formValues) {
@@ -46,12 +62,15 @@ export default function ChangeOfAddressTransfer({ formData, onDataChange }: Chan
           updateField(key, value);
         });
       }
-    }, [formValues]);
+    }, [formValues, updateField]);
 
-
-    const isLeasedVehicle = contextFormData?.checkboxOptions?.leasedVehicle === true;
-    const isCurrentLienholder = contextFormData?.vehicleTransactionDetails?.currentLienholder === true;
-    const isSmogExempt = contextFormData?.vehicleTransactionDetails?.isSmogExempt === true;
+ 
+    const checkboxOptions = (contextFormData?.checkboxOptions || {}) as CheckboxOptionsData;
+    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
+    
+    const isLeasedVehicle = checkboxOptions.leasedVehicle === true;
+    const isCurrentLienholder = vehicleTransactionDetails.currentLienholder === true;
+    const isSmogExempt = vehicleTransactionDetails.isSmogExempt === true;
 
     return (
       <div className='wholeForm'>

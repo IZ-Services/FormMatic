@@ -15,13 +15,23 @@ interface MissingTitleProps {
   };
 }
 
+ 
+export const MISSING_TITLE_STORAGE_KEY = 'formmatic_missing_title';
+
+ 
+export const clearMissingTitleStorage = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(MISSING_TITLE_STORAGE_KEY);
+    console.log('Missing title data cleared from localStorage');
+  }
+};
+
 const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) => {
-  const [titleData, setTitleData] = useState<MissingTitleInfo>(
-    propFormData?.missingTitleInfo || {}
-  );
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [titleData, setTitleData] = useState<MissingTitleInfo>({});
   const [openDropdown, setOpenDropdown] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
-  const { updateField } = useFormContext();
+  const { updateField, clearFormTriggered } = useFormContext();
 
   const missingTitleOptions = [
     'Lost', 
@@ -31,11 +41,62 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
     'Illegible/Mutilated (Attach old title)',
   ];
 
+ 
   useEffect(() => {
-    if (propFormData?.missingTitleInfo) {
+    if (clearFormTriggered) {
+      console.log('Clear form triggered in MissingTitle component');
+      clearMissingTitleStorage();
+      setTitleData({});
+      
+ 
+      updateField('missingTitleInfo', {});
+    }
+  }, [clearFormTriggered]);
+  
+ 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isInitialized) {
+      try {
+        const savedData = localStorage.getItem(MISSING_TITLE_STORAGE_KEY);
+        
+        if (savedData) {
+          console.log("Loading missing title data from localStorage");
+          const parsedData = JSON.parse(savedData);
+          
+ 
+          const mergedData = {
+            ...parsedData,
+            ...(propFormData?.missingTitleInfo || {})
+          };
+          
+          setTitleData(mergedData);
+          
+ 
+          updateField('missingTitleInfo', mergedData);
+        } else if (propFormData?.missingTitleInfo) {
+ 
+          setTitleData(propFormData.missingTitleInfo);
+        }
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error loading saved missing title data:', error);
+        setIsInitialized(true);
+        
+ 
+        if (propFormData?.missingTitleInfo) {
+          setTitleData(propFormData.missingTitleInfo);
+        }
+      }
+    }
+  }, []);
+
+ 
+  useEffect(() => {
+    if (isInitialized && propFormData?.missingTitleInfo) {
       setTitleData(propFormData.missingTitleInfo);
     }
-  }, [propFormData]);
+  }, [propFormData, isInitialized]);
 
   const handleClickOutside = (e: MouseEvent) => {
     if (openDropdown && !dropdownRef.current?.contains(e.target as Node)) {
@@ -57,6 +118,11 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
 
     setTitleData(newData);
     updateField('missingTitleInfo', newData);
+    
+ 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(MISSING_TITLE_STORAGE_KEY, JSON.stringify(newData));
+    }
     
     if (field === 'reason') {
       setOpenDropdown(false);

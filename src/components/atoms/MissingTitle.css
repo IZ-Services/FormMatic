@@ -1,8 +1,8 @@
 .missingTitleWrapper {
   margin-bottom: 24px;
   width: 100%;
-  max-width: 400px; /* Added max-width to limit the component size */
-  position: relative; /* Add position relative to contain absolute elements */
+  max-width: 400px;  
+  position: relative;  
 }
 
 .missingTitleHeader {
@@ -12,7 +12,7 @@
 .missingTitleTitle {
   font-weight: 700;
   padding-top: 10px;
-  /* text-decoration: underline; */
+   
   margin-bottom: 20px;
 }
 
@@ -71,7 +71,7 @@
   padding: 0;
   margin: 4px 0 0 0;
   list-style: none;
-  max-width: 100%; /* Ensure dropdown menu doesn't exceed parent width */
+  max-width: 100%;  
 }
 
 .dropdownItem {
@@ -109,10 +109,10 @@
   border-color: #0066cc;
 }
 
-/* Responsive adjustments */
+ 
 @media (max-width: 768px) {
   .missingTitleWrapper {
-    max-width: 100%; /* Allow full width on mobile but with padding */
+    max-width: 100%;  
     padding: 0;
   }
   
