@@ -17,6 +17,7 @@ import LeasingCompanyField from '../atoms/NoticeOfChnageOfAddress/LeasingCompany
 
 interface CheckboxOptionsData {
   leasedVehicle?: boolean;
+  leasingCompanyName?: string;
 }
 
 interface VehicleTransactionDetailsData {
@@ -51,7 +52,6 @@ export default function ChangeOfAddressTransfer({ formData, onDataChange }: Chan
   const FormContent = () => {
     const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
 
- 
     useEffect(() => {
       setTransactionType("Change Of Address Transfer");
     }, [setTransactionType]);
@@ -64,13 +64,21 @@ export default function ChangeOfAddressTransfer({ formData, onDataChange }: Chan
       }
     }, [formValues, updateField]);
 
- 
     const checkboxOptions = (contextFormData?.checkboxOptions || {}) as CheckboxOptionsData;
     const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
     
     const isLeasedVehicle = checkboxOptions.leasedVehicle === true;
     const isCurrentLienholder = vehicleTransactionDetails.currentLienholder === true;
     const isSmogExempt = vehicleTransactionDetails.isSmogExempt === true;
+
+    // Function to update leasing company name
+    const handleLeasingCompanyNameChange = (value: string) => {
+      const updatedCheckboxOptions = {
+        ...checkboxOptions,
+        leasingCompanyName: value
+      };
+      updateField('checkboxOptions', updatedCheckboxOptions);
+    };
 
     return (
       <div className='wholeForm'>
@@ -80,9 +88,12 @@ export default function ChangeOfAddressTransfer({ formData, onDataChange }: Chan
         <SectionTwo formData={formValues} />
         <SectionThree formData={formValues} />
         <SectionFive formData={formValues} />
-        
-        {/* Show LeasedVehicles component if leased vehicle checkbox is checked */}
-        {isLeasedVehicle && <LeasingCompanyField formData={formValues} />}
+        {isLeasedVehicle && (
+          <LeasingCompanyField 
+            leasingCompanyName={checkboxOptions.leasingCompanyName || ''} 
+            onLeasingCompanyNameChange={handleLeasingCompanyNameChange} 
+          />
+        )}
         
         <SaveButton 
           transactionType="Change Of Address Transfer"

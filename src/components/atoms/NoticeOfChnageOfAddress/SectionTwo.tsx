@@ -131,20 +131,39 @@ const dropdownStyles: Record<string, CSSProperties> = {
 };
 
 const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
+  const { formData: contextFormData, updateField } = useFormContext();
   const [addressData, setAddressData] = useState<Address>(
-    propFormData?.previousResidence || initialAddress
+    propFormData?.previousResidence || (contextFormData?.previousResidence as Address) || initialAddress
   );
-  const { updateField } = useFormContext();
   const [openDropdown, setOpenDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Combined form data from both context and props
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
 
+  // Initialize form data if not present in context
   useEffect(() => {
-    if (propFormData?.previousResidence) {
-      setAddressData(propFormData.previousResidence);
+    if (!contextFormData?.previousResidence) {
+      updateField('previousResidence', initialAddress);
     }
-  }, [propFormData]);
+  }, []);
 
- 
+  // Sync component state with context/props form data
+  useEffect(() => {
+    const currentData = formData?.previousResidence;
+    if (currentData) {
+      setAddressData(currentData as Address);
+    }
+  }, [formData?.previousResidence]);
+  
+  // Log for debugging purposes (optional)
+  useEffect(() => {
+    console.log('Current SectionTwo form data:', formData?.previousResidence);
+  }, [formData?.previousResidence]);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Element;
@@ -167,6 +186,11 @@ const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
     setAddressData(newData);
     updateField('previousResidence', newData);
   };
+  
+  const clearForm = () => {
+    setAddressData(initialAddress);
+    updateField('previousResidence', initialAddress);
+  };
 
   const containerStyle: CSSProperties = { 
     position: 'relative', 
@@ -182,6 +206,7 @@ const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
     <div className="releaseWrapper" style={containerStyle}>
       <div className="headerRow">
         <h3 className="releaseHeading">Previous Residence or Business Address</h3>
+      
       </div>
       
       <div className="streetAptGroup">

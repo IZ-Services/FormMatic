@@ -3,51 +3,40 @@ import { useFormContext } from '../../../app/api/formDataContext/formDataContext
 import './LeasingCompanyField.css';
 
 interface LeasingCompanyFieldProps {
-  formData?: {
-    checkboxOptions?: {
-      leasingCompanyName?: string;
-    };
-  };
+  leasingCompanyName: string;
+  onLeasingCompanyNameChange: (value: string) => void;
 }
 
-const LeasingCompanyField: React.FC<LeasingCompanyFieldProps> = ({ formData: propFormData }) => {
-  const [companyName, setCompanyName] = useState<string>(
-    propFormData?.checkboxOptions?.leasingCompanyName || ''
-  );
-  const { updateField, formData: contextFormData } = useFormContext();
+const LeasingCompanyField: React.FC<LeasingCompanyFieldProps> = ({ 
+  leasingCompanyName, 
+  onLeasingCompanyNameChange 
+}) => {
+  const [companyName, setCompanyName] = useState<string>(leasingCompanyName || '');
+  const { formData: contextFormData } = useFormContext();
 
+  // Sync the local state with the prop value when it changes
+  useEffect(() => {
+    if (leasingCompanyName !== undefined) {
+      setCompanyName(leasingCompanyName);
+    }
+  }, [leasingCompanyName]);
+
+  // Log for debugging purposes (optional)
+  useEffect(() => {
+    console.log('Current LeasingCompanyField value:', companyName);
+  }, [companyName]);
 
   const capitalizeWords = (value: string): string => {
     if (!value) return '';
-    
-
     return value.replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-
-  useEffect(() => {
-    if (propFormData?.checkboxOptions?.leasingCompanyName !== undefined) {
-      setCompanyName(propFormData.checkboxOptions.leasingCompanyName);
-    }
-  }, [propFormData]);
-
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    
-
     const capitalizedValue = capitalizeWords(value);
     
     setCompanyName(capitalizedValue);
-    
-
-    const currentCheckboxOptions = contextFormData.checkboxOptions || {};
-    
-
-    updateField('checkboxOptions', {
-      ...currentCheckboxOptions,
-      leasingCompanyName: capitalizedValue
-    });
+    onLeasingCompanyNameChange(capitalizedValue);
   };
 
   return (

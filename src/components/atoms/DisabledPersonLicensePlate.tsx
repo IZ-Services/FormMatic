@@ -68,41 +68,41 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
     
       <div className="formFields">
         <div className="formRow">
-          <div className="formField">
-            <label className="fieldLabel">LICENSE PLATE</label>
-            <input
-              className="fieldInput"
-              type="text"
-              placeholder="License Plate Number"
-              value={(formData.disabledPersonLicensePlates as DisabledPersonLicensePlatesType)?.licensePlateNumber || ''}
-              onChange={(e) => handleDisabledPersonLicensePlatesChange('licensePlateNumber', e.target.value)}
-              disabled={readOnly}
-            />
-          </div>
-          
-          <div className="formField vinField">
-            <label className="fieldLabel">VEHICLE IDENTIFICATION NUMBER</label>
-            <input
-              className="fieldInput"
-              type="text"
-              placeholder="Vehicle Identification Number"
-              value={(formData.disabledPersonLicensePlates as DisabledPersonLicensePlatesType)?.vehicleIdentificationNumber || ''}
-              onChange={(e) => handleDisabledPersonLicensePlatesChange('vehicleIdentificationNumber', e.target.value)}
-              disabled={readOnly}
-            />
-          </div>
-          
-          <div className="formField">
-            <label className="fieldLabel">VEHICLE MAKE</label>
-            <input
-              className="fieldInput"
-              type="text"
-              placeholder="Vehicle Make"
-              value={(formData.disabledPersonLicensePlates as DisabledPersonLicensePlatesType)?.vehicleMake || ''}
-              onChange={(e) => handleDisabledPersonLicensePlatesChange('vehicleMake', e.target.value)}
-              disabled={readOnly}
-            />
-          </div>
+<div className="formField">
+  <label className="fieldLabel">LICENSE PLATE</label>
+  <input
+    className="fieldInput"
+    type="text"
+    placeholder="License Plate Number"
+    value={((formData.disabledPersonLicensePlates as DisabledPersonLicensePlatesType)?.licensePlateNumber || '').toUpperCase()}
+    onChange={(e) => handleDisabledPersonLicensePlatesChange('licensePlateNumber', e.target.value.toUpperCase())}
+    disabled={readOnly}
+  />
+</div>
+
+<div className="formField vinField">
+  <label className="fieldLabel">VEHICLE IDENTIFICATION NUMBER</label>
+  <input
+    className="fieldInput"
+    type="text"
+    placeholder="Vehicle Identification Number"
+    value={((formData.disabledPersonLicensePlates as DisabledPersonLicensePlatesType)?.vehicleIdentificationNumber || '').toUpperCase()}
+    onChange={(e) => handleDisabledPersonLicensePlatesChange('vehicleIdentificationNumber', e.target.value.toUpperCase())}
+    disabled={readOnly}
+  />
+</div>
+
+<div className="formField">
+  <label className="fieldLabel">VEHICLE MAKE</label>
+  <input
+    className="fieldInput"
+    type="text"
+    placeholder="Vehicle Make"
+    value={((formData.disabledPersonLicensePlates as DisabledPersonLicensePlatesType)?.vehicleMake || '').toUpperCase()}
+    onChange={(e) => handleDisabledPersonLicensePlatesChange('vehicleMake', e.target.value.toUpperCase())}
+    disabled={readOnly}
+  />
+</div>
           
           <div className="formField">
             <label className="fieldLabel">VEHICLE YEAR</label>

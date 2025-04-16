@@ -4,10 +4,8 @@ import { useFormContext } from '../../app/api/formDataContext/formDataContextPro
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import './ReleaseOfOwnership.css';
 
- 
 export const RELEASE_OWNERSHIP_STORAGE_KEY = 'formmatic_release_ownership';
 
- 
 export const clearReleaseOwnershipStorage = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(RELEASE_OWNERSHIP_STORAGE_KEY);
@@ -65,6 +63,11 @@ const dropdownStyles: Record<string, CSSProperties> = {
   }
 };
 
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
 interface Address {
   street?: string;
   apt?: string;
@@ -89,6 +92,7 @@ interface ReleaseInformationProps {
   formData?: {
     releaseInformation?: ReleaseInformationType;
   };
+  showValidationErrors?: boolean;
 }
 
 const initialAddress: Address = {
@@ -164,9 +168,13 @@ const states = [
     { name: 'Wyoming', abbreviation: 'WY' },
 ];
 
-const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propFormData }) => {
+const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ 
+  formData: propFormData,
+  showValidationErrors = false 
+}) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [releaseData, setReleaseData] = useState<ReleaseInformationType>(initialReleaseInformation);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const { updateField, clearFormTriggered } = useFormContext();
   
   const [showRegStateDropdown, setShowRegStateDropdown] = useState(false);
@@ -175,19 +183,129 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
   const regStateDropdownRef = useRef<HTMLDivElement>(null);
   const mailingStateDropdownRef = useRef<HTMLDivElement>(null);
 
- 
+  // Validation function
+  const validateReleaseInfo = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Validate required fields
+    if (!releaseData.name) {
+      errors.push({
+        field: 'name',
+        message: 'Name is required'
+      });
+    }
+    
+    // Validate address fields
+    if (!releaseData.address?.street) {
+      errors.push({
+        field: 'address.street',
+        message: 'Street is required'
+      });
+    }
+    
+    if (!releaseData.address?.city) {
+      errors.push({
+        field: 'address.city',
+        message: 'City is required'
+      });
+    }
+    
+    if (!releaseData.address?.state) {
+      errors.push({
+        field: 'address.state',
+        message: 'State is required'
+      });
+    }
+    
+    if (!releaseData.address?.zip) {
+      errors.push({
+        field: 'address.zip',
+        message: 'ZIP code is required'
+      });
+    }
+    
+    // Validate date and phone fields
+    if (!releaseData.date) {
+      errors.push({
+        field: 'date',
+        message: 'Date is required'
+      });
+    } else if (releaseData.date.length < 10) {
+      errors.push({
+        field: 'date',
+        message: 'Date must be in MM/DD/YYYY format'
+      });
+    }
+    
+    if (!releaseData.phoneNumber) {
+      errors.push({
+        field: 'phoneNumber',
+        message: 'Phone number is required'
+      });
+    }
+    
+    // Validate mailing address if different
+    if (releaseData.mailingAddressDifferent) {
+      if (!releaseData.mailingAddress?.street) {
+        errors.push({
+          field: 'mailingAddress.street',
+          message: 'Mailing street is required'
+        });
+      }
+      
+      if (!releaseData.mailingAddress?.city) {
+        errors.push({
+          field: 'mailingAddress.city',
+          message: 'Mailing city is required'
+        });
+      }
+      
+      if (!releaseData.mailingAddress?.state) {
+        errors.push({
+          field: 'mailingAddress.state',
+          message: 'Mailing state is required'
+        });
+      }
+      
+      if (!releaseData.mailingAddress?.zip) {
+        errors.push({
+          field: 'mailingAddress.zip',
+          message: 'Mailing ZIP code is required'
+        });
+      }
+    }
+    
+    return errors;
+  };
+
+  // First useEffect: Run validation when showing validation errors or when data changes
+  useEffect(() => {
+    if (showValidationErrors) {
+      const errors = validateReleaseInfo();
+      setValidationErrors(errors);
+    }
+  }, [showValidationErrors, releaseData]);
+
+  useEffect(() => {
+    if (showValidationErrors) {
+      updateField('_validationErrors', (prev: { releaseInformation: boolean }) => ({
+        ...prev,
+        releaseInformation: validationErrors.length > 0
+      }));
+    }
+  }, [validationErrors, showValidationErrors]);
+  
+
   useEffect(() => {
     if (clearFormTriggered) {
       console.log('Clear form triggered in ReleaseOfOwnership component');
       clearReleaseOwnershipStorage();
       setReleaseData(initialReleaseInformation);
       
- 
       updateField('releaseInformation', initialReleaseInformation);
     }
   }, [clearFormTriggered]);
   
- 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
@@ -197,7 +315,6 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
           console.log("Loading release of ownership data from localStorage");
           const parsedData = JSON.parse(savedData);
           
- 
           const mergedData = {
             ...initialReleaseInformation,
             ...parsedData,
@@ -206,10 +323,8 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
           
           setReleaseData(mergedData);
           
- 
           updateField('releaseInformation', mergedData);
         } else if (propFormData?.releaseInformation) {
- 
           setReleaseData(propFormData.releaseInformation);
         }
         
@@ -218,7 +333,6 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
         console.error('Error loading saved release of ownership data:', error);
         setIsInitialized(true);
         
- 
         if (propFormData?.releaseInformation) {
           setReleaseData(propFormData.releaseInformation);
         }
@@ -226,7 +340,6 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     }
   }, []);
 
- 
   useEffect(() => {
     if (isInitialized && propFormData?.releaseInformation) {
       setReleaseData(propFormData.releaseInformation);
@@ -256,6 +369,12 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Helper to get error message for a field
+  const getErrorMessage = (field: string): string | null => {
+    const error = validationErrors.find(err => err.field === field);
+    return error ? error.message : null;
+  };
 
   const capitalizeWords = (value: string): string => {
     if (!value) return '';
@@ -305,9 +424,14 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     setReleaseData(newData);
     updateField('releaseInformation', newData);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(RELEASE_OWNERSHIP_STORAGE_KEY, JSON.stringify(newData));
+    }
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateReleaseInfo();
+      setValidationErrors(errors);
     }
   };
 
@@ -329,9 +453,14 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     setReleaseData(newData);
     updateField('releaseInformation', newData);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(RELEASE_OWNERSHIP_STORAGE_KEY, JSON.stringify(newData));
+    }
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateReleaseInfo();
+      setValidationErrors(errors);
     }
   };
 
@@ -346,9 +475,14 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
     setReleaseData(newData);
     updateField('releaseInformation', newData);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(RELEASE_OWNERSHIP_STORAGE_KEY, JSON.stringify(newData));
+    }
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateReleaseInfo();
+      setValidationErrors(errors);
     }
   };
   
@@ -401,12 +535,15 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
         <div className="bankNameField">
           <label className="releaseFormLabel">Name of bank, finance company, or individual(s) having a lien on this vehicle</label>
           <input
-            className="formInput"
+            className={`formInput ${showValidationErrors && getErrorMessage('name') ? 'error-input' : ''}`}
             type="text"
             placeholder="Name of bank, finance company, or individual(s)"
             value={releaseData.name || ''}
             onChange={(e) => handleReleaseInfoChange('name', e.target.value)}
           />
+          {showValidationErrors && getErrorMessage('name') && (
+            <div className="error-message">{getErrorMessage('name')}</div>
+          )}
         </div>
       </div>
 
@@ -414,12 +551,15 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
         <div className="formGroup streetField">
           <label className="formLabel">Street</label>
           <input
-            className="formInput"
+            className={`formInput ${showValidationErrors && getErrorMessage('address.street') ? 'error-input' : ''}`}
             type="text"
             placeholder="Street"
             value={releaseData.address?.street || ''}
             onChange={(e) => handleAddressChange('address', 'street', e.target.value)}
           />
+          {showValidationErrors && getErrorMessage('address.street') && (
+            <div className="error-message">{getErrorMessage('address.street')}</div>
+          )}
         </div>
         <div className="formGroup aptField">
           <label className="formLabel">Apt./space/ste.#</label>
@@ -437,19 +577,22 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
         <div className="cityFieldCustomWidth">
           <label className="formLabel">City</label>
           <input
-            className="cityInputtt"
+            className={`cityInputtt ${showValidationErrors && getErrorMessage('address.city') ? 'error-input' : ''}`}
             type="text"
             placeholder="City"
             value={releaseData.address?.city || ''}
             onChange={(e) => handleAddressChange('address', 'city', e.target.value)}
           />
+          {showValidationErrors && getErrorMessage('address.city') && (
+            <div className="error-message">{getErrorMessage('address.city')}</div>
+          )}
         </div>
         <div className="regStateWrapper" ref={regStateDropdownRef} style={dropdownStyles.dropdownWrapper}>
           <label className="registeredOwnerLabel">State</label>
           <button
             type="button"
             onClick={toggleRegStateDropdown}
-            className="regStateDropDown"
+            className={`regStateDropDown ${showValidationErrors && getErrorMessage('address.state') ? 'error-button' : ''}`}
             style={dropdownStyles.button}
           >
             {releaseData.address?.state || 'State'}
@@ -458,6 +601,9 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
               style={dropdownStyles.chevron} 
             />
           </button>
+          {showValidationErrors && getErrorMessage('address.state') && (
+            <div className="error-message">{getErrorMessage('address.state')}</div>
+          )}
           {showRegStateDropdown && (
             <ul style={dropdownStyles.dropdownMenu}>
               {states.map((state, index) => (
@@ -481,12 +627,15 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
         <div className="formGroup zipCodeField">
           <label className="formLabel">Zip code</label>
           <input
-            className="formInput"
+            className={`formInput ${showValidationErrors && getErrorMessage('address.zip') ? 'error-input' : ''}`}
             type="text"
             placeholder="Zip code"
             value={releaseData.address?.zip || ''}
             onChange={(e) => handleAddressChange('address', 'zip', e.target.value)}
           />
+          {showValidationErrors && getErrorMessage('address.zip') && (
+            <div className="error-message">{getErrorMessage('address.zip')}</div>
+          )}
         </div>
       </div>
       
@@ -495,33 +644,42 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
           <div className="formGroup dateField">
             <label className="releaseFormLabel">Date</label>
             <input
-              className="registeredDateInput"
+              className={`registeredDateInput ${showValidationErrors && getErrorMessage('date') ? 'error-input' : ''}`}
               type="text"
               placeholder="Mm/dd/yyyy"
               value={releaseData.date || ''}
               onChange={(e) => handleReleaseInfoChange('date', e.target.value)}
               maxLength={10}
             />
+            {showValidationErrors && getErrorMessage('date') && (
+              <div className="error-message">{getErrorMessage('date')}</div>
+            )}
           </div>
           <div className="formGroup phoneField">
             <label className="releaseFormLabel">Phone number</label>
             <input
-              className="formInput"
+              className={`formInput ${showValidationErrors && getErrorMessage('phoneNumber') ? 'error-input' : ''}`}
               type="tel"
               placeholder="Phone number"
               value={releaseData.phoneNumber || ''}
               onChange={(e) => handleReleaseInfoChange('phoneNumber', e.target.value)}
             />
+            {showValidationErrors && getErrorMessage('phoneNumber') && (
+              <div className="error-message">{getErrorMessage('phoneNumber')}</div>
+            )}
           </div>
           <div className="agentNameInline">
             <label className="releaseFormLabel">Printed name of authorized agent</label>
             <input
-              className="agentFormInput"
+              className={`agentFormInput ${showValidationErrors && getErrorMessage('authorizedAgentName') ? 'error-input' : ''}`}
               type="text"
               placeholder="Full name"
               value={releaseData.authorizedAgentName || ''}
               onChange={(e) => handleReleaseInfoChange('authorizedAgentName', e.target.value)}
             />
+            {showValidationErrors && getErrorMessage('authorizedAgentName') && (
+              <div className="error-message">{getErrorMessage('authorizedAgentName')}</div>
+            )}
           </div>
         </div>
 
@@ -529,12 +687,15 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
           <div className="formGroup agentTitleField">
             <label className="releaseFormLabel">Title of authorized agent signing for company</label>
             <input
-              className="formInput"
+              className={`formInput ${showValidationErrors && getErrorMessage('authorizedAgentTitle') ? 'error-input' : ''}`}
               type="text"
               placeholder="Title"
               value={releaseData.authorizedAgentTitle || ''}
               onChange={(e) => handleReleaseInfoChange('authorizedAgentTitle', e.target.value)}
             />
+            {showValidationErrors && getErrorMessage('authorizedAgentTitle') && (
+              <div className="error-message">{getErrorMessage('authorizedAgentTitle')}</div>
+            )}
           </div>
         </div>
       </div>
@@ -546,12 +707,15 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
             <div className="formGroup streetField">
               <label className="formLabel">Street</label>
               <input
-                className="formInput"
+                className={`formInput ${showValidationErrors && getErrorMessage('mailingAddress.street') ? 'error-input' : ''}`}
                 type="text"
                 placeholder="Street"
                 value={releaseData.mailingAddress?.street || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'street', e.target.value)}
               />
+              {showValidationErrors && getErrorMessage('mailingAddress.street') && (
+                <div className="error-message">{getErrorMessage('mailingAddress.street')}</div>
+              )}
             </div>
             <div className="formGroup aptField">
               <label className="formLabel">Apt./space/ste.#</label>
@@ -568,19 +732,22 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
-                className="cityInputt"
+                className={`cityInputt ${showValidationErrors && getErrorMessage('mailingAddress.city') ? 'error-input' : ''}`}
                 type="text"
                 placeholder="City"
                 value={releaseData.mailingAddress?.city || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'city', e.target.value)}
               />
+              {showValidationErrors && getErrorMessage('mailingAddress.city') && (
+                <div className="error-message">{getErrorMessage('mailingAddress.city')}</div>
+              )}
             </div>
             <div className="regStateWrapper" ref={mailingStateDropdownRef} style={dropdownStyles.dropdownWrapper}>
               <label className="registeredOwnerLabel">State</label>
               <button
                 type="button"
                 onClick={toggleMailingStateDropdown}
-                className="regStateDropDown"
+                className={`regStateDropDown ${showValidationErrors && getErrorMessage('mailingAddress.state') ? 'error-button' : ''}`}
                 style={dropdownStyles.button}
               >
                 {releaseData.mailingAddress?.state || 'State'}
@@ -589,6 +756,9 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
                   style={dropdownStyles.chevron} 
                 />
               </button>
+              {showValidationErrors && getErrorMessage('mailingAddress.state') && (
+                <div className="error-message">{getErrorMessage('mailingAddress.state')}</div>
+              )}
               {showMailingStateDropdown && (
                 <ul style={dropdownStyles.dropdownMenu}>
                   {states.map((state, index) => (
@@ -612,7 +782,7 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({ formData: propF
             <div className="formGroup zipCodeField">
               <label className="formLabel">Zip code</label>
               <input
-                className="formInput"
+                className={`formInput ${showValidationErrors && getErrorMessage('mailingAddress.zip') ? 'error-input' : ''}`}
                 type="text"
                 placeholder="Zip code"
                 value={releaseData.mailingAddress?.zip || ''}

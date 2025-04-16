@@ -2,20 +2,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-import './VehicleStorageLocation.css';interface StorageLocationData {
+import './VehicleStorageLocation.css';
+
+interface StorageLocationData {
   fromDate: string;
   toDate: string;
   address: string;
   city: string;
   state: string;
   zipCode: string;
-}interface FormData {
+}
+
+interface FormData {
   storageLocation?: StorageLocationData;
   [key: string]: any;
-}interface FormContextType {
+}
+
+interface FormContextType {
   updateField: (field: string, value: any) => void;
   formData: FormData;
-}interface VehicleStorageLocationProps {
+}
+
+interface VehicleStorageLocationProps {
   formData?: FormData;
   onChange?: (data: FormData) => void;
   isMultipleTransfer?: boolean;
@@ -54,17 +62,24 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
   onChange, 
   isMultipleTransfer = false 
 }) => {
-  const cleanedFormData = cleanFormData(propFormData);
+  const { formData: contextFormData, updateField } = useFormContext() as FormContextType;
   
+  // Clean the incoming props data
+  const cleanedPropData = cleanFormData(propFormData);
+  
+  // Combined form data from both context and props
+  const combinedFormData = {
+    ...contextFormData,
+    ...cleanedPropData
+  };
+  
+  // Initialize state with data from props, context, or default values
   const [storageData, setStorageData] = useState<StorageLocationData>(
-    cleanedFormData?.storageLocation || { ...initialStorageData }
+    cleanedPropData?.storageLocation || 
+    (contextFormData?.storageLocation as StorageLocationData) || 
+    { ...initialStorageData }
   );
   
-  const { formData: contextFormData, updateField } = useFormContext() as {
-    formData: Record<string, any>;
-    updateField: (section: string, value: any) => void;
-  };
-
   const [openDropdown, setOpenDropdown] = useState<boolean>(false);
   const stateDropdownRef = useRef<HTMLUListElement>(null);
 
@@ -121,6 +136,14 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     { name: 'Wyoming', abbreviation: 'WY' },
   ];
 
+  // Initialize form data if not present in context
+  useEffect(() => {
+    if (!contextFormData?.storageLocation) {
+      updateField('storageLocation', initialStorageData);
+    }
+  }, []);
+
+  // Sync with props when they change
   useEffect(() => {
     if (propFormData) {
       const cleanedProps = cleanFormData(propFormData);
@@ -134,12 +157,20 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     }
   }, [propFormData]);
 
+  // Sync with context when it changes
   useEffect(() => {
-    if (!onChange) {
-      updateField('storageLocation', storageData);
+    const currentData = combinedFormData?.storageLocation;
+    if (currentData) {
+      setStorageData(currentData as StorageLocationData);
     }
-  }, []);
+  }, [combinedFormData?.storageLocation]);
 
+  // Log for debugging purposes
+  useEffect(() => {
+    console.log('Current VehicleStorageLocation form data:', combinedFormData?.storageLocation);
+  }, [combinedFormData?.storageLocation]);
+
+  // Special handling for multiple transfer mode
   useEffect(() => {
     if (isMultipleTransfer) {
       console.log("VehicleStorageLocation: Multiple transfer mode detected");
@@ -195,7 +226,6 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     <div className="addressWrapper">
       <h3 className="addressHeading">Vehicle Storage Location</h3>
  
-
       <div className="vehicleFirstGroup">
         <div className="vehicleFormItem">
         <label className="formLabe">FROM: MONTH, DAY, YEAR</label>

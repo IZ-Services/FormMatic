@@ -40,7 +40,7 @@ export default function LienHolderRemovalTransfer({ formData, onDataChange }: Li
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType, showValidationErrors } = useFormContext();
 
  
     useEffect(() => {
@@ -79,7 +79,8 @@ export default function LienHolderRemovalTransfer({ formData, onDataChange }: Li
         />
         <SellerAddress formData={formValues} />
         <MissingTitle formData={formValues} />
-        <ReleaseOfOwnership formData={formValues} />
+        <ReleaseOfOwnership   formData={formValues} 
+  showValidationErrors={showValidationErrors} />
         <SaveButton 
           transactionType="Lien Holder Removal"
           onSuccess={() => console.log('Save completed successfully')}

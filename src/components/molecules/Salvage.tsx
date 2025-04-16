@@ -71,8 +71,13 @@ export default function SalvageTransfer({ formData, onDataChange }: SalvageTrans
             hideMileageFields: true
           }}
         />
-        <Seller formData={formValues} />
-        <AgentName formData={formValues} />
+ <Seller
+          formData={{
+            hideDateOfSale: true,
+            hideDateOfBirth: true
+ 
+          }}
+        />        <AgentName formData={formValues} />
         <SellerAddress 
           hideMailingOption={true}
         />        

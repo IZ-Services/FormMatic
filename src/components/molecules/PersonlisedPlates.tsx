@@ -46,20 +46,15 @@ const FormContent = ({ formValues }: { formValues: any }) => {
   const prevActiveOptionRef = useRef<string | null>(null);
   const initialLoadRef = useRef(true);
 
- 
   useEffect(() => {
     setTransactionType("Personalized Plates");
   }, [setTransactionType]);
 
- 
- 
   const [safeFormData, setSafeFormData] = useState<Record<string, any>>({});
 
   useEffect(() => {
     if (formValues) {
- 
       Object.entries(formValues).forEach(([key, value]) => {
- 
         const safeValue = value === undefined ? '' : value;
         updateField(key, safeValue);
         setSafeFormData(prev => ({ ...prev, [key]: safeValue }));
@@ -73,6 +68,9 @@ const FormContent = ({ formValues }: { formValues: any }) => {
   const isReplaceSelected = activeSubOptions['Personalized Plates-Replace'] === true;
   const isReassignSelected = activeSubOptions['Personalized Plates-Reassign/Retain'] === true;
 
+  // Check if any suboption is selected
+  const isAnySubOptionSelected = isOrderSelected || isExchangeSelected || isReplaceSelected || isReassignSelected;
+
   const getCurrentActiveOption = (): string | null => {
     if (isOrderSelected) return 'order';
     if (isExchangeSelected) return 'exchange';
@@ -83,13 +81,11 @@ const FormContent = ({ formValues }: { formValues: any }) => {
 
   const currentActiveOption = getCurrentActiveOption();
 
- 
   useEffect(() => {
     const transactionType = getTransactionType();
     setTransactionType(transactionType);
   }, [isOrderSelected, isExchangeSelected, isReplaceSelected, isReassignSelected, setTransactionType]);
 
- 
   const commonFields = [
     'plateSelection', 
     'plateType'
@@ -143,7 +139,6 @@ const FormContent = ({ formValues }: { formValues: any }) => {
     'reassignmentSection' 
   ];
 
- 
   const clearFieldGroup = (fields: string[]) => {
     const updates: Record<string, string> = {};
     
@@ -151,25 +146,18 @@ const FormContent = ({ formValues }: { formValues: any }) => {
       if (contextFormData[field] !== undefined) {
         console.log(`Clearing field: ${field}`);
         clearField(field);
-        
- 
- 
         updates[field] = '';
       }
     });
     
- 
     if (Object.keys(updates).length > 0) {
       setSafeFormData(prev => ({ ...prev, ...updates }));
     }
   };
 
- 
   const clearAllExceptCurrent = (currentOption: string | null) => {
- 
     const fieldsToPreserve = [...commonFields];
     
- 
     if (currentOption === 'order' || currentOption === 'exchange') {
       fieldsToPreserve.push(...configurationFields);
     }
@@ -182,22 +170,17 @@ const FormContent = ({ formValues }: { formValues: any }) => {
       fieldsToPreserve.push(...reassignmentFields);
     }
     
- 
     const allFields = Object.keys(contextFormData);
     
- 
     const fieldsToClear = allFields.filter(field => 
       !fieldsToPreserve.includes(field) && 
- 
       !field.includes('platePurchaserOwner') &&
       !field.includes('plateSelection')
     );
     
- 
     clearFieldGroup(fieldsToClear);
   };
 
- 
   useEffect(() => {
     if (initialLoadRef.current) {
       initialLoadRef.current = false;
@@ -205,28 +188,21 @@ const FormContent = ({ formValues }: { formValues: any }) => {
       return;
     }
 
- 
     if (currentActiveOption !== prevActiveOptionRef.current) {
       console.log(`Option changed from ${prevActiveOptionRef.current} to ${currentActiveOption}`);
       
- 
       clearAllExceptCurrent(currentActiveOption);
       
- 
-      
- 
       if (prevActiveOptionRef.current === 'reassign' && currentActiveOption !== 'reassign') {
         console.log('Clearing all reassignment fields');
         clearFieldGroup(reassignmentFields);
       }
       
- 
       if (prevActiveOptionRef.current === 'replace' && currentActiveOption !== 'replace') {
         console.log('Clearing all replacement fields');
         clearFieldGroup(replacementFields);
       }
       
- 
       if ((prevActiveOptionRef.current === 'order' || prevActiveOptionRef.current === 'exchange') && 
           currentActiveOption !== 'order' && currentActiveOption !== 'exchange') {
         console.log('Clearing all configuration fields');
@@ -252,8 +228,6 @@ const FormContent = ({ formValues }: { formValues: any }) => {
     return "Personalized Plates";
   };
 
- 
- 
   const safeProps = {
     ...safeFormData,
     ...contextFormData
@@ -264,7 +238,7 @@ const FormContent = ({ formValues }: { formValues: any }) => {
       <TypeContainer />
       
       {isPlatesSelected ? (
-        getCurrentActiveOption() ? (
+        isAnySubOptionSelected ? (
           <>
             {/* Common component for all options */}
             <PlateSelection formData={safeProps} />

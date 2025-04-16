@@ -24,17 +24,56 @@ interface SalvageCertificateProps {
   };
 }
 
-const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propFormData }) => {
-  const [salvageData, setSalvageData] = useState<SalvageCertificateData>(
-    propFormData?.salvageCertificate || {}
-  );
-  const { updateField } = useFormContext();
+const initialSalvageData: SalvageCertificateData = {
+  vehicleLicenseNumber: '',
+  makeOfVehicle: '',
+  year: '',
+  vehicleIdentificationNumber: '',
+  stateOfLastRegistration: '',
+  dateRegistrationExpires: '',
+  claimNumber: '',
+  dateWreckedOrDestroyed: '',
+  dateStolen: '',
+  dateRecovered: '',
+  costOrValue: '',
+  isOriginal: false,
+  isDuplicate: false
+};
 
+const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propFormData }) => {
+  const { formData: contextFormData, updateField } = useFormContext();
+  
+  // Combined form data from both context and props
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
+  
+  const [salvageData, setSalvageData] = useState<SalvageCertificateData>(
+    propFormData?.salvageCertificate || 
+    (contextFormData?.salvageCertificate as SalvageCertificateData) || 
+    initialSalvageData
+  );
+
+  // Initialize form data if not present in context
   useEffect(() => {
-    if (propFormData?.salvageCertificate) {
-      setSalvageData(propFormData.salvageCertificate);
+    if (!contextFormData?.salvageCertificate) {
+      updateField('salvageCertificate', initialSalvageData);
     }
-  }, [propFormData]);
+  }, []);
+
+  // Sync component state with context/props form data
+  useEffect(() => {
+    const currentData = formData?.salvageCertificate;
+    if (currentData) {
+      setSalvageData(currentData as SalvageCertificateData);
+    }
+  }, [formData?.salvageCertificate]);
+  
+  // Log for debugging purposes (optional)
+  useEffect(() => {
+    console.log('Current SalvageCertificate form data:', formData?.salvageCertificate);
+  }, [formData?.salvageCertificate]);
 
   const handleInputChange = (field: keyof SalvageCertificateData, value: string) => {
     const newData = { 
@@ -47,7 +86,8 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({ formData: propF
     updateField('salvageCertificate', newData);
   };
 
-  const handleCheckboxChange = (field: 'isOriginal' | 'isDuplicate') => {    const newData = { 
+  const handleCheckboxChange = (field: 'isOriginal' | 'isDuplicate') => {    
+    const newData = { 
       ...salvageData,
       isOriginal: field === 'isOriginal' ? !salvageData.isOriginal : false,
       isDuplicate: field === 'isDuplicate' ? !salvageData.isDuplicate : false

@@ -77,7 +77,8 @@ export default function DisabledPersonPlacards({ formData, onDataChange }: Disab
         <Seller
           formData={{
             hideDateOfSale: true,
-            forceSingleOwner: true
+            forceSingleOwner: true,
+            hideDateOfBirth: true
  
           }}
         />

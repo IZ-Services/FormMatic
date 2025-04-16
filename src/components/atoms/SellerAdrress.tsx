@@ -29,6 +29,15 @@ interface SellerAddressProps {
   showMailingCounty?: boolean; 
 }
 
+// Form context type with validation properties
+interface FormContextType {
+  formData: Record<string, any>;
+  updateField: (section: string, value: any) => void;
+  clearFormTriggered?: number;
+  validationErrors: Array<{ fieldPath: string; message: string }>;
+  showValidationErrors: boolean;
+}
+
 const initialAddress: Address = {
   street: '',
   apt: '',
@@ -40,7 +49,6 @@ const initialAddress: Address = {
   isOutOfState: false
 };
 
- 
 export const SELLER_ADDRESS_STORAGE_KEY = 'formmatic_seller_address';
 
 const cleanFormData = (data: any): any => {
@@ -69,13 +77,14 @@ const capitalizeWords = (value: string): string => {
   return value.replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
- 
 export const clearSellerAddressStorage = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(SELLER_ADDRESS_STORAGE_KEY);
     console.log('Seller address data cleared from localStorage');
   }
 };
+
+
 
 const SellerAddress: React.FC<SellerAddressProps> = ({ 
   formData: propFormData, 
@@ -88,6 +97,28 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
   const cleanedFormData = cleanFormData(propFormData);
   const { activeScenarios } = useScenarioContext();
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const { 
+    formData: contextFormData, 
+    updateField, 
+    clearFormTriggered,
+    validationErrors,
+    showValidationErrors 
+  } = useFormContext() as FormContextType;
+
+  // Helper functions for validation
+  const shouldShowValidationError = (addressType: string, field: string) => {
+    if (!showValidationErrors) return false;
+    
+    return validationErrors.some(error => 
+      error.fieldPath === `${addressType}.${field}`
+    );
+  };
+  
+  const getValidationErrorMessage = (addressType: string, field: string): string => {
+    const error = validationErrors.find(e => e.fieldPath === `${addressType}.${field}`);
+    return error ? error.message : '';
+  };
 
   const shouldShowOutOfStateCheckbox = () => {
     if (hideOutOfState) {
@@ -115,7 +146,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
   const hideMailingAddress = shouldHideMailingOption();
   const showOutOfStateCheckbox = shouldShowOutOfStateCheckbox();
   
- 
   const defaultAddressData: FormData = {
     sellerMailingAddressDifferent: hideMailingAddress ? false : false,
     sellerAddress: { ...initialAddress },
@@ -123,28 +153,19 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
   };
   
   const [addressData, setAddressData] = useState<FormData>(defaultAddressData);
-  
-  const { formData: contextFormData, updateField, clearFormTriggered } = useFormContext() as {
-    formData: Record<string, any>;
-    updateField: (section: string, value: any) => void;
-    clearFormTriggered?: number; 
-  };
 
- 
   useEffect(() => {
     if (clearFormTriggered) {
       console.log('Clear form triggered in SellerAddress component');
       clearSellerAddressStorage();
       setAddressData(defaultAddressData);
       
- 
       updateField('sellerAddress', { ...initialAddress });
       updateField('sellerMailingAddressDifferent', false);
       updateField('sellerMailingAddress', { ...initialAddress });
     }
   }, [clearFormTriggered]);
 
- 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
@@ -154,21 +175,18 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
           console.log("Loading seller address data from localStorage");
           const parsedData = JSON.parse(savedData);
           
- 
           const mergedData = {
             ...defaultAddressData,
             ...parsedData,
             ...cleanedFormData
           };
           
- 
           if (hideMailingAddress) {
             mergedData.sellerMailingAddressDifferent = false;
           }
           
           setAddressData(mergedData);
           
- 
           updateField('sellerAddress', mergedData.sellerAddress);
           updateField('sellerMailingAddressDifferent', mergedData.sellerMailingAddressDifferent);
           
@@ -180,7 +198,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
             onChange(mergedData);
           }
         } else {
- 
           const mergedData = {
             ...defaultAddressData,
             ...cleanedFormData
@@ -193,7 +210,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
         console.error('Error loading saved seller address:', error);
         setIsInitialized(true);
         
- 
         const mergedData = {
           ...defaultAddressData,
           ...cleanedFormData
@@ -240,7 +256,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
       if (hasChanges) {
         setAddressData(newData);
         
- 
         if (typeof window !== 'undefined') {
           localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
         }
@@ -378,7 +393,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     
     console.log(`Updated ${section} data:`, updatedSection);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
     }
@@ -416,7 +430,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     
     setAddressData(newData);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
     }
@@ -442,7 +455,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     
     setAddressData(newData);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
     }
@@ -454,7 +466,6 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     }
   };
 
- 
   const clearPersistedAddressData = () => {
     clearSellerAddressStorage();
     setAddressData(defaultAddressData);
@@ -493,7 +504,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
         <div className="state-dropdown-wrapper">
           <button
             type="button"
-            className="state-dropdown-button"
+            className={`state-dropdown-button ${shouldShowValidationError(String(addressType), 'state') ? 'validation-error' : ''}`}
             onClick={() => setOpenDropdown(openDropdown === dropdownId ? null : dropdownId)}
           >
             {value || 'STATE'}
@@ -518,6 +529,10 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
                 </div>
               ))}
             </div>
+          )}
+          
+          {shouldShowValidationError(String(addressType), 'state') && (
+            <p className="validation-message">{getValidationErrorMessage(String(addressType), 'state')}</p>
           )}
         </div>
       </div>
@@ -552,6 +567,11 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
 
         .state-dropdown-button:hover {
           border-color: #b8b8b8;
+        }
+        
+        .state-dropdown-button.validation-error {
+          border-color: #dc3545;
+          background-color: #fff8f8;
         }
 
         .state-dropdown-menu {
@@ -630,6 +650,24 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
           font-size: 14px;
           margin: 0;
         }
+        
+        .validation-error {
+          border-color: #dc3545;
+          background-color: #fff8f8;
+        }
+
+        .validation-message {
+          color: #dc3545;
+          font-size: 12px;
+          margin-top: 4px;
+          margin-bottom: 0;
+        }
+        
+        .formInput.validation-error,
+        .cityInputtt.validation-error {
+          border-color: #dc3545;
+          background-color: #fff8f8;
+        }
       `}</style>
 
       <div className="addressWrapper">
@@ -654,45 +692,57 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
           <div className="formGroup streetField">
             <label className="formLabel">Street</label>
             <input
-              className="formInput"
+              className={`formInput ${shouldShowValidationError('sellerAddress', 'street') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Street"
               value={addressData.sellerAddress?.street || ''}
               onChange={(e) => handleAddressChange('sellerAddress', 'street', e.target.value)}
             />
+            {shouldShowValidationError('sellerAddress', 'street') && (
+              <p className="validation-message">{getValidationErrorMessage('sellerAddress', 'street')}</p>
+            )}
           </div>
           <div className="formGroup aptField">
             <label className="formLabel">APT./SPACE/STE.#</label>
             <input
-              className="formInput"
+              className={`formInput ${shouldShowValidationError('sellerAddress', 'apt') ? 'validation-error' : ''}`}
               type="text"
               placeholder="APT./SPACE/STE.#"
               value={addressData.sellerAddress?.apt || ''}
               onChange={(e) => handleAddressChange('sellerAddress', 'apt', e.target.value)}
             />
+            {shouldShowValidationError('sellerAddress', 'apt') && (
+              <p className="validation-message">{getValidationErrorMessage('sellerAddress', 'apt')}</p>
+            )}
           </div>
         </div>
         <div className="cityStateZipGroupp">
           <div className="cityFieldCustomWidth">
             <label className="formLabel">City</label>
             <input
-              className="cityInputtt"
+              className={`cityInputtt ${shouldShowValidationError('sellerAddress', 'city') ? 'validation-error' : ''}`}
               type="text"
               placeholder="City"
               value={addressData.sellerAddress?.city || ''}
               onChange={(e) => handleAddressChange('sellerAddress', 'city', e.target.value)}
             />
+            {shouldShowValidationError('sellerAddress', 'city') && (
+              <p className="validation-message">{getValidationErrorMessage('sellerAddress', 'city')}</p>
+            )}
           </div>
 
           <div className="cityFieldCustomWidth">
             <label className="formLabel">County</label>
             <input
-              className="cityInputtt"
+              className={`cityInputtt ${shouldShowValidationError('sellerAddress', 'county') ? 'validation-error' : ''}`}
               type="text"
               placeholder="County"
               value={addressData.sellerAddress?.county || ''}
               onChange={(e) => handleAddressChange('sellerAddress', 'county', e.target.value)}
             />
+            {shouldShowValidationError('sellerAddress', 'county') && (
+              <p className="validation-message">{getValidationErrorMessage('sellerAddress', 'county')}</p>
+            )}
           </div>
           
           {/* State Dropdown for Seller Address - New implementation */}
@@ -701,12 +751,15 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
           <div className="formGroup zipCodeField">
             <label className="formLabel">ZIP Code</label>
             <input
-              className="formInput"
+              className={`formInput ${shouldShowValidationError('sellerAddress', 'zip') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Zip Code"
               value={addressData.sellerAddress?.zip || ''}
               onChange={(e) => handleAddressChange('sellerAddress', 'zip', e.target.value)}
             />
+            {shouldShowValidationError('sellerAddress', 'zip') && (
+              <p className="validation-message">{getValidationErrorMessage('sellerAddress', 'zip')}</p>
+            )}
           </div>
         </div>
         
@@ -724,73 +777,88 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
       </div>
 
       {/* Mailing Address - only show if checkbox is checked AND mailing option is not hidden */}
-      {!hideMailingAddress && addressData.sellerMailingAddressDifferent && (
-        <div className="addressWrapper">
-          <h3 className="addressHeading">Mailing Address</h3>
-          <div className="streetAptGroup">
-            <div className="formGroup streetField">
-              <label className="formLabel">Street</label>
-              <input
-                className="formInput"
-                type="text"
-                placeholder="Street"
-                value={addressData.sellerMailingAddress?.street || ''}
-                onChange={(e) => handleAddressChange('sellerMailingAddress', 'street', e.target.value)}
-              />
-            </div>
-            <div className="formGroup aptField">
-              <label className="formLabel">APT./SPACE/STE.#</label>
-              <input
-                className="formInput"
-                type="text"
-                placeholder="APT./SPACE/STE.#"
-                value={addressData.sellerMailingAddress?.poBox || ''}
-                onChange={(e) => handleAddressChange('sellerMailingAddress', 'poBox', e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="cityStateZipGroupp">
-            <div className="cityFieldCustomWidth">
-              <label className="formLabel">City</label>
-              <input
-                className="cityInputtt"
-                type="text"
-                placeholder="City"
-                value={addressData.sellerMailingAddress?.city || ''}
-                onChange={(e) => handleAddressChange('sellerMailingAddress', 'city', e.target.value)}
-              />
-            </div>
+{!hideMailingAddress && addressData.sellerMailingAddressDifferent && (
+  <div className="addressWrapper">
+    <h3 className="addressHeading">Mailing Address</h3>
+    <div className="streetAptGroup">
+      <div className="formGroup streetField">
+        <label className="formLabel">Street</label>
+        <input
+          className={`formInput ${shouldShowValidationError('sellerMailingAddress', 'street') ? 'validation-error' : ''}`}
+          type="text"
+          placeholder="Street"
+          value={addressData.sellerMailingAddress?.street || ''}
+          onChange={(e) => handleAddressChange('sellerMailingAddress', 'street', e.target.value)}
+        />
+        {shouldShowValidationError('sellerMailingAddress', 'street') && (
+          <p className="validation-message">{getValidationErrorMessage('sellerMailingAddress', 'street')}</p>
+        )}
+      </div>
+      <div className="formGroup aptField">
+        <label className="formLabel">APT./SPACE/STE.#</label>
+        <input
+          className={`formInput ${shouldShowValidationError('sellerMailingAddress', 'poBox') ? 'validation-error' : ''}`}
+          type="text"
+          placeholder="APT./SPACE/STE.#"
+          value={addressData.sellerMailingAddress?.poBox || ''}
+          onChange={(e) => handleAddressChange('sellerMailingAddress', 'poBox', e.target.value)}
+        />
+        {shouldShowValidationError('sellerMailingAddress', 'poBox') && (
+          <p className="validation-message">{getValidationErrorMessage('sellerMailingAddress', 'poBox')}</p>
+        )}
+      </div>
+    </div>
+    <div className="cityStateZipGroupp">
+      <div className="cityFieldCustomWidth">
+        <label className="formLabel">City</label>
+        <input
+          className={`cityInputtt ${shouldShowValidationError('sellerMailingAddress', 'city') ? 'validation-error' : ''}`}
+          type="text"
+          placeholder="City"
+          value={addressData.sellerMailingAddress?.city || ''}
+          onChange={(e) => handleAddressChange('sellerMailingAddress', 'city', e.target.value)}
+        />
+        {shouldShowValidationError('sellerMailingAddress', 'city') && (
+          <p className="validation-message">{getValidationErrorMessage('sellerMailingAddress', 'city')}</p>
+        )}
+      </div>
 
-            {/* Only show county field in mailing address when showMailingCounty is true */}
-            {showMailingCounty && (
-              <div className="cityFieldCustomWidth">
-                <label className="formLabel">County</label>
-                <input
-                  className="cityInputtt"
-                  type="text"
-                  placeholder="County"
-                  value={addressData.sellerMailingAddress?.county || ''}
-                  onChange={(e) => handleAddressChange('sellerMailingAddress', 'county', e.target.value)}
-                />
-              </div>
-            )}
-
-            {/* State Dropdown for Mailing Address - New implementation */}
-            {renderStateDropdown('sellerMailingAddress', addressData.sellerMailingAddress?.state)}
-            
-            <div className="formGroup zipCodeField">
-              <label className="formLabel">ZIP Code</label>
-              <input
-                className="formInput"
-                type="text"
-                placeholder="ZIP Code"
-                value={addressData.sellerMailingAddress?.zip || ''}
-                onChange={(e) => handleAddressChange('sellerMailingAddress', 'zip', e.target.value)}
-              />
-            </div>
-          </div>
+      {/* Only show county field in mailing address when showMailingCounty is true */}
+      {showMailingCounty && (
+        <div className="cityFieldCustomWidth">
+          <label className="formLabel">County</label>
+          <input
+            className={`cityInputtt ${shouldShowValidationError('sellerMailingAddress', 'county') ? 'validation-error' : ''}`}
+            type="text"
+            placeholder="County"
+            value={addressData.sellerMailingAddress?.county || ''}
+            onChange={(e) => handleAddressChange('sellerMailingAddress', 'county', e.target.value)}
+          />
+          {shouldShowValidationError('sellerMailingAddress', 'county') && (
+            <p className="validation-message">{getValidationErrorMessage('sellerMailingAddress', 'county')}</p>
+          )}
         </div>
       )}
+
+      {/* State Dropdown for Mailing Address - New implementation */}
+      {renderStateDropdown('sellerMailingAddress', addressData.sellerMailingAddress?.state)}
+      
+      <div className="formGroup zipCodeField">
+        <label className="formLabel">ZIP Code</label>
+        <input
+          className={`formInput ${shouldShowValidationError('sellerMailingAddress', 'zip') ? 'validation-error' : ''}`}
+          type="text"
+          placeholder="ZIP Code"
+          value={addressData.sellerMailingAddress?.zip || ''}
+          onChange={(e) => handleAddressChange('sellerMailingAddress', 'zip', e.target.value)}
+        />
+        {shouldShowValidationError('sellerMailingAddress', 'zip') && (
+          <p className="validation-message">{getValidationErrorMessage('sellerMailingAddress', 'zip')}</p>
+        )}
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

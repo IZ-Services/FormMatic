@@ -35,6 +35,8 @@ interface FormData {
 interface FormContext {
   formData: FormData;
   updateField: (field: string, value: any) => void;
+  validationErrors: Array<{ fieldPath: string; message: string }>;
+  showValidationErrors: boolean;
 }
 
 interface SellerSectionProps {
@@ -61,7 +63,13 @@ const initialSellerInfo: SellerInfo = {
 };
 
 const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, onChange }) => {
-  const { formData: contextFormData, updateField } = useFormContext() as FormContext;
+  const { 
+    formData: contextFormData, 
+    updateField,
+    validationErrors,
+    showValidationErrors 
+  } = useFormContext() as FormContext;
+  
   const { activeScenarios } = useScenarioContext();
   const [openDropdown, setOpenDropdown] = useState<{ 
     type: 'count' | 'state', 
@@ -77,14 +85,25 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     ...propFormData
   };
 
+  // Helper functions for validation
+  const shouldShowValidationError = (index: number, field: string) => {
+    if (!showValidationErrors) return false;
+    
+    return validationErrors.some(error => 
+      error.fieldPath === `sellerInfo.sellers[${index}].${field}`
+    );
+  };
+  
+  const getValidationErrorMessage = (index: number, field: string): string => {
+    const error = validationErrors.find(e => e.fieldPath === `sellerInfo.sellers[${index}].${field}`);
+    return error ? error.message : '';
+  };
 
   const shouldForceSingleOwner = () => {
-
     if (formData.forceSingleOwner) {
       return true;
     }
     
-
     return !!(
       activeScenarios && (
         activeScenarios["Salvage"] ||
@@ -97,7 +116,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
   const hideDateOfSale = !!formData.hideDateOfSale || shouldHideDateOfSale();
   const hideDateOfBirth = !!formData.hideDateOfBirth || shouldHideDateOfBirth();
   const limitOwnerCount = !!formData.limitOwnerCount || shouldLimitOwnerCount();
-
 
   useEffect(() => {
     console.log("Force Single Owner in Seller:", forceSingleOwner);
@@ -151,7 +169,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     );
   }
 
-
   const getSellerCountOptions = () => {
     if (forceSingleOwner) {
       return ['1'];
@@ -163,12 +180,10 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
     return ['1', '2', '3'];
   };
 
-
   useEffect(() => {
     if (forceSingleOwner && formData.sellerInfo?.sellerCount !== '1') {
       const newSellerCount = '1';
       
-
       if (formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 1) {
         const newSellers = [formData.sellerInfo.sellers[0]];
         
@@ -184,7 +199,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
           onChange(newSellerInfo);
         }
       } else {
-
         updateField('sellerInfo', {
           ...formData.sellerInfo,
           sellerCount: newSellerCount
@@ -199,7 +213,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
       }
     }
   }, [forceSingleOwner, formData.sellerInfo?.sellerCount]);
-
 
   useEffect(() => {
     if (limitOwnerCount && formData.sellerInfo?.sellerCount === '3') {
@@ -427,7 +440,6 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
   };
 
   const handleCountChange = (count: string) => {
-
     if (forceSingleOwner) {
       count = '1';
     } else if (limitOwnerCount && count === '3') {
@@ -499,7 +511,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
           <div className="sellerFormItem">
             <label className="sellerLabel">First Name</label>
             <input
-              className="sellerInput"
+              className={`sellerInput ${shouldShowValidationError(index, 'firstName') ? 'validation-error' : ''}`}
               type="text"
               placeholder="First Name"
               value={formData.sellerInfo?.sellers?.[index]?.firstName || ''}
@@ -509,11 +521,14 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
                 handleSellerChange(index, 'firstName', capitalizedValue);
               }}
             />
+            {shouldShowValidationError(index, 'firstName') && (
+              <p className="validation-message">{getValidationErrorMessage(index, 'firstName')}</p>
+            )}
           </div>
           <div className="sellerFormItem">
             <label className="sellerLabel">Middle Name</label>
             <input
-              className="sellerInput"
+              className={`sellerInput ${shouldShowValidationError(index, 'middleName') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Middle Name"
               value={formData.sellerInfo?.sellers?.[index]?.middleName || ''}
@@ -523,11 +538,14 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
                 handleSellerChange(index, 'middleName', capitalizedValue);
               }}
             />
+            {shouldShowValidationError(index, 'middleName') && (
+              <p className="validation-message">{getValidationErrorMessage(index, 'middleName')}</p>
+            )}
           </div>
           <div className="sellerFormItem">
             <label className="sellerLabel">Last Name</label>
             <input
-              className="sellerInput"
+              className={`sellerInput ${shouldShowValidationError(index, 'lastName') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Last Name"
               value={formData.sellerInfo?.sellers?.[index]?.lastName || ''}
@@ -537,6 +555,9 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
                 handleSellerChange(index, 'lastName',capitalizedValue);
               }}
             />
+            {shouldShowValidationError(index, 'lastName') && (
+              <p className="validation-message">{getValidationErrorMessage(index, 'lastName')}</p>
+            )}
           </div>
         </div>
 
@@ -544,14 +565,13 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
           <div className="driverLicenseField">
             <label className="formLabel">Driver License Number</label>
             <input
-              className="formInput"
+              className={`formInput ${shouldShowValidationError(index, 'licenseNumber') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Driver License Number"
               value={formData.sellerInfo?.sellers?.[index]?.licenseNumber || ''}
               onChange={(e) =>{ 
                 const value = e.target.value;
                 if (/^[a-zA-Z0-9]*$/.test(value)) {
-
                   handleSellerChange(index, 'licenseNumber', value.toUpperCase());
                 }
               }}
@@ -559,10 +579,13 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
               inputMode="numeric"
               pattern="\d{8}"
             />
-            {formData.sellerInfo?.sellers?.[index]?.licenseNumber && formData.sellerInfo?.sellers?.[index]?.licenseNumber.length < 8 && (
-              <p className="validation-message" style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px' }}>
-                License number must be 8 digits
-              </p>
+            {shouldShowValidationError(index, 'licenseNumber') ? (
+              <p className="validation-message">{getValidationErrorMessage(index, 'licenseNumber')}</p>
+            ) : (
+              formData.sellerInfo?.sellers?.[index]?.licenseNumber && 
+              formData.sellerInfo?.sellers?.[index]?.licenseNumber.length < 8 && (
+                <p className="validation-message">License number must be 8 digits</p>
+              )
             )}
           </div>
 
@@ -570,7 +593,9 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
             <label className="registeredOwnerLabel">State</label>
             <button
               onClick={() => setOpenDropdown({ type: 'state', index })}
-              className={`regStateDropDown state-dropdown-button-${index}`}
+              className={`regStateDropDown state-dropdown-button-${index} ${
+                shouldShowValidationError(index, 'state') ? 'validation-error' : ''
+              }`}
             >
               {formData.sellerInfo?.sellers?.[index]?.state || 'State'}
               <ChevronDownIcon
@@ -595,6 +620,9 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
                 ))}
               </ul>
             )}
+            {shouldShowValidationError(index, 'state') && (
+              <p className="validation-message">{getValidationErrorMessage(index, 'state')}</p>
+            )}
           </div>
           
           {/* Only show Date of Birth field if not hidden */}
@@ -602,17 +630,19 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
             <div className="sellerFormItem">
               <label className="sellerLabel">Date of Birth</label>
               <input
-                className="sellerInput"
+                className={`sellerInput ${shouldShowValidationError(index, 'dob') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="MM/DD/YYYY"
                 value={formData.sellerInfo?.sellers?.[index]?.dob || ''}
                 onChange={(e) => handleSellerChange(index, 'dob', e.target.value)}
               />
-              {formData.sellerInfo?.sellers?.[index]?.dob && 
+              {shouldShowValidationError(index, 'dob') ? (
+                <p className="validation-message">{getValidationErrorMessage(index, 'dob')}</p>
+              ) : (
+                formData.sellerInfo?.sellers?.[index]?.dob && 
                 !validateDateFormat(formData.sellerInfo?.sellers?.[index]?.dob || '') && (
-                <p className="validation-message" style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px' }}>
-                  Please use MM/DD/YYYY format
-                </p>
+                  <p className="validation-message">Please use MM/DD/YYYY format</p>
+                )
               )}
             </div>
           )}
@@ -622,7 +652,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
           <div className="sellerThirdItem">
             <label className="sellerLabel">Phone Number</label>
             <input
-              className="sellerNumberInput"
+              className={`sellerNumberInput ${shouldShowValidationError(index, 'phone') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Phone Number"
               value={formData.sellerInfo?.sellers?.[index]?.phone || ''}
@@ -635,6 +665,14 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
               maxLength={10}
               inputMode="numeric"
             />
+            {shouldShowValidationError(index, 'phone') ? (
+              <p className="validation-message">{getValidationErrorMessage(index, 'phone')}</p>
+            ) : (
+              formData.sellerInfo?.sellers?.[index]?.phone && 
+              formData.sellerInfo?.sellers?.[index]?.phone.length < 10 && (
+                <p className="validation-message">Phone number must be 10 digits</p>
+              )
+            )}
           </div>
           
           {/* Only show the Date of Sale field if not hidden */}
@@ -642,17 +680,19 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
             <div className="sellerThirdItem">
               <label className="sellerLabel">Date of Sale</label>
               <input
-                className="sellerDateInput"
+                className={`sellerDateInput ${shouldShowValidationError(index, 'saleDate') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="MM/DD/YYYY"
                 value={formData.sellerInfo?.sellers?.[index]?.saleDate || ''}
                 onChange={(e) => handleSellerChange(index, 'saleDate', e.target.value)}
               />
-              {formData.sellerInfo?.sellers?.[index]?.saleDate && 
+              {shouldShowValidationError(index, 'saleDate') ? (
+                <p className="validation-message">{getValidationErrorMessage(index, 'saleDate')}</p>
+              ) : (
+                formData.sellerInfo?.sellers?.[index]?.saleDate && 
                 !validateDateFormat(formData.sellerInfo?.sellers?.[index]?.saleDate || '') && (
-                <p className="validation-message" style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px' }}>
-                  Please use MM/DD/YYYY format
-                </p>
+                  <p className="validation-message">Please use MM/DD/YYYY format</p>
+                )
               )}
             </div>
           )}
@@ -663,6 +703,24 @@ const SellerSection: React.FC<SellerSectionProps> = ({ formData: propFormData, o
 
   return (
     <div className="seller-section">
+      <style>{`
+        .validation-error {
+          border-color: #dc3545 !important;
+          background-color: #fff8f8 !important;
+        }
+
+        .validation-message {
+          color: #dc3545;
+          font-size: 12px;
+          margin-top: 4px;
+          margin-bottom: 0;
+        }
+        
+        .regStateDropDown.validation-error {
+          border-color: #dc3545 !important;
+          background-color: #fff8f8 !important;
+        }
+      `}</style>
       <div className="sellerHeader">
         <h3 className="sellerHeading">Registered Owner(s)</h3>
         {/* Hide dropdown completely if forcing single owner */}

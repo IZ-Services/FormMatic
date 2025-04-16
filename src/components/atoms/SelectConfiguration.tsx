@@ -103,18 +103,29 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
     handleChange('locationCity', capitalizedValue);
   };
 
-
   const handlePlateTypeChange = (type: 'Sequential' | 'Personalized') => {
     const currentPlateType = (formData.selectConfiguration as SelectConfigurationType)?.plateType;
     
-
     if (currentPlateType === type) {
-
       handleChange('plateType', undefined);
     } else {
-
       handleChange('plateType', type);
     }
+  };
+
+  // Style constants for plate inputs
+  const plateInputStyle = {
+    width: '220px', // Fixed width instead of 100%
+    padding: '8px',
+    textAlign: 'center' as const,
+    fontWeight: 'bold' as const,
+    fontSize: '16px',
+    letterSpacing: '2px',
+    textTransform: 'uppercase' as const,
+    display: 'block', // Ensure it's a block element for margin auto to work
+    border: '2px solid #ccc',
+    borderRadius: '4px',
+    boxSizing: 'border-box' as const,
   };
 
   return (
@@ -164,18 +175,18 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
                 <h4 className="sequentialTitle">Sequential plates will be assigned to:</h4>
                 <div className="sequentialInputs">
                 <div className="sequentialInput">
-  <label className="sequentialLabel">CURRENT LICENSE PLATE NUMBER</label>
-  <input
-    type="text"
-    className="textInput uppercase-input" 
-    value={(formData.selectConfiguration as SelectConfigurationType)?.currentLicensePlate || ''}
-    onChange={(e) => {
-      const value = e.target.value.slice(0, 7);
-      handleChange('currentLicensePlate', value);
-    }}
-    maxLength={7} 
-  />
-</div>
+                  <label className="sequentialLabel">CURRENT LICENSE PLATE NUMBER</label>
+                  <input
+                    type="text"
+                    className="textInput uppercase-input" 
+                    value={(formData.selectConfiguration as SelectConfigurationType)?.currentLicensePlate || ''}
+                    onChange={(e) => {
+                      const value = e.target.value.slice(0, 7);
+                      handleChange('currentLicensePlate', value);
+                    }}
+                    maxLength={7} 
+                  />
+                </div>
                   <div className="sequentialInput">
                     <label className="sequentialLabel">FULL VEHICLE IDENTIFICATION NUMBER</label>
                     <input
@@ -212,7 +223,6 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
             <p className="personalizedWarning">
               Your application will not be accepted if the MEANING of the plate is not entered, even if it appears obvious, OR if the plate configuration is unacceptable.
             </p>
-            
             
             <div className="centeringOption">
               <label className="centeringLabel">
@@ -257,24 +267,20 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
             </div>
             
             <div className="choicesSection">
+              {/* First Choice - Fixed width text input */}
               <div className="choiceColumn">
                 <h5 className="choiceTitle">First Choice</h5>
-                <p className="boxNote">8th box shown only to allow for spacing</p>
+                <p className="boxNote">Maximum 8 characters</p>
                 <div className="plateBoxes">
-                  {[...Array(8)].map((_, i) => (
-                    <input
-                      key={`first-${i}`}
-                      type="text"
-                      maxLength={1}
-                      className="plateBox"
-                      value={(formData.selectConfiguration as SelectConfigurationType)?.personalized?.firstChoice?.charAt(i) || ''}
-                      onChange={(e) => {
-                        const currentVal = (formData.selectConfiguration as SelectConfigurationType)?.personalized?.firstChoice || '';
-                        const newVal = currentVal.substring(0, i) + e.target.value + currentVal.substring(i + 1);
-                        handlePersonalizedChange('firstChoice', newVal);
-                      }}
-                    />
-                  ))}
+                  <input
+                    type="text"
+                    maxLength={8}
+                    className="textInput"
+                    style={plateInputStyle}
+                    value={(formData.selectConfiguration as SelectConfigurationType)?.personalized?.firstChoice || ''}
+                    onChange={(e) => handlePersonalizedChange('firstChoice', e.target.value.toUpperCase())}
+                    placeholder="PLATE1"
+                  />
                 </div>
                 <div className="meaningSection">
                   <label className="meaningLabel">
@@ -289,24 +295,20 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
                 </div>
               </div>
               
+              {/* Second Choice - Fixed width text input */}
               <div className="choiceColumn">
                 <h5 className="choiceTitle">Second Choice</h5>
-                <p className="boxNote">8th box shown only to allow for spacing</p>
+                <p className="boxNote">Maximum 8 characters</p>
                 <div className="plateBoxes">
-                  {[...Array(8)].map((_, i) => (
-                    <input
-                      key={`second-${i}`}
-                      type="text"
-                      maxLength={1}
-                      className="plateBox"
-                      value={(formData.selectConfiguration as SelectConfigurationType)?.personalized?.secondChoice?.charAt(i) || ''}
-                      onChange={(e) => {
-                        const currentVal = (formData.selectConfiguration as SelectConfigurationType)?.personalized?.secondChoice || '';
-                        const newVal = currentVal.substring(0, i) + e.target.value + currentVal.substring(i + 1);
-                        handlePersonalizedChange('secondChoice', newVal);
-                      }}
-                    />
-                  ))}
+                  <input
+                    type="text"
+                    maxLength={8}
+                    className="textInput"
+                    style={plateInputStyle}
+                    value={(formData.selectConfiguration as SelectConfigurationType)?.personalized?.secondChoice || ''}
+                    onChange={(e) => handlePersonalizedChange('secondChoice', e.target.value.toUpperCase())}
+                    placeholder="PLATE2"
+                  />
                 </div>
                 <div className="meaningSection">
                   <label className="meaningLabel">
@@ -321,24 +323,20 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
                 </div>
               </div>
               
+              {/* Third Choice - Fixed width text input */}
               <div className="choiceColumn">
                 <h5 className="choiceTitle">Third Choice</h5>
-                <p className="boxNote">8th box shown only to allow for spacing</p>
+                <p className="boxNote">Maximum 8 characters</p>
                 <div className="plateBoxes">
-                  {[...Array(8)].map((_, i) => (
-                    <input
-                      key={`third-${i}`}
-                      type="text"
-                      maxLength={1}
-                      className="plateBox"
-                      value={(formData.selectConfiguration as SelectConfigurationType)?.personalized?.thirdChoice?.charAt(i) || ''}
-                      onChange={(e) => {
-                        const currentVal = (formData.selectConfiguration as SelectConfigurationType)?.personalized?.thirdChoice || '';
-                        const newVal = currentVal.substring(0, i) + e.target.value + currentVal.substring(i + 1);
-                        handlePersonalizedChange('thirdChoice', newVal);
-                      }}
-                    />
-                  ))}
+                  <input
+                    type="text"
+                    maxLength={8}
+                    className="textInput"
+                    style={plateInputStyle}
+                    value={(formData.selectConfiguration as SelectConfigurationType)?.personalized?.thirdChoice || ''}
+                    onChange={(e) => handlePersonalizedChange('thirdChoice', e.target.value.toUpperCase())}
+                    placeholder="PLATE3"
+                  />
                 </div>
                 <div className="meaningSection">
                   <label className="meaningLabel">
@@ -353,16 +351,12 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
                 </div>
               </div>
             </div>
-            
-            
           </div>
         )}
         
         {/* Pickup location section moved outside personalized conditional block */}
         {(formData.selectConfiguration as SelectConfigurationType)?.plateType && (
           <div className="pickupSection">
-            
-            
             <div className="pickupOptions">
               {pickupLocations.map((location) => (
                 <label key={location} className="pickupLabel">

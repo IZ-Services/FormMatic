@@ -17,6 +17,11 @@ interface ItemRequestedData {
   otherExplanation?: string;
 }
 
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
 interface ItemRequestedProps {
   formData?: {
     itemRequested?: ItemRequestedData;
@@ -24,12 +29,14 @@ interface ItemRequestedProps {
   };
   onChange?: (data: ItemRequestedData) => void;
   isDuplicateRegistrationMode?: boolean;
+  showValidationErrors?: boolean;
 }
 
 const ItemRequested: React.FC<ItemRequestedProps> = ({ 
   formData: propFormData, 
   onChange,
-  isDuplicateRegistrationMode = false
+  isDuplicateRegistrationMode = false,
+  showValidationErrors = false
 }) => {
   const { formData: contextFormData, updateField } = useFormContext() as {
     formData: Record<string, any>;
@@ -75,6 +82,8 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
     ...initialData,
     ...combinedFormData?.itemRequested
   });
+  
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
   useEffect(() => {
     if (combinedFormData?.itemRequested) {
@@ -84,7 +93,6 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
       }));
     }
   }, [combinedFormData?.itemRequested]);
-
 
   useEffect(() => {
     if (isDuplicateRegistrationMode) {
@@ -103,34 +111,85 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
     }
   }, [isDuplicateRegistrationMode]);
 
-  const handleCheckboxChange = (field: keyof ItemRequestedData) => {
+  // Validation function
+  const validateItemRequested = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Only validate if not in duplicate registration mode
+    if (!isDuplicateRegistrationMode) {
+      // Check if at least one option is selected
+      const hasSelection = 
+        itemData.lost || 
+        itemData.stolen || 
+        itemData.destroyedMutilated || 
+        itemData.notReceivedFromDMV || 
+        itemData.notReceivedFromPriorOwner || 
+        itemData.surrendered || 
+        itemData.specialPlatesRetained || 
+        itemData.requestingRegistrationCard || 
+        itemData.perCVC4467 || 
+        itemData.other;
+      
+      if (!hasSelection) {
+        errors.push({
+          field: 'general',
+          message: 'At least one reason must be selected'
+        });
+      }
+      
+      // Validate "Other" explanation
+      if (itemData.other && !itemData.otherExplanation) {
+        errors.push({
+          field: 'otherExplanation',
+          message: 'Explanation is required when "Other" is selected'
+        });
+      }
+      
+      // Validate "Surrendered" plates number
+      if (itemData.surrendered && !itemData.numberOfPlatesSurrendered) {
+        errors.push({
+          field: 'numberOfPlatesSurrendered',
+          message: 'Number of plates surrendered is required'
+        });
+      }
+    }
+    
+    return errors;
+  };
 
+  // Run validation when showing validation errors or when data changes
+  useEffect(() => {
+    if (showValidationErrors) {
+      const errors = validateItemRequested();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      updateField('_validationErrors', {
+        ...contextFormData._validationErrors,
+        itemRequested: errors.length > 0
+      });
+    }
+  }, [showValidationErrors, itemData]);
+
+  const handleCheckboxChange = (field: keyof ItemRequestedData) => {
     if (isDuplicateRegistrationMode) return;
 
     const newData = { ...itemData };
     
-
     if (field === 'lost' || field === 'stolen' || field === 'destroyedMutilated') {
-
       newData.lost = false;
       newData.stolen = false;
       newData.destroyedMutilated = false;
-
       newData[field] = !itemData[field];
     } 
-
     else if (field === 'notReceivedFromDMV' || field === 'notReceivedFromPriorOwner') {
-
       newData.notReceivedFromDMV = false;
       newData.notReceivedFromPriorOwner = false;
-
       newData[field] = !itemData[field];
     }
-
     else {
       newData[field] = !itemData[field] as any;
     }
-
 
     if (field === 'surrendered' && !newData.surrendered) {
       newData.numberOfPlatesSurrendered = '';
@@ -143,12 +202,22 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
     } else {
       updateField('itemRequested', newData);
     }
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateItemRequested();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      updateField('_validationErrors', {
+        ...contextFormData._validationErrors,
+        itemRequested: errors.length > 0
+      });
+    }
   };
 
   const handlePlatesNumberChange = (value: 'One' | 'Two') => {
-
     if (isDuplicateRegistrationMode) return;
-
 
     const newValue: 'One' | 'Two' | '' = itemData.numberOfPlatesSurrendered === value ? '' : value;
     
@@ -164,10 +233,21 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
     } else {
       updateField('itemRequested', newData);
     }
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateItemRequested();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      updateField('_validationErrors', {
+        ...contextFormData._validationErrors,
+        itemRequested: errors.length > 0
+      });
+    }
   };
 
   const handleOtherExplanationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
     if (isDuplicateRegistrationMode) return;
 
     const newData = {
@@ -182,6 +262,24 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
     } else {
       updateField('itemRequested', newData);
     }
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateItemRequested();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      updateField('_validationErrors', {
+        ...contextFormData._validationErrors,
+        itemRequested: errors.length > 0
+      });
+    }
+  };
+
+  // Helper to get error message for a field
+  const getErrorMessage = (field: string): string | null => {
+    const error = validationErrors.find(err => err.field === field);
+    return error ? error.message : null;
   };
 
   return (
@@ -190,6 +288,12 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
         <h3 className="section-heading">THE ITEM REQUESTED WAS</h3>
         <span className="section-subheading">(Check appropriate box(es))</span>
       </div>
+
+      {showValidationErrors && getErrorMessage('general') && (
+        <div className="validation-errorr">
+          {getErrorMessage('general')}
+        </div>
+      )}
 
       <div className="checkbox-grid">
         {/* Group 1: Lost, Stolen, Destroyed/Mutilated - Mutually exclusive */}
@@ -281,6 +385,12 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
                   />
                   <span>Two</span>
                 </label>
+                
+                {showValidationErrors && getErrorMessage('numberOfPlatesSurrendered') && (
+                  <div className="validation-errorr">
+                    {getErrorMessage('numberOfPlatesSurrendered')}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -335,15 +445,23 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
             </label>
             
             {(itemData.other || isDuplicateRegistrationMode) && (
-              <input
-                type="text"
-                className="other-explanation"
-                value={itemData.otherExplanation || ''}
-                onChange={handleOtherExplanationChange}
-                placeholder="Enter explanation"
-                disabled={isDuplicateRegistrationMode}
-                readOnly={isDuplicateRegistrationMode}
-              />
+              <div className="other-explanation-container">
+                <input
+                  type="text"
+                  className={`other-explanation ${showValidationErrors && getErrorMessage('otherExplanation') ? 'error' : ''}`}
+                  value={itemData.otherExplanation || ''}
+                  onChange={handleOtherExplanationChange}
+                  placeholder="Enter explanation"
+                  disabled={isDuplicateRegistrationMode}
+                  readOnly={isDuplicateRegistrationMode}
+                />
+                
+                {showValidationErrors && getErrorMessage('otherExplanation') && (
+                  <div className="validation-errorr">
+                    {getErrorMessage('otherExplanation')}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

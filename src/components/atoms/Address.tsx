@@ -65,6 +65,11 @@ const inlineCheckboxStyles = `
   border-color: #b8b8b8;
 }
 
+.state-dropdown-button.validation-error {
+  border-color: #dc3545;
+  background-color: #fff8f8;
+}
+
 .state-dropdown-menu {
   position: absolute;
   top: 100%;
@@ -131,6 +136,24 @@ const inlineCheckboxStyles = `
   font-weight: 400;
   color: #333;
 }
+
+.validation-error {
+  border-color: #dc3545;
+  background-color: #fff8f8;
+}
+
+.validation-message {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+.formInput.validation-error,
+.cityInputtt.validation-error {
+  border-color: #dc3545;
+  background-color: #fff8f8;
+}
 `;
 
 interface AddressData {
@@ -158,6 +181,9 @@ interface FormContextType {
   formData: Record<string, any>;
   updateField: (field: string, value: any) => void;
   clearFormTriggered?: number | null;
+  // Validation properties
+  validationErrors: Array<{ fieldPath: string; message: string }>;
+  showValidationErrors: boolean;
 }
 
 interface AddressProps {
@@ -202,10 +228,8 @@ const emptyAddress: AddressData = {
   county: ''
 };
 
- 
 export const ADDRESS_STORAGE_KEY = 'formmatic_address_data';
 
- 
 export const clearAddressStorage = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(ADDRESS_STORAGE_KEY);
@@ -216,7 +240,6 @@ export const clearAddressStorage = () => {
 const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isMultipleTransfer = false }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   
- 
   const defaultAddressData: FormData = {
     mailingAddressDifferent: false,
     lesseeAddressDifferent: false,
@@ -229,7 +252,13 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
   
   const [addressData, setAddressData] = useState<FormData>(defaultAddressData);
 
-  const { updateField, clearFormTriggered } = useFormContext() as FormContextType;
+  const { 
+    updateField, 
+    clearFormTriggered, 
+    validationErrors, 
+    showValidationErrors 
+  } = useFormContext() as FormContextType;
+  
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRefs = {
     address: useRef<HTMLDivElement>(null),
@@ -238,14 +267,26 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     trailerLocation: useRef<HTMLDivElement>(null),
   };
   
- 
+  // Helper functions for validation
+  const shouldShowValidationError = (addressType: string, field: string) => {
+    if (!showValidationErrors) return false;
+    
+    return validationErrors.some(error => 
+      error.fieldPath === `${addressType}.${field}`
+    );
+  };
+  
+  const getValidationErrorMessage = (addressType: string, field: string): string => {
+    const error = validationErrors.find(e => e.fieldPath === `${addressType}.${field}`);
+    return error ? error.message : '';
+  };
+  
   useEffect(() => {
     if (clearFormTriggered) {
       console.log('Clear form triggered in Address component');
       clearAddressStorage();
       setAddressData(defaultAddressData);
       
- 
       updateField('address', { ...initialAddressData });
       updateField('mailingAddressDifferent', false);
       updateField('lesseeAddressDifferent', false);
@@ -256,7 +297,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     }
   }, [clearFormTriggered]);
   
- 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
@@ -266,7 +306,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
           console.log("Loading address data from localStorage");
           const parsedData = JSON.parse(savedData);
           
- 
           const mergedData = {
             ...defaultAddressData,
             ...parsedData,
@@ -275,7 +314,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
           
           setAddressData(mergedData);
           
- 
           updateField('address', mergedData.address);
           updateField('mailingAddressDifferent', !!mergedData.mailingAddressDifferent);
           updateField('lesseeAddressDifferent', !!mergedData.lesseeAddressDifferent);
@@ -297,7 +335,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             onChange(mergedData);
           }
         } else {
- 
           const mergedData = {
             ...defaultAddressData,
             ...propFormData
@@ -310,7 +347,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
         console.error('Error loading saved address data:', error);
         setIsInitialized(true);
         
- 
         const mergedData = {
           ...defaultAddressData,
           ...propFormData
@@ -366,7 +402,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
       if (hasChanges) {
         setAddressData(newData);
         
- 
         if (typeof window !== 'undefined') {
           localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(newData));
         }
@@ -374,10 +409,8 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     }
   }, [propFormData, isInitialized]);
 
- 
   useEffect(() => {
     if (isInitialized && !onChange) {
- 
       if (addressData.address && typeof addressData.address === 'object') {
         updateField('address', addressData.address);
       }
@@ -442,7 +475,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     console.log(`Updating ${section}.${field} to:`, value);
     console.log("New section data:", updatedSection);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(newData));
     }
@@ -502,7 +534,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     
     setAddressData(newData);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(newData));
     }
@@ -572,7 +603,6 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     { name: 'Wyoming', abbreviation: 'WY' },
   ];
 
-
   type AddressTypeMap = {
     [K in keyof FormData]?: keyof typeof dropdownRefs;
   };
@@ -583,6 +613,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     lesseeAddress: 'lesseeAddress',
     trailerLocation: 'trailerLocation'
   };
+  
   const renderStateDropdown = (addressType: keyof FormData, value: string | undefined) => {
     const dropdownId = String(addressType);
     const refKey = addressTypeToRefKey[addressType];
@@ -593,7 +624,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
         <div className="state-dropdown-wrapper">
           <button
             type="button"
-            className="state-dropdown-button"
+            className={`state-dropdown-button ${shouldShowValidationError(String(addressType), 'state') ? 'validation-error' : ''}`}
             onClick={() => setOpenDropdown(openDropdown === dropdownId ? null : dropdownId)}
           >
             {value || 'STATE'}
@@ -615,6 +646,10 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
                 </div>
               ))}
             </div>
+          )}
+          
+          {shouldShowValidationError(String(addressType), 'state') && (
+            <p className="validation-message">{getValidationErrorMessage(String(addressType), 'state')}</p>
           )}
         </div>
       </div>
@@ -706,34 +741,43 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
           <div className="formGroup streetField">
             <label className="formLabel">Street</label>
             <input
-              className="formInput"
+              className={`formInput ${shouldShowValidationError('address', 'street') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Street"
               value={addressData.address?.street || ''}
               onChange={(e) => handleAddressChange('address', 'street', e.target.value)}
             />
+            {shouldShowValidationError('address', 'street') && (
+              <p className="validation-message">{getValidationErrorMessage('address', 'street')}</p>
+            )}
           </div>
           <div className="formGroup aptField">
             <label className="formLabel">APT./SPACE/STE.#</label>
             <input
-              className="formInput"
+              className={`formInput ${shouldShowValidationError('address', 'apt') ? 'validation-error' : ''}`}
               type="text"
               placeholder="APT./SPACE/STE.#"
               value={addressData.address?.apt || ''}
               onChange={(e) => handleAddressChange('address', 'apt', e.target.value)}
             />
+            {shouldShowValidationError('address', 'apt') && (
+              <p className="validation-message">{getValidationErrorMessage('address', 'apt')}</p>
+            )}
           </div>
         </div>
         <div className="city-state-zip-group">
           <div className="cityFieldCustomWidth">
             <label className="formLabel">City</label>
             <input
-              className="cityInputtt"
+              className={`cityInputtt ${shouldShowValidationError('address', 'city') ? 'validation-error' : ''}`}
               type="text"
               placeholder="City"
               value={addressData.address?.city || ''}
               onChange={(e) => handleAddressChange('address', 'city', e.target.value)}
             />
+            {shouldShowValidationError('address', 'city') && (
+              <p className="validation-message">{getValidationErrorMessage('address', 'city')}</p>
+            )}
           </div>
           
           {/* State Dropdown for Main Address */}
@@ -742,25 +786,31 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
           <div className="formGroup zipCodeField">
             <label className="formLabel">ZIP Code</label>
             <input
-              className="formInput"
+              className={`formInput ${shouldShowValidationError('address', 'zip') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Zip Code"
               value={addressData.address?.zip || ''}
               onChange={(e) => handleAddressChange('address', 'zip', e.target.value)}
             />
+            {shouldShowValidationError('address', 'zip') && (
+              <p className="validation-message">{getValidationErrorMessage('address', 'zip')}</p>
+            )}
           </div>
           
         </div>
         <div className="countyField">
-  <label className="formLabel">County</label>
-  <input
-    className="cityInputtt"
-    type="text"
-    placeholder="County"
-    value={addressData.address?.county || ''}
-    onChange={(e) => handleAddressChange('address', 'county', e.target.value)}
-  />
-</div>
+          <label className="formLabel">County</label>
+          <input
+            className={`cityInputtt ${shouldShowValidationError('address', 'county') ? 'validation-error' : ''}`}
+            type="text"
+            placeholder="County"
+            value={addressData.address?.county || ''}
+            onChange={(e) => handleAddressChange('address', 'county', e.target.value)}
+          />
+          {shouldShowValidationError('address', 'county') && (
+            <p className="validation-message">{getValidationErrorMessage('address', 'county')}</p>
+          )}
+        </div>
 
       </div>
 
@@ -771,34 +821,43 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup streetField">
               <label className="formLabel">Street</label>
               <input
-                className="formInput"
+                className={`formInput ${shouldShowValidationError('mailingAddress', 'street') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="Street"
                 value={addressData.mailingAddress?.street || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'street', e.target.value)}
               />
+              {shouldShowValidationError('mailingAddress', 'street') && (
+                <p className="validation-message">{getValidationErrorMessage('mailingAddress', 'street')}</p>
+              )}
             </div>
             <div className="formGroup aptField">
               <label className="formLabel">APT./SPACE/STE.#</label>
               <input
-                className="formInput"
+                className={`formInput ${shouldShowValidationError('mailingAddress', 'poBox') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="APT./SPACE/STE.#"
                 value={addressData.mailingAddress?.poBox || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'poBox', e.target.value)}
               />
+              {shouldShowValidationError('mailingAddress', 'poBox') && (
+                <p className="validation-message">{getValidationErrorMessage('mailingAddress', 'poBox')}</p>
+              )}
             </div>
           </div>
           <div className="city-state-zip-group">
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
-                className="cityInputtt"
+                className={`cityInputtt ${shouldShowValidationError('mailingAddress', 'city') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="City"
                 value={addressData.mailingAddress?.city || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'city', e.target.value)}
               />
+              {shouldShowValidationError('mailingAddress', 'city') && (
+                <p className="validation-message">{getValidationErrorMessage('mailingAddress', 'city')}</p>
+              )}
             </div>
             
             {renderStateDropdown('mailingAddress', addressData.mailingAddress?.state)}
@@ -806,12 +865,15 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
-                className="formInput"
+                className={`formInput ${shouldShowValidationError('mailingAddress', 'zip') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="ZIP Code"
                 value={addressData.mailingAddress?.zip || ''}
                 onChange={(e) => handleAddressChange('mailingAddress', 'zip', e.target.value)}
               />
+              {shouldShowValidationError('mailingAddress', 'zip') && (
+                <p className="validation-message">{getValidationErrorMessage('mailingAddress', 'zip')}</p>
+              )}
             </div>
           </div>
         </div>
@@ -825,34 +887,43 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup streetField">
               <label className="formLabel">Street</label>
               <input
-                className="formInput"
+                className={`formInput ${shouldShowValidationError('lesseeAddress', 'street') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="Street"
                 value={addressData.lesseeAddress?.street || ''}
                 onChange={(e) => handleAddressChange('lesseeAddress', 'street', e.target.value)}
               />
+              {shouldShowValidationError('lesseeAddress', 'street') && (
+                <p className="validation-message">{getValidationErrorMessage('lesseeAddress', 'street')}</p>
+              )}
             </div>
             <div className="formGroup aptField">
               <label className="formLabel">APT./SPACE/STE.#</label>
               <input
-                className="formInput"
+                className={`formInput ${shouldShowValidationError('lesseeAddress', 'apt') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="APT./SPACE/STE.#"
                 value={addressData.lesseeAddress?.apt || ''}
                 onChange={(e) => handleAddressChange('lesseeAddress', 'apt', e.target.value)}
               />
+              {shouldShowValidationError('lesseeAddress', 'apt') && (
+                <p className="validation-message">{getValidationErrorMessage('lesseeAddress', 'apt')}</p>
+              )}
             </div>
           </div>
           <div className="city-state-zip-group">
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
-                className="cityInputtt"
+                className={`cityInputtt ${shouldShowValidationError('lesseeAddress', 'city') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="City"
                 value={addressData.lesseeAddress?.city || ''}
                 onChange={(e) => handleAddressChange('lesseeAddress', 'city', e.target.value)}
               />
+              {shouldShowValidationError('lesseeAddress', 'city') && (
+                <p className="validation-message">{getValidationErrorMessage('lesseeAddress', 'city')}</p>
+              )}
             </div>
             
             {renderStateDropdown('lesseeAddress', addressData.lesseeAddress?.state)}
@@ -860,12 +931,15 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
-                className="formInput"
+                className={`formInput ${shouldShowValidationError('lesseeAddress', 'zip') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="ZIP Code"
                 value={addressData.lesseeAddress?.zip || ''}
                 onChange={(e) => handleAddressChange('lesseeAddress', 'zip', e.target.value)}
               />
+              {shouldShowValidationError('lesseeAddress', 'zip') && (
+                <p className="validation-message">{getValidationErrorMessage('lesseeAddress', 'zip')}</p>
+              )}
             </div>
           </div>
         </div>
@@ -879,34 +953,43 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup streetField">
               <label className="formLabel">Street</label>
               <input
-                className="formInput"
+                className={`formInput ${shouldShowValidationError('trailerLocation', 'street') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="Street"
                 value={addressData.trailerLocation?.street || ''}
                 onChange={(e) => handleAddressChange('trailerLocation', 'street', e.target.value)}
               />
+              {shouldShowValidationError('trailerLocation', 'street') && (
+                <p className="validation-message">{getValidationErrorMessage('trailerLocation', 'street')}</p>
+              )}
             </div>
             <div className="formGroup aptField">
               <label className="formLabel">APT./SPACE/STE.#</label>
               <input
-                className="formInput"
+                className={`formInput ${shouldShowValidationError('trailerLocation', 'apt') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="APT./SPACE/STE.#"
                 value={addressData.trailerLocation?.apt || ''}
                 onChange={(e) => handleAddressChange('trailerLocation', 'apt', e.target.value)}
               />
+              {shouldShowValidationError('trailerLocation', 'apt') && (
+                <p className="validation-message">{getValidationErrorMessage('trailerLocation', 'apt')}</p>
+              )}
             </div>
           </div>
           <div className="city-state-zip-group">
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
-                className="cityInputtt"
+                className={`cityInputtt ${shouldShowValidationError('trailerLocation', 'city') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="City"
                 value={addressData.trailerLocation?.city || ''}
                 onChange={(e) => handleAddressChange('trailerLocation', 'city', e.target.value)}
               />
+              {shouldShowValidationError('trailerLocation', 'city') && (
+                <p className="validation-message">{getValidationErrorMessage('trailerLocation', 'city')}</p>
+              )}
             </div>
             
             {renderStateDropdown('trailerLocation', addressData.trailerLocation?.state)}
@@ -914,23 +997,29 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
-                className="formInput"
+                className={`formInput ${shouldShowValidationError('trailerLocation', 'zip') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="ZIP Code"
                 value={addressData.trailerLocation?.zip || ''}
                 onChange={(e) => handleAddressChange('trailerLocation', 'zip', e.target.value)}
               />
+              {shouldShowValidationError('trailerLocation', 'zip') && (
+                <p className="validation-message">{getValidationErrorMessage('trailerLocation', 'zip')}</p>
+              )}
             </div>
           </div>
           <div className="countyField">
             <label className="formLabel">County</label>
             <input
-              className="cityInputtt"
+              className={`cityInputtt ${shouldShowValidationError('trailerLocation', 'county') ? 'validation-error' : ''}`}
               type="text"
               placeholder="County"
               value={addressData.trailerLocation?.county || ''}
               onChange={(e) => handleAddressChange('trailerLocation', 'county', e.target.value)}
             />
+            {shouldShowValidationError('trailerLocation', 'county') && (
+              <p className="validation-message">{getValidationErrorMessage('trailerLocation', 'county')}</p>
+            )}
           </div>
         </div>
       )}

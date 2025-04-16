@@ -7,16 +7,20 @@ interface LicensePlateData {
   twoMissingPlates?: boolean;
 }
 
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
 interface LicensePlateProps {
   formData?: {
     licensePlate?: LicensePlateData;
   };
+  showValidationErrors?: boolean;
 }
 
- 
 export const LICENSE_PLATE_STORAGE_KEY = 'formmatic_license_plate';
 
- 
 export const clearLicensePlateStorage = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(LICENSE_PLATE_STORAGE_KEY);
@@ -24,30 +28,64 @@ export const clearLicensePlateStorage = () => {
   }
 };
 
-const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) => {
+const LicensePlate: React.FC<LicensePlateProps> = ({ 
+  formData: propFormData,
+  showValidationErrors = false
+}) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [licensePlateData, setLicensePlateData] = useState<LicensePlateData>({});
-  const { updateField, clearFormTriggered } = useFormContext();
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const { updateField, clearFormTriggered, formData: contextFormData } = useFormContext();
 
- 
   const defaultLicensePlateData: LicensePlateData = {
     oneMissingPlate: false,
     twoMissingPlates: false
   };
 
- 
+  // Validation function
+  const validateLicensePlate = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Verify at least one option is selected
+    if (!licensePlateData.oneMissingPlate && !licensePlateData.twoMissingPlates) {
+      errors.push({
+        field: 'general',
+        message: 'Please select at least one license plate option'
+      });
+    }
+    
+    return errors;
+  };
+
+  // Run validation when showing validation errors or when data changes
+  useEffect(() => {
+    if (showValidationErrors) {
+      const errors = validateLicensePlate();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      // Fix for TypeScript error - check if _validationErrors exists and is an object
+      const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && contextFormData._validationErrors !== null
+        ? contextFormData._validationErrors
+        : {};
+        
+      updateField('_validationErrors', {
+        ...currentValidationErrors,
+        licensePlate: errors.length > 0
+      });
+    }
+  }, [showValidationErrors, licensePlateData]);
+
   useEffect(() => {
     if (clearFormTriggered) {
       console.log('Clear form triggered in LicensePlate component');
       clearLicensePlateStorage();
       setLicensePlateData(defaultLicensePlateData);
       
- 
       updateField('licensePlate', defaultLicensePlateData);
     }
   }, [clearFormTriggered]);
   
- 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
@@ -57,7 +95,6 @@ const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) =
           console.log("Loading license plate data from localStorage");
           const parsedData = JSON.parse(savedData);
           
- 
           const mergedData = {
             ...parsedData,
             ...(propFormData?.licensePlate || {})
@@ -65,10 +102,8 @@ const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) =
           
           setLicensePlateData(mergedData);
           
- 
           updateField('licensePlate', mergedData);
         } else if (propFormData?.licensePlate) {
- 
           setLicensePlateData(propFormData.licensePlate);
         }
         
@@ -77,7 +112,6 @@ const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) =
         console.error('Error loading saved license plate data:', error);
         setIsInitialized(true);
         
- 
         if (propFormData?.licensePlate) {
           setLicensePlateData(propFormData.licensePlate);
         }
@@ -85,7 +119,6 @@ const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) =
     }
   }, []);
 
- 
   useEffect(() => {
     if (isInitialized && propFormData?.licensePlate) {
       setLicensePlateData(propFormData.licensePlate);
@@ -102,10 +135,32 @@ const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) =
     setLicensePlateData(newData);
     updateField('licensePlate', newData);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(LICENSE_PLATE_STORAGE_KEY, JSON.stringify(newData));
     }
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateLicensePlate();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      // Fix for TypeScript error - check if _validationErrors exists and is an object
+      const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && contextFormData._validationErrors !== null
+        ? contextFormData._validationErrors
+        : {};
+        
+      updateField('_validationErrors', {
+        ...currentValidationErrors,
+        licensePlate: errors.length > 0
+      });
+    }
+  };
+
+  // Helper to get error message for a field
+  const getErrorMessage = (field: string): string | null => {
+    const error = validationErrors.find(err => err.field === field);
+    return error ? error.message : null;
   };
 
   return (
@@ -113,6 +168,12 @@ const LicensePlate: React.FC<LicensePlateProps> = ({ formData: propFormData }) =
       <div className="section-header">
         <h3 className="section-title">License Plate</h3>
       </div>
+
+      {showValidationErrors && getErrorMessage('general') && (
+        <div className="validation-errorr">
+          {getErrorMessage('general')}
+        </div>
+      )}
 
       <div className="license-plate-content">
         <div className="license-plate-options">

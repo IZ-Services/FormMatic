@@ -17,26 +17,55 @@ interface LicensePlateDispositionProps {
   };
 }
 
+const initialDispositionData: LicensePlateDispositionData = {
+  platesSurrendered: undefined,
+  beingSurrendered: false,
+  haveLost: false,
+  haveDestroyed: false,
+  occupationalLicenseNumber: '',
+  plateRetainedByOwner: false
+};
+
 const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({ formData: propFormData }) => {
-  const [dispositionData, setDispositionData] = useState<LicensePlateDispositionData>({
-    beingSurrendered: false,
-    haveLost: false,
-    haveDestroyed: false,
-    plateRetainedByOwner: false
-  });
+  const { formData: contextFormData, updateField } = useFormContext();
+  
+  // Combined form data from both context and props
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
+  
+  const [dispositionData, setDispositionData] = useState<LicensePlateDispositionData>(
+    propFormData?.licensePlateDisposition || 
+    (contextFormData?.licensePlateDisposition as LicensePlateDispositionData) || 
+    initialDispositionData
+  );
 
-  const { updateField } = useFormContext();
-
+  // Initialize form data if not present in context
   useEffect(() => {
-    const mergedData: LicensePlateDispositionData = {
-      beingSurrendered: false,
-      haveLost: false,
-      haveDestroyed: false,
-      plateRetainedByOwner: false,
-      ...propFormData?.licensePlateDisposition
-    };
-    setDispositionData(mergedData);
-  }, [propFormData]);
+    if (!contextFormData?.licensePlateDisposition) {
+      updateField('licensePlateDisposition', initialDispositionData);
+    }
+  }, []);
+
+  // Sync component state with context/props form data
+  useEffect(() => {
+    const currentData = formData?.licensePlateDisposition;
+    if (currentData) {
+      setDispositionData({
+        beingSurrendered: false,
+        haveLost: false,
+        haveDestroyed: false,
+        plateRetainedByOwner: false,
+        ...currentData
+      });
+    }
+  }, [formData?.licensePlateDisposition]);
+  
+  // Log for debugging purposes (optional)
+  useEffect(() => {
+    console.log('Current LicensePlateDisposition form data:', formData?.licensePlateDisposition);
+  }, [formData?.licensePlateDisposition]);
 
   const handleCheckboxChange = (field: keyof LicensePlateDispositionData) => {
     const newData: LicensePlateDispositionData = { 

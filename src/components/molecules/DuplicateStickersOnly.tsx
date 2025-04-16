@@ -56,7 +56,7 @@ export default function DuplicateStickersTransfer({ formData, onDataChange }: Du
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType, showValidationErrors } = useFormContext();
 
  
     useEffect(() => {
@@ -174,8 +174,11 @@ export default function DuplicateStickersTransfer({ formData, onDataChange }: Du
 
         <SellerAddress formData={formValues} />
 
-        <ItemRequested formData={formValues}/>
-
+        <ItemRequested 
+  formData={formValues}
+  isDuplicateRegistrationMode={true}
+  showValidationErrors={showValidationErrors} 
+/>
         {/* <LicensePlate formData={formValues} /> */}
         
         <SaveButton 

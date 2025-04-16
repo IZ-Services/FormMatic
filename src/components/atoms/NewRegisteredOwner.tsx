@@ -101,7 +101,13 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
   formData: propFormData,
   onChange 
 }) => {
-  const { formData: contextFormData, updateField } = useFormContext();
+  const { 
+    formData: contextFormData, 
+    updateField,
+    validationErrors,
+    showValidationErrors
+  } = useFormContext();
+  
   const { activeScenarios } = useScenarioContext();
   
   const formData = {
@@ -118,13 +124,32 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
   const stateDropdownRefs = useRef<Array<React.RefObject<HTMLUListElement>>>([]);
   
   const isVehicleGift = formData?.vehicleTransactionDetails?.isGift === true;
-  const showValidationErrors = formData?._showValidationErrors === true;
-  
   const isPNORestorationActive = !!formData?.isPNORestoration;
-  
- 
   const hideLicenseField = !!formData?.hideLicenseField;
   const hideStateField = !!formData?.hideStateField;
+
+  // Helper functions for validation
+  const shouldShowValidationError = (index: number, field: keyof OwnerData) => {
+    if ((field === 'licenseNumber' && hideLicenseField) ||
+        (field === 'state' && hideStateField)) {
+      return false;
+    }
+  
+    if (isPNORestorationActive && (field === 'purchaseValue' || field === 'marketValue')) {
+      return false;
+    }
+    
+    // Check if this specific field has an error
+    return showValidationErrors && 
+      validationErrors.some(error => 
+        error.fieldPath === `owners[${index}].${field}`
+      );
+  };
+  
+  const getValidationErrorMessage = (index: number, field: keyof OwnerData): string => {
+    const error = validationErrors.find(e => e.fieldPath === `owners[${index}].${field}`);
+    return error ? error.message : '';
+  };
 
   const shouldForceSingleOwner = () => {
     if (formData.forceSingleOwner) {
@@ -150,20 +175,6 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
 
   const howManyOptions = forceSingleOwner ? ['1'] : ['1', '2', '3'];  
   const howManyRef = useRef<HTMLUListElement | null>(null);
-  
-  const shouldShowValidationError = (index: number, field: keyof OwnerData) => {
- 
-    if ((field === 'licenseNumber' && hideLicenseField) ||
-        (field === 'state' && hideStateField)) {
-      return false;
-    }
-
- 
-    if (isPNORestorationActive && (field === 'purchaseValue' || field === 'marketValue')) {
-      return false;
-    }
-    return showValidationErrors && (!owners[index][field] || owners[index][field] === '');
-  };   
 
   useEffect(() => {
     if (!formData?.howMany) {
@@ -219,7 +230,6 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       }
     }
   }, []);   
-
  
   useEffect(() => {
     if (owners.length > 0) {
@@ -227,13 +237,11 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       const newOwners = [...owners];
       
       newOwners.forEach(owner => {
- 
         if (hideLicenseField && (!owner.licenseNumber || owner.licenseNumber === '')) {
           owner.licenseNumber = 'EXEMPT';
           shouldUpdate = true;
         }
         
- 
         if (hideStateField && (!owner.state || owner.state === '')) {
           owner.state = 'CA';
           shouldUpdate = true;
@@ -551,7 +559,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
                 }}
               />
               {shouldShowValidationError(index, 'firstName') && (
-                <p className="validation-message">First name is required</p>
+                <p className="validation-message">{getValidationErrorMessage(index, 'firstName')}</p>
               )}
             </div>
             <div className="newRegFormItem">
@@ -582,7 +590,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
                 }}
               />
               {shouldShowValidationError(index, 'lastName') && (
-                <p className="validation-message">Last name is required</p>
+                <p className="validation-message">{getValidationErrorMessage(index, 'lastName')}</p>
               )}
             </div>
           </div>
@@ -609,7 +617,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
                   pattern="\d{8}"
                 />
                 {shouldShowValidationError(index, 'licenseNumber') ? (
-                  <p className="validation-message">License number is required</p>
+                  <p className="validation-message">{getValidationErrorMessage(index, 'licenseNumber')}</p>
                 ) : (
                   owner.licenseNumber && owner.licenseNumber.length < 8 && (
                     <p className="validation-message">License number must be 8 digits</p>
@@ -649,7 +657,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
                 )}
                 
                 {shouldShowValidationError(index, 'state') && (
-                  <p className="validation-message">State is required</p>
+                  <p className="validation-message">{getValidationErrorMessage(index, 'state')}</p>
                 )}
               </div>
             )}
@@ -674,7 +682,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
                 inputMode="numeric"
               />
               {shouldShowValidationError(index, 'phoneNumber') ? (
-                <p className="validation-message">Phone number is required</p>
+                <p className="validation-message">{getValidationErrorMessage(index, 'phoneNumber')}</p>
               ) : (
                 owner.phoneNumber && owner.phoneNumber.length < 10 && (
                   <p className="validation-message">Phone number must be 10 digits</p>
@@ -703,10 +711,10 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
                   )}
                 />
                 {isVehicleGift && shouldShowValidationError(index, 'marketValue') && (
-                  <p className="validation-message">Market value is required</p>
+                  <p className="validation-message">{getValidationErrorMessage(index, 'marketValue')}</p>
                 )}
                 {!isVehicleGift && shouldShowValidationError(index, 'purchaseValue') && (
-                  <p className="validation-message">Purchase value is required</p>
+                  <p className="validation-message">{getValidationErrorMessage(index, 'purchaseValue')}</p>
                 )}
               </div>
             )}
@@ -724,7 +732,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
                   onChange={(e) => handleOwnerFieldChange(index, 'relationshipWithGifter', e.target.value)}
                 />
                 {shouldShowValidationError(index, 'relationshipWithGifter') && (
-                  <p className="validation-message">Relationship is required</p>
+                  <p className="validation-message">{getValidationErrorMessage(index, 'relationshipWithGifter')}</p>
                 )}
               </div>
               <div className="newRegGiftItem">
@@ -737,7 +745,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
                   onChange={(e) => handleOwnerFieldChange(index, 'giftValue', e.target.value)}
                 />
                 {shouldShowValidationError(index, 'giftValue') && (
-                  <p className="validation-message">Gift value is required</p>
+                  <p className="validation-message">{getValidationErrorMessage(index, 'giftValue')}</p>
                 )}
               </div>
             </div>

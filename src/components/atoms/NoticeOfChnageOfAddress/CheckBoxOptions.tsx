@@ -24,16 +24,25 @@ const initialCheckboxState: CheckboxState = {
 };
 
 const CheckboxOptions: React.FC<CheckboxOptionsProps> = ({ formData: propFormData }) => {
+  const { formData: contextFormData, updateField } = useFormContext();
   const [checkboxes, setCheckboxes] = useState<CheckboxState>(
-    propFormData?.checkboxOptions || initialCheckboxState
+    propFormData?.checkboxOptions || (contextFormData?.checkboxOptions as CheckboxState) || initialCheckboxState
   );
-  const { updateField } = useFormContext();
   
+  // Initialize form data if not present in context
   useEffect(() => {
-    if (propFormData?.checkboxOptions) {
-      setCheckboxes(propFormData.checkboxOptions);
+    if (!contextFormData?.checkboxOptions) {
+      updateField('checkboxOptions', initialCheckboxState);
     }
-  }, [propFormData]);
+  }, []);
+  
+  // Sync component state with context/props form data
+  useEffect(() => {
+    const currentData = propFormData?.checkboxOptions || contextFormData?.checkboxOptions;
+    if (currentData) {
+      setCheckboxes(currentData as CheckboxState);
+    }
+  }, [propFormData, contextFormData?.checkboxOptions]);
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = event.target;
@@ -56,11 +65,17 @@ const CheckboxOptions: React.FC<CheckboxOptionsProps> = ({ formData: propFormDat
     setCheckboxes(updatedCheckboxes);
     updateField('checkboxOptions', updatedCheckboxes);
   };
+  
+  const clearForm = () => {
+    setCheckboxes(initialCheckboxState);
+    updateField('checkboxOptions', initialCheckboxState);
+  };
 
   return (
     <div className="releaseWrapper">
       <div className="headerRow">
         <h3 className="releaseHeading">Transaction Details</h3>
+      
       </div>
 
       <div className="checkbox-options-container">
@@ -76,7 +91,8 @@ const CheckboxOptions: React.FC<CheckboxOptionsProps> = ({ formData: propFormDat
             <span className="checkbox-text">Leased Vehicle</span>
           </label>
           
-         
+          {/* Note: LeasingCompanyField is commented out per the original code.
+              If you want to restore it, you'll need to add it back with the correct props. */}
         </div>
 
         <div className="checkbox-group">

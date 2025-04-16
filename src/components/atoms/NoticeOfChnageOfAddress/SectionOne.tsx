@@ -25,17 +25,36 @@ const initialSectionOneData: SectionOneData = {
 };
 
 const SectionOne: React.FC<SectionOneProps> = ({ formData: propFormData }) => {
+  const { formData: contextFormData, updateField } = useFormContext();
   const [formState, setFormState] = useState<SectionOneData>(
     propFormData?.personalBusinessInfo || initialSectionOneData
   );
   const [errors, setErrors] = useState<Record<string, boolean>>({});
-  const { updateField } = useFormContext();
 
+  // Combined form data from both context and props
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
+
+  // Initialize form data if not present in context
   useEffect(() => {
-    if (propFormData?.personalBusinessInfo) {
-      setFormState(propFormData.personalBusinessInfo);
+    if (!formData.personalBusinessInfo) {
+      updateField('personalBusinessInfo', initialSectionOneData);
     }
-  }, [propFormData]);
+  }, []);
+
+  // Sync component state with context/props form data
+  useEffect(() => {
+    if (formData.personalBusinessInfo) {
+      setFormState(formData.personalBusinessInfo);
+    }
+  }, [formData.personalBusinessInfo]);
+
+  // Log for debugging purposes (optional)
+  useEffect(() => {
+    console.log('Current SectionOne form data:', formData.personalBusinessInfo);
+  }, [formData.personalBusinessInfo]);
 
   const capitalizeFirstLetter = (value: string): string => {
     if (!value) return value;
@@ -51,7 +70,6 @@ const SectionOne: React.FC<SectionOneProps> = ({ formData: propFormData }) => {
     } else if (field === 'firstName' && value.length > 9) {
       hasError = true;
     } else if (field === 'driverLicenseId' && value.length > 0 && value.length < 8) {
-
       hasError = true;
     }
     

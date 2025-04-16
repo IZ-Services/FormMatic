@@ -11,31 +11,52 @@ interface AgentNameFieldProps {
 }
 
 const AgentNameField: React.FC<AgentNameFieldProps> = ({ formData: propFormData, onChange }) => {
-  const [agentNameData, setAgentNameData] = useState<{ agentName: string }>({
-    agentName: propFormData?.agentName || '',
-  });
-  
   const { formData: contextFormData, updateField } = useFormContext() as {
     formData: Record<string, any>;
     updateField: (section: string, value: any) => void;
   };
   
+  // Combined form data from both context and props
+  const combinedFormData = {
+    ...contextFormData,
+    ...propFormData
+  };
+  
+  // Initialize state with data from props, context, or default values
+  const [agentNameData, setAgentNameData] = useState<{ agentName: string }>({
+    agentName: propFormData?.agentName || contextFormData?.agentName || '',
+  });
+  
+  // Initialize form data if not present in context
+  useEffect(() => {
+    if (!contextFormData?.agentName && !onChange) {
+      updateField('agentName', agentNameData.agentName);
+    }
+  }, []);
+  
+  // Sync with props when they change
   useEffect(() => {
     if (propFormData?.agentName !== undefined && propFormData.agentName !== agentNameData.agentName) {
       setAgentNameData({ agentName: propFormData.agentName });
     }
   }, [propFormData]);
   
+  // Sync with context when it changes (if not using onChange)
   useEffect(() => {
-    if (!onChange) {
-      updateField('agentName', agentNameData.agentName);
+    if (!onChange && contextFormData?.agentName !== undefined && 
+        contextFormData.agentName !== agentNameData.agentName) {
+      setAgentNameData({ agentName: contextFormData.agentName });
     }
-  }, []);
+  }, [contextFormData?.agentName]);
+  
+  // Log for debugging purposes (optional)
+  useEffect(() => {
+    console.log('Current AgentName form data:', combinedFormData?.agentName);
+  }, [combinedFormData?.agentName]);
   
   const formatName = (name: string): string => {
     if (!name) return '';
     
- 
     return name
       .split(' ')
       .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())

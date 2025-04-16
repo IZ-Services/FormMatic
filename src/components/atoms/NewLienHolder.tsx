@@ -4,10 +4,8 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './NewLienHolder.css';
 
- 
 export const NEW_LIEN_HOLDER_STORAGE_KEY = 'formmatic_new_lien_holder';
 
- 
 export const clearNewLienHolderStorage = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(NEW_LIEN_HOLDER_STORAGE_KEY);
@@ -39,9 +37,15 @@ interface LienHolder {
   mailingAddress?: MailingAddress;
 }
 
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
 interface FormContextType {
   formData: {
     lienHolder?: LienHolder;
+    _validationErrors?: Record<string, any>;
   };
   updateField: (field: string, value: any) => void;
   clearFormTriggered?: number | null;
@@ -52,6 +56,7 @@ interface NewLienHolderProps {
     lienHolder?: LienHolder;
   };
   onChange?: (data: LienHolder) => void;
+  showValidationErrors?: boolean;
 }
 
 const initialAddress: Address = {
@@ -78,23 +83,126 @@ const initialLienHolder: LienHolder = {
   mailingAddress: initialMailingAddress
 };
 
-const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, onChange }) => {
+const NewLienHolder: React.FC<NewLienHolderProps> = ({ 
+  formData: propFormData, 
+  onChange,
+  showValidationErrors = false 
+}) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [lienHolderData, setLienHolderData] = useState<LienHolder>(initialLienHolder);
   const [eltError, setEltError] = useState<string>('');
-  const { updateField, clearFormTriggered } = useFormContext() as FormContextType;
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const { formData: contextFormData, updateField, clearFormTriggered } = useFormContext() as FormContextType;
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const regRef = useRef<HTMLUListElement>(null);
   const mailingRef = useRef<HTMLUListElement>(null);
 
- 
+  // Validation function
+  const validateLienHolder = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Validate required fields
+    if (!lienHolderData.name) {
+      errors.push({
+        field: 'name',
+        message: 'Lien holder name is required'
+      });
+    }
+    
+    if (lienHolderData.eltNumber && lienHolderData.eltNumber.length !== 3) {
+      errors.push({
+        field: 'eltNumber',
+        message: 'ELT Number must be exactly 3 digits'
+      });
+    }
+    
+    // Validate address fields
+    if (!lienHolderData.address?.street) {
+      errors.push({
+        field: 'address.street',
+        message: 'Street is required'
+      });
+    }
+    
+    if (!lienHolderData.address?.city) {
+      errors.push({
+        field: 'address.city',
+        message: 'City is required'
+      });
+    }
+    
+    if (!lienHolderData.address?.state) {
+      errors.push({
+        field: 'address.state',
+        message: 'State is required'
+      });
+    }
+    
+    if (!lienHolderData.address?.zip) {
+      errors.push({
+        field: 'address.zip',
+        message: 'ZIP code is required'
+      });
+    }
+    
+    // Validate mailing address if different
+    if (lienHolderData.mailingAddressDifferent) {
+      if (!lienHolderData.mailingAddress?.street) {
+        errors.push({
+          field: 'mailingAddress.street',
+          message: 'Mailing street is required'
+        });
+      }
+      
+      if (!lienHolderData.mailingAddress?.city) {
+        errors.push({
+          field: 'mailingAddress.city',
+          message: 'Mailing city is required'
+        });
+      }
+      
+      if (!lienHolderData.mailingAddress?.state) {
+        errors.push({
+          field: 'mailingAddress.state',
+          message: 'Mailing state is required'
+        });
+      }
+      
+      if (!lienHolderData.mailingAddress?.zip) {
+        errors.push({
+          field: 'mailingAddress.zip',
+          message: 'Mailing ZIP code is required'
+        });
+      }
+    }
+    
+    return errors;
+  };
+
+// Run validation when showing validation errors or when data changes
+useEffect(() => {
+  if (showValidationErrors) {
+    const errors = validateLienHolder();
+    setValidationErrors(errors);
+  }
+}, [showValidationErrors, lienHolderData]);
+
+// Update global validation state when our validation errors change
+useEffect(() => {
+  if (showValidationErrors && validationErrors.length >= 0) {
+    // Get current validation errors object without using contextFormData
+    updateField('_validationErrors', {
+      lienHolder: validationErrors.length > 0
+    });
+  }
+}, [validationErrors, showValidationErrors]);
+
   useEffect(() => {
     if (clearFormTriggered) {
       console.log('Clear form triggered in NewLienHolder component');
       clearNewLienHolderStorage();
       setLienHolderData(initialLienHolder);
       
- 
       updateField('lienHolder', initialLienHolder);
       
       if (onChange) {
@@ -103,7 +211,6 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
     }
   }, [clearFormTriggered]);
   
- 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
@@ -113,7 +220,6 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
           console.log("Loading new lien holder data from localStorage");
           const parsedData = JSON.parse(savedData);
           
- 
           const mergedData = {
             ...initialLienHolder,
             ...parsedData,
@@ -122,17 +228,14 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
           
           setLienHolderData(mergedData);
           
- 
           updateField('lienHolder', mergedData);
           
           if (onChange) {
             onChange(mergedData);
           }
         } else if (propFormData?.lienHolder) {
- 
           setLienHolderData(propFormData.lienHolder);
         } else {
- 
           updateField('lienHolder', initialLienHolder);
           if (onChange) {
             onChange(initialLienHolder);
@@ -144,7 +247,6 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
         console.error('Error loading saved new lien holder data:', error);
         setIsInitialized(true);
         
- 
         if (propFormData?.lienHolder) {
           setLienHolderData(propFormData.lienHolder);
         } else {
@@ -157,7 +259,6 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
     }
   }, []);
 
- 
   useEffect(() => {
     if (isInitialized && propFormData?.lienHolder) {
       setLienHolderData(propFormData.lienHolder);
@@ -178,18 +279,39 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown]);
 
+  // Helper to get error message for a field
+  const getErrorMessage = (field: string): string | null => {
+    const error = validationErrors.find(err => err.field === field);
+    return error ? error.message : null;
+  };
+
   const handleInputChange = (field: keyof LienHolder, value: any) => {
     const newLienHolder = { ...lienHolderData, [field]: value };
     setLienHolderData(newLienHolder);
     updateField('lienHolder', newLienHolder);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(NEW_LIEN_HOLDER_STORAGE_KEY, JSON.stringify(newLienHolder));
     }
     
     if (onChange) {
       onChange(newLienHolder);
+    }
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateLienHolder();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && contextFormData._validationErrors !== null
+        ? contextFormData._validationErrors
+        : {};
+        
+      updateField('_validationErrors', {
+        ...currentValidationErrors,
+        lienHolder: errors.length > 0
+      });
     }
   };
 
@@ -210,13 +332,28 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
     setLienHolderData(newLienHolder);
     updateField('lienHolder', newLienHolder);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(NEW_LIEN_HOLDER_STORAGE_KEY, JSON.stringify(newLienHolder));
     }
     
     if (onChange) {
       onChange(newLienHolder);
+    }
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateLienHolder();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && contextFormData._validationErrors !== null
+        ? contextFormData._validationErrors
+        : {};
+        
+      updateField('_validationErrors', {
+        ...currentValidationErrors,
+        lienHolder: errors.length > 0
+      });
     }
   };
 
@@ -243,13 +380,28 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
     setLienHolderData(newLienHolder);
     updateField('lienHolder', newLienHolder);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(NEW_LIEN_HOLDER_STORAGE_KEY, JSON.stringify(newLienHolder));
     }
     
     if (onChange) {
       onChange(newLienHolder);
+    }
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateLienHolder();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && contextFormData._validationErrors !== null
+        ? contextFormData._validationErrors
+        : {};
+        
+      updateField('_validationErrors', {
+        ...currentValidationErrors,
+        lienHolder: errors.length > 0
+      });
     }
   };
 
@@ -334,30 +486,32 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
         <div className="formGroup" style={{ flex: '3' }}>
           <label className="formLabel">True Full Name or Bank/Finance Company or Individual</label>
           <input
-            className="formInput"
+            className={`formInput ${showValidationErrors && getErrorMessage('name') ? 'error-input' : ''}`}
             type="text"
             placeholder="True Full Name or Bank/Finance Company or Individual"
-            value={lienHolderData.name || ''}
-            onChange={(e) => handleInputChange('name', e.target.value)}
+            value={(lienHolderData.name || '').toUpperCase()}
+            onChange={(e) => handleInputChange('name', e.target.value.toUpperCase())}
           />
+          {showValidationErrors && getErrorMessage('name') && (
+            <div className="error-message">{getErrorMessage('name')}</div>
+          )}
         </div>
 
         <div className="formGroup" style={{ flex: '1' }}>
           <label className="formLabel">ELT Number (3 digits)</label>
           <input
-            className="formInput"
+            className={`formInput ${(showValidationErrors && getErrorMessage('eltNumber')) || eltError ? 'error-input' : ''}`}
             type="text"
             placeholder="ELT Number"
-            value={lienHolderData.eltNumber || ''}
-            onChange={(e) => handleEltChange(e.target.value)}
+            value={(lienHolderData.eltNumber || '').toUpperCase()}
+            onChange={(e) => handleEltChange(e.target.value.toUpperCase())}
             maxLength={3}
-            style={{ borderColor: eltError ? 'red' : '' }}
           />
-          {eltError && (
-            <div className="errorMessage" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
-              {eltError}
+          {(showValidationErrors && getErrorMessage('eltNumber')) || eltError ? (
+            <div className="error-message">
+              {getErrorMessage('eltNumber') || eltError}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -365,12 +519,15 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
         <div className="formGroup streetField">
           <label className="formLabel">Street</label>
           <input
-            className="formInput"
+            className={`formInput ${showValidationErrors && getErrorMessage('address.street') ? 'error-input' : ''}`}
             type="text"
             placeholder="Street"
-            value={lienHolderData.address?.street || ''}
-            onChange={(e) => handleAddressChange('address', 'street', e.target.value)}
+            value={(lienHolderData.address?.street || '').toUpperCase()}
+            onChange={(e) => handleAddressChange('address', 'street', e.target.value.toUpperCase())}
           />
+          {showValidationErrors && getErrorMessage('address.street') && (
+            <div className="error-message">{getErrorMessage('address.street')}</div>
+          )}
         </div>
         <div className="formGroup aptField">
           <label className="formLabel">APT./SPACE/STE.#</label>
@@ -378,8 +535,8 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
             className="formInput"
             type="text"
             placeholder="APT./SPACE/STE.#"
-            value={lienHolderData.address?.apt || ''}
-            onChange={(e) => handleAddressChange('address', 'apt', e.target.value)}
+            value={(lienHolderData.address?.apt || '').toUpperCase()}
+            onChange={(e) => handleAddressChange('address', 'apt', e.target.value.toUpperCase())}
           />
         </div>
       </div>
@@ -388,23 +545,29 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
         <div className="cityFieldCustomWidth">
           <label className="formLabel">City</label>
           <input
-            className="cityInputt"
+            className={`cityInputt ${showValidationErrors && getErrorMessage('address.city') ? 'error-input' : ''}`}
             type="text"
             placeholder="City"
-            value={lienHolderData.address?.city || ''}
-            onChange={(e) => handleAddressChange('address', 'city', e.target.value)}
+            value={(lienHolderData.address?.city || '').toUpperCase()}
+            onChange={(e) => handleAddressChange('address', 'city', e.target.value.toUpperCase())}
           />
+          {showValidationErrors && getErrorMessage('address.city') && (
+            <div className="error-message">{getErrorMessage('address.city')}</div>
+          )}
         </div>
         
         <div className="regStateWrapper">
           <label className="registeredOwnerLabel">State</label>
           <button
             onClick={() => setOpenDropdown(openDropdown === 'reg' ? null : 'reg')}
-            className="regStateDropDown"
+            className={`regStateDropDown ${showValidationErrors && getErrorMessage('address.state') ? 'error-input' : ''}`}
           >
             {lienHolderData.address?.state || 'State'}
             <ChevronDownIcon className={`regIcon ${openDropdown === 'reg' ? 'rotate' : ''}`} />
           </button>
+          {showValidationErrors && getErrorMessage('address.state') && (
+            <div className="error-message">{getErrorMessage('address.state')}</div>
+          )}
           {openDropdown === 'reg' && (
             <ul ref={regRef} className="regStateMenu">
               {states.map((state, index) => (
@@ -423,12 +586,15 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
         <div className="formGroup zipCodeField">
           <label className="formLabel">ZIP Code</label>
           <input
-            className="formInput"
+            className={`formInput ${showValidationErrors && getErrorMessage('address.zip') ? 'error-input' : ''}`}
             type="text"
             placeholder="Zip Code"
-            value={lienHolderData.address?.zip || ''}
-            onChange={(e) => handleAddressChange('address', 'zip', e.target.value)}
+            value={(lienHolderData.address?.zip || '').toUpperCase()}
+            onChange={(e) => handleAddressChange('address', 'zip', e.target.value.toUpperCase())}
           />
+          {showValidationErrors && getErrorMessage('address.zip') && (
+            <div className="error-message">{getErrorMessage('address.zip')}</div>
+          )}
         </div>
       </div>
 
@@ -439,12 +605,15 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
             <div className="formGroup streetField">
               <label className="formLabel">Street</label>
               <input
-                className="formInputt streetInput"
+                className={`formInputt streetInput ${showValidationErrors && getErrorMessage('mailingAddress.street') ? 'error-input' : ''}`}
                 type="text"
                 placeholder="Street"
-                value={lienHolderData.mailingAddress?.street || ''}
-                onChange={(e) => handleAddressChange('mailingAddress', 'street', e.target.value)}
+                value={(lienHolderData.mailingAddress?.street || '').toUpperCase()}
+                onChange={(e) => handleAddressChange('mailingAddress', 'street', e.target.value.toUpperCase())}
               />
+              {showValidationErrors && getErrorMessage('mailingAddress.street') && (
+                <div className="error-message">{getErrorMessage('mailingAddress.street')}</div>
+              )}
             </div>
             <div className="formGroup aptField">
               <label className="formLabel">APT./SPACE/STE.#</label>
@@ -452,8 +621,8 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
                 className="formInputt aptInput"
                 type="text"
                 placeholder="APT./SPACE/STE.#"
-                value={lienHolderData.mailingAddress?.poBox || ''}
-                onChange={(e) => handleAddressChange('mailingAddress', 'poBox', e.target.value)}
+                value={(lienHolderData.mailingAddress?.poBox || '').toUpperCase()}
+                onChange={(e) => handleAddressChange('mailingAddress', 'poBox', e.target.value.toUpperCase())}
               />
             </div>
           </div>
@@ -462,23 +631,29 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
             <div className="cityFieldCustomWidth">
               <label className="formLabel">City</label>
               <input
-                className="cityInputt"
+                className={`cityInputt ${showValidationErrors && getErrorMessage('mailingAddress.city') ? 'error-input' : ''}`}
                 type="text"
                 placeholder="City"
-                value={lienHolderData.mailingAddress?.city || ''}
-                onChange={(e) => handleAddressChange('mailingAddress', 'city', e.target.value)}
+                value={(lienHolderData.mailingAddress?.city || '').toUpperCase()}
+                onChange={(e) => handleAddressChange('mailingAddress', 'city', e.target.value.toUpperCase())}
               />
+              {showValidationErrors && getErrorMessage('mailingAddress.city') && (
+                <div className="error-message">{getErrorMessage('mailingAddress.city')}</div>
+              )}
             </div>
 
             <div className="regStateWrapper">
               <label className="registeredOwnerLabel">State</label>
               <button
                 onClick={() => setOpenDropdown(openDropdown === 'mailing' ? null : 'mailing')}
-                className="regStateDropDown"
+                className={`regStateDropDown ${showValidationErrors && getErrorMessage('mailingAddress.state') ? 'error-input' : ''}`}
               >
                 {lienHolderData.mailingAddress?.state || 'State'}
                 <ChevronDownIcon className={`regIcon ${openDropdown === 'mailing' ? 'rotate' : ''}`} />
               </button>
+              {showValidationErrors && getErrorMessage('mailingAddress.state') && (
+                <div className="error-message">{getErrorMessage('mailingAddress.state')}</div>
+              )}
               {openDropdown === 'mailing' && (
                 <ul ref={mailingRef} className="regStateMenu">
                   {states.map((state, index) => (
@@ -497,12 +672,15 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({ formData: propFormData, o
             <div className="formGroup zipCodeField">
               <label className="formLabel">ZIP Code</label>
               <input
-                className="formInputt zipInput"
+                className={`formInputt zipInput ${showValidationErrors && getErrorMessage('mailingAddress.zip') ? 'error-input' : ''}`}
                 type="text"
                 placeholder="ZIP Code"
-                value={lienHolderData.mailingAddress?.zip || ''}
-                onChange={(e) => handleAddressChange('mailingAddress', 'zip', e.target.value)}
+                value={(lienHolderData.mailingAddress?.zip || '').toUpperCase()}
+                onChange={(e) => handleAddressChange('mailingAddress', 'zip', e.target.value.toUpperCase())}
               />
+              {showValidationErrors && getErrorMessage('mailingAddress.zip') && (
+                <div className="error-message">{getErrorMessage('mailingAddress.zip')}</div>
+              )}
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
-'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Address from '../atoms/Address';
 import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
+import NewLien from '../atoms/NewLienHolder';
 import VehicalInformation from '../atoms/VehicleInformation';
 import Seller from '../atoms/Seller';
 import SaveButton from '../atoms/savebutton';
@@ -82,6 +82,48 @@ interface MultiSaveButtonProps {
   numberOfTransfers: number;
 }
 
+// Storage key constant for localStorage
+const STORAGE_KEY = 'multipleTransferState';
+
+export const clearmultipleStorage = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(STORAGE_KEY);
+    console.log('multiple address data cleared from localStorage');
+  }
+};
+
+// Helper function to save state to localStorage
+const saveStateToStorage = (state: {
+  numberOfTransfers: number;
+  transfersData: TransferData[];
+  activeTransferIndex: number;
+  sharedVehicleInfo: VehicleInformationType;
+}) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.error('Error saving state to localStorage:', error);
+  }
+};
+
+// Helper function to load state from localStorage
+const loadStateFromStorage = (): {
+  numberOfTransfers: number;
+  transfersData: TransferData[];
+  activeTransferIndex: number;
+  sharedVehicleInfo: VehicleInformationType;
+} | null => {
+  try {
+    const savedState = localStorage.getItem(STORAGE_KEY);
+    if (savedState) {
+      return JSON.parse(savedState);
+    }
+  } catch (error) {
+    console.error('Error loading state from localStorage:', error);
+  }
+  return null;
+};
+
 const MultiSaveButton: React.FC<MultiSaveButtonProps> = ({ transfersData, numberOfTransfers }) => {
   const consolidatedData = {
     numberOfTransfers,
@@ -89,10 +131,17 @@ const MultiSaveButton: React.FC<MultiSaveButtonProps> = ({ transfersData, number
     isMultipleTransfer: true
   };
   
+  // Add handler to clear storage on successful save
+  const handleSaveSuccess = () => {
+    console.log('Multiple transfer save completed successfully');
+    // Optional: Clear the saved state from localStorage after successful save
+    // localStorage.removeItem(STORAGE_KEY);
+  };
+  
   return (
     <SaveButton 
       transactionType="Multiple Transfer"
-      onSuccess={() => console.log('Multiple transfer save completed successfully')}
+      onSuccess={handleSaveSuccess}
       multipleTransferData={consolidatedData}
     />
   );
@@ -112,7 +161,7 @@ const TransferForm: React.FC<TransferFormProps> = ({
   };
   
   const [localFormValues, setLocalFormValues] = useState<Record<string, any>>({});
-
+  
   useEffect(() => {
     if (formData) {
       const updatedValues = { ...localFormValues };
@@ -132,7 +181,7 @@ const TransferForm: React.FC<TransferFormProps> = ({
       }
     }
   }, [formData, index, updateField, localFormValues]);
-
+  
   useEffect(() => {
     if (sharedVehicleInfo && Object.keys(sharedVehicleInfo).length > 0) {
       const currentVehicleInfo = localFormValues.vehicleInformation || {};
@@ -144,13 +193,12 @@ const TransferForm: React.FC<TransferFormProps> = ({
       
       if (JSON.stringify(currentVehicleInfo) !== JSON.stringify(updatedVehicleInfo)) {
         console.log(`Transfer ${index}: Syncing vehicle info:`, sharedVehicleInfo);
-        
         handleFieldChange('vehicleInformation', updatedVehicleInfo);
         updateField(`transfer${index}_vehicleInformation`, updatedVehicleInfo);
       }
     }
   }, [sharedVehicleInfo, localFormValues, index, updateField]);
-
+  
   const handleFieldChange = useCallback((key: string, value: any) => {
     setLocalFormValues(prev => {
       const updated = { ...prev, [key]: value };
@@ -163,7 +211,7 @@ const TransferForm: React.FC<TransferFormProps> = ({
       return updated;
     });
   }, [onDataChange, index]);
-
+  
   const normalizeFieldData = (key: string, value: any, allValues: Record<string, any>) => {
     const result = { ...allValues };
     
@@ -182,7 +230,6 @@ const TransferForm: React.FC<TransferFormProps> = ({
     
     if (key === 'address' && value) {
       result.address = value;
-      
       if (value.mailingAddressDifferent !== undefined) {
         result.mailingAddressDifferent = Boolean(value.mailingAddressDifferent);
       }
@@ -196,7 +243,6 @@ const TransferForm: React.FC<TransferFormProps> = ({
     
     if (key === 'sellerAddress' && value) {
       result.sellerAddress = value;
-      
       if (value.sellerMailingAddressDifferent !== undefined) {
         result.sellerMailingAddressDifferent = Boolean(value.sellerMailingAddressDifferent);
       }
@@ -204,7 +250,7 @@ const TransferForm: React.FC<TransferFormProps> = ({
     
     return result;
   };
-
+  
   const handleVehicleInfoChange = useCallback((data: VehicleInformationType) => {
     handleFieldChange('vehicleInformation', data);
     updateField(`transfer${index}_vehicleInformation`, data);
@@ -232,10 +278,10 @@ const TransferForm: React.FC<TransferFormProps> = ({
       }, 0);
     }
   }, [handleFieldChange, updateField, onDataChange, index, localFormValues]);
-
+  
   const isCurrentLienholderChecked = 
     contextFormData?.[`transfer${index}_vehicleTransactionDetails`]?.currentLienholder === true;
-
+  
   const getComponentFormData = () => {
     const prefix = `transfer${index}_`;
     const result: Record<string, any> = {};
@@ -251,7 +297,7 @@ const TransferForm: React.FC<TransferFormProps> = ({
   };
   
   const componentFormData = getComponentFormData();
-
+  
   if (!isActive) {
     return null;
   }
@@ -345,13 +391,13 @@ const TransferForm: React.FC<TransferFormProps> = ({
         isMultipleTransfer={true} 
       />
       
-      {/* <NewLien 
+      <NewLien 
         formData={componentFormData}
         onChange={(data: LienHolder) => {
           handleFieldChange('newLien', data);
         }}
       />
-       */}
+      
       <PowerOfAttorney 
         formData={componentFormData}
         onChange={(data: PowerOfAttorneyData) => {
@@ -363,19 +409,42 @@ const TransferForm: React.FC<TransferFormProps> = ({
 };
 
 const MultipleTransfer: React.FC<MultipleTransferProps> = ({ formData, onDataChange }) => {
+  // Initialize states with default values
   const [numberOfTransfers, setNumberOfTransfers] = useState<number>(1);
   const [transfersData, setTransfersData] = useState<TransferData[]>(Array(5).fill({}));
   const [activeTransferIndex, setActiveTransferIndex] = useState<number>(0);
   const [sharedVehicleInfo, setSharedVehicleInfo] = useState<VehicleInformationType>({});
-  const { setTransactionType } = useFormContext();
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   
- 
+  // Load saved state from localStorage on component mount
   useEffect(() => {
-    setTransactionType("Multiple Transfer");
-  }, [setTransactionType]);
+    try {
+      const savedState = loadStateFromStorage();
+      
+      if (savedState) {
+        console.log('Restoring state from localStorage:', savedState);
+        
+        // Ensure transfersData is properly initialized as an array
+        const safeTransfersData = Array.isArray(savedState.transfersData) 
+          ? savedState.transfersData 
+          : Array(5).fill({});
+          
+        setNumberOfTransfers(savedState.numberOfTransfers || 1);
+        setTransfersData(safeTransfersData);
+        setActiveTransferIndex(Math.min(savedState.activeTransferIndex || 0, (savedState.numberOfTransfers || 1) - 1));
+        setSharedVehicleInfo(savedState.sharedVehicleInfo || {});
+      }
+    } catch (error) {
+      console.error('Error loading state:', error);
+      // In case of error, continue with default state
+    } finally {
+      setIsInitialized(true);
+    }
+  }, []);
   
+  // Handle incoming formData prop (higher priority than localStorage)
   useEffect(() => {
-    if (formData) {
+    if (formData && isInitialized) {
       if (formData.transfersData) {
         setTransfersData(formData.transfersData);
         
@@ -394,11 +463,48 @@ const MultipleTransfer: React.FC<MultipleTransferProps> = ({ formData, onDataCha
         setNumberOfTransfers(formData.numberOfTransfers);
       }
     }
-  }, [formData]);
-
+  }, [formData, isInitialized]);
+  
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    if (isInitialized) {
+      try {
+        // Make sure transfersData is an array before saving
+        const safeTransfersData = Array.isArray(transfersData) ? 
+          transfersData : Array(Math.max(5, numberOfTransfers)).fill({});
+        
+        // Ensure we're saving valid data
+        const stateToSave = {
+          numberOfTransfers: Math.max(1, numberOfTransfers),
+          transfersData: safeTransfersData,
+          activeTransferIndex: Math.min(activeTransferIndex, numberOfTransfers - 1),
+          sharedVehicleInfo: sharedVehicleInfo || {}
+        };
+        
+        saveStateToStorage(stateToSave);
+        console.log('State saved to localStorage');
+      } catch (error) {
+        console.error('Failed to save state to localStorage:', error);
+      }
+    }
+  }, [numberOfTransfers, transfersData, activeTransferIndex, sharedVehicleInfo, isInitialized]);
+  
   const handleTransferDataChange = useCallback((data: any, index: number) => {
     setTransfersData(prev => {
-      const newTransfersData = [...prev];
+      // Ensure prev is an array
+      const prevArray = Array.isArray(prev) ? prev : Array(5).fill({});
+      const newTransfersData = [...prevArray];
+      
+      // Make sure index is within bounds
+      if (index < 0 || index >= newTransfersData.length) {
+        console.error(`Invalid index: ${index}. Using index 0 instead.`);
+        index = 0;
+      }
+      
+      // Initialize the index if it's undefined
+      if (!newTransfersData[index]) {
+        newTransfersData[index] = {};
+      }
       
       if (data._syncVehicleInfo) {
         setSharedVehicleInfo(current => ({
@@ -433,7 +539,7 @@ const MultipleTransfer: React.FC<MultipleTransferProps> = ({ formData, onDataCha
       return newTransfersData;
     });
   }, [numberOfTransfers, onDataChange]);
-
+  
   const prepareTransferDataStructure = (data: any): TransferData => {
     const result = { ...data };
     
@@ -484,6 +590,14 @@ const MultipleTransfer: React.FC<MultipleTransferProps> = ({ formData, onDataCha
     setActiveTransferIndex(index);
   };
 
+  // Make sure transfersData is an array before using it
+  const safeTransfersData = Array.isArray(transfersData) ? transfersData : Array(5).fill({});
+  
+  // Early return if component is still initializing
+  if (!isInitialized) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <FormDataProvider>
       <ScenarioProvider>
@@ -525,7 +639,7 @@ const MultipleTransfer: React.FC<MultipleTransferProps> = ({ formData, onDataCha
               <TransferForm
                 index={index}
                 totalTransfers={numberOfTransfers}
-                formData={transfersData[index] || {}}
+                formData={safeTransfersData[index] || {}}
                 onDataChange={handleTransferDataChange}
                 isActive={activeTransferIndex === index}
                 sharedVehicleInfo={sharedVehicleInfo}
@@ -535,7 +649,7 @@ const MultipleTransfer: React.FC<MultipleTransferProps> = ({ formData, onDataCha
           
           <div className="save-button-container">
             <MultiSaveButton 
-              transfersData={transfersData.slice(0, numberOfTransfers)}
+              transfersData={safeTransfersData.slice(0, numberOfTransfers)}
               numberOfTransfers={numberOfTransfers}
             />
           </div>

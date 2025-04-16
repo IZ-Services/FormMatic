@@ -14,7 +14,10 @@
     align-items: flex-start;
     flex-wrap: wrap;
   }
-  
+  .validation-errorr {
+    color: #cb1313 !important;
+    background-color: #fffafa;
+  }
   .checkbox-label {
     display: flex;
     align-items: flex-start;

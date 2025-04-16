@@ -26,18 +26,38 @@ const initialVehicleEntry: VehicleEntry = {
 const MAX_VEHICLES = 3;
 
 const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => {
+  const { formData: contextFormData, updateField } = useFormContext();
+  
+  // Combined form data from both context and props
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
+  
   const [vehicleEntries, setVehicleEntries] = useState<VehicleEntry[]>(
-    propFormData?.vehiclesOwned?.length 
-      ? propFormData.vehiclesOwned 
+    formData?.vehiclesOwned?.length 
+      ? formData.vehiclesOwned 
       : [{ ...initialVehicleEntry }]
   );
-  const { updateField } = useFormContext();
 
+  // Initialize form data if not present in context
   useEffect(() => {
-    if (propFormData?.vehiclesOwned) {
-      setVehicleEntries(propFormData.vehiclesOwned);
+    if (!contextFormData?.vehiclesOwned) {
+      updateField('vehiclesOwned', [{ ...initialVehicleEntry }]);
     }
-  }, [propFormData]);
+  }, []);
+
+  // Sync component state with context/props form data
+  useEffect(() => {
+    if (formData?.vehiclesOwned) {
+      setVehicleEntries(formData.vehiclesOwned);
+    }
+  }, [formData?.vehiclesOwned]);
+  
+  // Log for debugging purposes (optional)
+  useEffect(() => {
+    console.log('Current SectionFive form data:', formData?.vehiclesOwned);
+  }, [formData?.vehiclesOwned]);
 
   const handleEntryChange = (index: number, field: keyof VehicleEntry, value: string | 'inside' | 'outside' | undefined) => {
     const newEntries = [...vehicleEntries];

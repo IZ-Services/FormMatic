@@ -99,12 +99,17 @@ const states = [
 ];
 
 const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) => {
+  const { formData: contextFormData, updateField } = useFormContext();
   const [sectionData, setSectionData] = useState<SectionThreeData>(
-    propFormData?.newOrCorrectResidence || initialSectionThreeData
+    propFormData?.newOrCorrectResidence || (contextFormData?.newOrCorrectResidence as SectionThreeData) || initialSectionThreeData
   );
-  const { updateField } = useFormContext();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
+  // Combined form data from both context and props
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
 
   const dropdownRefs = {
     residential: useRef<HTMLDivElement>(null),
@@ -112,11 +117,25 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
     trailerVessel: useRef<HTMLDivElement>(null)
   };
 
+  // Initialize form data if not present in context
   useEffect(() => {
-    if (propFormData?.newOrCorrectResidence) {
-      setSectionData(propFormData.newOrCorrectResidence);
+    if (!contextFormData?.newOrCorrectResidence) {
+      updateField('newOrCorrectResidence', initialSectionThreeData);
     }
-  }, [propFormData]);
+  }, []);
+
+  // Sync component state with context/props form data
+  useEffect(() => {
+    const currentData = formData?.newOrCorrectResidence;
+    if (currentData) {
+      setSectionData(currentData as SectionThreeData);
+    }
+  }, [formData?.newOrCorrectResidence]);
+  
+  // Log for debugging purposes (optional)
+  useEffect(() => {
+    console.log('Current SectionThree form data:', formData?.newOrCorrectResidence);
+  }, [formData?.newOrCorrectResidence]);
 
   const handleAddressChange = (addressType: 'address' | 'mailingAddress' | 'trailerVesselAddress', field: keyof Address, value: string) => {
     const newData = { 
@@ -215,7 +234,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
 
   return (
     <div className="releaseWrapper">
-      { }
+      { /* Inline styles */ }
       <style>{`
         .state-dropdown-wrapper {
           position: relative;
@@ -345,7 +364,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
         <h3 className="releaseHeading">New or Correct Residence or Business Address</h3>
       </div>
       
-      { }
+      { /* Checkboxes */ }
       <div className="checkbox-row">
         <label className="checkbox-label">
           <input
@@ -418,7 +437,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
           />
         </div>
         
-        { }
+        { /* State dropdown */ }
         {renderStateDropdown('address', 'residential', sectionData.address?.state)}
         
         <div className="formGroup zipCodeField">
@@ -434,7 +453,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
         </div>
       </div>
 
-      { }
+      { /* County field */ }
       <div className="releaseForm">
         <label className="releaseFormLabel">COUNTY - DO NOT ABBREVIATE</label>
         <input
@@ -503,7 +522,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
               />
             </div>
             
-            { }
+            { /* State dropdown */ }
             {renderStateDropdown('mailingAddress', 'mailing', sectionData.mailingAddress?.state)}
             
             <div className="formGroup zipCodeField">
@@ -521,7 +540,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
         </div>
       )}
 
-      { }
+      { /* Trailer/Vessel section */ }
       {sectionData.hasTrailerVessel && (
         <div>
           <div className="headerRow">
@@ -578,7 +597,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
               />
             </div>
             
-            { }
+            { /* State dropdown */ }
             {renderStateDropdown('trailerVesselAddress', 'trailerVessel', sectionData.trailerVesselAddress?.state)}
             
             <div className="formGroup zipCodeField">
@@ -594,7 +613,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
             </div>
           </div>
 
-          { }
+          { /* County field */ }
           <div className="releaseForm">
             <label className="releaseFormLabel">COUNTY - DO NOT ABBREVIATE</label>
             <input

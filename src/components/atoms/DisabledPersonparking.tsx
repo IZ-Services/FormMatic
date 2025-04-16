@@ -21,10 +21,19 @@ const initialDisabledPersonParkingData: DisabledPersonParkingData = {
 };
 
 const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({ formData: propFormData }) => {
+  const { formData: contextFormData, updateField } = useFormContext();
+  
+  // Combined form data from both context and props
+  const formData = {
+    ...contextFormData,
+    ...propFormData
+  };
+  
   const [formState, setFormState] = useState<DisabledPersonParkingData>(
-    propFormData?.disabledPersonParkingInfo || initialDisabledPersonParkingData
+    propFormData?.disabledPersonParkingInfo || 
+    (contextFormData?.disabledPersonParkingInfo as DisabledPersonParkingData) || 
+    initialDisabledPersonParkingData
   );
-  const { updateField } = useFormContext();
 
   const parkingPlacardTypes = [
     'Permanent DP Parking Placard (No Fee)',
@@ -34,11 +43,25 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({ formD
     'Disabled Person License Plates Reassignment, see Section 3'
   ];
 
+  // Initialize form data if not present in context
   useEffect(() => {
-    if (propFormData?.disabledPersonParkingInfo) {
-      setFormState(propFormData.disabledPersonParkingInfo);
+    if (!contextFormData?.disabledPersonParkingInfo) {
+      updateField('disabledPersonParkingInfo', initialDisabledPersonParkingData);
     }
-  }, [propFormData]);
+  }, []);
+
+  // Sync component state with context/props form data
+  useEffect(() => {
+    const currentData = formData?.disabledPersonParkingInfo;
+    if (currentData) {
+      setFormState(currentData as DisabledPersonParkingData);
+    }
+  }, [formData?.disabledPersonParkingInfo]);
+  
+  // Log for debugging purposes (optional)
+  useEffect(() => {
+    console.log('Current DisabledPersonParking form data:', formData?.disabledPersonParkingInfo);
+  }, [formData?.disabledPersonParkingInfo]);
 
   const handleParkingPlacardTypeChange = (value: string) => {
     const newData = { 
@@ -124,19 +147,27 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({ formD
       </div>
 
       {formState.previousIssuance === 'yes' && (
-        <div className="space-y-2">
-          <label className="subHeadings">
-            License Plate or DP Parking Placard Number
-          </label>
-          <input
-            className="registeredDateInput"
-            type="text"
-            placeholder="Enter license plate or DP parking placard number"
-            value={formState.licensePlateNumber || ''}
-            onChange={handleLicensePlateNumberChange}
-          />
-          
-        </div>
+       <div className="space-y-2">
+       <label className="subHeadings">
+         License Plate or DP Parking Placard Number
+       </label>
+       <input
+         className="registeredDateInput"
+         type="text"
+         placeholder="Enter license plate or DP parking placard number"
+         value={(formState.licensePlateNumber || '').toUpperCase()}
+         onChange={(e) => {
+           const uppercaseEvent = {
+             ...e,
+             target: {
+               ...e.target,
+               value: e.target.value.toUpperCase()
+             }
+           };
+           handleLicensePlateNumberChange(uppercaseEvent);
+         }}
+       />
+     </div>
       )}
     </div>
   );

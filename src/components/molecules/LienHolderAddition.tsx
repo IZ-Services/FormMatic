@@ -46,7 +46,7 @@ export default function LienHolderAdditionTransfer({ formData, onDataChange }: L
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType, showValidationErrors } = useFormContext();
 
  
     useEffect(() => {
@@ -98,8 +98,10 @@ export default function LienHolderAdditionTransfer({ formData, onDataChange }: L
         {/* Only show MissingTitle component when "Without Title" is selected */}
         {!withTitle && <MissingTitle formData={formValues} />}
         
-        <NewLien formData={formValues} />
-        <SaveButton 
+        <NewLien 
+  formData={formValues} 
+  showValidationErrors={showValidationErrors} 
+/>        <SaveButton 
           transactionType="Lien Holder Addition"
           onSuccess={() => console.log('Save completed successfully')}
         />

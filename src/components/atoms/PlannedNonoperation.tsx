@@ -118,33 +118,33 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
             <tbody>
               {(formData.plannedNonOperation?.entries || []).map((entry, index) => (
                 <tr key={index}>
-                  <td>
-                    <input
-                      type="text"
-                      className="pnoInput"
-                      value={entry.vehicleLicensePlate || ''}
-                      onChange={(e) => handleEntryChange(index, 'vehicleLicensePlate', e.target.value)}
-                      placeholder="License plate number"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      className="pnoInput"
-                      value={entry.vehicleIdNumber || ''}
-                      onChange={(e) => handleEntryChange(index, 'vehicleIdNumber', e.target.value)}
-                      placeholder="VIN"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      className="pnoInput"
-                      value={entry.vehicleMake || ''}
-                      onChange={(e) => handleEntryChange(index, 'vehicleMake', e.target.value)}
-                      placeholder="Make"
-                    />
-                  </td>
+                <td>
+  <input
+    type="text"
+    className="pnoInput"
+    value={(entry.vehicleLicensePlate || '').toUpperCase()}
+    onChange={(e) => handleEntryChange(index, 'vehicleLicensePlate', e.target.value.toUpperCase())}
+    placeholder="License plate number"
+  />
+</td>
+<td>
+  <input
+    type="text"
+    className="pnoInput"
+    value={(entry.vehicleIdNumber || '').toUpperCase()}
+    onChange={(e) => handleEntryChange(index, 'vehicleIdNumber', e.target.value.toUpperCase())}
+    placeholder="VIN"
+  />
+</td>
+<td>
+  <input
+    type="text"
+    className="pnoInput"
+    value={(entry.vehicleMake || '').toUpperCase()}
+    onChange={(e) => handleEntryChange(index, 'vehicleMake', e.target.value.toUpperCase())}
+    placeholder="Make"
+  />
+</td>
                   <td>
                     <input
                       type="text"

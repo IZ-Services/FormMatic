@@ -10,10 +10,8 @@ interface TitleFieldProps {
   onChange?: (data: { title: string }) => void;
 }
 
- 
 export const TITLE_FIELD_STORAGE_KEY = 'formmatic_title_field';
 
- 
 export const clearTitleFieldStorage = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(TITLE_FIELD_STORAGE_KEY);
@@ -27,13 +25,18 @@ const TitleField: React.FC<TitleFieldProps> = ({ formData: propFormData, onChang
     title: '',
   });
   
-  const { formData: contextFormData, updateField, clearFormTriggered } = useFormContext() as {
-    formData: Record<string, any>;
-    updateField: (section: string, value: any) => void;
-    clearFormTriggered?: number | null;
-  };
+  const { 
+    formData: contextFormData, 
+    updateField, 
+    clearFormTriggered,
+    validationErrors = [],
+    showValidationErrors = false
+  } = useFormContext();
   
- 
+  // Check if validation should show errors
+  const isEmpty = !titleData.title || titleData.title.trim() === '';
+  const showError = showValidationErrors && isEmpty;
+  
   useEffect(() => {
     if (clearFormTriggered) {
       console.log('Clear form triggered in TitleField component');
@@ -42,7 +45,6 @@ const TitleField: React.FC<TitleFieldProps> = ({ formData: propFormData, onChang
       const emptyData = { title: '' };
       setTitleData(emptyData);
       
- 
       updateField('title', '');
       
       if (onChange) {
@@ -51,7 +53,6 @@ const TitleField: React.FC<TitleFieldProps> = ({ formData: propFormData, onChang
     }
   }, [clearFormTriggered]);
   
- 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
@@ -61,20 +62,17 @@ const TitleField: React.FC<TitleFieldProps> = ({ formData: propFormData, onChang
           console.log("Loading title field data from localStorage");
           const parsedData = JSON.parse(savedData);
           
- 
           const titleValue = propFormData?.title !== undefined ? propFormData.title : parsedData.title;
           const mergedData = { title: titleValue };
           
           setTitleData(mergedData);
           
- 
           updateField('title', mergedData.title);
           
           if (onChange) {
             onChange(mergedData);
           }
         } else if (propFormData?.title !== undefined) {
- 
           const newData = { title: propFormData.title };
           setTitleData(newData);
           updateField('title', newData.title);
@@ -85,7 +83,6 @@ const TitleField: React.FC<TitleFieldProps> = ({ formData: propFormData, onChang
         console.error('Error loading saved title field data:', error);
         setIsInitialized(true);
         
- 
         if (propFormData?.title !== undefined) {
           const newData = { title: propFormData.title };
           setTitleData(newData);
@@ -94,14 +91,12 @@ const TitleField: React.FC<TitleFieldProps> = ({ formData: propFormData, onChang
     }
   }, []);
   
- 
   useEffect(() => {
     if (isInitialized && propFormData?.title !== undefined && propFormData.title !== titleData.title) {
       setTitleData({ title: propFormData.title });
     }
   }, [propFormData, isInitialized]);
   
- 
   useEffect(() => {
     if (isInitialized && !onChange) {
       updateField('title', titleData.title);
@@ -120,7 +115,6 @@ const TitleField: React.FC<TitleFieldProps> = ({ formData: propFormData, onChang
     const newData = { title: capitalizedValue };
     setTitleData(newData);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(TITLE_FIELD_STORAGE_KEY, JSON.stringify(newData));
     }
@@ -136,12 +130,26 @@ const TitleField: React.FC<TitleFieldProps> = ({ formData: propFormData, onChang
     <div className="titleFieldWrapper">
       <label className="titleFieldLabel">Title if Signing for a Company</label>
       <input
-        className="titleFieldInput"
+        className={`titleFieldInput ${showError ? 'validation-error' : ''}`}
         type="text"
         placeholder="Enter title"
         value={titleData.title}
         onChange={(e) => handleTitleChange(e.target.value)}
+        style={{
+          borderColor: showError ? '#dc3545' : '',
+          backgroundColor: showError ? '#fff8f8' : ''
+        }}
       />
+      {showError && (
+        <p style={{ 
+          color: '#dc3545', 
+          fontSize: '12px', 
+          marginTop: '4px', 
+          marginBottom: '0' 
+        }}>
+          Title is required
+        </p>
+      )}
     </div>
   );
 };

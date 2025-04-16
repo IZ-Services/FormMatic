@@ -42,7 +42,7 @@ export default function DuplicatePlatesAndStickersTransfer({ formData, onDataCha
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType,showValidationErrors } = useFormContext();
 
  
     useEffect(() => {
@@ -138,10 +138,16 @@ export default function DuplicatePlatesAndStickersTransfer({ formData, onDataCha
 
         <SellerAddress formData={formValues} />
 
-        <ItemRequested formData={formValues}/>
 
-        <LicensePlate formData={formValues} />
-        
+        <ItemRequested 
+  formData={formValues}
+  showValidationErrors={showValidationErrors} 
+/>
+      
+<LicensePlate 
+    formData={formValues} 
+    showValidationErrors={showValidationErrors}
+  />        
         <SaveButton 
           transactionType="Duplicate Plates & Stickers"
           onSuccess={() => console.log('Save completed successfully')}

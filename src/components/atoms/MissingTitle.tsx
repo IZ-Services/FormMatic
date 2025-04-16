@@ -15,10 +15,8 @@ interface MissingTitleProps {
   };
 }
 
- 
 export const MISSING_TITLE_STORAGE_KEY = 'formmatic_missing_title';
 
- 
 export const clearMissingTitleStorage = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(MISSING_TITLE_STORAGE_KEY);
@@ -31,7 +29,7 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
   const [titleData, setTitleData] = useState<MissingTitleInfo>({});
   const [openDropdown, setOpenDropdown] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
-  const { updateField, clearFormTriggered } = useFormContext();
+  const { updateField, clearFormTriggered, validationErrors = [], showValidationErrors = false } = useFormContext();
 
   const missingTitleOptions = [
     'Lost', 
@@ -41,19 +39,20 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
     'Illegible/Mutilated (Attach old title)',
   ];
 
- 
+  // Check if the field is empty and we're showing validation errors
+  const isEmpty = !titleData.reason || titleData.reason.trim() === '';
+  const showError = showValidationErrors && isEmpty;
+
   useEffect(() => {
     if (clearFormTriggered) {
       console.log('Clear form triggered in MissingTitle component');
       clearMissingTitleStorage();
       setTitleData({});
       
- 
       updateField('missingTitleInfo', {});
     }
   }, [clearFormTriggered]);
   
- 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
@@ -63,7 +62,6 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
           console.log("Loading missing title data from localStorage");
           const parsedData = JSON.parse(savedData);
           
- 
           const mergedData = {
             ...parsedData,
             ...(propFormData?.missingTitleInfo || {})
@@ -71,10 +69,8 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
           
           setTitleData(mergedData);
           
- 
           updateField('missingTitleInfo', mergedData);
         } else if (propFormData?.missingTitleInfo) {
- 
           setTitleData(propFormData.missingTitleInfo);
         }
         
@@ -83,7 +79,6 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
         console.error('Error loading saved missing title data:', error);
         setIsInitialized(true);
         
- 
         if (propFormData?.missingTitleInfo) {
           setTitleData(propFormData.missingTitleInfo);
         }
@@ -91,7 +86,6 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
     }
   }, []);
 
- 
   useEffect(() => {
     if (isInitialized && propFormData?.missingTitleInfo) {
       setTitleData(propFormData.missingTitleInfo);
@@ -119,7 +113,6 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
     setTitleData(newData);
     updateField('missingTitleInfo', newData);
     
- 
     if (typeof window !== 'undefined') {
       localStorage.setItem(MISSING_TITLE_STORAGE_KEY, JSON.stringify(newData));
     }
@@ -141,6 +134,11 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
           ref={dropdownRef}
         >
           <div
+            style={{
+              borderColor: showError ? '#dc3545' : '',
+              borderWidth: showError ? '1px' : '',
+              borderStyle: showError ? 'solid' : ''
+            }}
             className="dropdownButton"
             onClick={() => setOpenDropdown(!openDropdown)}
           >
@@ -162,6 +160,17 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
             </ul>
           )}
         </div>
+        
+        {showError && (
+          <p style={{ 
+            color: '#dc3545', 
+            fontSize: '12px', 
+            marginTop: '4px', 
+            marginBottom: '0' 
+          }}>
+            Missing title reason is required
+          </p>
+        )}
       </div>
     </div>
   );

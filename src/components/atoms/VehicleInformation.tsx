@@ -41,6 +41,14 @@ interface VehicleInformationProps {
   isDuplicateRegistrationMode?: boolean;
 }
 
+// Form context type with validation properties
+interface FormContextType {
+  formData: Record<string, any>;
+  updateField: (field: string, value: any) => void;
+  validationErrors: Array<{ fieldPath: string; message: string }>;
+  showValidationErrors: boolean;
+}
+
 const initialVehicleInformation: VehicleInformationType = {
   licensePlate: '',
   hullId: '',
@@ -66,12 +74,32 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
   onChange,
   isDuplicateRegistrationMode = false
 }) => {
-  const { formData: contextFormData, updateField } = useFormContext();
+  const { 
+    formData: contextFormData, 
+    updateField,
+    validationErrors,
+    showValidationErrors 
+  } = useFormContext() as FormContextType;
+  
   const { activeScenarios } = useScenarioContext();
 
   const formData = {
     ...contextFormData,
     ...propFormData
+  };
+
+  // Helper functions for validation
+  const shouldShowValidationError = (field: string) => {
+    if (!showValidationErrors) return false;
+    
+    return validationErrors.some(error => 
+      error.fieldPath === `vehicleInformation.${field}`
+    );
+  };
+  
+  const getValidationErrorMessage = (field: string): string => {
+    const error = validationErrors.find(e => e.fieldPath === `vehicleInformation.${field}`);
+    return error ? error.message : '';
   };
 
   const shouldHideMileageFields = () => {
@@ -158,33 +186,42 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
           <div className="vehicleFormItem">
             <label>Motorcycle Engine Number</label>
             <input
-              className="yearInput"
+              className={`yearInput ${shouldShowValidationError('engineNumber') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Motorcycle Engine Number"
-              value={(formData.vehicleInformation as VehicleInformationType)?.engineNumber || ''}
-              onChange={(e) => handleVehicleInfoChange('engineNumber', e.target.value)}
+              value={((formData.vehicleInformation as VehicleInformationType)?.engineNumber || '').toUpperCase()}
+              onChange={(e) => handleVehicleInfoChange('engineNumber', e.target.value.toUpperCase())}
             />
+            {shouldShowValidationError('engineNumber') && (
+              <p className="validation-message">{getValidationErrorMessage('engineNumber')}</p>
+            )}
           </div>
         )}
         <div className="vehicleFormItem">
           <label>Vehicle/Hull Identification Number</label>
           <input
-            className="makeInput"
+            className={`makeInput ${shouldShowValidationError('hullId') ? 'validation-error' : ''}`}
             type="text"
             placeholder="Vehicle/ Hull Identification Number"
-            value={(formData.vehicleInformation as VehicleInformationType)?.hullId || ''}
-            onChange={(e) => handleVehicleInfoChange('hullId', e.target.value)}
+            value={((formData.vehicleInformation as VehicleInformationType)?.hullId || '').toUpperCase()}
+            onChange={(e) => handleVehicleInfoChange('hullId', e.target.value.toUpperCase())}
           />
+          {shouldShowValidationError('hullId') && (
+            <p className="validation-message">{getValidationErrorMessage('hullId')}</p>
+          )}
         </div>
         <div className="vehicleFormItem">
           <label>Vehicle License Plate or Vessel CF Number</label>
           <input
-            className="odometerInput"
+            className={`odometerInput ${shouldShowValidationError('licensePlate') ? 'validation-error' : ''}`}
             type="text"
             placeholder="Vehicle License Plate or Vessel CF Number"
-            value={(formData.vehicleInformation as VehicleInformationType)?.licensePlate || ''}
-            onChange={(e) => handleVehicleInfoChange('licensePlate', e.target.value)}
+            value={((formData.vehicleInformation as VehicleInformationType)?.licensePlate || '').toUpperCase()}
+            onChange={(e) => handleVehicleInfoChange('licensePlate', e.target.value.toUpperCase())}
           />
+          {shouldShowValidationError('licensePlate') && (
+            <p className="validation-message">{getValidationErrorMessage('licensePlate')}</p>
+          )}
         </div>
       </div>
       
@@ -192,7 +229,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
         <div className="vehicleFormItem">
           <label>Year of Vehicle</label>
           <input
-            className="yearInput"
+            className={`yearInput ${shouldShowValidationError('year') ? 'validation-error' : ''}`}
             type="text"
             placeholder="Year of Vehicle"
             value={(formData.vehicleInformation as VehicleInformationType)?.year || ''}
@@ -202,11 +239,14 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             }}
             maxLength={4} 
           />
+          {shouldShowValidationError('year') && (
+            <p className="validation-message">{getValidationErrorMessage('year')}</p>
+          )}
         </div>
         <div className="vehicleFormItem">
           <label>Make of Vehicle OR Vessel Builder</label>
           <input
-            className="makeInput"
+            className={`makeInput ${shouldShowValidationError('make') ? 'validation-error' : ''}`}
             type="text"
             placeholder="Make of Vehicle OR Vessel Builder"
             value={(formData.vehicleInformation as VehicleInformationType)?.make || ''}
@@ -229,6 +269,9 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
               }
             }}
           />
+          {shouldShowValidationError('make') && (
+            <p className="validation-message">{getValidationErrorMessage('make')}</p>
+          )}
         </div>
       </div>
 
@@ -237,7 +280,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
           <div className="vehicleFormItem">
             <label>Length (IN)</label>
             <input
-              className="yearInput"
+              className={`yearInput ${shouldShowValidationError('length') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Length in inches"
               value={(formData.vehicleInformation as VehicleInformationType)?.length || ''}
@@ -247,11 +290,14 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
                 handleVehicleInfoChange('length', numericValue);
               }}
             />
+            {shouldShowValidationError('length') && (
+              <p className="validation-message">{getValidationErrorMessage('length')}</p>
+            )}
           </div>
           <div className="vehicleFormItem">
             <label>Width (IN)</label>
             <input
-              className="makeInput"
+              className={`makeInput ${shouldShowValidationError('width') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Width in inches"
               value={(formData.vehicleInformation as VehicleInformationType)?.width || ''}
@@ -261,6 +307,9 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
                 handleVehicleInfoChange('width', numericValue);
               }}
             />
+            {shouldShowValidationError('width') && (
+              <p className="validation-message">{getValidationErrorMessage('width')}</p>
+            )}
           </div>
         </div>
       )}
@@ -272,7 +321,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             <div style={{ flexGrow: 1 }}>
               <label>Mileage of Vehicle</label>
               <input
-                className="yearInput"
+                className={`yearInput ${shouldShowValidationError('mileage') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="Vehicle Mileage"
                 value={(formData.vehicleInformation as VehicleInformationType)?.mileage || ''}
@@ -285,6 +334,9 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
                 }}
                 maxLength={6}
               />
+              {shouldShowValidationError('mileage') && (
+                <p className="validation-message">{getValidationErrorMessage('mileage')}</p>
+              )}
             </div>
           </div>
           
@@ -329,6 +381,20 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        .validation-error {
+          border-color: #dc3545;
+          background-color: #fff8f8;
+        }
+
+        .validation-message {
+          color: #dc3545;
+          font-size: 12px;
+          margin-top: 4px;
+          margin-bottom: 0;
+        }
+      `}</style>
     </div>
   );
 };
