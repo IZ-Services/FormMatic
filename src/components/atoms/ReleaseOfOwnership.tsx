@@ -183,100 +183,115 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({
   const regStateDropdownRef = useRef<HTMLDivElement>(null);
   const mailingStateDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Validation function
-  const validateReleaseInfo = (): ValidationError[] => {
-    const errors: ValidationError[] = [];
-    
-    // Validate required fields
-    if (!releaseData.name) {
+// Validation function
+const validateReleaseInfo = (): ValidationError[] => {
+  const errors: ValidationError[] = [];
+  
+  // Validate required fields
+  if (!releaseData.name) {
+    errors.push({
+      field: 'name',
+      message: 'Name is required'
+    });
+  }
+  
+  // Validate address fields
+  if (!releaseData.address?.street) {
+    errors.push({
+      field: 'address.street',
+      message: 'Street is required'
+    });
+  }
+  
+  if (!releaseData.address?.city) {
+    errors.push({
+      field: 'address.city',
+      message: 'City is required'
+    });
+  }
+  
+  if (!releaseData.address?.state) {
+    errors.push({
+      field: 'address.state',
+      message: 'State is required'
+    });
+  }
+  
+  if (!releaseData.address?.zip) {
+    errors.push({
+      field: 'address.zip',
+      message: 'ZIP code is required'
+    });
+  }
+  
+  // Validate date and phone fields
+  if (!releaseData.date) {
+    errors.push({
+      field: 'date',
+      message: 'Date is required'
+    });
+  } else if (releaseData.date.length < 10) {
+    errors.push({
+      field: 'date',
+      message: 'Date must be in MM/DD/YYYY format'
+    });
+  }
+  
+  if (!releaseData.phoneNumber) {
+    errors.push({
+      field: 'phoneNumber',
+      message: 'Phone number is required'
+    });
+  }
+  
+  // Validate authorized agent fields
+  if (!releaseData.authorizedAgentName) {
+    errors.push({
+      field: 'authorizedAgentName',
+      message: 'Authorized agent name is required'
+    });
+  }
+  
+  if (!releaseData.authorizedAgentTitle) {
+    errors.push({
+      field: 'authorizedAgentTitle',
+      message: 'Authorized agent title is required'
+    });
+  }
+  
+  // Validate mailing address if different
+  if (releaseData.mailingAddressDifferent) {
+    if (!releaseData.mailingAddress?.street) {
       errors.push({
-        field: 'name',
-        message: 'Name is required'
+        field: 'mailingAddress.street',
+        message: 'Mailing street is required'
       });
     }
     
-    // Validate address fields
-    if (!releaseData.address?.street) {
+    if (!releaseData.mailingAddress?.city) {
       errors.push({
-        field: 'address.street',
-        message: 'Street is required'
+        field: 'mailingAddress.city',
+        message: 'Mailing city is required'
       });
     }
     
-    if (!releaseData.address?.city) {
+    if (!releaseData.mailingAddress?.state) {
       errors.push({
-        field: 'address.city',
-        message: 'City is required'
+        field: 'mailingAddress.state',
+        message: 'Mailing state is required'
       });
     }
     
-    if (!releaseData.address?.state) {
+    if (!releaseData.mailingAddress?.zip) {
       errors.push({
-        field: 'address.state',
-        message: 'State is required'
+        field: 'mailingAddress.zip',
+        message: 'Mailing ZIP code is required'
       });
     }
-    
-    if (!releaseData.address?.zip) {
-      errors.push({
-        field: 'address.zip',
-        message: 'ZIP code is required'
-      });
-    }
-    
-    // Validate date and phone fields
-    if (!releaseData.date) {
-      errors.push({
-        field: 'date',
-        message: 'Date is required'
-      });
-    } else if (releaseData.date.length < 10) {
-      errors.push({
-        field: 'date',
-        message: 'Date must be in MM/DD/YYYY format'
-      });
-    }
-    
-    if (!releaseData.phoneNumber) {
-      errors.push({
-        field: 'phoneNumber',
-        message: 'Phone number is required'
-      });
-    }
-    
-    // Validate mailing address if different
-    if (releaseData.mailingAddressDifferent) {
-      if (!releaseData.mailingAddress?.street) {
-        errors.push({
-          field: 'mailingAddress.street',
-          message: 'Mailing street is required'
-        });
-      }
-      
-      if (!releaseData.mailingAddress?.city) {
-        errors.push({
-          field: 'mailingAddress.city',
-          message: 'Mailing city is required'
-        });
-      }
-      
-      if (!releaseData.mailingAddress?.state) {
-        errors.push({
-          field: 'mailingAddress.state',
-          message: 'Mailing state is required'
-        });
-      }
-      
-      if (!releaseData.mailingAddress?.zip) {
-        errors.push({
-          field: 'mailingAddress.zip',
-          message: 'Mailing ZIP code is required'
-        });
-      }
-    }
-    
-    return errors;
-  };
+  }
+  
+  return errors;
+};
 
   // First useEffect: Run validation when showing validation errors or when data changes
   useEffect(() => {

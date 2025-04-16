@@ -47,7 +47,7 @@ export default function FilingPNOTransfer({ formData, onDataChange }: FilingPNOP
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType, showValidationErrors } = useFormContext();
 
  
     useEffect(() => {
@@ -86,7 +86,7 @@ export default function FilingPNOTransfer({ formData, onDataChange }: FilingPNOP
         )}
         
         {/* <VehicleStorageLocation formData={formValues} /> */}
-        <PlannedNonoperation formData={formValues} />
+        <PlannedNonoperation formData={formValues}   showValidationErrors={showValidationErrors} />
         <SaveButton 
           transactionType="Filing PNO Transfer"
           onSuccess={() => console.log('Save completed successfully')}

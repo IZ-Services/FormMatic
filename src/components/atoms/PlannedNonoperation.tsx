@@ -11,6 +11,12 @@ interface VehicleEntryType {
   equipmentNumber: string;
 }
 
+interface ValidationError {
+  field: string;
+  index: number;
+  message: string;
+}
+
 interface PlannedNonOperationType {
   entries: VehicleEntryType[];
 }
@@ -19,6 +25,7 @@ interface PlannedNonOperationProps {
   formData?: {
     plannedNonOperation?: PlannedNonOperationType;
   };
+  showValidationErrors?: boolean;
 }
 
 const initialVehicleEntry: VehicleEntryType = {
@@ -32,12 +39,65 @@ const initialPlannedNonOperation: PlannedNonOperationType = {
   entries: [{ ...initialVehicleEntry }, { ...initialVehicleEntry }]
 };
 
-const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: propFormData }) => {
+const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ 
+  formData: propFormData,
+  showValidationErrors = false 
+}) => {
   const { formData: contextFormData, updateField } = useFormContext();
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
   const formData = {
     ...contextFormData,
     ...propFormData
+  };
+
+  // Validation function
+  const validateEntries = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    const entries = formData.plannedNonOperation?.entries || [];
+
+    entries.forEach((entry, index) => {
+      // Validate license plate
+      if (!entry.vehicleLicensePlate) {
+        errors.push({
+          field: 'vehicleLicensePlate',
+          index,
+          message: 'License plate number is required'
+        });
+      }
+
+      // Validate VIN
+      if (!entry.vehicleIdNumber) {
+        errors.push({
+          field: 'vehicleIdNumber',
+          index,
+          message: 'Vehicle ID number is required'
+        });
+      } else if (entry.vehicleIdNumber.length < 17) {
+        errors.push({
+          field: 'vehicleIdNumber',
+          index,
+          message: 'VIN must be 17 characters'
+        });
+      }
+
+      // Validate make
+      if (!entry.vehicleMake) {
+        errors.push({
+          field: 'vehicleMake',
+          index,
+          message: 'Vehicle make is required'
+        });
+      }
+    });
+
+    return errors;
+  };
+
+  // Helper to get error message
+  const getErrorMessage = (field: string, index: number): string | null => {
+    const error = validationErrors.find(err => err.field === field && err.index === index);
+    return error ? error.message : null;
   };
 
   useEffect(() => {
@@ -45,6 +105,24 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
       updateField('plannedNonOperation', initialPlannedNonOperation);
     }
   }, []);
+
+  // Run validation when data changes or validation flag is turned on
+  useEffect(() => {
+    if (showValidationErrors) {
+      const errors = validateEntries();
+      setValidationErrors(errors);
+    }
+  }, [showValidationErrors, formData.plannedNonOperation]);
+
+  // Update parent component about validation status
+  useEffect(() => {
+    if (showValidationErrors) {
+      updateField('_validationErrors', (prev: any) => ({
+        ...prev,
+        plannedNonOperation: validationErrors.length > 0
+      }));
+    }
+  }, [validationErrors, showValidationErrors]);
 
   const handleEntryChange = (index: number, field: keyof VehicleEntryType, value: string) => {
     const currentInfo = { ...(formData.plannedNonOperation || initialPlannedNonOperation) };
@@ -63,12 +141,17 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
       ...currentInfo,
       entries: updatedEntries
     });
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateEntries();
+      setValidationErrors(errors);
+    }
   };
 
   const addNewEntry = () => {
     const currentInfo = { ...(formData.plannedNonOperation || initialPlannedNonOperation) };
     
-
     if (currentInfo.entries.length >= 9) {
       return;
     }
@@ -84,7 +167,6 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
   const deleteEntry = (index: number) => {
     const currentInfo = { ...(formData.plannedNonOperation || initialPlannedNonOperation) };
     
-
     if (currentInfo.entries.length <= 1) {
       return;
     }
@@ -95,6 +177,14 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
       ...currentInfo,
       entries: updatedEntries
     });
+    
+    // Run validation after deletion if we're showing validation errors
+    if (showValidationErrors) {
+      setTimeout(() => {
+        const errors = validateEntries();
+        setValidationErrors(errors);
+      }, 0);
+    }
   };
 
   return (
@@ -118,33 +208,43 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({ formData: pro
             <tbody>
               {(formData.plannedNonOperation?.entries || []).map((entry, index) => (
                 <tr key={index}>
-                <td>
-  <input
-    type="text"
-    className="pnoInput"
-    value={(entry.vehicleLicensePlate || '').toUpperCase()}
-    onChange={(e) => handleEntryChange(index, 'vehicleLicensePlate', e.target.value.toUpperCase())}
-    placeholder="License plate number"
-  />
-</td>
-<td>
-  <input
-    type="text"
-    className="pnoInput"
-    value={(entry.vehicleIdNumber || '').toUpperCase()}
-    onChange={(e) => handleEntryChange(index, 'vehicleIdNumber', e.target.value.toUpperCase())}
-    placeholder="VIN"
-  />
-</td>
-<td>
-  <input
-    type="text"
-    className="pnoInput"
-    value={(entry.vehicleMake || '').toUpperCase()}
-    onChange={(e) => handleEntryChange(index, 'vehicleMake', e.target.value.toUpperCase())}
-    placeholder="Make"
-  />
-</td>
+                  <td>
+                    <input
+                      type="text"
+                      className={`pnoInput ${showValidationErrors && getErrorMessage('vehicleLicensePlate', index) ? 'error-input' : ''}`}
+                      value={(entry.vehicleLicensePlate || '').toUpperCase()}
+                      onChange={(e) => handleEntryChange(index, 'vehicleLicensePlate', e.target.value.toUpperCase())}
+                      placeholder="License plate number"
+                    />
+                    {showValidationErrors && getErrorMessage('vehicleLicensePlate', index) && (
+                      <div className="error-message">{getErrorMessage('vehicleLicensePlate', index)}</div>
+                    )}
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      className={`pnoInput ${showValidationErrors && getErrorMessage('vehicleIdNumber', index) ? 'error-input' : ''}`}
+                      value={(entry.vehicleIdNumber || '').toUpperCase()}
+                      onChange={(e) => handleEntryChange(index, 'vehicleIdNumber', e.target.value.toUpperCase())}
+                      placeholder="VIN"
+                      maxLength={17}
+                    />
+                    {showValidationErrors && getErrorMessage('vehicleIdNumber', index) && (
+                      <div className="error-message">{getErrorMessage('vehicleIdNumber', index)}</div>
+                    )}
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      className={`pnoInput ${showValidationErrors && getErrorMessage('vehicleMake', index) ? 'error-input' : ''}`}
+                      value={(entry.vehicleMake || '').toUpperCase()}
+                      onChange={(e) => handleEntryChange(index, 'vehicleMake', e.target.value.toUpperCase())}
+                      placeholder="Make"
+                    />
+                    {showValidationErrors && getErrorMessage('vehicleMake', index) && (
+                      <div className="error-message">{getErrorMessage('vehicleMake', index)}</div>
+                    )}
+                  </td>
                   <td>
                     <input
                       type="text"

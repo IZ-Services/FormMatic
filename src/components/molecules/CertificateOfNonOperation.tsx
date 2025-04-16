@@ -40,7 +40,7 @@ export default function CertificateOfNonOperationTransfer({ formData, onDataChan
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType, showValidationErrors } = useFormContext();
 
  
     useEffect(() => {
@@ -61,12 +61,8 @@ export default function CertificateOfNonOperationTransfer({ formData, onDataChan
     return (
       <div className='wholeForm'>
         <TypeContainer />
-        {/* <FilingPnoCheckboxes formData={formValues} /> */}
-        {/* <VehicalInformation formData={formValues}/> */}
-        {/* <Seller formData={formValues} /> */}
-        {/* <SellerAddress formData={formValues} /> */}
-        <VehicleStorageLocation formData={formValues} />
-        <PlannedNonoperation formData={formValues} />
+        <VehicleStorageLocation formData={formValues} showValidationErrors={showValidationErrors} />
+        <PlannedNonoperation formData={formValues} showValidationErrors={showValidationErrors}  />
         <SaveButton 
           transactionType="Certificate Of Non-Operation Transfer"
           onSuccess={() => console.log('Save completed successfully')}

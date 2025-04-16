@@ -1,7 +1,6 @@
 'use client';
 import Address from '../atoms/Address';
 import NewRegisteredOwners from '../atoms/NewRegisteredOwner';
-import NewLien from '../atoms/NewLienHolder';
 import VehicalInformation from '../atoms/VehicleInformation';
 import Seller from '../atoms/Seller';
 import SaveButton from '../atoms/savebutton';
@@ -62,7 +61,7 @@ export default function CommercialVehicleTransfer({ formData, onDataChange }: Co
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType, showValidationErrors } = useFormContext();
 
  
     useEffect(() => {
@@ -78,19 +77,14 @@ export default function CommercialVehicleTransfer({ formData, onDataChange }: Co
     }, [formValues, updateField]);
 
  
-    const vehicleTransactionDetails = (contextFormData?.vehicleTransactionDetails || {}) as VehicleTransactionDetailsData;
     const commercialVehicle = (contextFormData?.commercialVehicle || {}) as CommercialVehicleData;
-    
-    const isCurrentLienholder = vehicleTransactionDetails.currentLienholder === true;
-    const isSmogExempt = vehicleTransactionDetails.isSmogExempt === true;
-    const isOutOfStateTitle = vehicleTransactionDetails.isOutOfStateTitle === true;
     const hasLienHolder = commercialVehicle.hasLienHolder === true;
 
     return (
       <div className='wholeForm'>
         <TypeContainer />
         <CommercialCheckboxes formData={formValues}/>
-        <CommercialVehicleInfo formData={formValues} />
+        <CommercialVehicleInfo formData={formValues}  showValidationErrors={showValidationErrors} />
         <TypeOfVehicle formData={formValues} />
         <CommercialVehicleQuestions formData={formValues} />
         <Seller 
@@ -103,17 +97,17 @@ export default function CommercialVehicleTransfer({ formData, onDataChange }: Co
           hideOutOfState={true}
         />
         <VehicalInformation formData={formValues} />
-        <VehicleWeightInfo formData={formValues} />
+        <VehicleWeightInfo formData={formValues}  showValidationErrors={showValidationErrors}  />
         <NewRegisteredOwners formData={formValues} />
         <Address formData={formValues} />
-        <DateInformation formData={formValues} />
-        <VehicleStatus formData={formValues} />
-        <VehicleAcquisition formData={formValues} />
+        <DateInformation formData={formValues}  showValidationErrors={showValidationErrors}  />
+        <VehicleStatus formData={formValues}  showValidationErrors={showValidationErrors}  />
+        <VehicleAcquisition formData={formValues} showValidationErrors={showValidationErrors}  />
         
         {/* Show LegalOwnerOfRecord only if hasLienHolder is true */}
         {hasLienHolder && <LegalOwnerOfRecord formData={formValues} />}
-        <VehicleBodyChange formData={formValues} />
-        <StatementOfFacts formData={formValues} />
+        <VehicleBodyChange formData={formValues} showValidationErrors={showValidationErrors} />
+        <StatementOfFacts formData={formValues} showValidationErrors={showValidationErrors} />
         <SaveButton 
           transactionType="Commercial Vehicle Transfer"
           onSuccess={() => console.log('Save completed successfully')}

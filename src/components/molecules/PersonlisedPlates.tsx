@@ -41,7 +41,7 @@ export default function PersonalisedPlatesTransfer({ formData, onDataChange }: P
 }
 
 const FormContent = ({ formValues }: { formValues: any }) => {
-  const { formData: contextFormData, updateField, clearField, setTransactionType } = useFormContext();
+  const { formData: contextFormData, updateField, clearField, setTransactionType, showValidationErrors } = useFormContext();
   const { activeScenarios, activeSubOptions } = useScenarioContext();
   const prevActiveOptionRef = useRef<string | null>(null);
   const initialLoadRef = useRef(true);
@@ -241,23 +241,23 @@ const FormContent = ({ formValues }: { formValues: any }) => {
         isAnySubOptionSelected ? (
           <>
             {/* Common component for all options */}
-            <PlateSelection formData={safeProps} />
+            <PlateSelection formData={safeProps}showValidationErrors={showValidationErrors} />
 
             {/* Conditional components based on selection */}
             {(isOrderSelected || isExchangeSelected) && (
-              <SelectConfiguration formData={safeProps} />
+              <SelectConfiguration formData={safeProps}  showValidationErrors={showValidationErrors} />
             )}
 
             {isReplaceSelected && (
-              <ReplacementSection formData={safeProps} />
+              <ReplacementSection formData={safeProps}   showValidationErrors={showValidationErrors}  />
             )}
             
             {isReassignSelected && (
-              <ReassignmentSection formData={safeProps} />
+              <ReassignmentSection formData={safeProps} showValidationErrors={showValidationErrors} />
             )}
 
             {/* Common component for all options */}
-            <PlatePurchaserOwner formData={safeProps} />
+            <PlatePurchaserOwner formData={safeProps} showValidationErrors={showValidationErrors} />
 
             {/* Save Button with dynamic transaction type */}
             <SaveButton 

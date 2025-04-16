@@ -22,10 +22,17 @@ interface SelectConfigurationType {
   locationCity?: string;
 }
 
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
 interface SelectConfigurationProps {
   formData?: {
     selectConfiguration?: SelectConfigurationType;
   };
+  onChange?: (data: any) => void;
+  showValidationErrors?: boolean;
 }
 
 const initialSelectConfiguration: SelectConfigurationType = {
@@ -47,13 +54,125 @@ const initialSelectConfiguration: SelectConfigurationType = {
   locationCity: ''
 };
 
-const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: propFormData }) => {
+const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ 
+  formData: propFormData, 
+  onChange,
+  showValidationErrors = false 
+}) => {
   const { formData: contextFormData, updateField } = useFormContext();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
   const formData = {
     ...contextFormData,
     ...propFormData
+  };
+
+  // Validation function
+  const validateSelectConfiguration = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    const config = formData.selectConfiguration as SelectConfigurationType;
+    
+    // Validate vehicle type
+    if (!config?.vehicleType) {
+      errors.push({
+        field: 'vehicleType',
+        message: 'Vehicle type is required'
+      });
+    }
+    
+    // Validate plate type
+    if (!config?.plateType) {
+      errors.push({
+        field: 'plateType',
+        message: 'Plate type is required'
+      });
+    }
+    
+    // Validate sequential plate fields
+    if (config?.plateType === 'Sequential') {
+      if (!config.currentLicensePlate) {
+        errors.push({
+          field: 'currentLicensePlate',
+          message: 'Current license plate number is required'
+        });
+      } else if (config.currentLicensePlate.length < 5) {
+        errors.push({
+          field: 'currentLicensePlate',
+          message: 'License plate must be at least 5 characters'
+        });
+      }
+      
+      if (!config.fullVehicleId) {
+        errors.push({
+          field: 'fullVehicleId',
+          message: 'Vehicle ID number is required'
+        });
+      } else if (config.fullVehicleId.length < 17) {
+        errors.push({
+          field: 'fullVehicleId',
+          message: 'VIN must be 17 characters'
+        });
+      }
+    }
+    
+    // Validate personalized plate fields
+    if (config?.plateType === 'Personalized') {
+      // At least first choice is required
+      if (!config.personalized?.firstChoice) {
+        errors.push({
+          field: 'firstChoice',
+          message: 'First choice is required'
+        });
+      }
+      
+      if (!config.personalized?.firstChoiceMeaning) {
+        errors.push({
+          field: 'firstChoiceMeaning',
+          message: 'Meaning for first choice is required'
+        });
+      }
+      
+      // If second choice is provided, meaning is required
+      if (config.personalized?.secondChoice && !config.personalized?.secondChoiceMeaning) {
+        errors.push({
+          field: 'secondChoiceMeaning',
+          message: 'Meaning is required when second choice is provided'
+        });
+      }
+      
+      // If third choice is provided, meaning is required
+      if (config.personalized?.thirdChoice && !config.personalized?.thirdChoiceMeaning) {
+        errors.push({
+          field: 'thirdChoiceMeaning',
+          message: 'Meaning is required when third choice is provided'
+        });
+      }
+    }
+    
+    // Validate pickup location
+    if (config?.plateType && !config.pickupLocation) {
+      errors.push({
+        field: 'pickupLocation',
+        message: 'Pickup location is required'
+      });
+    }
+    
+    // Validate location city
+    if (config?.pickupLocation && !config.locationCity) {
+      errors.push({
+        field: 'locationCity',
+        message: 'Location city is required'
+      });
+    }
+    
+    return errors;
+  };
+
+  // Helper to get error message for a field
+  const getErrorMessage = (field: string): string | null => {
+    const error = validationErrors.find(err => err.field === field);
+    return error ? error.message : null;
   };
 
   useEffect(() => {
@@ -61,6 +180,24 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
       updateField('selectConfiguration', initialSelectConfiguration);
     }
   }, []);
+
+  // Run validation when showing validation errors or when data changes
+  useEffect(() => {
+    if (showValidationErrors) {
+      const errors = validateSelectConfiguration();
+      setValidationErrors(errors);
+    }
+  }, [showValidationErrors, formData.selectConfiguration]);
+
+  // Update parent component about validation status
+  useEffect(() => {
+    if (showValidationErrors) {
+      updateField('_validationErrors', (prev: any) => ({
+        ...prev,
+        selectConfiguration: validationErrors.length > 0
+      }));
+    }
+  }, [validationErrors, showValidationErrors]);
 
   const handleChange = (field: keyof SelectConfigurationType, value: any) => {
     const currentInfo = (formData.selectConfiguration || {}) as SelectConfigurationType;
@@ -73,7 +210,19 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
       newData.fullVehicleId = '';
     }
 
-    updateField('selectConfiguration', newData);
+    if (onChange) {
+      onChange({ selectConfiguration: newData });
+    } else {
+      updateField('selectConfiguration', newData);
+    }
+    
+    // Run validation if showing validation errors
+    if (showValidationErrors) {
+      setTimeout(() => {
+        const errors = validateSelectConfiguration();
+        setValidationErrors(errors);
+      }, 0);
+    }
   };
 
   const handlePersonalizedChange = (field: string, value: any) => {
@@ -91,7 +240,19 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
       personalized
     };
     
-    updateField('selectConfiguration', newData);
+    if (onChange) {
+      onChange({ selectConfiguration: newData });
+    } else {
+      updateField('selectConfiguration', newData);
+    }
+    
+    // Run validation if showing validation errors
+    if (showValidationErrors) {
+      setTimeout(() => {
+        const errors = validateSelectConfiguration();
+        setValidationErrors(errors);
+      }, 0);
+    }
   };
 
   const vehicleTypes = ['Automobile', 'Commercial', 'Trailer', 'Motorcycle'];
@@ -140,27 +301,30 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
           
           <div className="vehicleTypeOptions">
             {vehicleTypes.map((type) => (
-              <label key={type} className="vehicleTypeLabel">
+              <label key={type} className={`vehicleTypeLabel ${showValidationErrors && !formData.selectConfiguration?.vehicleType && type === vehicleTypes[0] ? 'error-label' : ''}`}>
                 <input
                   type="checkbox"
                   checked={(formData.selectConfiguration as SelectConfigurationType)?.vehicleType === type}
                   onChange={() => handleChange('vehicleType', type)}
-                  className="vehicleTypeCheckbox"
+                  className={`vehicleTypeCheckbox ${showValidationErrors && !formData.selectConfiguration?.vehicleType ? 'error-input' : ''}`}
                 />
                 {type} {type === 'Motorcycle' && <span className="noteText">(Select motorcycle plates will be issued a special interest decal on the left.)</span>}
               </label>
             ))}
+            {showValidationErrors && getErrorMessage('vehicleType') && (
+              <div className="error-message">{getErrorMessage('vehicleType')}</div>
+            )}
           </div>
         </div>
 
         <div className="plateTypeSection">
           <div className="plateTypeOption">
-            <label className="plateTypeLabel">
+            <label className={`plateTypeLabel ${showValidationErrors && !formData.selectConfiguration?.plateType ? 'error-label' : ''}`}>
               <input
                 type="checkbox"
                 checked={(formData.selectConfiguration as SelectConfigurationType)?.plateType === 'Sequential'}
                 onChange={() => handlePlateTypeChange('Sequential')}
-                className="plateTypeCheckbox"
+                className={`plateTypeCheckbox ${showValidationErrors && !formData.selectConfiguration?.plateType ? 'error-input' : ''}`}
               />
               <div className="plateTypeText">
                 <span className="plateTypeTitle">Sequential (Non-Personalized) — Issued in number sequence.</span>
@@ -178,7 +342,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
                   <label className="sequentialLabel">CURRENT LICENSE PLATE NUMBER</label>
                   <input
                     type="text"
-                    className="textInput uppercase-input" 
+                    className={`textInput uppercase-input ${showValidationErrors && getErrorMessage('currentLicensePlate') ? 'error-input' : ''}`}
                     value={(formData.selectConfiguration as SelectConfigurationType)?.currentLicensePlate || ''}
                     onChange={(e) => {
                       const value = e.target.value.slice(0, 7);
@@ -186,15 +350,21 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
                     }}
                     maxLength={7} 
                   />
+                  {showValidationErrors && getErrorMessage('currentLicensePlate') && (
+                    <div className="error-message">{getErrorMessage('currentLicensePlate')}</div>
+                  )}
                 </div>
                   <div className="sequentialInput">
                     <label className="sequentialLabel">FULL VEHICLE IDENTIFICATION NUMBER</label>
                     <input
                       type="text"
-                      className="textInput"
+                      className={`textInput ${showValidationErrors && getErrorMessage('fullVehicleId') ? 'error-input' : ''}`}
                       value={(formData.selectConfiguration as SelectConfigurationType)?.fullVehicleId || ''}
                       onChange={(e) => handleChange('fullVehicleId', e.target.value)}
                     />
+                    {showValidationErrors && getErrorMessage('fullVehicleId') && (
+                      <div className="error-message">{getErrorMessage('fullVehicleId')}</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -202,15 +372,18 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
           </div>
           
           <div className="plateTypeOption">
-            <label className="plateTypeLabel">
+            <label className={`plateTypeLabel ${showValidationErrors && !formData.selectConfiguration?.plateType ? 'error-label' : ''}`}>
               <input
                 type="checkbox"
                 checked={(formData.selectConfiguration as SelectConfigurationType)?.plateType === 'Personalized'}
                 onChange={() => handlePlateTypeChange('Personalized')}
-                className="plateTypeCheckbox"
+                className={`plateTypeCheckbox ${showValidationErrors && !formData.selectConfiguration?.plateType ? 'error-input' : ''}`}
               />
               <span className="plateTypeTitle">Personalized</span>
             </label>
+            {showValidationErrors && getErrorMessage('plateType') && (
+              <div className="error-message">{getErrorMessage('plateType')}</div>
+            )}
           </div>
         </div>
         
@@ -275,22 +448,28 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
                   <input
                     type="text"
                     maxLength={8}
-                    className="textInput"
+                    className={`textInput ${showValidationErrors && getErrorMessage('firstChoice') ? 'error-input' : ''}`}
                     style={plateInputStyle}
                     value={(formData.selectConfiguration as SelectConfigurationType)?.personalized?.firstChoice || ''}
                     onChange={(e) => handlePersonalizedChange('firstChoice', e.target.value.toUpperCase())}
                     placeholder="PLATE1"
                   />
+                  {showValidationErrors && getErrorMessage('firstChoice') && (
+                    <div className="error-message">{getErrorMessage('firstChoice')}</div>
+                  )}
                 </div>
                 <div className="meaningSection">
                   <label className="meaningLabel">
                     Meaning <span className="requiredText">(REQUIRED)</span>
                     <input
                       type="text"
-                      className="meaningInput"
+                      className={`meaningInput ${showValidationErrors && getErrorMessage('firstChoiceMeaning') ? 'error-input' : ''}`}
                       value={(formData.selectConfiguration as SelectConfigurationType)?.personalized?.firstChoiceMeaning || ''}
                       onChange={(e) => handlePersonalizedChange('firstChoiceMeaning', e.target.value)}
                     />
+                    {showValidationErrors && getErrorMessage('firstChoiceMeaning') && (
+                      <div className="error-message">{getErrorMessage('firstChoiceMeaning')}</div>
+                    )}
                   </label>
                 </div>
               </div>
@@ -315,10 +494,13 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
                     Meaning <span className="requiredText">(REQUIRED)</span>
                     <input
                       type="text"
-                      className="meaningInput"
+                      className={`meaningInput ${showValidationErrors && getErrorMessage('secondChoiceMeaning') ? 'error-input' : ''}`}
                       value={(formData.selectConfiguration as SelectConfigurationType)?.personalized?.secondChoiceMeaning || ''}
                       onChange={(e) => handlePersonalizedChange('secondChoiceMeaning', e.target.value)}
                     />
+                    {showValidationErrors && getErrorMessage('secondChoiceMeaning') && (
+                      <div className="error-message">{getErrorMessage('secondChoiceMeaning')}</div>
+                    )}
                   </label>
                 </div>
               </div>
@@ -343,10 +525,13 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
                     Meaning <span className="requiredText">(REQUIRED)</span>
                     <input
                       type="text"
-                      className="meaningInput"
+                      className={`meaningInput ${showValidationErrors && getErrorMessage('thirdChoiceMeaning') ? 'error-input' : ''}`}
                       value={(formData.selectConfiguration as SelectConfigurationType)?.personalized?.thirdChoiceMeaning || ''}
                       onChange={(e) => handlePersonalizedChange('thirdChoiceMeaning', e.target.value)}
                     />
+                    {showValidationErrors && getErrorMessage('thirdChoiceMeaning') && (
+                      <div className="error-message">{getErrorMessage('thirdChoiceMeaning')}</div>
+                    )}
                   </label>
                 </div>
               </div>
@@ -359,25 +544,31 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({ formData: pro
           <div className="pickupSection">
             <div className="pickupOptions">
               {pickupLocations.map((location) => (
-                <label key={location} className="pickupLabel">
+                <label key={location} className={`pickupLabel ${showValidationErrors && getErrorMessage('pickupLocation') ? 'error-label' : ''}`}>
                   <input
                     type="checkbox"
                     checked={(formData.selectConfiguration as SelectConfigurationType)?.pickupLocation === location}
                     onChange={() => handleChange('pickupLocation', location)}
-                    className="pickupCheckbox"
+                    className={`pickupCheckbox ${showValidationErrors && getErrorMessage('pickupLocation') ? 'error-input' : ''}`}
                   />
                   {location} {location === 'Auto Club' && <span className="noteText">(must be a member)</span>}
                 </label>
               ))}
+              {showValidationErrors && getErrorMessage('pickupLocation') && (
+                <div className="error-message">{getErrorMessage('pickupLocation')}</div>
+              )}
               <div className="locationInput">
                 <label className="locationLabel">
                   LOCATION (city):
                   <input
                     type="text"
-                    className="textInput locationText"
+                    className={`textInput locationText ${showValidationErrors && getErrorMessage('locationCity') ? 'error-input' : ''}`}
                     value={(formData.selectConfiguration as SelectConfigurationType)?.locationCity || ''}
                     onChange={(e) => handleCityChange(e.target.value)}
                   />
+                  {showValidationErrors && getErrorMessage('locationCity') && (
+                    <div className="error-message">{getErrorMessage('locationCity')}</div>
+                  )}
                 </label>
               </div>
             </div>

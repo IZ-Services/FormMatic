@@ -13,6 +13,11 @@ interface StorageLocationData {
   zipCode: string;
 }
 
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
 interface FormData {
   storageLocation?: StorageLocationData;
   [key: string]: any;
@@ -27,6 +32,7 @@ interface VehicleStorageLocationProps {
   formData?: FormData;
   onChange?: (data: FormData) => void;
   isMultipleTransfer?: boolean;
+  showValidationErrors?: boolean;
 }
 
 const initialStorageData: StorageLocationData = {
@@ -60,9 +66,11 @@ const cleanFormData = (data: any): any => {
 const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({ 
   formData: propFormData, 
   onChange, 
-  isMultipleTransfer = false 
+  isMultipleTransfer = false,
+  showValidationErrors = false
 }) => {
   const { formData: contextFormData, updateField } = useFormContext() as FormContextType;
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
   // Clean the incoming props data
   const cleanedPropData = cleanFormData(propFormData);
@@ -136,6 +144,82 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     { name: 'Wyoming', abbreviation: 'WY' },
   ];
 
+  // Validation function
+  const validateStorageLocation = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Validate from date
+    if (!storageData.fromDate) {
+      errors.push({
+        field: 'fromDate',
+        message: 'From date is required'
+      });
+    } else if (!/^\d{2}\/\d{2}\/\d{4}$/.test(storageData.fromDate)) {
+      errors.push({
+        field: 'fromDate',
+        message: 'Date must be in MM/DD/YYYY format'
+      });
+    }
+    
+    // Validate to date
+    if (!storageData.toDate) {
+      errors.push({
+        field: 'toDate',
+        message: 'To date is required'
+      });
+    } else if (!/^\d{2}\/\d{2}\/\d{4}$/.test(storageData.toDate)) {
+      errors.push({
+        field: 'toDate',
+        message: 'Date must be in MM/DD/YYYY format'
+      });
+    }
+    
+    // Validate address
+    if (!storageData.address) {
+      errors.push({
+        field: 'address',
+        message: 'Address is required'
+      });
+    }
+    
+    // Validate city
+    if (!storageData.city) {
+      errors.push({
+        field: 'city',
+        message: 'City is required'
+      });
+    }
+    
+    // Validate state
+    if (!storageData.state) {
+      errors.push({
+        field: 'state',
+        message: 'State is required'
+      });
+    }
+    
+    // Validate zip code
+    if (!storageData.zipCode) {
+      errors.push({
+        field: 'zipCode',
+        message: 'ZIP code is required'
+      });
+    } else if (!/^\d{5}(-\d{4})?$/.test(storageData.zipCode)) {
+      errors.push({
+        field: 'zipCode',
+        message: 'Please enter a valid ZIP code'
+      });
+    }
+    
+    return errors;
+  };
+  
+  // Helper to get error message for a field
+  const getErrorMessage = (field: string): string | null => {
+    const error = validationErrors.find(err => err.field === field);
+    return error ? error.message : null;
+  };
+
   // Initialize form data if not present in context
   useEffect(() => {
     if (!contextFormData?.storageLocation) {
@@ -165,10 +249,23 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     }
   }, [combinedFormData?.storageLocation]);
 
-  // Log for debugging purposes
+  // Run validation when showing validation errors or when data changes
   useEffect(() => {
-    console.log('Current VehicleStorageLocation form data:', combinedFormData?.storageLocation);
-  }, [combinedFormData?.storageLocation]);
+    if (showValidationErrors) {
+      const errors = validateStorageLocation();
+      setValidationErrors(errors);
+    }
+  }, [showValidationErrors, storageData]);
+
+  // Update parent component about validation status
+  useEffect(() => {
+    if (showValidationErrors) {
+      updateField('_validationErrors', (prev: any) => ({
+        ...prev,
+        storageLocation: validationErrors.length > 0
+      }));
+    }
+  }, [validationErrors, showValidationErrors]);
 
   // Special handling for multiple transfer mode
   useEffect(() => {
@@ -182,12 +279,29 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     }
   }, [isMultipleTransfer]);
 
+  const formatDate = (value: string): string => {
+    const digits = value.replace(/\D/g, '');
+    
+    if (digits.length <= 2) {
+      return digits;
+    } else if (digits.length <= 4) {
+      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    } else {
+      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+    }
+  };
+
   const handleInputChange = (field: keyof StorageLocationData, value: string): void => {
     console.log(`Updating storage.${field} to:`, value);
     
+    let formattedValue = value;
+    if (field === 'fromDate' || field === 'toDate') {
+      formattedValue = formatDate(value);
+    }
+    
     const updatedStorageData = {
       ...storageData,
-      [field]: value
+      [field]: formattedValue
     };
     
     setStorageData(updatedStorageData);
@@ -198,8 +312,14 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
       updateField('storageLocation', updatedStorageData);
       
       if (isMultipleTransfer) {
-        console.log(`Multiple transfer update for storage.${field}:`, value);
+        console.log(`Multiple transfer update for storage.${field}:`, formattedValue);
       }
+    }
+    
+    // Run validation if showing validation errors
+    if (showValidationErrors) {
+      const errors = validateStorageLocation();
+      setValidationErrors(errors);
     }
   };
 
@@ -228,24 +348,32 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
  
       <div className="vehicleFirstGroup">
         <div className="vehicleFormItem">
-        <label className="formLabe">FROM: MONTH, DAY, YEAR</label>
-        <input
-            className="makeInput"
+          <label className="formLabe">FROM: MONTH, DAY, YEAR</label>
+          <input
+            className={`makeInput ${showValidationErrors && getErrorMessage('fromDate') ? 'error-input' : ''}`}
             type="text"
             placeholder="MM/DD/YYYY"
             value={storageData.fromDate}
             onChange={(e) => handleInputChange('fromDate', e.target.value)}
+            maxLength={10}
           />
+          {showValidationErrors && getErrorMessage('fromDate') && (
+            <div className="error-message">{getErrorMessage('fromDate')}</div>
+          )}
         </div>
         <div className="vehicleFormItem">
-        <label className="formLabe">TO: MONTH, DAY, YEAR</label>
-        <input
-            className="odometerInput"
+          <label className="formLabe">TO: MONTH, DAY, YEAR</label>
+          <input
+            className={`odometerInput ${showValidationErrors && getErrorMessage('toDate') ? 'error-input' : ''}`}
             type="text"
             placeholder="MM/DD/YYYY"
             value={storageData.toDate}
             onChange={(e) => handleInputChange('toDate', e.target.value)}
+            maxLength={10}
           />
+          {showValidationErrors && getErrorMessage('toDate') && (
+            <div className="error-message">{getErrorMessage('toDate')}</div>
+          )}
         </div>
       </div>
       
@@ -254,12 +382,15 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
         <div className="formGroup fullWidthField">
           <label className="formLabel">Address</label>
           <input
-            className="formInputt"
+            className={`formInputt ${showValidationErrors && getErrorMessage('address') ? 'error-input' : ''}`}
             type="text"
             placeholder="Address"
             value={storageData.address}
             onChange={(e) => handleInputChange('address', e.target.value)}
           />
+          {showValidationErrors && getErrorMessage('address') && (
+            <div className="error-message">{getErrorMessage('address')}</div>
+          )}
         </div>
       </div>
       
@@ -268,12 +399,15 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
         <div className="cityFieldCustomWidth">
           <label className="formLabel">City</label>
           <input
-            className="cityInputt"
+            className={`cityInputt ${showValidationErrors && getErrorMessage('city') ? 'error-input' : ''}`}
             type="text"
             placeholder="City"
             value={storageData.city}
             onChange={(e) => handleInputChange('city', e.target.value)}
           />
+          {showValidationErrors && getErrorMessage('city') && (
+            <div className="error-message">{getErrorMessage('city')}</div>
+          )}
         </div>
         
         <div className="regStateWrapper">
@@ -281,11 +415,14 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
           <button
             type="button"
             onClick={() => setOpenDropdown(!openDropdown)}
-            className="regStateDropDown"
+            className={`regStateDropDown ${showValidationErrors && getErrorMessage('state') ? 'error-button' : ''}`}
           >
             {storageData.state || 'State'}
             <ChevronDownIcon className={`regIcon ${openDropdown ? 'rotate' : ''}`} />
           </button>
+          {showValidationErrors && getErrorMessage('state') && (
+            <div className="error-message">{getErrorMessage('state')}</div>
+          )}
           {openDropdown && (
             <ul ref={stateDropdownRef} className="regStateMenu">
               {states.map((state, index) => (
@@ -304,12 +441,15 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
         <div className="formGroup zipCodeField">
           <label className="formLabel">ZIP Code</label>
           <input
-            className="formInputt"
+            className={`formInputt ${showValidationErrors && getErrorMessage('zipCode') ? 'error-input' : ''}`}
             type="text"
             placeholder="ZIP Code"
             value={storageData.zipCode}
             onChange={(e) => handleInputChange('zipCode', e.target.value)}
           />
+          {showValidationErrors && getErrorMessage('zipCode') && (
+            <div className="error-message">{getErrorMessage('zipCode')}</div>
+          )}
         </div>
       </div>
     </div>

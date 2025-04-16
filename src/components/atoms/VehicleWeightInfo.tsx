@@ -17,6 +17,11 @@ interface VehicleDeclarationData {
   howMany?: string;
 }
 
+interface ValidationError {
+  fieldPath: string;
+  message: string;
+}
+
 interface VehicleDeclarationProps {
   formData?: {
     vehicleDeclaration?: VehicleDeclarationData;
@@ -24,9 +29,9 @@ interface VehicleDeclarationProps {
     [key: string]: any;
   };
   onChange?: (data: VehicleDeclarationData) => void;
+  showValidationErrors?: boolean;
 }
 
- 
 const WEIGHT_RANGES = [
   { code: 'NONE', range: 'Under 10,001' },
   { code: 'A', range: '10,001-15,000' },
@@ -47,9 +52,11 @@ const WEIGHT_RANGES = [
 
 const howManyOptions = ['1', '2'];
 
-
-
-const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propFormData }) => {
+const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ 
+  formData: propFormData,
+  onChange,
+  showValidationErrors = false
+}) => {
   const { formData: contextFormData, updateField } = useFormContext();
   
   const formData = {
@@ -61,16 +68,162 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propF
   const [isHowManyMenuOpen, setIsHowManyMenuOpen] = useState(false);
   const [gvwDropdownOpen, setGvwDropdownOpen] = useState<boolean[]>([]);
   const [cgwDropdownOpen, setCgwDropdownOpen] = useState<boolean[]>([]);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
   const howManyRef = useRef<HTMLUListElement | null>(null);
   const gvwDropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
   const cgwDropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
   
-  const showValidationErrors = formData?._showValidationErrors === true;
+  // Use either prop-based or context-based validation flag
+  const shouldShowValidationErrors = showValidationErrors || formData?._showValidationErrors === true;
 
-  const shouldShowValidationError = (index: number, field: keyof VehicleData) => {
-    return showValidationErrors && (!vehicles[index][field] || vehicles[index][field] === '');
+  // Validation function
+  const validateVehicleDeclaration = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Check if we have a valid howMany value
+    if (!formData?.vehicleDeclaration?.howMany) {
+      errors.push({
+        fieldPath: 'vehicleDeclaration.howMany',
+        message: 'Please select how many vehicles to declare'
+      });
+    }
+    
+    // Check if vehicles array exists and has entries
+    if (!vehicles || vehicles.length === 0) {
+      errors.push({
+        fieldPath: 'vehicleDeclaration.vehicles',
+        message: 'At least one vehicle entry is required'
+      });
+    } else {
+      // Validate each vehicle entry
+      vehicles.forEach((vehicle, index) => {
+        // License number validation
+        if (!vehicle.licenseNumber || vehicle.licenseNumber.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].licenseNumber`,
+            message: 'License number is required'
+          });
+        } else if (!/^[A-Z0-9]{1,7}$/.test(vehicle.licenseNumber)) {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].licenseNumber`,
+            message: 'Please enter a valid license plate number'
+          });
+        }
+        
+        // VIN validation
+        if (!vehicle.vin || vehicle.vin.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].vin`,
+            message: 'VIN is required'
+          });
+        } else if (!/^[A-Z0-9]{17}$/.test(vehicle.vin)) {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].vin`,
+            message: 'Please enter a valid 17-character VIN'
+          });
+        }
+        
+        // Make validation
+        if (!vehicle.make || vehicle.make.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].make`,
+            message: 'Vehicle make is required'
+          });
+        } else if (vehicle.make.length > 50) {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].make`,
+            message: 'Vehicle make cannot exceed 50 characters'
+          });
+        }
+        
+        // GVW weight validation
+        if (!vehicle.gvwWeight || vehicle.gvwWeight.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].gvwWeight`,
+            message: 'GVW weight is required'
+          });
+        }
+        
+        // CGW weight validation
+        if (!vehicle.cgwWeight || vehicle.cgwWeight.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].cgwWeight`,
+            message: 'CGW weight is required'
+          });
+        }
+        
+        // Date operated validation
+        if (!vehicle.dateOperated || vehicle.dateOperated.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].dateOperated`,
+            message: 'Date operated is required'
+          });
+        } else {
+          // Check if date is valid
+          const date = new Date(vehicle.dateOperated);
+          const today = new Date();
+          if (isNaN(date.getTime())) {
+            errors.push({
+              fieldPath: `vehicleDeclaration.vehicles[${index}].dateOperated`,
+              message: 'Please enter a valid date'
+            });
+          } else if (date > today) {
+            errors.push({
+              fieldPath: `vehicleDeclaration.vehicles[${index}].dateOperated`,
+              message: 'Date cannot be in the future'
+            });
+          }
+        }
+      });
+    }
+    
+    // Validate howMany field against vehicle count
+    if (formData?.vehicleDeclaration?.howMany) {
+      const count = parseInt(formData.vehicleDeclaration.howMany, 10);
+      if (count > 0 && vehicles && vehicles.length !== count) {
+        errors.push({
+          fieldPath: 'vehicleDeclaration.vehicles',
+          message: `You selected ${count} vehicles but provided ${vehicles?.length || 0}`
+        });
+      }
+    }
+    
+    return errors;
   };
+
+  // Helper to get error message for a field
+  const getErrorMessage = (fieldPath: string): string | null => {
+    const error = validationErrors.find(err => err.fieldPath === fieldPath);
+    return error ? error.message : null;
+  };
+
+  // Check if a specific field should show validation error
+  const shouldShowValidationError = (index: number, field: keyof VehicleData): boolean => {
+    if (!shouldShowValidationErrors) return false;
+    return validationErrors.some(err => 
+      err.fieldPath === `vehicleDeclaration.vehicles[${index}].${field}`
+    );
+  };
+
+  // Run validation when showing validation errors or when data changes
+  useEffect(() => {
+    if (shouldShowValidationErrors) {
+      const errors = validateVehicleDeclaration();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
+        contextFormData._validationErrors !== null
+        ? contextFormData._validationErrors
+        : {};
+        
+      updateField('_validationErrors', {
+        ...currentValidationErrors,
+        vehicleDeclaration: errors.length > 0
+      });
+    }
+  }, [shouldShowValidationErrors, vehicles, formData?.vehicleDeclaration?.howMany]);
 
   useEffect(() => {
     if (formData?.vehicleDeclaration?.vehicles) {
@@ -129,11 +282,18 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propF
     }
     
     setVehicles(newVehicles);
-    updateField('vehicleDeclaration', { 
+    
+    const updatedData = {
       ...formData?.vehicleDeclaration,
       vehicles: newVehicles,
       howMany: count
-    });
+    };
+    
+    if (onChange) {
+      onChange(updatedData);
+    } else {
+      updateField('vehicleDeclaration', updatedData);
+    }
     
     setIsHowManyMenuOpen(false);
   };
@@ -143,10 +303,17 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propF
     newVehicles[index][field] = value;
     
     setVehicles(newVehicles);
-    updateField('vehicleDeclaration', { 
+    
+    const updatedData = {
       ...formData?.vehicleDeclaration,
-      vehicles: newVehicles 
-    });
+      vehicles: newVehicles
+    };
+    
+    if (onChange) {
+      onChange(updatedData);
+    } else {
+      updateField('vehicleDeclaration', updatedData);
+    }
   };
   
   const toggleGvwDropdown = (index: number) => {
@@ -167,7 +334,6 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propF
       setIsHowManyMenuOpen(false);
     }
     
- 
     gvwDropdownRefs.current.forEach((ref, index) => {
       if (ref && !ref.contains(target) && gvwDropdownOpen[index]) {
         const newDropdownOpen = [...gvwDropdownOpen];
@@ -176,7 +342,6 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propF
       }
     });
     
- 
     cgwDropdownRefs.current.forEach((ref, index) => {
       if (ref && !ref.contains(target) && cgwDropdownOpen[index]) {
         const newDropdownOpen = [...cgwDropdownOpen];
@@ -191,13 +356,10 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propF
     return () => document.removeEventListener('mousedown', handleClickOutsideMenus);
   }, [gvwDropdownOpen, cgwDropdownOpen]);
 
- 
   useEffect(() => {
- 
     gvwDropdownRefs.current = gvwDropdownRefs.current.slice(0, vehicles.length);
     cgwDropdownRefs.current = cgwDropdownRefs.current.slice(0, vehicles.length);
     
- 
     const newGvwDropdownOpen = Array(vehicles.length).fill(false);
     const newCgwDropdownOpen = Array(vehicles.length).fill(false);
     
@@ -212,11 +374,15 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propF
         <div className="howManyWrapper">
           <button
             onClick={() => setIsHowManyMenuOpen(!isHowManyMenuOpen)}
-            className="howManyDropDown"
+            className={`howManyDropDown ${shouldShowValidationErrors && getErrorMessage('vehicleDeclaration.howMany') ? 'validation-error' : ''}`}
           >
             {formData?.vehicleDeclaration?.howMany || '1'}
             <ChevronDownIcon className={`howManyIcon ${isHowManyMenuOpen ? 'rotate' : ''}`} />
           </button>
+          
+          {shouldShowValidationErrors && getErrorMessage('vehicleDeclaration.howMany') && (
+            <p className="validation-message">{getErrorMessage('vehicleDeclaration.howMany')}</p>
+          )}
 
           {isHowManyMenuOpen && (
             <ul ref={howManyRef} className="howManyMenu">
@@ -234,6 +400,10 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propF
         </div>
       </div>
 
+      {shouldShowValidationErrors && getErrorMessage('vehicleDeclaration.vehicles') && (
+        <p className="validation-message global-error">{getErrorMessage('vehicleDeclaration.vehicles')}</p>
+      )}
+
       <div className="vehicle-entries">
         {vehicles.map((vehicle, index) => (
           <div key={index} className="vehicle-entry space-y-6">            
@@ -250,7 +420,9 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propF
                     placeholder="Enter license number"
                   />
                   {shouldShowValidationError(index, 'licenseNumber') && (
-                    <p className="validation-message">License number is required</p>
+                    <p className="validation-message">
+                      {getErrorMessage(`vehicleDeclaration.vehicles[${index}].licenseNumber`)}
+                    </p>
                   )}
                 </div>
                 
@@ -261,11 +433,13 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propF
                     type="text" 
                     className={`form-control capitalize-first ${shouldShowValidationError(index, 'vin') ? 'validation-error' : ''}`}
                     value={vehicle.vin}
-                    onChange={(e) => handleFieldChange(index, 'vin', e.target.value)}
+                    onChange={(e) => handleFieldChange(index, 'vin', e.target.value.toUpperCase())}
                     placeholder="Enter VIN"
                   />
                   {shouldShowValidationError(index, 'vin') && (
-                    <p className="validation-message">VIN is required</p>
+                    <p className="validation-message">
+                      {getErrorMessage(`vehicleDeclaration.vehicles[${index}].vin`)}
+                    </p>
                   )}
                 </div>
                 
@@ -280,130 +454,107 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({ formData: propF
                     placeholder="Enter vehicle make"
                   />
                   {shouldShowValidationError(index, 'make') && (
-                    <p className="validation-message">Vehicle make is required</p>
+                    <p className="validation-message">
+                      {getErrorMessage(`vehicleDeclaration.vehicles[${index}].make`)}
+                    </p>
                   )}
                 </div>
               </div>
-            </div>
-            
-            <div className="weight-info-container space-y-4">
-              <h3 className="weight-info-title">Vehicle Weight Information</h3>
-              
-              <div className="weight-section weight-flex-row">
-                <div className="weight-selector flex-1">
-                  <label>GVW (Gross Vehicle Weight)</label>
-                  <div 
-                    className="relative" 
-                    ref={(el) => { gvwDropdownRefs.current[index] = el; }}
-                  >
-                    <div 
-                      onClick={() => toggleGvwDropdown(index)}
-                      className="dropdown cursor-pointer"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '8px',
-                        width: '100%',
-                        border: '1px solid #ccc',
-                        borderRadius: '2px',
-                        backgroundColor: 'white',
-                        height: '34px'
 
-                      }}
-                    >
-                      <span className="dropdown-text" style={{ color: vehicle.gvwWeight ? '#000' : '#999' }}>
-                        {vehicle.gvwWeight ? vehicle.gvwWeight : 'Select weight range'}
-                      </span>
-                      <ChevronDownIcon className={`regIcon ${gvwDropdownOpen[index] ? 'rotate' : ''}`} />
-                    </div>
+              <div className="vehicle-info-row vehicle-info-flex-row">
+                <div className="vehicle-info-column flex-1">
+                  <label htmlFor={`gvw-${index}`}>GVW Weight Range</label>
+                  <div 
+                    ref={(el) => { gvwDropdownRefs.current[index] = el; }} 
+                    className="dropdown-wrapper"
+                  >
+                    <input 
+                      id={`gvw-${index}`}
+                      type="text" 
+                      className={`form-control ${shouldShowValidationError(index, 'gvwWeight') ? 'validation-error' : ''}`}
+                      value={vehicle.gvwWeight}
+                      readOnly
+                      onClick={() => toggleGvwDropdown(index)}
+                      placeholder="Select GVW range"
+                    />
+                    {shouldShowValidationError(index, 'gvwWeight') && (
+                      <p className="validation-message">
+                        {getErrorMessage(`vehicleDeclaration.vehicles[${index}].gvwWeight`)}
+                      </p>
+                    )}
                     
                     {gvwDropdownOpen[index] && (
-                      <ul className="menu">
-                        {WEIGHT_RANGES.map((item) => (
+                      <ul className="dropdown-menu">
+                        {WEIGHT_RANGES.map((weight) => (
                           <li
-                            key={item.code}
-                            className="lists"
+                            key={weight.code}
                             onClick={() => {
-                              handleFieldChange(index, 'gvwWeight', `${item.code} (${item.range})`);
+                              handleFieldChange(index, 'gvwWeight', weight.range);
                               toggleGvwDropdown(index);
                             }}
                           >
-                            {`${item.code} (${item.range})`}
+                            {weight.range}
                           </li>
                         ))}
                       </ul>
                     )}
                   </div>
-                  {shouldShowValidationError(index, 'gvwWeight') && (
-                    <p className="validation-message">GVW weight is required</p>
-                  )}
                 </div>
                 
-                <div className="weight-selector flex-1">
-                  <label>CGW (Combined Gross Weight)</label>
+                <div className="vehicle-info-column flex-1">
+                  <label htmlFor={`cgw-${index}`}>CGW Weight Range</label>
                   <div 
-                    className="relative" 
-                    ref={(el) => { cgwDropdownRefs.current[index] = el; }}
+                    ref={(el) => { cgwDropdownRefs.current[index] = el; }} 
+                    className="dropdown-wrapper"
                   >
-                    <div 
+                    <input 
+                      id={`cgw-${index}`}
+                      type="text" 
+                      className={`form-control ${shouldShowValidationError(index, 'cgwWeight') ? 'validation-error' : ''}`}
+                      value={vehicle.cgwWeight}
+                      readOnly
                       onClick={() => toggleCgwDropdown(index)}
-                      className="dropdown cursor-pointer"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '8px',
-                        width: '100%',
-                        border: '1px solid #ccc',
-                        borderRadius: '2px',
-                        backgroundColor: vehicle.gvwWeight ? '#f1f1f1' : 'white',
-                        height: '34px'
-
-                      }}
-                    >
-                      <span className="dropdown-text" style={{ color: vehicle.cgwWeight ? '#000' : '#999' }}>
-                        {vehicle.cgwWeight ? vehicle.cgwWeight : 'Select weight range'}
-                      </span>
-                      <ChevronDownIcon className={`regIcon ${cgwDropdownOpen[index] ? 'rotate' : ''}`} />
-                    </div>
+                      placeholder="Select CGW range"
+                    />
+                    {shouldShowValidationError(index, 'cgwWeight') && (
+                      <p className="validation-message">
+                        {getErrorMessage(`vehicleDeclaration.vehicles[${index}].cgwWeight`)}
+                      </p>
+                    )}
                     
-                    {cgwDropdownOpen[index] && !vehicle.gvwWeight && (
-                      <ul className="menu">
-                        {WEIGHT_RANGES.map((item) => (
+                    {cgwDropdownOpen[index] && (
+                      <ul className="dropdown-menu">
+                        {WEIGHT_RANGES.map((weight) => (
                           <li
-                            key={item.code}
-                            className="lists"
+                            key={weight.code}
                             onClick={() => {
-                              handleFieldChange(index, 'cgwWeight', `${item.code} (${item.range})`);
+                              handleFieldChange(index, 'cgwWeight', weight.range);
                               toggleCgwDropdown(index);
                             }}
                           >
-                            {`${item.code} (${item.range})`}
+                            {weight.range}
                           </li>
                         ))}
                       </ul>
                     )}
                   </div>
-                  {shouldShowValidationError(index, 'cgwWeight') && !vehicle.gvwWeight && (
-                    <p className="validation-message">CGW weight is required if GVW is not selected</p>
-                  )}
                 </div>
                 
-                <div className="date-selector flex-1">
-  <label>Date Vehicle First Operated</label>
-  <input
-    type="text"
-    className={`form-control date-input ${shouldShowValidationError(index, 'dateOperated') ? 'validation-error' : ''}`}
-    value={vehicle.dateOperated}
-    onChange={(e) => handleFieldChange(index, 'dateOperated', e.target.value)}
-    placeholder="MM/DD/YYYY"
-    maxLength={10}
-  />
-  {shouldShowValidationError(index, 'dateOperated') && (
-    <p className="validation-message">Date is required</p>
-  )}
-</div>
+                <div className="vehicle-info-column flex-1">
+                  <label htmlFor={`date-${index}`}>Date Operated</label>
+                  <input 
+                    id={`date-${index}`}
+                    type="date" 
+                    className={`form-control ${shouldShowValidationError(index, 'dateOperated') ? 'validation-error' : ''}`}
+                    value={vehicle.dateOperated}
+                    onChange={(e) => handleFieldChange(index, 'dateOperated', e.target.value)}
+                  />
+                  {shouldShowValidationError(index, 'dateOperated') && (
+                    <p className="validation-message">
+                      {getErrorMessage(`vehicleDeclaration.vehicles[${index}].dateOperated`)}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

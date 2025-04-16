@@ -9,19 +9,27 @@ interface VehicleStatusData {
   purchaseLocation?: 'inside' | 'outside';
 }
 
+interface ValidationError {
+  fieldPath: string;
+  message: string;
+}
+
 interface FormDataType {
   vehicleStatus?: VehicleStatusData;
+  _showValidationErrors?: boolean;
   [key: string]: any;
 }
 
 interface VehicleStatusProps {
   formData?: FormDataType;
   onChange?: (data: VehicleStatusData) => void;
+  showValidationErrors?: boolean;
 }
 
 const VehicleStatus: React.FC<VehicleStatusProps> = ({
   formData: propFormData,
-  onChange
+  onChange,
+  showValidationErrors = false
 }) => {
   const { formData: contextFormData, updateField } = useFormContext();
 
@@ -36,6 +44,11 @@ const VehicleStatus: React.FC<VehicleStatusProps> = ({
     vehicleCondition: undefined,
     purchaseLocation: undefined
   });
+  
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  
+  // Use either prop-based or context-based validation flag
+  const shouldShowValidationErrors = showValidationErrors || combinedFormData?._showValidationErrors === true;
 
   useEffect(() => {
     const mergedData: VehicleStatusData = {
@@ -48,6 +61,60 @@ const VehicleStatus: React.FC<VehicleStatusProps> = ({
     setStatusData(mergedData);
   }, [combinedFormData?.vehicleStatus]);
 
+  // Validation function
+  const validateVehicleStatus = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Vehicle condition is required
+    if (!statusData.vehicleCondition) {
+      errors.push({
+        fieldPath: 'vehicleStatus.vehicleCondition',
+        message: 'Please select the vehicle condition'
+      });
+    }
+    
+    // Purchase location is required
+    if (!statusData.purchaseLocation) {
+      errors.push({
+        fieldPath: 'vehicleStatus.purchaseLocation',
+        message: 'Please select the purchase location'
+      });
+    }
+    
+    return errors;
+  };
+  
+  // Helper to get error message for a field
+  const getErrorMessage = (fieldPath: string): string | null => {
+    const error = validationErrors.find(err => err.fieldPath === fieldPath);
+    return error ? error.message : null;
+  };
+  
+  // Check if a specific field should show validation error
+  const shouldShowValidationError = (field: string): boolean => {
+    if (!shouldShowValidationErrors) return false;
+    return validationErrors.some(err => err.fieldPath === `vehicleStatus.${field}`);
+  };
+  
+  // Run validation when showing validation errors or when data changes
+  useEffect(() => {
+    if (shouldShowValidationErrors) {
+      const errors = validateVehicleStatus();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
+        contextFormData._validationErrors !== null
+        ? contextFormData._validationErrors
+        : {};
+        
+      updateField('_validationErrors', {
+        ...currentValidationErrors,
+        vehicleStatus: errors.length > 0
+      });
+    }
+  }, [shouldShowValidationErrors, statusData]);
+
   const handleCheckboxChange = (field: 'didNotOwnAtEntry' | 'notCaliforniaResident') => {
     const newData = {
       ...statusData,
@@ -55,10 +122,11 @@ const VehicleStatus: React.FC<VehicleStatusProps> = ({
     };
 
     setStatusData(newData);
-    updateField('vehicleStatus', newData);
-
+    
     if (onChange) {
       onChange(newData);
+    } else {
+      updateField('vehicleStatus', newData);
     }
   };
 
@@ -69,10 +137,11 @@ const VehicleStatus: React.FC<VehicleStatusProps> = ({
     };
 
     setStatusData(newData);
-    updateField('vehicleStatus', newData);
-
+    
     if (onChange) {
       onChange(newData);
+    } else {
+      updateField('vehicleStatus', newData);
     }
   };
 
@@ -115,7 +184,7 @@ const VehicleStatus: React.FC<VehicleStatusProps> = ({
       </div>
 
       <div className="radioSection">
-        <div className="radioGroup">
+        <div className={`radioGroup ${shouldShowValidationError('vehicleCondition') ? 'validation-error-container' : ''}`}>
           <p className="radioHeading">Vehicle Condition:</p>
           <div className="radioOptions">
             <label className="radio-label">
@@ -137,9 +206,14 @@ const VehicleStatus: React.FC<VehicleStatusProps> = ({
               Used
             </label>
           </div>
+          {shouldShowValidationError('vehicleCondition') && (
+            <p className="validation-message">
+              {getErrorMessage('vehicleStatus.vehicleCondition')}
+            </p>
+          )}
         </div>
 
-        <div className="radioGroup">
+        <div className={`radioGroup ${shouldShowValidationError('purchaseLocation') ? 'validation-error-container' : ''}`}>
           <p className="radioHeading">Purchase Location:</p>
           <div className="radioOptions">
             <label className="radio-label">
@@ -161,6 +235,11 @@ const VehicleStatus: React.FC<VehicleStatusProps> = ({
               Outside CA
             </label>
           </div>
+          {shouldShowValidationError('purchaseLocation') && (
+            <p className="validation-message">
+              {getErrorMessage('vehicleStatus.purchaseLocation')}
+            </p>
+          )}
         </div>
       </div>
     </div>

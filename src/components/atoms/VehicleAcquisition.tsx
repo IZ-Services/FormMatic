@@ -8,19 +8,27 @@ interface VehicleAcquisitionData {
   hasModifications?: boolean;
 }
 
+interface ValidationError {
+  fieldPath: string;
+  message: string;
+}
+
 interface FormDataType {
   vehicleAcquisition?: VehicleAcquisitionData;
+  _showValidationErrors?: boolean;
   [key: string]: any;
 }
 
 interface VehicleAcquisitionProps {
   formData?: FormDataType;
   onChange?: (data: VehicleAcquisitionData) => void;
+  showValidationErrors?: boolean;
 }
 
 const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
   formData: propFormData,
-  onChange
+  onChange,
+  showValidationErrors = false
 }) => {
   const { formData: contextFormData, updateField } = useFormContext();
 
@@ -34,6 +42,11 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
     familyRelationship: '',
     hasModifications: false
   });
+  
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  
+  // Use either prop-based or context-based validation flag
+  const shouldShowValidationErrors = showValidationErrors || combinedFormData?._showValidationErrors === true;
 
   useEffect(() => {
     const mergedData: VehicleAcquisitionData = {
@@ -45,19 +58,85 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
     setAcquisitionData(mergedData);
   }, [combinedFormData?.vehicleAcquisition]);
 
+  // Validation function
+  const validateVehicleAcquisition = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Acquired from is required
+    if (!acquisitionData.acquiredFrom) {
+      errors.push({
+        fieldPath: 'vehicleAcquisition.acquiredFrom',
+        message: 'Please select where the vehicle was acquired from'
+      });
+    }
+    
+    // If acquired from family member, relationship is required
+    if (acquisitionData.acquiredFrom === 'familyMember' && 
+        (!acquisitionData.familyRelationship || acquisitionData.familyRelationship.trim() === '')) {
+      errors.push({
+        fieldPath: 'vehicleAcquisition.familyRelationship',
+        message: 'Please specify the family relationship'
+      });
+    }
+    
+    // Modification selection is required
+    if (acquisitionData.hasModifications === undefined) {
+      errors.push({
+        fieldPath: 'vehicleAcquisition.hasModifications',
+        message: 'Please indicate whether the vehicle has modifications'
+      });
+    }
+    
+    return errors;
+  };
+  
+  // Helper to get error message for a field
+  const getErrorMessage = (fieldPath: string): string | null => {
+    const error = validationErrors.find(err => err.fieldPath === fieldPath);
+    return error ? error.message : null;
+  };
+  
+  // Check if a specific field should show validation error
+  const shouldShowValidationError = (field: string): boolean => {
+    if (!shouldShowValidationErrors) return false;
+    return validationErrors.some(err => err.fieldPath === `vehicleAcquisition.${field}`);
+  };
+  
+  // Run validation when showing validation errors or when data changes
+  useEffect(() => {
+    if (shouldShowValidationErrors) {
+      const errors = validateVehicleAcquisition();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
+        contextFormData._validationErrors !== null
+        ? contextFormData._validationErrors
+        : {};
+        
+      updateField('_validationErrors', {
+        ...currentValidationErrors,
+        vehicleAcquisition: errors.length > 0
+      });
+    }
+  }, [shouldShowValidationErrors, acquisitionData]);
+
   const handleRadioChange = (value: 'dealer' | 'privateParty' | 'dismantler' | 'familyMember') => {
     const newData = {
       ...acquisitionData,
       acquiredFrom: value
-    };    if (value !== 'familyMember') {
+    };
+    
+    if (value !== 'familyMember') {
       newData.familyRelationship = '';
     }
 
     setAcquisitionData(newData);
-    updateField('vehicleAcquisition', newData);
-
+    
     if (onChange) {
       onChange(newData);
+    } else {
+      updateField('vehicleAcquisition', newData);
     }
   };
 
@@ -68,10 +147,11 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
     };
 
     setAcquisitionData(newData);
-    updateField('vehicleAcquisition', newData);
-
+    
     if (onChange) {
       onChange(newData);
+    } else {
+      updateField('vehicleAcquisition', newData);
     }
   };
   
@@ -82,10 +162,11 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
     };
     
     setAcquisitionData(newData);
-    updateField('vehicleAcquisition', newData);
     
     if (onChange) {
       onChange(newData);
+    } else {
+      updateField('vehicleAcquisition', newData);
     }
   };
 
@@ -95,7 +176,7 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
         <h3 className="sectionHeading">VEHICLE WAS PURCHASED OR ACQUIRED FROM:</h3>
       </div>
 
-      <div className="acquisitionSection">
+      <div className={`acquisitionSection ${shouldShowValidationError('acquiredFrom') ? 'validation-error-container' : ''}`}>
         <div className="radioOptions">
           <label className="radio-label">
             <input
@@ -138,7 +219,7 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
             {acquisitionData.acquiredFrom === 'familyMember' && (
               <input
                 type="text"
-                className="relationship-input"
+                className={`relationship-input ${shouldShowValidationError('familyRelationship') ? 'validation-error' : ''}`}
                 value={acquisitionData.familyRelationship || ''}
                 onChange={handleRelationshipChange}
                 placeholder="Enter relationship"
@@ -146,9 +227,21 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
             )}
           </label>
         </div>
+        
+        {shouldShowValidationError('acquiredFrom') && (
+          <p className="validation-message">
+            {getErrorMessage('vehicleAcquisition.acquiredFrom')}
+          </p>
+        )}
+        
+        {shouldShowValidationError('familyRelationship') && (
+          <p className="validation-message">
+            {getErrorMessage('vehicleAcquisition.familyRelationship')}
+          </p>
+        )}
       </div>
       
-      <div className="modificationSection">
+      <div className={`modificationSection ${shouldShowValidationError('hasModifications') ? 'validation-error-container' : ''}`}>
         <div className="modificationQuestion">
           <p>FOR ALL VEHICLES:</p>
           <p className="modificationText">
@@ -176,6 +269,12 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
               No
             </label>
           </div>
+          
+          {shouldShowValidationError('hasModifications') && (
+            <p className="validation-message">
+              {getErrorMessage('vehicleAcquisition.hasModifications')}
+            </p>
+          )}
         </div>
       </div>
     </div>

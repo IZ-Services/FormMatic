@@ -19,10 +19,16 @@ interface PlatePurchaserOwnerType {
   owner?: PersonInfoType;
 }
 
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
 interface PlatePurchaserOwnerProps {
   formData?: {
     platePurchaserOwner?: PlatePurchaserOwnerType;
   };
+  showValidationErrors?: boolean;
 }
 
 const initialPersonInfo: PersonInfoType = {
@@ -93,20 +99,23 @@ const states = [
   { name: 'Wyoming', abbreviation: 'WY' },
 ];
 
-const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: propFormData }) => {
+const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ 
+  formData: propFormData,
+  showValidationErrors = false
+}) => {
   const { formData: contextFormData, updateField } = useFormContext();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const purchaserStateRef = useRef<HTMLUListElement>(null);
   const ownerStateRef = useRef<HTMLUListElement>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
- 
+  // Get combined form data - extracted outside to reduce rerenders
   const getFormDataSafely = () => {
     const combined = {
       ...contextFormData,
       ...propFormData
     };
     
- 
     if (!combined.platePurchaserOwner) {
       return {
         ...combined,
@@ -114,19 +123,16 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
       };
     }
     
- 
     const purchaser = {
       ...initialPersonInfo,
       ...(combined.platePurchaserOwner.purchaser || {})
     };
     
- 
     const owner = {
       ...initialPersonInfo,
       ...(combined.platePurchaserOwner.owner || {})
     };
     
- 
     return {
       ...combined,
       platePurchaserOwner: {
@@ -137,16 +143,138 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
     };
   };
   
- 
+  // Store the form data in a memoized reference to avoid constant recalculation
   const safeFormData = getFormDataSafely();
+  
+  // Validation function
+  const validatePlatePurchaserOwner = (info: PlatePurchaserOwnerType): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Validate purchaser fields
+    if (!info.purchaser.fullName) {
+      errors.push({
+        field: 'purchaser.fullName',
+        message: 'Purchaser name is required'
+      });
+    }
+    
+    if (!info.purchaser.streetAddress) {
+      errors.push({
+        field: 'purchaser.streetAddress',
+        message: 'Street address is required'
+      });
+    }
+    
+    if (!info.purchaser.city) {
+      errors.push({
+        field: 'purchaser.city',
+        message: 'City is required'
+      });
+    }
+    
+    if (!info.purchaser.state) {
+      errors.push({
+        field: 'purchaser.state',
+        message: 'State is required'
+      });
+    }
+    
+    if (!info.purchaser.zipCode) {
+      errors.push({
+        field: 'purchaser.zipCode',
+        message: 'ZIP code is required'
+      });
+    } else if (!/^\d{5}(-\d{4})?$/.test(info.purchaser.zipCode)) {
+      errors.push({
+        field: 'purchaser.zipCode',
+        message: 'Please enter a valid ZIP code'
+      });
+    }
+    
+    if (!info.purchaser.phoneNumber) {
+      errors.push({
+        field: 'purchaser.phoneNumber',
+        message: 'Phone number is required'
+      });
+    } else if (info.purchaser.phoneNumber.length < 14) { // (XXX) XXX-XXXX format is 14 chars
+      errors.push({
+        field: 'purchaser.phoneNumber',
+        message: 'Please enter a complete phone number'
+      });
+    }
+    
+    // Validate owner fields if not same as purchaser
+    if (!info.sameAsOwner) {
+      if (!info.owner?.fullName) {
+        errors.push({
+          field: 'owner.fullName',
+          message: 'Owner name is required'
+        });
+      }
+      
+      if (!info.owner?.streetAddress) {
+        errors.push({
+          field: 'owner.streetAddress',
+          message: 'Street address is required'
+        });
+      }
+      
+      if (!info.owner?.city) {
+        errors.push({
+          field: 'owner.city',
+          message: 'City is required'
+        });
+      }
+      
+      if (!info.owner?.state) {
+        errors.push({
+          field: 'owner.state',
+          message: 'State is required'
+        });
+      }
+      
+      if (!info.owner?.zipCode) {
+        errors.push({
+          field: 'owner.zipCode',
+          message: 'ZIP code is required'
+        });
+      } else if (!/^\d{5}(-\d{4})?$/.test(info.owner.zipCode)) {
+        errors.push({
+          field: 'owner.zipCode',
+          message: 'Please enter a valid ZIP code'
+        });
+      }
+      
+      if (!info.owner?.phoneNumber) {
+        errors.push({
+          field: 'owner.phoneNumber',
+          message: 'Phone number is required'
+        });
+      } else if (info.owner.phoneNumber.length < 14) {
+        errors.push({
+          field: 'owner.phoneNumber',
+          message: 'Please enter a complete phone number'
+        });
+      }
+    }
+    
+    return errors;
+  };
 
- 
+  // Helper to get error message for a field
+  const getErrorMessage = (field: string): string | null => {
+    const error = validationErrors.find(err => err.field === field);
+    return error ? error.message : null;
+  };
+
+  // Initialize form data only once on mount
   useEffect(() => {
     if (!contextFormData.platePurchaserOwner) {
       updateField('platePurchaserOwner', initialPlatePurchaserOwner);
     }
-  }, []);
+  }, [contextFormData.platePurchaserOwner, updateField]);
 
+  // Handle outside clicks for dropdowns
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Element;
@@ -173,6 +301,28 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown]);
 
+  // Combined validation effect that runs when relevant dependencies change
+  useEffect(() => {
+    if (showValidationErrors) {
+      const errors = validatePlatePurchaserOwner(safeFormData.platePurchaserOwner);
+      setValidationErrors(errors);
+      
+      // Only update parent validation state when validation errors change
+      // Use a ref to track previous validation state to prevent infinite loops
+      const hasErrors = errors.length > 0;
+      updateField('_validationErrors', (prev: any) => {
+        // Only update if the value is actually changing
+        if (prev?.platePurchaserOwner !== hasErrors) {
+          return {
+            ...prev,
+            platePurchaserOwner: hasErrors
+          };
+        }
+        return prev;
+      });
+    }
+  }, [showValidationErrors, safeFormData.platePurchaserOwner.sameAsOwner]);
+
   const handleSameAsOwnerChange = (checked: boolean) => {
     const currentInfo = { ...safeFormData.platePurchaserOwner };
     
@@ -181,7 +331,6 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
       currentInfo.owner = { ...currentInfo.purchaser };
     } else {
       currentInfo.sameAsOwner = false;
- 
     }
     
     updateField('platePurchaserOwner', currentInfo);
@@ -233,34 +382,43 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({ formData: pro
     }
     
     updateField('platePurchaserOwner', currentInfo);
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validatePlatePurchaserOwner(currentInfo);
+      setValidationErrors(errors);
+    }
   };
 
-const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
-  const currentInfo = { ...safeFormData.platePurchaserOwner };
-  
-  let formattedValue = value;
-  if (field === 'phoneNumber') {
-    formattedValue = formatPhoneNumber(value);
-  } else if (field === 'fullName') {
-    formattedValue = capitalizeWords(value);
-  } else if (field !== 'state') {
-    formattedValue = capitalizeFirstLetter(value);
-  }
-  
- 
-  if (!currentInfo.owner) {
-    currentInfo.owner = { ...initialPersonInfo };
-  }
-  
- 
-  currentInfo.owner = {
-    ...currentInfo.owner,
-    [field]: formattedValue
+  const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
+    const currentInfo = { ...safeFormData.platePurchaserOwner };
+    
+    let formattedValue = value;
+    if (field === 'phoneNumber') {
+      formattedValue = formatPhoneNumber(value);
+    } else if (field === 'fullName') {
+      formattedValue = capitalizeWords(value);
+    } else if (field !== 'state') {
+      formattedValue = capitalizeFirstLetter(value);
+    }
+    
+    if (!currentInfo.owner) {
+      currentInfo.owner = { ...initialPersonInfo };
+    }
+    
+    currentInfo.owner = {
+      ...currentInfo.owner,
+      [field]: formattedValue
+    };
+    
+    updateField('platePurchaserOwner', currentInfo);
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validatePlatePurchaserOwner(currentInfo);
+      setValidationErrors(errors);
+    }
   };
-  
-  updateField('platePurchaserOwner', currentInfo);
-};
-
   
   const handlePurchaserStateSelect = (abbreviation: string) => {
     handlePurchaserChange('state', abbreviation);
@@ -272,7 +430,6 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
     setOpenDropdown(null);
   };
 
- 
   const getSafeValue = (path: string[], defaultValue = ''): string => {
     let current: any = safeFormData;
     for (const key of path) {
@@ -295,6 +452,9 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
           />
           Same as Plate Owner
         </label>
+        {showValidationErrors && validationErrors.length > 0 && (
+          <div className="headerErrorMessage">Please complete all required fields below</div>
+        )}
       </div>
       
       <div className="purchaserOwnerContent">
@@ -307,11 +467,14 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
               </label>
               <input
                 type="text"
-                className="infoInput"
+                className={`infoInput ${showValidationErrors && getErrorMessage('purchaser.fullName') ? 'error-input' : ''}`}
                 placeholder="Enter full name"
                 value={getSafeValue(['platePurchaserOwner', 'purchaser', 'fullName'])}
                 onChange={(e) => handlePurchaserChange('fullName', e.target.value)}
               />
+              {showValidationErrors && getErrorMessage('purchaser.fullName') && (
+                <div className="error-message">{getErrorMessage('purchaser.fullName')}</div>
+              )}
             </div>
             
             <div className="addressCityRow">
@@ -319,22 +482,28 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
                 <label className="infoLabel">Street Address or PO Box</label>
                 <input
                   type="text"
-                  className="infoInput"
+                  className={`infoInput ${showValidationErrors && getErrorMessage('purchaser.streetAddress') ? 'error-input' : ''}`}
                   placeholder="Enter street address or PO box"
                   value={getSafeValue(['platePurchaserOwner', 'purchaser', 'streetAddress'])}
                   onChange={(e) => handlePurchaserChange('streetAddress', e.target.value)}
                 />
+                {showValidationErrors && getErrorMessage('purchaser.streetAddress') && (
+                  <div className="error-message">{getErrorMessage('purchaser.streetAddress')}</div>
+                )}
               </div>
               
               <div className="cityField">
                 <label className="infoLabel">City</label>
                 <input
                   type="text"
-                  className="infoInput"
+                  className={`infoInput ${showValidationErrors && getErrorMessage('purchaser.city') ? 'error-input' : ''}`}
                   placeholder="Enter city"
                   value={getSafeValue(['platePurchaserOwner', 'purchaser', 'city'])}
                   onChange={(e) => handlePurchaserChange('city', e.target.value)}
                 />
+                {showValidationErrors && getErrorMessage('purchaser.city') && (
+                  <div className="error-message">{getErrorMessage('purchaser.city')}</div>
+                )}
               </div>
             </div>
             
@@ -344,7 +513,7 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
                 <div className="regStateWrapper">
                   <button
                     onClick={() => setOpenDropdown(openDropdown === 'purchaserState' ? null : 'purchaserState')}
-                    className="regStateDropDown purchaser-state-button"
+                    className={`regStateDropDown purchaser-state-button ${showValidationErrors && getErrorMessage('purchaser.state') ? 'error-button' : ''}`}
                   >
                     {getSafeValue(['platePurchaserOwner', 'purchaser', 'state']) ? 
                       getSafeValue(['platePurchaserOwner', 'purchaser', 'state']) : 
@@ -364,6 +533,9 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
                       ))}
                     </ul>
                   )}
+                  {showValidationErrors && getErrorMessage('purchaser.state') && (
+                    <div className="error-message">{getErrorMessage('purchaser.state')}</div>
+                  )}
                 </div>
               </div>
               
@@ -371,22 +543,28 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
                 <label className="infoLabel">ZIP Code</label>
                 <input
                   type="text"
-                  className="infoInput"
+                  className={`infoInput ${showValidationErrors && getErrorMessage('purchaser.zipCode') ? 'error-input' : ''}`}
                   placeholder="Enter ZIP code"
                   value={getSafeValue(['platePurchaserOwner', 'purchaser', 'zipCode'])}
                   onChange={(e) => handlePurchaserChange('zipCode', e.target.value)}
                 />
+                {showValidationErrors && getErrorMessage('purchaser.zipCode') && (
+                  <div className="error-message">{getErrorMessage('purchaser.zipCode')}</div>
+                )}
               </div>
               
               <div className="phoneField">
                 <label className="infoLabel">Phone Number</label>
                 <input
                   type="tel"
-                  className="infoInput"
+                  className={`infoInput ${showValidationErrors && getErrorMessage('purchaser.phoneNumber') ? 'error-input' : ''}`}
                   placeholder="Phone Number"
                   value={getSafeValue(['platePurchaserOwner', 'purchaser', 'phoneNumber'])}
                   onChange={(e) => handlePurchaserChange('phoneNumber', e.target.value)}
                 />
+                {showValidationErrors && getErrorMessage('purchaser.phoneNumber') && (
+                  <div className="error-message">{getErrorMessage('purchaser.phoneNumber')}</div>
+                )}
               </div>
             </div>
           </div>
@@ -402,12 +580,15 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
               </label>
               <input
                 type="text"
-                className="infoInput"
+                className={`infoInput ${!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.fullName') ? 'error-input' : ''}`}
                 placeholder="Enter full name"
                 value={getSafeValue(['platePurchaserOwner', 'owner', 'fullName'])}
                 onChange={(e) => handleOwnerChange('fullName', e.target.value)}
                 disabled={safeFormData.platePurchaserOwner.sameAsOwner}
               />
+              {!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.fullName') && (
+                <div className="error-message">{getErrorMessage('owner.fullName')}</div>
+              )}
             </div>
             
             <div className="addressCityRow">
@@ -415,24 +596,30 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
                 <label className="infoLabel">Street Address or PO Box</label>
                 <input
                   type="text"
-                  className="infoInput"
+                  className={`infoInput ${!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.streetAddress') ? 'error-input' : ''}`}
                   placeholder="Enter street address or PO box"
                   value={getSafeValue(['platePurchaserOwner', 'owner', 'streetAddress'])}
                   onChange={(e) => handleOwnerChange('streetAddress', e.target.value)}
                   disabled={safeFormData.platePurchaserOwner.sameAsOwner}
                 />
+                {!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.streetAddress') && (
+                  <div className="error-message">{getErrorMessage('owner.streetAddress')}</div>
+                )}
               </div>
               
               <div className="cityField">
                 <label className="infoLabel">City</label>
                 <input
                   type="text"
-                  className="infoInput"
+                  className={`infoInput ${!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.city') ? 'error-input' : ''}`}
                   placeholder="Enter city"
                   value={getSafeValue(['platePurchaserOwner', 'owner', 'city'])}
                   onChange={(e) => handleOwnerChange('city', e.target.value)}
                   disabled={safeFormData.platePurchaserOwner.sameAsOwner}
                 />
+                {!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.city') && (
+                  <div className="error-message">{getErrorMessage('owner.city')}</div>
+                )}
               </div>
             </div>
             
@@ -443,7 +630,7 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
                   <button
                     onClick={() => !safeFormData.platePurchaserOwner.sameAsOwner && 
                       setOpenDropdown(openDropdown === 'ownerState' ? null : 'ownerState')}
-                    className="regStateDropDown owner-state-button"
+                    className={`regStateDropDown owner-state-button ${!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.state') ? 'error-button' : ''}`}
                     disabled={safeFormData.platePurchaserOwner.sameAsOwner}
                   >
                     {getSafeValue(['platePurchaserOwner', 'owner', 'state']) ? 
@@ -464,6 +651,9 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
                       ))}
                     </ul>
                   )}
+                  {!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.state') && (
+                    <div className="error-message">{getErrorMessage('owner.state')}</div>
+                  )}
                 </div>
               </div>
               
@@ -471,24 +661,30 @@ const handleOwnerChange = (field: keyof PersonInfoType, value: string) => {
                 <label className="infoLabel">ZIP Code</label>
                 <input
                   type="text"
-                  className="infoInput"
+                  className={`infoInput ${!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.zipCode') ? 'error-input' : ''}`}
                   placeholder="Enter ZIP code"
                   value={getSafeValue(['platePurchaserOwner', 'owner', 'zipCode'])}
                   onChange={(e) => handleOwnerChange('zipCode', e.target.value)}
                   disabled={safeFormData.platePurchaserOwner.sameAsOwner}
                 />
+                {!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.zipCode') && (
+                  <div className="error-message">{getErrorMessage('owner.zipCode')}</div>
+                )}
               </div>
               
               <div className="phoneField">
                 <label className="infoLabel">Phone Number</label>
                 <input
                   type="tel"
-                  className="infoInput"
+                  className={`infoInput ${!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.phoneNumber') ? 'error-input' : ''}`}
                   placeholder="Phone Number"
                   value={getSafeValue(['platePurchaserOwner', 'owner', 'phoneNumber'])}
                   onChange={(e) => handleOwnerChange('phoneNumber', e.target.value)}
                   disabled={safeFormData.platePurchaserOwner.sameAsOwner}
                 />
+                {!safeFormData.platePurchaserOwner.sameAsOwner && showValidationErrors && getErrorMessage('owner.phoneNumber') && (
+                  <div className="error-message">{getErrorMessage('owner.phoneNumber')}</div>
+                )}
               </div>
             </div>
           </div>

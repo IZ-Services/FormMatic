@@ -18,14 +18,25 @@ interface VehicleBodyChangeData {
   axlesTo: string;
 }
 
+interface ValidationError {
+  fieldPath: string;
+  message: string;
+}
+
 interface VehicleBodyChangeProps {
   formData?: {
     vehicleBodyChange?: VehicleBodyChangeData;
     _showValidationErrors?: boolean;
   };
+  onChange?: (data: VehicleBodyChangeData) => void;
+  showValidationErrors?: boolean;
 }
 
-const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFormData }) => {
+const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ 
+  formData: propFormData, 
+  onChange,
+  showValidationErrors = false
+}) => {
   const { formData: contextFormData, updateField } = useFormContext();
   
   const formData = {
@@ -55,7 +66,10 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
     ...(formData?.vehicleBodyChange || {})
   });
   
-  const showValidationErrors = formData?._showValidationErrors === true;
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  
+  // Use either prop-based or context-based validation flag
+  const shouldShowValidationErrors = showValidationErrors || formData?._showValidationErrors === true;
 
   useEffect(() => {
     if (formData?.vehicleBodyChange) {
@@ -66,32 +80,220 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
     }
   }, [formData?.vehicleBodyChange]);
 
+  // Validation function
+  const validateVehicleBodyChange = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Market value is required
+    if (!bodyChangeData.marketValue || bodyChangeData.marketValue.trim() === '') {
+      errors.push({
+        fieldPath: 'vehicleBodyChange.marketValue',
+        message: 'Current market value is required'
+      });
+    } else if (isNaN(parseFloat(bodyChangeData.marketValue))) {
+      errors.push({
+        fieldPath: 'vehicleBodyChange.marketValue',
+        message: 'Market value must be a valid number'
+      });
+    }
+    
+    // Change cost is required
+    if (!bodyChangeData.changeCost || bodyChangeData.changeCost.trim() === '') {
+      errors.push({
+        fieldPath: 'vehicleBodyChange.changeCost',
+        message: 'Change cost is required'
+      });
+    } else if (isNaN(parseFloat(bodyChangeData.changeCost))) {
+      errors.push({
+        fieldPath: 'vehicleBodyChange.changeCost',
+        message: 'Change cost must be a valid number'
+      });
+    }
+    
+    // Change date is required
+    if (!bodyChangeData.changeDate || bodyChangeData.changeDate.trim() === '') {
+      errors.push({
+        fieldPath: 'vehicleBodyChange.changeDate',
+        message: 'Change date is required'
+      });
+    } else {
+      // Check if date is valid (MM/DD/YYYY format)
+      const datePattern = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
+      if (!datePattern.test(bodyChangeData.changeDate)) {
+        errors.push({
+          fieldPath: 'vehicleBodyChange.changeDate',
+          message: 'Date must be in MM/DD/YYYY format'
+        });
+      } else {
+        // Check if date is valid (not future date)
+        const [month, day, year] = bodyChangeData.changeDate.split('/').map(Number);
+        const inputDate = new Date(year, month - 1, day);
+        const today = new Date();
+        
+        if (inputDate > today) {
+          errors.push({
+            fieldPath: 'vehicleBodyChange.changeDate',
+            message: 'Change date cannot be in the future'
+          });
+        }
+      }
+    }
+    
+    // At least one change type must be selected
+    if (!bodyChangeData.unladenWeightChanged && 
+        !bodyChangeData.motiveChanged && 
+        !bodyChangeData.bodyTypeChanged && 
+        !bodyChangeData.axlesChanged) {
+      errors.push({
+        fieldPath: 'vehicleBodyChange.changeType',
+        message: 'Please select at least one type of change'
+      });
+    }
+    
+    // If unladen weight changed, reason is required
+    if (bodyChangeData.unladenWeightChanged && 
+        (!bodyChangeData.unladenWeightReason || bodyChangeData.unladenWeightReason.trim() === '')) {
+      errors.push({
+        fieldPath: 'vehicleBodyChange.unladenWeightReason',
+        message: 'Please provide a reason for unladen weight change'
+      });
+    }
+    
+    // If motive power changed, from and to are required
+    if (bodyChangeData.motiveChanged) {
+      if (!bodyChangeData.motiveFrom || bodyChangeData.motiveFrom.trim() === '') {
+        errors.push({
+          fieldPath: 'vehicleBodyChange.motiveFrom',
+          message: 'Original motive power is required'
+        });
+      }
+      
+      if (!bodyChangeData.motiveTo || bodyChangeData.motiveTo.trim() === '') {
+        errors.push({
+          fieldPath: 'vehicleBodyChange.motiveTo',
+          message: 'New motive power is required'
+        });
+      }
+    }
+    
+    // If body type changed, from and to are required
+    if (bodyChangeData.bodyTypeChanged) {
+      if (!bodyChangeData.bodyTypeFrom || bodyChangeData.bodyTypeFrom.trim() === '') {
+        errors.push({
+          fieldPath: 'vehicleBodyChange.bodyTypeFrom',
+          message: 'Original body type is required'
+        });
+      }
+      
+      if (!bodyChangeData.bodyTypeTo || bodyChangeData.bodyTypeTo.trim() === '') {
+        errors.push({
+          fieldPath: 'vehicleBodyChange.bodyTypeTo',
+          message: 'New body type is required'
+        });
+      }
+    }
+    
+    // If axles changed, from and to are required
+    if (bodyChangeData.axlesChanged) {
+      if (!bodyChangeData.axlesFrom || bodyChangeData.axlesFrom.trim() === '') {
+        errors.push({
+          fieldPath: 'vehicleBodyChange.axlesFrom',
+          message: 'Original number of axles is required'
+        });
+      } else if (isNaN(parseInt(bodyChangeData.axlesFrom))) {
+        errors.push({
+          fieldPath: 'vehicleBodyChange.axlesFrom',
+          message: 'Number of axles must be a valid number'
+        });
+      }
+      
+      if (!bodyChangeData.axlesTo || bodyChangeData.axlesTo.trim() === '') {
+        errors.push({
+          fieldPath: 'vehicleBodyChange.axlesTo',
+          message: 'New number of axles is required'
+        });
+      } else if (isNaN(parseInt(bodyChangeData.axlesTo))) {
+        errors.push({
+          fieldPath: 'vehicleBodyChange.axlesTo',
+          message: 'Number of axles must be a valid number'
+        });
+      }
+    }
+    
+    return errors;
+  };
+  
+  // Helper to get error message for a field
+  const getErrorMessage = (fieldPath: string): string | null => {
+    const error = validationErrors.find(err => err.fieldPath === fieldPath);
+    return error ? error.message : null;
+  };
+  
+  // Check if a specific field should show validation error
+  const shouldShowValidationError = (field: string): boolean => {
+    if (!shouldShowValidationErrors) return false;
+    return validationErrors.some(err => err.fieldPath === `vehicleBodyChange.${field}`);
+  };
+  
+  // Run validation when showing validation errors or when data changes
+  useEffect(() => {
+    if (shouldShowValidationErrors) {
+      const errors = validateVehicleBodyChange();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
+        contextFormData._validationErrors !== null
+        ? contextFormData._validationErrors
+        : {};
+        
+      updateField('_validationErrors', {
+        ...currentValidationErrors,
+        vehicleBodyChange: errors.length > 0
+      });
+    }
+  }, [shouldShowValidationErrors, bodyChangeData]);
+
   const handleInputChange = (field: keyof VehicleBodyChangeData, value: string | boolean) => {
     const newData = { ...bodyChangeData, [field]: value };
     setBodyChangeData(newData);
-    updateField('vehicleBodyChange', newData);
+    
+    if (onChange) {
+      onChange(newData);
+    } else {
+      updateField('vehicleBodyChange', newData);
+    }
   };
 
   const handleCheckboxChange = (field: keyof VehicleBodyChangeData, checked: boolean) => {
     handleInputChange(field, checked);
   };
 
- 
   const formatCurrency = (value: string) => {
- 
     const digits = value.replace(/\D/g, '');
-    
- 
     if (digits === '') return '';
-    
     const dollars = digits.substring(0, digits.length);
     return dollars;
   };
   
- 
   const handleCurrencyChange = (field: 'marketValue' | 'changeCost', value: string) => {
     const formattedValue = formatCurrency(value);
     handleInputChange(field, formattedValue);
+  };
+  
+  // Format date input
+  const handleDateChange = (value: string) => {
+    // Allow only digits and slashes
+    let cleaned = value.replace(/[^\d/]/g, '');
+    
+    // Auto-insert slashes
+    if (cleaned.length === 2 && !cleaned.includes('/') && !bodyChangeData.changeDate.includes('/')) {
+      cleaned = cleaned + '/';
+    } else if (cleaned.length === 5 && cleaned.indexOf('/') === 2 && cleaned.lastIndexOf('/') === 2) {
+      cleaned = cleaned + '/';
+    }
+    
+    handleInputChange('changeDate', cleaned);
   };
 
   return (
@@ -137,12 +339,22 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
             onChange={(e) => handleCurrencyChange('marketValue', e.target.value)}
             style={{
               padding: '8px',
-              border: '1px solid #ccc',
+              border: shouldShowValidationError('marketValue') ? '1px solid #f44336' : '1px solid #ccc',
               borderRadius: '4px',
               width: '150px'
             }}
           />
         </div>
+        {shouldShowValidationError('marketValue') && (
+          <div style={{ 
+            color: '#f44336', 
+            fontSize: '12px', 
+            marginTop: '5px',
+            width: '100%'
+          }}>
+            {getErrorMessage('vehicleBodyChange.marketValue')}
+          </div>
+        )}
       </div>
       
       {/* Changes Cost Row */}
@@ -170,12 +382,22 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
             onChange={(e) => handleCurrencyChange('changeCost', e.target.value)}
             style={{
               padding: '8px',
-              border: '1px solid #ccc',
+              border: shouldShowValidationError('changeCost') ? '1px solid #f44336' : '1px solid #ccc',
               borderRadius: '4px',
               width: '150px',
               marginRight: '10px'
             }}
           />
+          {shouldShowValidationError('changeCost') && (
+            <div style={{ 
+              color: '#f44336', 
+              fontSize: '12px', 
+              marginTop: '5px',
+              width: '100%'
+            }}>
+              {getErrorMessage('vehicleBodyChange.changeCost')}
+            </div>
+          )}
         </div>
         
         <div style={{ 
@@ -193,14 +415,24 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
             type="text"
             placeholder="MM/DD/YYYY"
             value={bodyChangeData.changeDate || ''}
-            onChange={(e) => handleInputChange('changeDate', e.target.value)}
+            onChange={(e) => handleDateChange(e.target.value)}
             style={{
               padding: '8px',
-              border: '1px solid #ccc',
+              border: shouldShowValidationError('changeDate') ? '1px solid #f44336' : '1px solid #ccc',
               borderRadius: '4px',
               width: '150px'
             }}
           />
+          {shouldShowValidationError('changeDate') && (
+            <div style={{ 
+              color: '#f44336', 
+              fontSize: '12px', 
+              marginTop: '5px',
+              width: '100%'
+            }}>
+              {getErrorMessage('vehicleBodyChange.changeDate')}
+            </div>
+          )}
         </div>
       </div>
       
@@ -211,6 +443,16 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
       }}>
         This is what I changed: <span style={{ fontStyle: 'italic' }}>Check all that apply:</span>
       </div>
+      
+      {shouldShowValidationError('changeType') && (
+        <div style={{ 
+          color: '#f44336', 
+          fontSize: '12px', 
+          marginBottom: '10px'
+        }}>
+          {getErrorMessage('vehicleBodyChange.changeType')}
+        </div>
+      )}
       
       <div className="changes-list" style={{ marginLeft: '20px' }}>
         {/* Unladen Weight Change */}
@@ -241,12 +483,22 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
               onChange={(e) => handleInputChange('unladenWeightReason', e.target.value)}
               style={{
                 padding: '8px',
-                border: '1px solid #ccc',
+                border: shouldShowValidationError('unladenWeightReason') ? '1px solid #f44336' : '1px solid #ccc',
                 borderRadius: '4px',
                 width: 'calc(100% - 20px)',
                 maxWidth: '500px'
               }}
+              disabled={!bodyChangeData.unladenWeightChanged}
             />
+            {shouldShowValidationError('unladenWeightReason') && (
+              <div style={{ 
+                color: '#f44336', 
+                fontSize: '12px', 
+                marginTop: '5px'
+              }}>
+                {getErrorMessage('vehicleBodyChange.unladenWeightReason')}
+              </div>
+            )}
             <div style={{ 
               marginTop: '5px', 
               fontSize: '14px', 
@@ -293,11 +545,22 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
                 onChange={(e) => handleInputChange('motiveFrom', e.target.value)}
                 style={{
                   padding: '8px',
-                  border: '1px solid #ccc',
+                  border: shouldShowValidationError('motiveFrom') ? '1px solid #f44336' : '1px solid #ccc',
                   borderRadius: '4px',
                   width: '150px'
                 }}
+                disabled={!bodyChangeData.motiveChanged}
               />
+              {shouldShowValidationError('motiveFrom') && (
+                <div style={{ 
+                  color: '#f44336', 
+                  fontSize: '12px', 
+                  marginTop: '5px',
+                  marginLeft: '5px'
+                }}>
+                  {getErrorMessage('vehicleBodyChange.motiveFrom')}
+                </div>
+              )}
             </div>
             <div style={{ 
               display: 'flex',
@@ -313,11 +576,22 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
                 onChange={(e) => handleInputChange('motiveTo', e.target.value)}
                 style={{
                   padding: '8px',
-                  border: '1px solid #ccc',
+                  border: shouldShowValidationError('motiveTo') ? '1px solid #f44336' : '1px solid #ccc',
                   borderRadius: '4px',
                   width: '150px'
                 }}
+                disabled={!bodyChangeData.motiveChanged}
               />
+              {shouldShowValidationError('motiveTo') && (
+                <div style={{ 
+                  color: '#f44336', 
+                  fontSize: '12px', 
+                  marginTop: '5px',
+                  marginLeft: '5px'
+                }}>
+                  {getErrorMessage('vehicleBodyChange.motiveTo')}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -358,11 +632,22 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
                 onChange={(e) => handleInputChange('bodyTypeFrom', e.target.value)}
                 style={{
                   padding: '8px',
-                  border: '1px solid #ccc',
+                  border: shouldShowValidationError('bodyTypeFrom') ? '1px solid #f44336' : '1px solid #ccc',
                   borderRadius: '4px',
                   width: '150px'
                 }}
+                disabled={!bodyChangeData.bodyTypeChanged}
               />
+              {shouldShowValidationError('bodyTypeFrom') && (
+                <div style={{ 
+                  color: '#f44336', 
+                  fontSize: '12px', 
+                  marginTop: '5px',
+                  marginLeft: '5px'
+                }}>
+                  {getErrorMessage('vehicleBodyChange.bodyTypeFrom')}
+                </div>
+              )}
             </div>
             <div style={{ 
               display: 'flex',
@@ -378,11 +663,22 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
                 onChange={(e) => handleInputChange('bodyTypeTo', e.target.value)}
                 style={{
                   padding: '8px',
-                  border: '1px solid #ccc',
+                  border: shouldShowValidationError('bodyTypeTo') ? '1px solid #f44336' : '1px solid #ccc',
                   borderRadius: '4px',
                   width: '150px'
                 }}
+                disabled={!bodyChangeData.bodyTypeChanged}
               />
+              {shouldShowValidationError('bodyTypeTo') && (
+                <div style={{ 
+                  color: '#f44336', 
+                  fontSize: '12px', 
+                  marginTop: '5px',
+                  marginLeft: '5px'
+                }}>
+                  {getErrorMessage('vehicleBodyChange.bodyTypeTo')}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -423,11 +719,22 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
                 onChange={(e) => handleInputChange('axlesFrom', e.target.value)}
                 style={{
                   padding: '8px',
-                  border: '1px solid #ccc',
+                  border: shouldShowValidationError('axlesFrom') ? '1px solid #f44336' : '1px solid #ccc',
                   borderRadius: '4px',
                   width: '100px'
                 }}
+                disabled={!bodyChangeData.axlesChanged}
               />
+              {shouldShowValidationError('axlesFrom') && (
+                <div style={{ 
+                  color: '#f44336', 
+                  fontSize: '12px', 
+                  marginTop: '5px',
+                  marginLeft: '5px'
+                }}>
+                  {getErrorMessage('vehicleBodyChange.axlesFrom')}
+                </div>
+              )}
             </div>
             <div style={{ 
               display: 'flex',
@@ -443,11 +750,22 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({ formData: propFor
                 onChange={(e) => handleInputChange('axlesTo', e.target.value)}
                 style={{
                   padding: '8px',
-                  border: '1px solid #ccc',
+                  border: shouldShowValidationError('axlesTo') ? '1px solid #f44336' : '1px solid #ccc',
                   borderRadius: '4px',
                   width: '100px'
                 }}
+                disabled={!bodyChangeData.axlesChanged}
               />
+              {shouldShowValidationError('axlesTo') && (
+                <div style={{ 
+                  color: '#f44336', 
+                  fontSize: '12px', 
+                  marginTop: '5px',
+                  marginLeft: '5px'
+                }}>
+                  {getErrorMessage('vehicleBodyChange.axlesTo')}
+                </div>
+              )}
             </div>
           </div>
         </div>

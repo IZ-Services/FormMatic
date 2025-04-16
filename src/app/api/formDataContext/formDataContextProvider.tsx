@@ -132,13 +132,1099 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
     console.log('All form data cleared successfully');
   };
 
+  interface CommercialVehicleData {
+    numberOfAxles: string;
+    unladenWeight: string;
+    isEstimatedWeight: boolean | null;
+    bodyModelType: string; 
+  }
+
+  const validateCommercialVehicleInfo = (data: CommercialVehicleData): ValidationError[] => {
+    const errors: ValidationError[] = [];
   
+    // Number of axles validation
+    if (!data.numberOfAxles) {
+      errors.push({
+        fieldPath: 'commercialVehicleInfo.numberOfAxles',
+        message: 'Number of axles is required'
+      });
+    } else {
+      const axlesNum = parseInt(data.numberOfAxles, 10);
+      if (isNaN(axlesNum) || axlesNum <= 0 || axlesNum > 10) {
+        errors.push({
+          fieldPath: 'commercialVehicleInfo.numberOfAxles',
+          message: 'Number of axles must be between 1 and 10'
+        });
+      }
+    }
+  
+    // Unladen weight validation
+    if (!data.unladenWeight) {
+      errors.push({
+        fieldPath: 'commercialVehicleInfo.unladenWeight',
+        message: 'Unladen weight is required'
+      });
+    } else {
+      const weightNum = parseInt(data.unladenWeight, 10);
+      if (isNaN(weightNum) || weightNum <= 0) {
+        errors.push({
+          fieldPath: 'commercialVehicleInfo.unladenWeight',
+          message: 'Unladen weight must be a positive number'
+        });
+      }
+    }
+  
+    // Estimated weight validation
+    if (data.isEstimatedWeight === null) {
+      errors.push({
+        fieldPath: 'commercialVehicleInfo.isEstimatedWeight',
+        message: 'Please select whether the weight is actual or estimated'
+      });
+    }
+  
+    // Body model type validation
+    if (data.bodyModelType && data.bodyModelType.length > 50) {
+      errors.push({
+        fieldPath: 'commercialVehicleInfo.bodyModelType',
+        message: 'Body model type cannot exceed 50 characters'
+      });
+    }
+  
+    return errors;
+  };
  
-const validateForm = () => {
-  const errors: ValidationError[] = [];
-  // Add validation for NewLienHolder component
-const transactionType = formData.transactionType as string | undefined;
-if (transactionType === "Lien Holder Addition") {
+  const validateForm = () => {
+    const errors: ValidationError[] = [];
+
+  // Validate Vehicle Declaration entries
+  if (formData.vehicleDeclaration) {
+    const vehicleDeclaration = formData.vehicleDeclaration as any;
+    
+    // Check if vehicles array exists and has entries
+    if (!vehicleDeclaration.vehicles || !Array.isArray(vehicleDeclaration.vehicles) || vehicleDeclaration.vehicles.length === 0) {
+      errors.push({
+        fieldPath: 'vehicleDeclaration.vehicles',
+        message: 'At least one vehicle entry is required'
+      });
+    } else {
+      // Validate each vehicle entry
+      vehicleDeclaration.vehicles.forEach((vehicle: any, index: number) => {
+        // License number validation
+        if (!vehicle.licenseNumber || vehicle.licenseNumber.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].licenseNumber`,
+            message: 'License number is required'
+          });
+        } else if (!/^[A-Z0-9]{1,7}$/.test(vehicle.licenseNumber)) {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].licenseNumber`,
+            message: 'Please enter a valid license plate number'
+          });
+        }
+        
+        // VIN validation
+        if (!vehicle.vin || vehicle.vin.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].vin`,
+            message: 'VIN is required'
+          });
+        } else if (!/^[A-Z0-9]{17}$/.test(vehicle.vin)) {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].vin`,
+            message: 'Please enter a valid 17-character VIN'
+          });
+        }
+        
+        // Make validation
+        if (!vehicle.make || vehicle.make.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].make`,
+            message: 'Vehicle make is required'
+          });
+        } else if (vehicle.make.length > 50) {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].make`,
+            message: 'Vehicle make cannot exceed 50 characters'
+          });
+        }
+        
+        // GVW weight validation
+        if (!vehicle.gvwWeight || vehicle.gvwWeight.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].gvwWeight`,
+            message: 'GVW weight is required'
+          });
+        }
+        
+        // CGW weight validation
+        if (!vehicle.cgwWeight || vehicle.cgwWeight.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].cgwWeight`,
+            message: 'CGW weight is required'
+          });
+        }
+        
+        // Date operated validation
+        if (!vehicle.dateOperated || vehicle.dateOperated.trim() === '') {
+          errors.push({
+            fieldPath: `vehicleDeclaration.vehicles[${index}].dateOperated`,
+            message: 'Date operated is required'
+          });
+        } else {
+          // Check if date is valid
+          const date = new Date(vehicle.dateOperated);
+          const today = new Date();
+          if (isNaN(date.getTime())) {
+            errors.push({
+              fieldPath: `vehicleDeclaration.vehicles[${index}].dateOperated`,
+              message: 'Please enter a valid date'
+            });
+          } else if (date > today) {
+            errors.push({
+              fieldPath: `vehicleDeclaration.vehicles[${index}].dateOperated`,
+              message: 'Date cannot be in the future'
+            });
+          }
+        }
+      });
+    }
+    
+    // Validate howMany field if needed
+    if (!vehicleDeclaration.howMany) {
+      errors.push({
+        fieldPath: 'vehicleDeclaration.howMany',
+        message: 'Please select how many vehicles to declare'
+      });
+    } else {
+      const count = parseInt(vehicleDeclaration.howMany, 10);
+      if (count > 0 && (!vehicleDeclaration.vehicles || vehicleDeclaration.vehicles.length !== count)) {
+        errors.push({
+          fieldPath: 'vehicleDeclaration.vehicles',
+          message: `You selected ${count} vehicles but provided ${vehicleDeclaration.vehicles?.length || 0}`
+        });
+      }
+    }
+  }
+
+    const validateCommercialVehicleInfo = (data: CommercialVehicleData): ValidationError[] => {
+      const errors: ValidationError[] = [];
+    
+      // Number of axles validation
+      if (!data.numberOfAxles) {
+        errors.push({
+          fieldPath: 'commercialVehicleInfo.numberOfAxles',
+          message: 'Number of axles is required'
+        });
+      } else {
+        const axlesNum = parseInt(data.numberOfAxles, 10);
+        if (isNaN(axlesNum) || axlesNum <= 0 || axlesNum > 10) {
+          errors.push({
+            fieldPath: 'commercialVehicleInfo.numberOfAxles',
+            message: 'Number of axles must be between 1 and 10'
+          });
+        }
+      }
+    
+      // Unladen weight validation
+      if (!data.unladenWeight) {
+        errors.push({
+          fieldPath: 'commercialVehicleInfo.unladenWeight',
+          message: 'Unladen weight is required'
+        });
+      } else {
+        const weightNum = parseInt(data.unladenWeight, 10);
+        if (isNaN(weightNum) || weightNum <= 0) {
+          errors.push({
+            fieldPath: 'commercialVehicleInfo.unladenWeight',
+            message: 'Unladen weight must be a positive number'
+          });
+        }
+      }
+    
+      // Estimated weight validation
+      if (data.isEstimatedWeight === null) {
+        errors.push({
+          fieldPath: 'commercialVehicleInfo.isEstimatedWeight',
+          message: 'Please select whether the weight is actual or estimated'
+        });
+      }
+    
+      // Body model type validation
+      if (data.bodyModelType && data.bodyModelType.length > 50) {
+        errors.push({
+          fieldPath: 'commercialVehicleInfo.bodyModelType',
+          message: 'Body model type cannot exceed 50 characters'
+        });
+      }
+    
+      return errors;
+    };
+
+if (formData.reassignmentSection) {
+  const reassignmentSection = formData.reassignmentSection as any;
+  
+  // Validate license plate number
+  if (!reassignmentSection.specialInterestLicensePlate) {
+    errors.push({
+      fieldPath: 'reassignmentSection.specialInterestLicensePlate',
+      message: 'Special interest license plate number is required'
+    });
+  } else if (!/^[A-Z0-9]{1,7}$/.test(reassignmentSection.specialInterestLicensePlate)) {
+    errors.push({
+      fieldPath: 'reassignmentSection.specialInterestLicensePlate',
+      message: 'Please enter a valid license plate number'
+    });
+  }
+  
+  // Validate removed from VIN
+  if (!reassignmentSection.removedFrom) {
+    errors.push({
+      fieldPath: 'reassignmentSection.removedFrom',
+      message: 'VIN number is required'
+    });
+  } else if (!/^[A-Z0-9]{17}$/.test(reassignmentSection.removedFrom)) {
+    errors.push({
+      fieldPath: 'reassignmentSection.removedFrom',
+      message: 'Please enter a valid 17-character VIN'
+    });
+  }
+  
+  // Validate placed on license plate if provided
+  if (reassignmentSection.placedOnLicensePlate && !/^[A-Z0-9]{1,7}$/.test(reassignmentSection.placedOnLicensePlate)) {
+    errors.push({
+      fieldPath: 'reassignmentSection.placedOnLicensePlate',
+      message: 'Please enter a valid license plate number'
+    });
+  }
+  
+  // Validate placed on VIN if provided
+  if (reassignmentSection.placedOnVehicle && !/^[A-Z0-9]{17}$/.test(reassignmentSection.placedOnVehicle)) {
+    errors.push({
+      fieldPath: 'reassignmentSection.placedOnVehicle',
+      message: 'Please enter a valid 17-character VIN'
+    });
+  }
+  
+  // Must select at least one option: retain interest, release to DMV, or release to new owner
+  if (!reassignmentSection.retainInterest && !reassignmentSection.releaseInterestDMV && !reassignmentSection.releaseInterestNewOwner) {
+    errors.push({
+      fieldPath: 'reassignmentSection.interestOptions',
+      message: 'Please select one of the options (retain or release interest)'
+    });
+  }
+  
+  // If retaining interest, need to validate additional fields
+  if (reassignmentSection.retainInterest) {
+    // Fee enclosed required when retaining interest
+    if (!reassignmentSection.feeEnclosed) {
+      errors.push({
+        fieldPath: 'reassignmentSection.feeEnclosed',
+        message: 'Fee is required when retaining interest'
+      });
+    }
+    
+    if (!reassignmentSection.placedOnLicensePlate && !reassignmentSection.placedOnVehicle) {
+      errors.push({
+        fieldPath: 'reassignmentSection.placedOn',
+        message: 'Please provide either a license plate or vehicle identification number'
+      });
+    }
+  }
+  
+  // If releasing interest to new owner, need to validate placed on fields
+  if (reassignmentSection.releaseInterestNewOwner) {
+    if (!reassignmentSection.placedOnLicensePlate && !reassignmentSection.placedOnVehicle) {
+      errors.push({
+        fieldPath: 'reassignmentSection.placedOn',
+        message: 'Please provide either a license plate or vehicle identification number'
+      });
+    }
+  }
+}
+    // Validate SelectConfiguration component
+    if (formData.selectConfiguration) {
+      const config = formData.selectConfiguration as any;
+      
+      // Validate vehicle type
+      if (!config.vehicleType) {
+        errors.push({
+          fieldPath: 'selectConfiguration.vehicleType',
+          message: 'Vehicle type is required'
+        });
+      }
+      
+      // Validate plate type
+      if (!config.plateType) {
+        errors.push({
+          fieldPath: 'selectConfiguration.plateType',
+          message: 'Plate type is required'
+        });
+      }
+      
+      // Validate sequential plate fields
+      if (config.plateType === 'Sequential') {
+        if (!config.currentLicensePlate) {
+          errors.push({
+            fieldPath: 'selectConfiguration.currentLicensePlate',
+            message: 'Current license plate number is required'
+          });
+        } else if (config.currentLicensePlate.length < 5) {
+          errors.push({
+            fieldPath: 'selectConfiguration.currentLicensePlate',
+            message: 'License plate must be at least 5 characters'
+          });
+        }
+        
+        if (!config.fullVehicleId) {
+          errors.push({
+            fieldPath: 'selectConfiguration.fullVehicleId',
+            message: 'Vehicle ID number is required'
+          });
+        } else if (config.fullVehicleId.length < 17) {
+          errors.push({
+            fieldPath: 'selectConfiguration.fullVehicleId',
+            message: 'VIN must be 17 characters'
+          });
+        }
+      }
+      
+      // Validate personalized plate fields
+      if (config.plateType === 'Personalized') {
+        // At least first choice is required
+        if (!config.personalized?.firstChoice) {
+          errors.push({
+            fieldPath: 'selectConfiguration.personalized.firstChoice',
+            message: 'First choice is required'
+          });
+        }
+        
+        if (!config.personalized?.firstChoiceMeaning) {
+          errors.push({
+            fieldPath: 'selectConfiguration.personalized.firstChoiceMeaning',
+            message: 'Meaning for first choice is required'
+          });
+        }
+        
+        // If second choice is provided, meaning is required
+        if (config.personalized?.secondChoice && !config.personalized?.secondChoiceMeaning) {
+          errors.push({
+            fieldPath: 'selectConfiguration.personalized.secondChoiceMeaning',
+            message: 'Meaning is required when second choice is provided'
+          });
+        }
+        
+        // If third choice is provided, meaning is required
+        if (config.personalized?.thirdChoice && !config.personalized?.thirdChoiceMeaning) {
+          errors.push({
+            fieldPath: 'selectConfiguration.personalized.thirdChoiceMeaning',
+            message: 'Meaning is required when third choice is provided'
+          });
+        }
+      }
+      
+      // Validate pickup location
+      if (config.plateType && !config.pickupLocation) {
+        errors.push({
+          fieldPath: 'selectConfiguration.pickupLocation',
+          message: 'Pickup location is required'
+        });
+      }
+      
+      // Validate location city
+      if (config.pickupLocation && !config.locationCity) {
+        errors.push({
+          fieldPath: 'selectConfiguration.locationCity',
+          message: 'Location city is required'
+        });
+      }
+    }
+
+    
+    
+    // Validate PlannedNonOperation component
+    if (formData.plannedNonOperation) {
+      const pno = formData.plannedNonOperation as any;
+      
+      if (pno.entries && Array.isArray(pno.entries)) {
+        pno.entries.forEach((entry: any, index: number) => {
+          // Validate license plate
+          if (!entry.vehicleLicensePlate) {
+            errors.push({
+              fieldPath: `plannedNonOperation.entries[${index}].vehicleLicensePlate`,
+              message: 'License plate number is required'
+            });
+          }
+  
+          // Validate VIN
+          if (!entry.vehicleIdNumber) {
+            errors.push({
+              fieldPath: `plannedNonOperation.entries[${index}].vehicleIdNumber`,
+              message: 'Vehicle ID number is required'
+            });
+          } else if (entry.vehicleIdNumber.length < 17) {
+            errors.push({
+              fieldPath: `plannedNonOperation.entries[${index}].vehicleIdNumber`,
+              message: 'VIN must be 17 characters'
+            });
+          }
+  
+          // Validate make
+          if (!entry.vehicleMake) {
+            errors.push({
+              fieldPath: `plannedNonOperation.entries[${index}].vehicleMake`,
+              message: 'Vehicle make is required'
+            });
+          }
+        });
+      }
+    }
+    
+    // Validate VehicleStorageLocation component
+    if (formData.storageLocation) {
+      const storage = formData.storageLocation as any;
+      
+      // Validate from date
+      if (!storage.fromDate) {
+        errors.push({
+          fieldPath: 'storageLocation.fromDate',
+          message: 'From date is required'
+        });
+      } else if (!/^\d{2}\/\d{2}\/\d{4}$/.test(storage.fromDate)) {
+        errors.push({
+          fieldPath: 'storageLocation.fromDate',
+          message: 'Date must be in MM/DD/YYYY format'
+        });
+      }
+      
+      // Validate to date
+      if (!storage.toDate) {
+        errors.push({
+          fieldPath: 'storageLocation.toDate',
+          message: 'To date is required'
+        });
+      } else if (!/^\d{2}\/\d{2}\/\d{4}$/.test(storage.toDate)) {
+        errors.push({
+          fieldPath: 'storageLocation.toDate',
+          message: 'Date must be in MM/DD/YYYY format'
+        });
+      }
+      
+      // Validate address
+      if (!storage.address) {
+        errors.push({
+          fieldPath: 'storageLocation.address',
+          message: 'Address is required'
+        });
+      }
+      
+      // Validate city
+      if (!storage.city) {
+        errors.push({
+          fieldPath: 'storageLocation.city',
+          message: 'City is required'
+        });
+      }
+      
+      // Validate state
+      if (!storage.state) {
+        errors.push({
+          fieldPath: 'storageLocation.state',
+          message: 'State is required'
+        });
+      }
+      
+      // Validate zip code
+      if (!storage.zipCode) {
+        errors.push({
+          fieldPath: 'storageLocation.zipCode',
+          message: 'ZIP code is required'
+        });
+      } else if (!/^\d{5}(-\d{4})?$/.test(storage.zipCode)) {
+        errors.push({
+          fieldPath: 'storageLocation.zipCode',
+          message: 'Please enter a valid ZIP code'
+        });
+      }
+    }
+    
+// Validate platePurchaserOwner fields for personalized plates transactions
+if (transactionType?.startsWith("Personalized Plates")) {
+  const platePurchaserOwner = formData.platePurchaserOwner as any | undefined;
+  
+  if (!platePurchaserOwner) {
+    errors.push({
+      fieldPath: 'platePurchaserOwner',
+      message: 'Plate purchaser information is required'
+    });
+  } else {
+    // Validate purchaser fields
+    if (!platePurchaserOwner.purchaser?.fullName) {
+      errors.push({
+        fieldPath: 'platePurchaserOwner.purchaser.fullName',
+        message: 'Purchaser name is required'
+      });
+    }
+    
+    if (!platePurchaserOwner.purchaser?.streetAddress) {
+      errors.push({
+        fieldPath: 'platePurchaserOwner.purchaser.streetAddress',
+        message: 'Street address is required'
+      });
+    }
+    
+    if (!platePurchaserOwner.purchaser?.city) {
+      errors.push({
+        fieldPath: 'platePurchaserOwner.purchaser.city',
+        message: 'City is required'
+      });
+    }
+    
+    if (!platePurchaserOwner.purchaser?.state) {
+      errors.push({
+        fieldPath: 'platePurchaserOwner.purchaser.state',
+        message: 'State is required'
+      });
+    }
+    
+    if (!platePurchaserOwner.purchaser?.zipCode) {
+      errors.push({
+        fieldPath: 'platePurchaserOwner.purchaser.zipCode',
+        message: 'ZIP code is required'
+      });
+    } else if (!/^\d{5}(-\d{4})?$/.test(platePurchaserOwner.purchaser.zipCode)) {
+      errors.push({
+        fieldPath: 'platePurchaserOwner.purchaser.zipCode',
+        message: 'Please enter a valid ZIP code'
+      });
+    }
+    
+    if (!platePurchaserOwner.purchaser?.phoneNumber) {
+      errors.push({
+        fieldPath: 'platePurchaserOwner.purchaser.phoneNumber',
+        message: 'Phone number is required'
+      });
+    } else if (platePurchaserOwner.purchaser.phoneNumber.length < 14) { // (XXX) XXX-XXXX format is 14 chars
+      errors.push({
+        fieldPath: 'platePurchaserOwner.purchaser.phoneNumber',
+        message: 'Please enter a complete phone number'
+      });
+    }
+    
+    // Validate owner fields if not same as purchaser
+    if (!platePurchaserOwner.sameAsOwner) {
+      if (!platePurchaserOwner.owner?.fullName) {
+        errors.push({
+          fieldPath: 'platePurchaserOwner.owner.fullName',
+          message: 'Owner name is required'
+        });
+      }
+      
+      if (!platePurchaserOwner.owner?.streetAddress) {
+        errors.push({
+          fieldPath: 'platePurchaserOwner.owner.streetAddress',
+          message: 'Street address is required'
+        });
+      }
+      
+      if (!platePurchaserOwner.owner?.city) {
+        errors.push({
+          fieldPath: 'platePurchaserOwner.owner.city',
+          message: 'City is required'
+        });
+      }
+      
+      if (!platePurchaserOwner.owner?.state) {
+        errors.push({
+          fieldPath: 'platePurchaserOwner.owner.state',
+          message: 'State is required'
+        });
+      }
+      
+      if (!platePurchaserOwner.owner?.zipCode) {
+        errors.push({
+          fieldPath: 'platePurchaserOwner.owner.zipCode',
+          message: 'ZIP code is required'
+        });
+      } else if (!/^\d{5}(-\d{4})?$/.test(platePurchaserOwner.owner.zipCode)) {
+        errors.push({
+          fieldPath: 'platePurchaserOwner.owner.zipCode',
+          message: 'Please enter a valid ZIP code'
+        });
+      }
+      
+      if (!platePurchaserOwner.owner?.phoneNumber) {
+        errors.push({
+          fieldPath: 'platePurchaserOwner.owner.phoneNumber',
+          message: 'Phone number is required'
+        });
+      } else if (platePurchaserOwner.owner.phoneNumber.length < 14) {
+        errors.push({
+          fieldPath: 'platePurchaserOwner.owner.phoneNumber',
+          message: 'Please enter a complete phone number'
+        });
+      }
+    }
+  }
+}
+    if (transactionType?.startsWith("Personalized Plates (Replacement)") || 
+    (formData.replacementSection && Object.keys(formData.replacementSection).length > 0)) {
+  const replacementSection = formData.replacementSection as any | undefined;
+  
+  if (!replacementSection) {
+    errors.push({
+      fieldPath: 'replacementSection',
+      message: 'Replacement information is required'
+    });
+  } else {
+    // Validate license plate number
+    if (!replacementSection.specialInterestLicensePlate) {
+      errors.push({
+        fieldPath: 'replacementSection.specialInterestLicensePlate',
+        message: 'License plate number is required'
+      });
+    } else if (replacementSection.specialInterestLicensePlate.length < 2) {
+      errors.push({
+        fieldPath: 'replacementSection.specialInterestLicensePlate',
+        message: 'Please enter a valid license plate number'
+      });
+    }
+    
+    // Validate plate quantity selection
+    if (!replacementSection.ineed) {
+      errors.push({
+        fieldPath: 'replacementSection.ineed',
+        message: 'Please select how many plates you need'
+      });
+    }
+    
+    // Validate plate status
+    if (!replacementSection.plateStatus) {
+      errors.push({
+        fieldPath: 'replacementSection.plateStatus',
+        message: 'Please select the status of your plates'
+      });
+    }
+  }
+}
+    if (transactionType === "Lien Holder Removal") {
+      const releaseInformation = formData.releaseInformation as any | undefined;
+      
+      if (!releaseInformation) {
+        errors.push({
+          fieldPath: 'releaseInformation',
+          message: 'Release of ownership information is required'
+        });
+      } else {
+        // Validate name
+        if (!releaseInformation.name) {
+          errors.push({
+            fieldPath: 'releaseInformation.name',
+            message: 'Name is required'
+          });
+        }
+        
+        // Validate address fields
+        if (!releaseInformation.address?.street) {
+          errors.push({
+            fieldPath: 'releaseInformation.address.street',
+            message: 'Street is required'
+          });
+        }
+        
+        if (!releaseInformation.address?.city) {
+          errors.push({
+            fieldPath: 'releaseInformation.address.city',
+            message: 'City is required'
+          });
+        }
+        
+        if (!releaseInformation.address?.state) {
+          errors.push({
+            fieldPath: 'releaseInformation.address.state',
+            message: 'State is required'
+          });
+        }
+        
+        if (!releaseInformation.address?.zip) {
+          errors.push({
+            fieldPath: 'releaseInformation.address.zip',
+            message: 'ZIP code is required'
+          });
+        }
+        
+        // Validate authorized agent fields
+        if (!releaseInformation.authorizedAgentName) {
+          errors.push({
+            fieldPath: 'releaseInformation.authorizedAgentName',
+            message: 'Authorized agent name is required'
+          });
+        }
+        
+        if (!releaseInformation.authorizedAgentTitle) {
+          errors.push({
+            fieldPath: 'releaseInformation.authorizedAgentTitle',
+            message: 'Authorized agent title is required'
+          });
+        }
+        
+        // Validate date and phone fields
+        if (!releaseInformation.date) {
+          errors.push({
+            fieldPath: 'releaseInformation.date',
+            message: 'Date is required'
+          });
+        } else if (releaseInformation.date.length < 10) {
+          errors.push({
+            fieldPath: 'releaseInformation.date',
+            message: 'Date must be in MM/DD/YYYY format'
+          });
+        }
+        
+        if (!releaseInformation.phoneNumber) {
+          errors.push({
+            fieldPath: 'releaseInformation.phoneNumber',
+            message: 'Phone number is required'
+          });
+        }
+        
+        // Validate mailing address if different
+        if (releaseInformation.mailingAddressDifferent) {
+          if (!releaseInformation.mailingAddress?.street) {
+            errors.push({
+              fieldPath: 'releaseInformation.mailingAddress.street',
+              message: 'Mailing street is required'
+            });
+          }
+          
+          if (!releaseInformation.mailingAddress?.city) {
+            errors.push({
+              fieldPath: 'releaseInformation.mailingAddress.city',
+              message: 'Mailing city is required'
+            });
+          }
+          
+          if (!releaseInformation.mailingAddress?.state) {
+            errors.push({
+              fieldPath: 'releaseInformation.mailingAddress.state',
+              message: 'Mailing state is required'
+            });
+          }
+          
+          if (!releaseInformation.mailingAddress?.zip) {
+            errors.push({
+              fieldPath: 'releaseInformation.mailingAddress.zip',
+              message: 'Mailing ZIP code is required'
+            });
+          }
+        }
+      }
+    }
+    
+    if (transactionType === "Lien Holder Addition") {
+      const lienHolder = formData.lienHolder as any | undefined;
+      
+      if (!lienHolder) {
+        errors.push({
+          fieldPath: 'lienHolder',
+          message: 'Lien holder information is required'
+        });
+      } else {
+        // Validate lien holder name
+        if (!lienHolder.name) {
+          errors.push({
+            fieldPath: 'lienHolder.name',
+            message: 'Lien holder name is required'
+          });
+        }
+        
+        // Validate ELT if provided
+        if (lienHolder.eltNumber && lienHolder.eltNumber.length !== 3) {
+          errors.push({
+            fieldPath: 'lienHolder.eltNumber',
+            message: 'ELT Number must be exactly 3 digits'
+          });
+        }
+        
+        // Validate address
+        if (!lienHolder.address?.street) {
+          errors.push({
+            fieldPath: 'lienHolder.address.street',
+            message: 'Street is required'
+          });
+        }
+        
+        if (!lienHolder.address?.city) {
+          errors.push({
+            fieldPath: 'lienHolder.address.city',
+            message: 'City is required'
+          });
+        }
+        
+        if (!lienHolder.address?.state) {
+          errors.push({
+            fieldPath: 'lienHolder.address.state',
+            message: 'State is required'
+          });
+        }
+        
+        if (!lienHolder.address?.zip) {
+          errors.push({
+            fieldPath: 'lienHolder.address.zip',
+            message: 'ZIP code is required'
+          });
+        }
+        
+        // Validate mailing address if different
+        if (lienHolder.mailingAddressDifferent) {
+          if (!lienHolder.mailingAddress?.street) {
+            errors.push({
+              fieldPath: 'lienHolder.mailingAddress.street',
+              message: 'Mailing street is required'
+            });
+          }
+          
+          if (!lienHolder.mailingAddress?.city) {
+            errors.push({
+              fieldPath: 'lienHolder.mailingAddress.city',
+              message: 'Mailing city is required'
+            });
+          }
+          
+          if (!lienHolder.mailingAddress?.state) {
+            errors.push({
+              fieldPath: 'lienHolder.mailingAddress.state',
+              message: 'Mailing state is required'
+            });
+          }
+          
+          if (!lienHolder.mailingAddress?.zip) {
+            errors.push({
+              fieldPath: 'lienHolder.mailingAddress.zip',
+              message: 'Mailing ZIP code is required'
+            });
+          }
+        }
+      }
+    }
+    
+    // Validate platePurchaserOwner fields for personalized plates transactions
+    if (transactionType?.startsWith("Personalized Plates")) {
+      const platePurchaser = formData.platePurchaserOwner as any | undefined;
+      
+      if (!platePurchaser) {
+        errors.push({
+          fieldPath: 'platePurchaserOwner',
+          message: 'Plate purchaser information is required'
+        });
+      } else {
+        // Validate purchaser name fields
+        if (!platePurchaser.firstName) {
+          errors.push({
+            fieldPath: 'platePurchaserOwner.firstName',
+            message: 'First name is required'
+          });
+        }
+        
+        if (!platePurchaser.lastName) {
+          errors.push({
+            fieldPath: 'platePurchaserOwner.lastName',
+            message: 'Last name is required'
+          });
+        }
+        
+        // Validate address fields
+        if (!platePurchaser.address?.street) {
+          errors.push({
+            fieldPath: 'platePurchaserOwner.address.street',
+            message: 'Street is required'
+          });
+        }
+        
+        if (!platePurchaser.address?.city) {
+          errors.push({
+            fieldPath: 'platePurchaserOwner.address.city',
+            message: 'City is required'
+          });
+        }
+        
+        if (!platePurchaser.address?.state) {
+          errors.push({
+            fieldPath: 'platePurchaserOwner.address.state',
+            message: 'State is required'
+          });
+        }
+        
+        if (!platePurchaser.address?.zip) {
+          errors.push({
+            fieldPath: 'platePurchaserOwner.address.zip',
+            message: 'ZIP code is required'
+          });
+        }
+        
+        // Validate license and contact info
+        if (!platePurchaser.driverLicense) {
+          errors.push({
+            fieldPath: 'platePurchaserOwner.driverLicense',
+            message: 'Driver license number is required'
+          });
+        }
+        
+        if (!platePurchaser.licenseState) {
+          errors.push({
+            fieldPath: 'platePurchaserOwner.licenseState',
+            message: 'License state is required'
+          });
+        }
+        
+        if (!platePurchaser.dayPhone) {
+          errors.push({
+            fieldPath: 'platePurchaserOwner.dayPhone',
+            message: 'Day phone number is required'
+          });
+        }
+        
+        // Validate mailing address if different
+        if (platePurchaser.mailingAddressDifferent) {
+          if (!platePurchaser.mailingAddress?.street) {
+            errors.push({
+              fieldPath: 'platePurchaserOwner.mailingAddress.street',
+              message: 'Mailing street is required'
+            });
+          }
+          
+          if (!platePurchaser.mailingAddress?.city) {
+            errors.push({
+              fieldPath: 'platePurchaserOwner.mailingAddress.city',
+              message: 'Mailing city is required'
+            });
+          }
+          
+          if (!platePurchaser.mailingAddress?.state) {
+            errors.push({
+              fieldPath: 'platePurchaserOwner.mailingAddress.state',
+              message: 'Mailing state is required'
+            });
+          }
+          
+          if (!platePurchaser.mailingAddress?.zip) {
+            errors.push({
+              fieldPath: 'platePurchaserOwner.mailingAddress.zip',
+              message: 'Mailing ZIP code is required'
+            });
+          }
+        }
+      }
+    }
+    
+    // Validate plateSelection fields for personalized plates
+    if (transactionType?.startsWith("Personalized Plates")) {
+      const plateSelection = formData.plateSelection as any | undefined;
+      
+      if (!plateSelection?.plateType) {
+        errors.push({
+          fieldPath: 'plateSelection.plateType',
+          message: 'Plate type is required'
+        });
+      }
+    }
+if (transactionType === "Lien Holder Removal") {
+  const releaseInformation = formData.releaseInformation as any | undefined;
+  
+  if (!releaseInformation) {
+    errors.push({
+      fieldPath: 'releaseInformation',
+      message: 'Release of ownership information is required'
+    });
+  } else {
+    // Validate name
+    if (!releaseInformation.name) {
+      errors.push({
+        fieldPath: 'releaseInformation.name',
+        message: 'Name is required'
+      });
+    }
+    
+    // Validate address fields
+    if (!releaseInformation.address?.street) {
+      errors.push({
+        fieldPath: 'releaseInformation.address.street',
+        message: 'Street is required'
+      });
+    }
+    
+    if (!releaseInformation.address?.city) {
+      errors.push({
+        fieldPath: 'releaseInformation.address.city',
+        message: 'City is required'
+      });
+    }
+    
+    if (!releaseInformation.address?.state) {
+      errors.push({
+        fieldPath: 'releaseInformation.address.state',
+        message: 'State is required'
+      });
+    }
+    
+    if (!releaseInformation.address?.zip) {
+      errors.push({
+        fieldPath: 'releaseInformation.address.zip',
+        message: 'ZIP code is required'
+      });
+    }
+    
+    // Validate date and phone fields
+    if (!releaseInformation.date) {
+      errors.push({
+        fieldPath: 'releaseInformation.date',
+        message: 'Date is required'
+      });
+    } else if (releaseInformation.date.length < 10) {
+      errors.push({
+        fieldPath: 'releaseInformation.date',
+        message: 'Date must be in MM/DD/YYYY format'
+      });
+    }
+    
+    if (!releaseInformation.phoneNumber) {
+      errors.push({
+        fieldPath: 'releaseInformation.phoneNumber',
+        message: 'Phone number is required'
+      });
+    }
+    
+    // Validate mailing address if different
+    if (releaseInformation.mailingAddressDifferent) {
+      if (!releaseInformation.mailingAddress?.street) {
+        errors.push({
+          fieldPath: 'releaseInformation.mailingAddress.street',
+          message: 'Mailing street is required'
+        });
+      }
+      
+      if (!releaseInformation.mailingAddress?.city) {
+        errors.push({
+          fieldPath: 'releaseInformation.mailingAddress.city',
+          message: 'Mailing city is required'
+        });
+      }
+      
+      if (!releaseInformation.mailingAddress?.state) {
+        errors.push({
+          fieldPath: 'releaseInformation.mailingAddress.state',
+          message: 'Mailing state is required'
+        });
+      }
+      
+      if (!releaseInformation.mailingAddress?.zip) {
+        errors.push({
+          fieldPath: 'releaseInformation.mailingAddress.zip',
+          message: 'Mailing ZIP code is required'
+        });
+      }
+    }
+  }
+}if (transactionType === "Lien Holder Addition") {
   const lienHolder = formData.lienHolder as any | undefined;
   
   if (!lienHolder) {

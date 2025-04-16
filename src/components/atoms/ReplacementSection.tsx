@@ -10,10 +10,16 @@ interface ReplacementSectionType {
   plateStatus?: 'Lost' | 'Mutilated' | 'Stolen';
 }
 
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
 interface ReplacementSectionProps {
   formData?: {
     replacementSection?: ReplacementSectionType;
   };
+  showValidationErrors?: boolean;
 }
 
 const initialReplacementSection: ReplacementSectionType = {
@@ -22,14 +28,61 @@ const initialReplacementSection: ReplacementSectionType = {
   plateStatus: undefined
 };
 
-const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propFormData }) => {
+const ReplacementSection: React.FC<ReplacementSectionProps> = ({ 
+  formData: propFormData,
+  showValidationErrors = false 
+}) => {
   const { formData: contextFormData, updateField } = useFormContext();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
   const formData = {
     ...contextFormData,
     ...propFormData
+  };
+
+  // Validation function
+  const validateReplacementSection = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    const replacementSection = formData.replacementSection as ReplacementSectionType | undefined;
+    
+    // Validate license plate number
+    if (!replacementSection?.specialInterestLicensePlate) {
+      errors.push({
+        field: 'specialInterestLicensePlate',
+        message: 'License plate number is required'
+      });
+    } else if (replacementSection.specialInterestLicensePlate.length < 2) {
+      errors.push({
+        field: 'specialInterestLicensePlate',
+        message: 'Please enter a valid license plate number'
+      });
+    }
+    
+    // Validate plate quantity selection
+    if (!replacementSection?.ineed) {
+      errors.push({
+        field: 'ineed',
+        message: 'Please select how many plates you need'
+      });
+    }
+    
+    // Validate plate status
+    if (!replacementSection?.plateStatus) {
+      errors.push({
+        field: 'plateStatus',
+        message: 'Please select the status of your plates'
+      });
+    }
+    
+    return errors;
+  };
+
+  // Helper to get error message for a field
+  const getErrorMessage = (field: string): string | null => {
+    const error = validationErrors.find(err => err.field === field);
+    return error ? error.message : null;
   };
 
   useEffect(() => {
@@ -37,6 +90,24 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
       updateField('replacementSection', initialReplacementSection);
     }
   }, []);
+
+  // Run validation when showing validation errors or when data changes
+  useEffect(() => {
+    if (showValidationErrors) {
+      const errors = validateReplacementSection();
+      setValidationErrors(errors);
+    }
+  }, [showValidationErrors, formData.replacementSection]);
+
+  // Update parent component about validation status
+  useEffect(() => {
+    if (showValidationErrors) {
+      updateField('_validationErrors', (prev: any) => ({
+        ...prev,
+        replacementSection: validationErrors.length > 0
+      }));
+    }
+  }, [validationErrors, showValidationErrors]);
 
   const handleClickOutside = (e: MouseEvent) => {
     if (openDropdown && !dropdownRefs.current[openDropdown]?.contains(e.target as Node)) {
@@ -54,6 +125,12 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
     const newData = { ...currentInfo, [field]: value };
     updateField('replacementSection', newData);
     setOpenDropdown(null);
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validateReplacementSection();
+      setValidationErrors(errors);
+    }
   };
 
   const setRef = (key: string) => (node: HTMLDivElement | null) => {
@@ -67,6 +144,9 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
     <div className="replacementWrapper">
       <div className="replacementHeader">
         <h3 className="replacementTitle">FOR REPLACEMENT ONLY</h3>
+        {showValidationErrors && validationErrors.length > 0 && (
+          <div className="headerErrorMessage">Please complete all required fields below</div>
+        )}
       </div>
       
       <div className="replacementContent">
@@ -75,7 +155,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
             <label className="specialInterestLabel">SPECIAL INTEREST LICENSE PLATE NUMBER</label>
             <input
               type="text"
-              className="specialInterestInput"
+              className={`specialInterestInput ${showValidationErrors && getErrorMessage('specialInterestLicensePlate') ? 'error-input' : ''}`}
               value={formData.replacementSection 
                 ? (formData.replacementSection.specialInterestLicensePlate || '').toUpperCase() 
                 : ''}
@@ -84,6 +164,9 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
               maxLength={7}
               style={{ textTransform: 'uppercase' }}
             />
+            {showValidationErrors && getErrorMessage('specialInterestLicensePlate') && (
+              <div className="error-messagee">{getErrorMessage('specialInterestLicensePlate')}</div>
+            )}
           </div>
           
           <div className="replacementInfo">
@@ -93,7 +176,9 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
         
         <div className="replacementOptionsRow">
           <div className="ineedSection">
-            <span className="ineedLabel">I NEED:</span>
+            <span className={`ineedLabel ${showValidationErrors && getErrorMessage('ineed') ? 'error-label' : ''}`}>
+              I NEED:
+            </span>
             <div className="optionCheckboxes">
               {plateOptions.map((option) => (
                 <label key={option} className="checkboxLabel">
@@ -101,16 +186,21 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
                     type="checkbox"
                     checked={formData.replacementSection ? formData.replacementSection.ineed === option : false}
                     onChange={() => handleChange('ineed', option)}
-                    className="checkboxInput"
+                    className={`checkboxInput ${showValidationErrors && getErrorMessage('ineed') ? 'error-input' : ''}`}
                   />
                   {option}
                 </label>
               ))}
             </div>
+            {showValidationErrors && getErrorMessage('ineed') && (
+              <div className="error-messagee">{getErrorMessage('ineed')}</div>
+            )}
           </div>
           
           <div className="statusSec">
-            <span className="statusLabel">PLATE(S) WERE:</span>
+            <span className={`statusLabel ${showValidationErrors && getErrorMessage('plateStatus') ? 'error-label' : ''}`}>
+              PLATE(S) WERE:
+            </span>
             <div className="optionCheckboxes">
               {plateStatuses.map((status) => (
                 <label key={status} className="checkboxLabel">
@@ -118,25 +208,30 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
                     type="checkbox"
                     checked={formData.replacementSection ? formData.replacementSection.plateStatus === status : false}
                     onChange={() => handleChange('plateStatus', status)}
-                    className="checkboxInput"
+                    className={`checkboxInput ${showValidationErrors && getErrorMessage('plateStatus') ? 'error-input' : ''}`}
                   />
                   {status}
                 </label>
               ))}
             </div>
+            {showValidationErrors && getErrorMessage('plateStatus') && (
+              <div className="error-messagee">{getErrorMessage('plateStatus')}</div>
+            )}
           </div>
         </div>
         
         {/* Alternative dropdown for plate status (mobile-friendly) */}
         <div className="dropdownSections">
           <div className="dropdownSection">
-            <label className="dropdownSectionLabel">I NEED:</label>
+            <label className={`dropdownSectionLabel ${showValidationErrors && getErrorMessage('ineed') ? 'error-label' : ''}`}>
+              I NEED:
+            </label>
             <div 
               className="dropdownContainer"
               ref={setRef('ineed')}
             >
               <div
-                className="dropdownButton"
+                className={`dropdownButton ${showValidationErrors && getErrorMessage('ineed') ? 'error-dropdown' : ''}`}
                 onClick={() => setOpenDropdown(openDropdown === 'ineed' ? null : 'ineed')}
               >
                 <span>{formData.replacementSection ? formData.replacementSection.ineed || 'Select option' : 'Select option'}</span>
@@ -156,17 +251,22 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
                   ))}
                 </ul>
               )}
+              {showValidationErrors && getErrorMessage('ineed') && (
+                <div className="error-messagee">{getErrorMessage('ineed')}</div>
+              )}
             </div>
           </div>
 
           <div className="dropdownSection">
-            <label className="dropdownSectionLabel">PLATE(S) WERE:</label>
+            <label className={`dropdownSectionLabel ${showValidationErrors && getErrorMessage('plateStatus') ? 'error-label' : ''}`}>
+              PLATE(S) WERE:
+            </label>
             <div 
               className="dropdownContainer"
               ref={setRef('status')}
             >
               <div
-                className="dropdownButton"
+                className={`dropdownButton ${showValidationErrors && getErrorMessage('plateStatus') ? 'error-dropdown' : ''}`}
                 onClick={() => setOpenDropdown(openDropdown === 'status' ? null : 'status')}
               >
                 <span>{formData.replacementSection ? formData.replacementSection.plateStatus || 'Select status' : 'Select status'}</span>
@@ -185,6 +285,9 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({ formData: propF
                     </li>
                   ))}
                 </ul>
+              )}
+              {showValidationErrors && getErrorMessage('plateStatus') && (
+                <div className="error-messagee">{getErrorMessage('plateStatus')}</div>
               )}
             </div>
           </div>

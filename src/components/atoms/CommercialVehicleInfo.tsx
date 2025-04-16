@@ -9,21 +9,34 @@ interface CommercialVehicleData {
   bodyModelType: string; 
 }
 
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
 interface CommercialVehicleInfoProps {
   formData?: {
     commercialVehicleInfo?: CommercialVehicleData;
     _showValidationErrors?: boolean;
     [key: string]: any;
   };
+  onChange?: (data: any) => void;
+  showValidationErrors?: boolean;
 }
 
-const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({ formData: propFormData }) => {
+const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({ 
+  formData: propFormData, 
+  onChange,
+  showValidationErrors = false 
+}) => {
   const { formData: contextFormData, updateField } = useFormContext();
   
   const formData = {
     ...contextFormData,
     ...propFormData
   };
+  
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
   const [vehicleData, setVehicleData] = useState<CommercialVehicleData>({
     numberOfAxles: formData?.commercialVehicleInfo?.numberOfAxles || '',
@@ -33,33 +46,116 @@ const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({ formData:
     bodyModelType: formData?.commercialVehicleInfo?.bodyModelType || '' 
   });
   
-  const showValidationErrors = formData?._showValidationErrors === true;
-
-  useEffect(() => {
-    if (formData?.commercialVehicleInfo) {
-      setVehicleData({
-        numberOfAxles: formData.commercialVehicleInfo.numberOfAxles || vehicleData.numberOfAxles,
-        unladenWeight: formData.commercialVehicleInfo.unladenWeight || vehicleData.unladenWeight,
-        isEstimatedWeight: formData.commercialVehicleInfo.isEstimatedWeight !== undefined 
-          ? formData.commercialVehicleInfo.isEstimatedWeight 
-          : vehicleData.isEstimatedWeight,
-        bodyModelType: formData.commercialVehicleInfo.bodyModelType || vehicleData.bodyModelType
+  // Validation function
+  const validateCommercialVehicleInfo = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Validate number of axles
+    if (!vehicleData.numberOfAxles) {
+      errors.push({
+        field: 'numberOfAxles',
+        message: 'Number of axles is required'
+      });
+    } else {
+      const axlesNum = parseInt(vehicleData.numberOfAxles, 10);
+      if (isNaN(axlesNum) || axlesNum <= 0 || axlesNum > 10) {
+        errors.push({
+          field: 'numberOfAxles',
+          message: 'Number of axles must be between 1 and 10'
+        });
+      }
+    }
+    
+    // Validate unladen weight
+    if (!vehicleData.unladenWeight) {
+      errors.push({
+        field: 'unladenWeight',
+        message: 'Unladen weight is required'
+      });
+    } else {
+      const weightNum = parseInt(vehicleData.unladenWeight, 10);
+      if (isNaN(weightNum) || weightNum <= 0) {
+        errors.push({
+          field: 'unladenWeight',
+          message: 'Unladen weight must be a positive number'
+        });
+      }
+    }
+    
+    // Validate estimated weight checkbox
+    if (vehicleData.isEstimatedWeight === null) {
+      errors.push({
+        field: 'isEstimatedWeight',
+        message: 'Please select whether the weight is actual or estimated'
       });
     }
-  }, [formData?.commercialVehicleInfo]);
+    
+    // Validate body model type (optional, but add some basic validation if needed)
+    if (vehicleData.bodyModelType && vehicleData.bodyModelType.length > 50) {
+      errors.push({
+        field: 'bodyModelType',
+        message: 'Body model type cannot exceed 50 characters'
+      });
+    }
+    
+    return errors;
+  };
+  
+  // Helper to get error message for a field
+  const getErrorMessage = (field: string): string | null => {
+    const error = validationErrors.find(err => err.field === field);
+    return error ? error.message : null;
+  };
+  
+  // Sync with props when they change
+  useEffect(() => {
+    if (propFormData?.commercialVehicleInfo) {
+      setVehicleData(prev => ({
+        ...prev,
+        ...propFormData.commercialVehicleInfo
+      }));
+    }
+  }, [propFormData]);
+  
+// Run validation when showing validation errors or when data changes
+useEffect(() => {
+  if (showValidationErrors) {
+    const errors = validateCommercialVehicleInfo();
+    setValidationErrors(errors);
+  }
+}, [showValidationErrors, vehicleData]);
 
+// Update parent component about validation status
+useEffect(() => {
+  if (showValidationErrors) {
+    updateField('_validationErrors', (prev: any) => ({
+      ...prev,
+      commercialVehicleInfo: validationErrors.length > 0
+    }));
+  }
+}, [validationErrors, showValidationErrors]);
+  
   const handleInputChange = (field: keyof CommercialVehicleData, value: string | boolean) => {
     const newData = { ...vehicleData, [field]: value };
     setVehicleData(newData);
-    updateField('commercialVehicleInfo', newData);
+    
+    if (onChange) {
+      onChange({ commercialVehicleInfo: newData });
+    } else {
+      updateField('commercialVehicleInfo', newData);
+    }
+    
+    // Run validation if showing validation errors
+    if (showValidationErrors) {
+      const errors = validateCommercialVehicleInfo();
+      setValidationErrors(errors);
+    }
   };
-
  
   const handleAxlesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
     handleInputChange('numberOfAxles', value);
   };
-
  
   const handleWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
@@ -86,14 +182,14 @@ const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({ formData:
           <input
             id="axles-input"
             type="text"
-            className={`form-control ${showValidationErrors && !vehicleData.numberOfAxles ? 'validation-error' : ''}`}
+            className={`form-control ${showValidationErrors && getErrorMessage('numberOfAxles') ? 'validation-error' : ''}`}
             value={vehicleData.numberOfAxles}
             onChange={handleAxlesChange}
             placeholder="Enter number"
             maxLength={2}
           />
-          {showValidationErrors && !vehicleData.numberOfAxles && (
-            <p className="validation-message">Number of axles is required</p>
+          {showValidationErrors && getErrorMessage('numberOfAxles') && (
+            <p className="validation-message">{getErrorMessage('numberOfAxles')}</p>
           )}
         </div>
         
@@ -102,13 +198,13 @@ const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({ formData:
           <input
             id="weight-input"
             type="text"
-            className={`form-control ${showValidationErrors && !vehicleData.unladenWeight ? 'validation-error' : ''}`}
+            className={`form-control ${showValidationErrors && getErrorMessage('unladenWeight') ? 'validation-error' : ''}`}
             value={vehicleData.unladenWeight}
             onChange={handleWeightChange}
             placeholder="Enter weight"
           />
-          {showValidationErrors && !vehicleData.unladenWeight && (
-            <p className="validation-message">Unladen weight is required</p>
+          {showValidationErrors && getErrorMessage('unladenWeight') && (
+            <p className="validation-message">{getErrorMessage('unladenWeight')}</p>
           )}
         </div>
         
@@ -117,11 +213,14 @@ const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({ formData:
           <input
             id="body-model-type"
             type="text"
-            className="form-control"
+            className={`form-control ${showValidationErrors && getErrorMessage('bodyModelType') ? 'validation-error' : ''}`}
             value={vehicleData.bodyModelType}
             onChange={handleBodyModelTypeChange}
             placeholder="Body type"
           />
+          {showValidationErrors && getErrorMessage('bodyModelType') && (
+            <p className="validation-message">{getErrorMessage('bodyModelType')}</p>
+          )}
         </div>
         
         <div className="weight-type-container">
@@ -148,6 +247,9 @@ const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({ formData:
               <span className="checkbox-text">Estimated (Vehicles over 10,001 lbs. only)</span>
             </label>
           </div>
+          {showValidationErrors && getErrorMessage('isEstimatedWeight') && (
+            <p className="validation-message">{getErrorMessage('isEstimatedWeight')}</p>
+          )}
         </div>
       </div>
     </div>

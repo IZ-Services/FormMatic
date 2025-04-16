@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './StatementOfFacts.css';
 
@@ -7,33 +7,118 @@ interface StatementOfFactsType {
   statement: string;
 }
 
+interface ValidationError {
+  fieldPath: string;
+  message: string;
+}
+
 interface StatementOfFactsProps {
   formData?: {
     statementOfFacts?: StatementOfFactsType;
+    _showValidationErrors?: boolean;
   };
+  onChange?: (data: StatementOfFactsType) => void;
+  showValidationErrors?: boolean;
 }
 
 const initialStatementOfFacts: StatementOfFactsType = {
   statement: ''
 };
 
-const StatementOfFacts: React.FC<StatementOfFactsProps> = ({ formData: propFormData }) => {
+const StatementOfFacts: React.FC<StatementOfFactsProps> = ({ 
+  formData: propFormData,
+  onChange,
+  showValidationErrors = false
+}) => {
   const { formData: contextFormData, updateField } = useFormContext();
 
   const formData = {
     ...contextFormData,
     ...propFormData
   };
+  
+  const [statementData, setStatementData] = useState<StatementOfFactsType>(
+    formData.statementOfFacts || initialStatementOfFacts
+  );
+  
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  
+  // Use either prop-based or context-based validation flag
+  const shouldShowValidationErrors = showValidationErrors || formData?._showValidationErrors === true;
 
   useEffect(() => {
     if (!formData.statementOfFacts) {
       updateField('statementOfFacts', initialStatementOfFacts);
+    } else {
+      setStatementData(formData.statementOfFacts);
     }
-  }, []);
+  }, [formData.statementOfFacts]);
+  
+  // Validation function
+  const validateStatementOfFacts = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    // Statement is required
+    if (!statementData.statement || statementData.statement.trim() === '') {
+      errors.push({
+        fieldPath: 'statementOfFacts.statement',
+        message: 'Statement of facts is required'
+      });
+    } else if (statementData.statement.trim().length < 10) {
+      errors.push({
+        fieldPath: 'statementOfFacts.statement',
+        message: 'Statement should be at least 10 characters long'
+      });
+    } else if (statementData.statement.trim().length > 2000) {
+      errors.push({
+        fieldPath: 'statementOfFacts.statement',
+        message: 'Statement should not exceed 2000 characters'
+      });
+    }
+    
+    return errors;
+  };
+  
+  // Helper to get error message for a field
+  const getErrorMessage = (fieldPath: string): string | null => {
+    const error = validationErrors.find(err => err.fieldPath === fieldPath);
+    return error ? error.message : null;
+  };
+  
+  // Check if a specific field should show validation error
+  const shouldShowValidationError = (field: string): boolean => {
+    if (!shouldShowValidationErrors) return false;
+    return validationErrors.some(err => err.fieldPath === `statementOfFacts.${field}`);
+  };
+  
+  // Run validation when showing validation errors or when data changes
+  useEffect(() => {
+    if (shouldShowValidationErrors) {
+      const errors = validateStatementOfFacts();
+      setValidationErrors(errors);
+      
+      // Update global form validation state
+      const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
+        contextFormData._validationErrors !== null
+        ? contextFormData._validationErrors
+        : {};
+        
+      updateField('_validationErrors', {
+        ...currentValidationErrors,
+        statementOfFacts: errors.length > 0
+      });
+    }
+  }, [shouldShowValidationErrors, statementData]);
 
   const handleStatementChange = (value: string) => {
-    const currentInfo = (formData.statementOfFacts || {}) as StatementOfFactsType;
-    updateField('statementOfFacts', { ...currentInfo, statement: value });
+    const updatedData = { ...statementData, statement: value };
+    setStatementData(updatedData);
+    
+    if (onChange) {
+      onChange(updatedData);
+    } else {
+      updateField('statementOfFacts', updatedData);
+    }
   };
 
   return (
@@ -44,17 +129,33 @@ const StatementOfFacts: React.FC<StatementOfFactsProps> = ({ formData: propFormD
       </div>
       
       <div className="statementTextareaContainer">
-  <textarea
-    className="statementTextarea"
-    placeholder="Enter your statement of facts..."
-    value={(formData.statementOfFacts as StatementOfFactsType)?.statement || ''}
-    onChange={(e) => {       const value = e.target.value;
-      const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
-      handleStatementChange(capitalizedValue);
-    }}
-    rows={6}
-  />
-</div>
+        <textarea
+          className={`statementTextarea ${shouldShowValidationError('statement') ? 'validation-error' : ''}`}
+          placeholder="Enter your statement of facts..."
+          value={statementData.statement || ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+            handleStatementChange(capitalizedValue);
+          }}
+          rows={6}
+        />
+        
+        {shouldShowValidationError('statement') && (
+          <div className="validation-message">
+            {getErrorMessage('statementOfFacts.statement')}
+          </div>
+        )}
+        
+        <div className="character-count" style={{ 
+          textAlign: 'right', 
+          fontSize: '12px', 
+          color: shouldShowValidationError('statement') ? '#f44336' : '#666',
+          marginTop: '5px' 
+        }}>
+          {statementData.statement ? statementData.statement.length : 0}/2000
+        </div>
+      </div>
     </div>
   );
 };

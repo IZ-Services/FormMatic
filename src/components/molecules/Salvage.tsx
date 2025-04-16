@@ -44,7 +44,7 @@ export default function SalvageTransfer({ formData, onDataChange }: SalvageTrans
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType, showValidationErrors } = useFormContext();
 
  
     useEffect(() => {
@@ -65,7 +65,7 @@ export default function SalvageTransfer({ formData, onDataChange }: SalvageTrans
     return (
       <div className='wholeForm'>
         <TypeContainer />
-        <SalvageCertificate formData={formValues} />
+        <SalvageCertificate formData={formValues} showValidationErrors={showValidationErrors} />
         <VehicleInformation 
           formData={{
             hideMileageFields: true
@@ -85,7 +85,7 @@ export default function SalvageTransfer({ formData, onDataChange }: SalvageTrans
             forceSingleOwner: true
           }}
         /> */}
-        <LicensePlateDisposition formData={formValues} />
+        <LicensePlateDisposition formData={formValues}  showValidationErrors={showValidationErrors} />
         <SaveButton 
           transactionType="Salvage Title Transfer"
           onSuccess={() => console.log('Save completed successfully')}

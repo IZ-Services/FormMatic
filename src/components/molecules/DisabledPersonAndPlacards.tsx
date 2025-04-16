@@ -47,7 +47,7 @@ export default function DisabledPersonPlacards({ formData, onDataChange }: Disab
   }, [formData]);
 
   const FormContent = () => {
-    const { formData: contextFormData, updateField, setTransactionType } = useFormContext();
+    const { formData: contextFormData, updateField, setTransactionType, showValidationErrors} = useFormContext();
 
  
     useEffect(() => {
@@ -88,8 +88,8 @@ export default function DisabledPersonPlacards({ formData, onDataChange }: Disab
 />        {isCurrentLienholder && (
           <LegalOwnerOfRecord formData={formValues} />
         )}
-        <DisabledPersonParkingForm formData={formValues} />
-        <DisabledPersonLicensePlate formData={formValues} />
+        <DisabledPersonParkingForm formData={formValues} showValidationErrors={showValidationErrors} />
+        <DisabledPersonLicensePlate formData={formValues} showValidationErrors={showValidationErrors}  />
         <SaveButton 
           transactionType="Disabled Person and Placards"
           onSuccess={() => console.log('Save completed successfully')}

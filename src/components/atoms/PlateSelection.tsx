@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormContext } from '../../app/api/formDataContext/formDataContextProvider';
 import './PlateSelection.css';
 
@@ -10,10 +10,16 @@ interface PlateSelectionType {
   duplicateDecalNumber: string;
 }
 
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
 interface PlateSelectionProps {
   formData?: {
     plateSelection?: PlateSelectionType;
   };
+  showValidationErrors?: boolean;
 }
 
 const initialPlateSelection: PlateSelectionType = {
@@ -23,20 +29,60 @@ const initialPlateSelection: PlateSelectionType = {
   duplicateDecalNumber: ''
 };
 
-const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData }) => {
+const PlateSelection: React.FC<PlateSelectionProps> = ({ 
+  formData: propFormData,
+  showValidationErrors = false
+}) => {
   const { formData: contextFormData, updateField } = useFormContext();
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
   const formData = {
     ...contextFormData,
     ...propFormData
   };
 
+  // Validation function
+  const validatePlateSelection = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    const plateSelection = formData.plateSelection as PlateSelectionType | undefined;
+    
+    // Validate plate type
+    if (!plateSelection || !plateSelection.plateType) {
+      errors.push({
+        field: 'plateType',
+        message: 'Please select a plate type'
+      });
+    }
+    
+    // Validate organizational code for Veterans' Organization
+    if (plateSelection?.plateType === 'Veterans\' Organization' && !plateSelection.organizationalCode) {
+      errors.push({
+        field: 'organizationalCode',
+        message: 'Organizational code is required for Veterans\' Organization plates'
+      });
+    }
+    
+    // Validate duplicate decal number
+    if (plateSelection?.plateType === 'Duplicate Decal' && !plateSelection.duplicateDecalNumber) {
+      errors.push({
+        field: 'duplicateDecalNumber',
+        message: 'License plate number is required for duplicate decal'
+      });
+    }
+    
+    return errors;
+  };
+
+  // Helper to get error message for a field
+  const getErrorMessage = (field: string): string | null => {
+    const error = validationErrors.find(err => err.field === field);
+    return error ? error.message : null;
+  };
 
   useEffect(() => {
     if (!formData.plateSelection) {
       updateField('plateSelection', initialPlateSelection);
     } else {
-
       const currentSelection = formData.plateSelection;
       const updatedSelection = {
         ...initialPlateSelection,
@@ -44,17 +90,33 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData 
         plateCategory: currentSelection.plateCategory || ''
       };
       
-
       if (JSON.stringify(currentSelection) !== JSON.stringify(updatedSelection)) {
         updateField('plateSelection', updatedSelection);
       }
     }
   }, []);
 
+  // Run validation when showing validation errors or when data changes
+  useEffect(() => {
+    if (showValidationErrors) {
+      const errors = validatePlateSelection();
+      setValidationErrors(errors);
+    }
+  }, [showValidationErrors, formData.plateSelection]);
+
+  // Update parent component about validation status
+  useEffect(() => {
+    if (showValidationErrors) {
+      updateField('_validationErrors', (prev: any) => ({
+        ...prev,
+        plateSelection: validationErrors.length > 0
+      }));
+    }
+  }, [validationErrors, showValidationErrors]);
+
   const handleChange = (field: keyof PlateSelectionType, value: any) => {
     const currentInfo = (formData.plateSelection || initialPlateSelection) as PlateSelectionType;
     
-
     if (field === 'plateType' && currentInfo.plateType === value) {
       value = '';
     }
@@ -84,6 +146,12 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData 
     }
 
     updateField('plateSelection', newData);
+    
+    // Run validation if we're showing validation errors
+    if (showValidationErrors) {
+      const errors = validatePlateSelection();
+      setValidationErrors(errors);
+    }
   };
 
   const plates2to6 = [
@@ -111,14 +179,16 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData 
     'Duplicate Decal'
   ];
 
-
   const plateSelection = formData.plateSelection || initialPlateSelection;
 
   return (
     <div className="plateWrapper">
-      <div className="plateHeader">
-        <h3 className="plateTitle">PLATE SELECTION</h3>
-      </div>
+     <div className="plateHeader">
+  <h3 className="plateTitle">PLATE SELECTION</h3>
+  {showValidationErrors && getErrorMessage('plateType') && (
+    <div className="error-message plateTypeError">{getErrorMessage('plateType')}</div>
+  )}
+</div>
       
       <div className="plateContent">
         <div className="checklistRow">
@@ -133,9 +203,11 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData 
                   value={plate}
                   checked={plateSelection.plateType === plate}
                   onChange={() => handleChange('plateType', plate)}
-                  className="radioInput"
+                  className={`radioInput ${showValidationErrors && !plateSelection.plateType && index === 0 ? 'error-input' : ''}`}
                 />
-                <label htmlFor={`plate-${plate}`} className="checklistLabel">{plate}</label>
+                <label htmlFor={`plate-${plate}`} className={`checklistLabel ${showValidationErrors && !plateSelection.plateType && index === 0 ? 'error-label' : ''}`}>
+                  {plate}
+                </label>
               </div>
             ))}
           </div>
@@ -175,6 +247,10 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData 
           </div>
         </div>
         
+        {showValidationErrors && getErrorMessage('plateType') && (
+          <div className="error-message plateTypeError">{getErrorMessage('plateType')}</div>
+        )}
+        
         {plateSelection.plateType === 'Veterans\' Organization' && (
           <div className="inputContainer">
             <label className="inputLabel">(PROVIDE ORGANIZATIONAL CODE OF DECAL)</label>
@@ -191,26 +267,30 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({ formData: propFormData 
             </p>
             <input
               type="text"
-              className="textInput"
+              className={`textInput ${showValidationErrors && getErrorMessage('organizationalCode') ? 'error-input' : ''}`}
               value={plateSelection.organizationalCode || ''}
               onChange={(e) => handleChange('organizationalCode', e.target.value)}
               placeholder="Enter organizational code"
             />
+            {showValidationErrors && getErrorMessage('organizationalCode') && (
+              <div className="error-message">{getErrorMessage('organizationalCode')}</div>
+            )}
           </div>
         )}
         
         {plateSelection.plateType === 'Duplicate Decal' && (
-       <div className="inputContainer">
-       <label className="inputLabel">CURRENT LICENSE PLATE NUMBER</label>
-       <input
-         type="text"
-         className="textInput"
-         value={plateSelection.duplicateDecalNumber ? plateSelection.duplicateDecalNumber.toUpperCase() : ''}
-         onChange={(e) => handleChange('duplicateDecalNumber', e.target.value.toUpperCase())}
-         placeholder="ENTER CURRENT LICENSE PLATE NUMBER"
-         style={{ textTransform: 'uppercase' }}
-       />
-     </div>
+          <div className="inputContainer">
+            <label className="inputLabel">CURRENT LICENSE PLATE NUMBER</label>
+            <input
+              type="text"
+              className={`textInput ${showValidationErrors && getErrorMessage('duplicateDecalNumber') ? 'error-input' : ''}`}
+              value={plateSelection.duplicateDecalNumber ? plateSelection.duplicateDecalNumber.toUpperCase() : ''}
+              onChange={(e) => handleChange('duplicateDecalNumber', e.target.value.toUpperCase())}
+              placeholder="ENTER CURRENT LICENSE PLATE NUMBER"
+              style={{ textTransform: 'uppercase' }}
+            />
+           
+          </div>
         )}
       </div>
     </div>
