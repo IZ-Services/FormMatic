@@ -78,14 +78,16 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   
       if (response.data.success) {
         setUser(userCredential.user);
-        router.push('/home');
+        setTimeout(() => {
+          router.push('/home');
+        }, 100);
       }
     } catch (error) {
       console.error('Error signing in:', error);
-      setIsLoggingIn(false); // Reset only on error
       throw error;
     } finally {
       setLoading(false);
+      setIsLoggingIn(false); // Always reset login state when done
     }
   };
 

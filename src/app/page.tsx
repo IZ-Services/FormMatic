@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState(false);
 
-  const handleSignIn = async (event: any) => {
+  const handleSignIn = async (event:any) => {
     event.preventDefault();
     
     if (isLoggingIn) return; // Prevent multiple submissions
@@ -31,7 +31,7 @@ export default function LoginPage() {
     }
   };
 
-  const togglePasswordVisibility = (e: any ) => {
+  const togglePasswordVisibility = (e:any) => {
     e.preventDefault(); // Prevent form submission
     setShowPassword(!showPassword);
   };
