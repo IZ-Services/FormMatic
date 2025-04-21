@@ -198,6 +198,7 @@ interface AddressProps {
   };
   onChange?: (data: FormData) => void;
   isMultipleTransfer?: boolean;
+  transferIndex?: number; // New prop for transfer index
 }
 
 const initialAddressData: AddressData = {
@@ -228,17 +229,50 @@ const emptyAddress: AddressData = {
   county: ''
 };
 
+// Base storage key that will be prefixed with transfer index
 export const ADDRESS_STORAGE_KEY = 'formmatic_address_data';
 
-export const clearAddressStorage = () => {
+// Get the storage key specific to a transfer index
+export const getAddressStorageKey = (transferIndex?: number) => {
+  if (transferIndex === undefined) {
+    return ADDRESS_STORAGE_KEY;
+  }
+  return `${ADDRESS_STORAGE_KEY}_transfer_${transferIndex}`;
+};
+
+// Clear storage for a specific transfer
+export const clearAddressStorage = (transferIndex?: number) => {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem(ADDRESS_STORAGE_KEY);
-    console.log('Address data cleared from localStorage');
+    const storageKey = getAddressStorageKey(transferIndex);
+    localStorage.removeItem(storageKey);
+    console.log(`Address data cleared from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
   }
 };
 
-const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isMultipleTransfer = false }) => {
+// Clear all address storage (useful for complete reset)
+export const clearAllAddressStorage = () => {
+  if (typeof window !== 'undefined') {
+    // Clear default
+    localStorage.removeItem(ADDRESS_STORAGE_KEY);
+    
+    // Clear all numbered transfers (0-4 for max 5 transfers)
+    for (let i = 0; i < 5; i++) {
+      localStorage.removeItem(`${ADDRESS_STORAGE_KEY}_transfer_${i}`);
+    }
+    console.log('All Address data cleared from localStorage');
+  }
+};
+
+const Address: React.FC<AddressProps> = ({ 
+  formData: propFormData, 
+  onChange, 
+  isMultipleTransfer = false,
+  transferIndex 
+}) => {
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Get the storage key for this specific transfer
+  const storageKey = getAddressStorageKey(transferIndex);
   
   const defaultAddressData: FormData = {
     mailingAddressDifferent: false,
@@ -251,6 +285,9 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
   };
   
   const [addressData, setAddressData] = useState<FormData>(defaultAddressData);
+  
+  // To prevent infinite loops with data updates
+  const [lastUpdatedData, setLastUpdatedData] = useState<string>('');
 
   const { 
     updateField, 
@@ -271,39 +308,52 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
   const shouldShowValidationError = (addressType: string, field: string) => {
     if (!showValidationErrors) return false;
     
+    // Adjust field path based on transfer index
+    const fieldPath = transferIndex !== undefined
+      ? `transfer${transferIndex}_${addressType}.${field}`
+      : `${addressType}.${field}`;
+      
     return validationErrors.some(error => 
-      error.fieldPath === `${addressType}.${field}`
+      error.fieldPath === fieldPath
     );
   };
   
   const getValidationErrorMessage = (addressType: string, field: string): string => {
-    const error = validationErrors.find(e => e.fieldPath === `${addressType}.${field}`);
+    // Adjust field path based on transfer index
+    const fieldPath = transferIndex !== undefined
+      ? `transfer${transferIndex}_${addressType}.${field}`
+      : `${addressType}.${field}`;
+      
+    const error = validationErrors.find(e => e.fieldPath === fieldPath);
     return error ? error.message : '';
   };
   
   useEffect(() => {
     if (clearFormTriggered) {
-      console.log('Clear form triggered in Address component');
-      clearAddressStorage();
+      console.log(`Clear form triggered in Address component for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
+      clearAddressStorage(transferIndex);
       setAddressData(defaultAddressData);
       
-      updateField('address', { ...initialAddressData });
-      updateField('mailingAddressDifferent', false);
-      updateField('lesseeAddressDifferent', false);
-      updateField('trailerLocationDifferent', false);
-      updateField('mailingAddress', { ...emptyMailingAddress });
-      updateField('lesseeAddress', { ...emptyAddress });
-      updateField('trailerLocation', { ...emptyAddress });
+      // Use the appropriate field names based on transfer index
+      const prefix = transferIndex !== undefined ? `transfer${transferIndex}_` : '';
+      
+      updateField(`${prefix}address`, { ...initialAddressData });
+      updateField(`${prefix}mailingAddressDifferent`, false);
+      updateField(`${prefix}lesseeAddressDifferent`, false);
+      updateField(`${prefix}trailerLocationDifferent`, false);
+      updateField(`${prefix}mailingAddress`, { ...emptyMailingAddress });
+      updateField(`${prefix}lesseeAddress`, { ...emptyAddress });
+      updateField(`${prefix}trailerLocation`, { ...emptyAddress });
     }
-  }, [clearFormTriggered]);
+  }, [clearFormTriggered, transferIndex]);
   
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
-        const savedData = localStorage.getItem(ADDRESS_STORAGE_KEY);
+        const savedData = localStorage.getItem(storageKey);
         
         if (savedData) {
-          console.log("Loading address data from localStorage");
+          console.log(`Loading address data from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
           const parsedData = JSON.parse(savedData);
           
           const mergedData = {
@@ -314,21 +364,24 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
           
           setAddressData(mergedData);
           
-          updateField('address', mergedData.address);
-          updateField('mailingAddressDifferent', !!mergedData.mailingAddressDifferent);
-          updateField('lesseeAddressDifferent', !!mergedData.lesseeAddressDifferent);
-          updateField('trailerLocationDifferent', !!mergedData.trailerLocationDifferent);
+          // Use the appropriate field names based on transfer index
+          const prefix = transferIndex !== undefined ? `transfer${transferIndex}_` : '';
+          
+          updateField(`${prefix}address`, mergedData.address);
+          updateField(`${prefix}mailingAddressDifferent`, !!mergedData.mailingAddressDifferent);
+          updateField(`${prefix}lesseeAddressDifferent`, !!mergedData.lesseeAddressDifferent);
+          updateField(`${prefix}trailerLocationDifferent`, !!mergedData.trailerLocationDifferent);
           
           if (mergedData.mailingAddressDifferent) {
-            updateField('mailingAddress', mergedData.mailingAddress);
+            updateField(`${prefix}mailingAddress`, mergedData.mailingAddress);
           }
           
           if (mergedData.lesseeAddressDifferent) {
-            updateField('lesseeAddress', mergedData.lesseeAddress);
+            updateField(`${prefix}lesseeAddress`, mergedData.lesseeAddress);
           }
           
           if (mergedData.trailerLocationDifferent) {
-            updateField('trailerLocation', mergedData.trailerLocation);
+            updateField(`${prefix}trailerLocation`, mergedData.trailerLocation);
           }
           
           if (onChange) {
@@ -340,11 +393,34 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
             ...propFormData
           };
           setAddressData(mergedData);
+          
+          // Initialize with default data in context
+          if (!onChange) {
+            // Use the appropriate field names based on transfer index
+            const prefix = transferIndex !== undefined ? `transfer${transferIndex}_` : '';
+            
+            updateField(`${prefix}address`, mergedData.address);
+            updateField(`${prefix}mailingAddressDifferent`, !!mergedData.mailingAddressDifferent);
+            updateField(`${prefix}lesseeAddressDifferent`, !!mergedData.lesseeAddressDifferent);
+            updateField(`${prefix}trailerLocationDifferent`, !!mergedData.trailerLocationDifferent);
+            
+            if (mergedData.mailingAddressDifferent) {
+              updateField(`${prefix}mailingAddress`, mergedData.mailingAddress);
+            }
+            
+            if (mergedData.lesseeAddressDifferent) {
+              updateField(`${prefix}lesseeAddress`, mergedData.lesseeAddress);
+            }
+            
+            if (mergedData.trailerLocationDifferent) {
+              updateField(`${prefix}trailerLocation`, mergedData.trailerLocation);
+            }
+          }
         }
         
         setIsInitialized(true);
       } catch (error) {
-        console.error('Error loading saved address data:', error);
+        console.error(`Error loading saved address data for transfer ${transferIndex !== undefined ? transferIndex : 'default'}:`, error);
         setIsInitialized(true);
         
         const mergedData = {
@@ -403,7 +479,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
         setAddressData(newData);
         
         if (typeof window !== 'undefined') {
-          localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+          localStorage.setItem(storageKey, JSON.stringify(newData));
         }
       }
     }
@@ -411,35 +487,44 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
 
   useEffect(() => {
     if (isInitialized && !onChange) {
-      if (addressData.address && typeof addressData.address === 'object') {
-        updateField('address', addressData.address);
-      }
+      // Use the appropriate field names based on transfer index
+      const prefix = transferIndex !== undefined ? `transfer${transferIndex}_` : '';
       
-      if (typeof addressData.mailingAddressDifferent === 'boolean') {
-        updateField('mailingAddressDifferent', addressData.mailingAddressDifferent);
-      }
-      
-      if (typeof addressData.lesseeAddressDifferent === 'boolean') {
-        updateField('lesseeAddressDifferent', addressData.lesseeAddressDifferent);
-      }
-      
-      if (typeof addressData.trailerLocationDifferent === 'boolean') {
-        updateField('trailerLocationDifferent', addressData.trailerLocationDifferent);
-      }
-      
-      if (addressData.mailingAddressDifferent && addressData.mailingAddress && 
-          typeof addressData.mailingAddress === 'object') {
-        updateField('mailingAddress', addressData.mailingAddress);
-      }
-      
-      if (addressData.lesseeAddressDifferent && addressData.lesseeAddress && 
-          typeof addressData.lesseeAddress === 'object') {
-        updateField('lesseeAddress', addressData.lesseeAddress);
-      }
-      
-      if (addressData.trailerLocationDifferent && addressData.trailerLocation && 
-          typeof addressData.trailerLocation === 'object') {
-        updateField('trailerLocation', addressData.trailerLocation);
+      // Only update if data has changed
+      const currentDataStr = JSON.stringify(addressData);
+      if (currentDataStr !== lastUpdatedData) {
+        if (addressData.address && typeof addressData.address === 'object') {
+          updateField(`${prefix}address`, addressData.address);
+        }
+        
+        if (typeof addressData.mailingAddressDifferent === 'boolean') {
+          updateField(`${prefix}mailingAddressDifferent`, addressData.mailingAddressDifferent);
+        }
+        
+        if (typeof addressData.lesseeAddressDifferent === 'boolean') {
+          updateField(`${prefix}lesseeAddressDifferent`, addressData.lesseeAddressDifferent);
+        }
+        
+        if (typeof addressData.trailerLocationDifferent === 'boolean') {
+          updateField(`${prefix}trailerLocationDifferent`, addressData.trailerLocationDifferent);
+        }
+        
+        if (addressData.mailingAddressDifferent && addressData.mailingAddress && 
+            typeof addressData.mailingAddress === 'object') {
+          updateField(`${prefix}mailingAddress`, addressData.mailingAddress);
+        }
+        
+        if (addressData.lesseeAddressDifferent && addressData.lesseeAddress && 
+            typeof addressData.lesseeAddress === 'object') {
+          updateField(`${prefix}lesseeAddress`, addressData.lesseeAddress);
+        }
+        
+        if (addressData.trailerLocationDifferent && addressData.trailerLocation && 
+            typeof addressData.trailerLocation === 'object') {
+          updateField(`${prefix}trailerLocation`, addressData.trailerLocation);
+        }
+        
+        setLastUpdatedData(currentDataStr);
       }
     }
   }, [addressData, isInitialized]);
@@ -476,15 +561,18 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     console.log("New section data:", updatedSection);
     
     if (typeof window !== 'undefined') {
-      localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+      localStorage.setItem(storageKey, JSON.stringify(newData));
     }
     
     if (onChange) {
       onChange(newData);
     } else {
-      updateField(String(section), updatedSection);
+      // Use the appropriate field name based on transfer index
+      const prefix = transferIndex !== undefined ? `transfer${transferIndex}_` : '';
+      updateField(`${prefix}${String(section)}`, updatedSection);
+      
       if (isMultipleTransfer && section === 'address') {
-        console.log(`Extra update for multiple transfer: address.${field}`, value);
+        console.log(`Extra update for multiple transfer: ${prefix}address.${field}`, value);
       }
     }
   };
@@ -498,19 +586,25 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
         case 'mailingAddressDifferent':
           newData.mailingAddress = { ...emptyMailingAddress };
           if (!onChange) {
-            updateField('mailingAddress', { ...emptyMailingAddress });
+            // Use the appropriate field name based on transfer index
+            const prefix = transferIndex !== undefined ? `transfer${transferIndex}_` : '';
+            updateField(`${prefix}mailingAddress`, { ...emptyMailingAddress });
           }
           break;
         case 'lesseeAddressDifferent':
           newData.lesseeAddress = { ...emptyAddress };
           if (!onChange) {
-            updateField('lesseeAddress', { ...emptyAddress });
+            // Use the appropriate field name based on transfer index
+            const prefix = transferIndex !== undefined ? `transfer${transferIndex}_` : '';
+            updateField(`${prefix}lesseeAddress`, { ...emptyAddress });
           }
           break;
         case 'trailerLocationDifferent':
           newData.trailerLocation = { ...emptyAddress };
           if (!onChange) {
-            updateField('trailerLocation', { ...emptyAddress });
+            // Use the appropriate field name based on transfer index
+            const prefix = transferIndex !== undefined ? `transfer${transferIndex}_` : '';
+            updateField(`${prefix}trailerLocation`, { ...emptyAddress });
           }
           break;
       }
@@ -519,15 +613,19 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     if (field === 'lesseeAddressDifferent' && checked) {
       newData.trailerLocationDifferent = false;
       if (!onChange) {
-        updateField('trailerLocationDifferent', false);
-        updateField('trailerLocation', { ...emptyAddress });
+        // Use the appropriate field name based on transfer index
+        const prefix = transferIndex !== undefined ? `transfer${transferIndex}_` : '';
+        updateField(`${prefix}trailerLocationDifferent`, false);
+        updateField(`${prefix}trailerLocation`, { ...emptyAddress });
       }
       newData.trailerLocation = { ...emptyAddress };
     } else if (field === 'trailerLocationDifferent' && checked) {
       newData.lesseeAddressDifferent = false;
       if (!onChange) {
-        updateField('lesseeAddressDifferent', false);
-        updateField('lesseeAddress', { ...emptyAddress });
+        // Use the appropriate field name based on transfer index
+        const prefix = transferIndex !== undefined ? `transfer${transferIndex}_` : '';
+        updateField(`${prefix}lesseeAddressDifferent`, false);
+        updateField(`${prefix}lesseeAddress`, { ...emptyAddress });
       }
       newData.lesseeAddress = { ...emptyAddress };
     }
@@ -535,13 +633,15 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
     setAddressData(newData);
     
     if (typeof window !== 'undefined') {
-      localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+      localStorage.setItem(storageKey, JSON.stringify(newData));
     }
     
     if (onChange) {
       onChange(newData);
     } else {
-      updateField(String(field), checked);
+      // Use the appropriate field name based on transfer index
+      const prefix = transferIndex !== undefined ? `transfer${transferIndex}_` : '';
+      updateField(`${prefix}${String(field)}`, checked);
     }
   };
 
@@ -658,6 +758,7 @@ const Address: React.FC<AddressProps> = ({ formData: propFormData, onChange, isM
 
   const isLesseeCheckboxDisabled = addressData.trailerLocationDifferent;
   const isTrailerCheckboxDisabled = addressData.lesseeAddressDifferent;
+  
 
   return (
     <div>

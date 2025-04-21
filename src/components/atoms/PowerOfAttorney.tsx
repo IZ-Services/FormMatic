@@ -15,20 +15,48 @@ interface PowerOfAttorneyProps {
     owners?: any[];
   };
   onChange?: (data: PowerOfAttorneyData) => void;
+  transferIndex?: number; // New prop to identify which transfer this belongs to
 }
 
- 
+// Base storage key that will be prefixed with transfer index
 export const POWER_OF_ATTORNEY_STORAGE_KEY = 'formmatic_power_of_attorney';
 
- 
-export const clearPowerOfAttorneyStorage = () => {
+// Get the storage key specific to a transfer index
+export const getPowerOfAttorneyStorageKey = (transferIndex?: number) => {
+  if (transferIndex === undefined) {
+    return POWER_OF_ATTORNEY_STORAGE_KEY;
+  }
+  return `${POWER_OF_ATTORNEY_STORAGE_KEY}_transfer_${transferIndex}`;
+};
+
+// Clear storage for a specific transfer
+export const clearPowerOfAttorneyStorage = (transferIndex?: number) => {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem(POWER_OF_ATTORNEY_STORAGE_KEY);
-    console.log('Power of Attorney data cleared from localStorage');
+    const storageKey = getPowerOfAttorneyStorageKey(transferIndex);
+    localStorage.removeItem(storageKey);
+    console.log(`Power of Attorney data cleared from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
   }
 };
 
-const PowerOfAttorney: React.FC<PowerOfAttorneyProps> = ({ formData: propFormData, onChange }) => {
+// Clear all Power of Attorney storage (useful for complete reset)
+export const clearAllPowerOfAttorneyStorage = () => {
+  if (typeof window !== 'undefined') {
+    // Clear default
+    localStorage.removeItem(POWER_OF_ATTORNEY_STORAGE_KEY);
+    
+    // Clear all numbered transfers (0-4 for max 5 transfers)
+    for (let i = 0; i < 5; i++) {
+      localStorage.removeItem(`${POWER_OF_ATTORNEY_STORAGE_KEY}_transfer_${i}`);
+    }
+    console.log('All Power of Attorney data cleared from localStorage');
+  }
+};
+
+const PowerOfAttorney: React.FC<PowerOfAttorneyProps> = ({ 
+  formData: propFormData, 
+  onChange,
+  transferIndex 
+}) => {
   const { formData: contextFormData, updateField, clearFormTriggered } = useFormContext();
   const [isInitialized, setIsInitialized] = useState(false);
   
@@ -37,7 +65,6 @@ const PowerOfAttorney: React.FC<PowerOfAttorneyProps> = ({ formData: propFormDat
     ...propFormData
   };
   
- 
   const defaultPowerOfAttorneyData: PowerOfAttorneyData = {
     printNames: '',
     appointee: '',
@@ -46,29 +73,33 @@ const PowerOfAttorney: React.FC<PowerOfAttorneyProps> = ({ formData: propFormDat
   
   const [powerOfAttorneyData, setPowerOfAttorneyData] = useState<PowerOfAttorneyData>(defaultPowerOfAttorneyData);
   
- 
+  // Get the storage key for this specific transfer
+  const storageKey = getPowerOfAttorneyStorageKey(transferIndex);
+  
   useEffect(() => {
     if (clearFormTriggered) {
-      console.log('Clear form triggered in PowerOfAttorney component');
-      clearPowerOfAttorneyStorage();
+      console.log(`Clear form triggered in PowerOfAttorney component for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
+      clearPowerOfAttorneyStorage(transferIndex);
       setPowerOfAttorneyData(defaultPowerOfAttorneyData);
       
- 
-      updateField('powerOfAttorney', defaultPowerOfAttorneyData);
+      // Using the appropriate field name based on transfer index
+      const fieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_powerOfAttorney` 
+        : 'powerOfAttorney';
+        
+      updateField(fieldName, defaultPowerOfAttorneyData);
     }
-  }, [clearFormTriggered]);
+  }, [clearFormTriggered, transferIndex, updateField]);
   
- 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
-        const savedData = localStorage.getItem(POWER_OF_ATTORNEY_STORAGE_KEY);
+        const savedData = localStorage.getItem(storageKey);
         
         if (savedData) {
-          console.log("Loading power of attorney data from localStorage");
+          console.log(`Loading power of attorney data from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
           const parsedData = JSON.parse(savedData);
           
- 
           const mergedData = {
             ...defaultPowerOfAttorneyData,
             ...parsedData
@@ -76,14 +107,17 @@ const PowerOfAttorney: React.FC<PowerOfAttorneyProps> = ({ formData: propFormDat
           
           setPowerOfAttorneyData(mergedData);
           
- 
-          updateField('powerOfAttorney', mergedData);
+          // Use the appropriate field name based on transfer index
+          const fieldName = transferIndex !== undefined 
+            ? `transfer${transferIndex}_powerOfAttorney` 
+            : 'powerOfAttorney';
+            
+          updateField(fieldName, mergedData);
           
           if (onChange) {
             onChange(mergedData);
           }
         } else if (propFormData?.powerOfAttorney) {
- 
           const newData: PowerOfAttorneyData = {
             printNames: propFormData.powerOfAttorney.printNames,
             appointee: propFormData.powerOfAttorney.appointee,
@@ -100,13 +134,12 @@ const PowerOfAttorney: React.FC<PowerOfAttorneyProps> = ({ formData: propFormDat
         
         setIsInitialized(true);
       } catch (error) {
-        console.error('Error loading saved power of attorney data:', error);
+        console.error(`Error loading saved power of attorney data for transfer ${transferIndex !== undefined ? transferIndex : 'default'}:`, error);
         setIsInitialized(true);
       }
     }
-  }, []);
+  }, [propFormData, storageKey, transferIndex, onChange, updateField]);
   
- 
   useEffect(() => {
     if (isInitialized && propFormData?.powerOfAttorney) {
       const newData: PowerOfAttorneyData = {
@@ -122,12 +155,11 @@ const PowerOfAttorney: React.FC<PowerOfAttorneyProps> = ({ formData: propFormDat
       
       setPowerOfAttorneyData(newData);
       
- 
       if (typeof window !== 'undefined') {
-        localStorage.setItem(POWER_OF_ATTORNEY_STORAGE_KEY, JSON.stringify(newData));
+        localStorage.setItem(storageKey, JSON.stringify(newData));
       }
     }
-  }, [propFormData, isInitialized]);
+  }, [propFormData, isInitialized, storageKey, powerOfAttorneyData.date]);
 
   const handleInputChange = (field: keyof PowerOfAttorneyData, value: string) => {
     const newData = { 
@@ -137,12 +169,16 @@ const PowerOfAttorney: React.FC<PowerOfAttorneyProps> = ({ formData: propFormDat
     
     setPowerOfAttorneyData(newData);
     
- 
     if (typeof window !== 'undefined') {
-      localStorage.setItem(POWER_OF_ATTORNEY_STORAGE_KEY, JSON.stringify(newData));
+      localStorage.setItem(storageKey, JSON.stringify(newData));
     }
     
-    updateField('powerOfAttorney', newData);
+    // Use the appropriate field name based on transfer index
+    const fieldName = transferIndex !== undefined 
+      ? `transfer${transferIndex}_powerOfAttorney` 
+      : 'powerOfAttorney';
+      
+    updateField(fieldName, newData);
     
     if (onChange) {
       onChange(newData);

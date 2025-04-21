@@ -23,7 +23,31 @@ export async function POST(request: Request) {
     }
 
     const effectiveTransactionType = transactionType || transaction.transactionType;
-
+// After fetching the current transaction
+let finalTransferData;
+if (transaction.isPartOfMultipleTransfer && 
+    transaction.transferIndex && 
+    transaction.transferIndex < transaction.totalTransfers) {
+  
+  // Find the final transfer in the sequence
+  try {
+    const finalTransfer = await TransactionModel.findOne({
+      // This assumes you have a way to group related transfers
+      transferGroupId: transaction.transferGroupId,
+      transferIndex: transaction.totalTransfers,
+      isPartOfMultipleTransfer: true
+    });
+    
+    if (finalTransfer && finalTransfer.formData) {
+      console.log(`Found final transfer (${finalTransfer.transferIndex} of ${transaction.totalTransfers})`);
+      finalTransferData = finalTransfer.formData;
+    } else {
+      console.warn(`Could not find final transfer data for group ${transaction.transferGroupId}`);
+    }
+  } catch (error) {
+    console.error('Error looking up final transfer:', error);
+  }
+}
     console.log('Transaction data:', JSON.stringify({
       id: transaction._id,
       type: effectiveTransactionType,
@@ -152,9 +176,11 @@ if (isMultipleTransfer) {
       );
       
       let modifiedPdfBytes;
-      if (formType === 'DMVREG262') {
-        modifiedPdfBytes = await modifyDMVREG262Pdf(existingPdfBytes, formData);
-      } else if (formType === 'Reg101') {
+        if (formType === 'DMVREG262') {
+          modifiedPdfBytes = await modifyDMVREG262Pdf(existingPdfBytes, formData, effectiveTransactionType, finalTransferData);
+        } 
+      
+      else if (formType === 'Reg101') {
         modifiedPdfBytes = await modifyReg101Pdf(existingPdfBytes, formData);
       } else if (formType === 'Reg256') { 
         modifiedPdfBytes = await modifyReg256Pdf(existingPdfBytes, formData, effectiveTransactionType);
@@ -229,8 +255,9 @@ if (isMultipleTransfer) {
 
       let modifiedPdfBytes;
       if (formType === 'DMVREG262') {
-        modifiedPdfBytes = await modifyDMVREG262Pdf(existingPdfBytes, formData);
-      } else if (formType === 'Reg101') {
+        if (formType === 'DMVREG262') {
+          modifiedPdfBytes = await modifyDMVREG262Pdf(existingPdfBytes, formData, effectiveTransactionType, finalTransferData);
+        }      } else if (formType === 'Reg101') {
         modifiedPdfBytes = await modifyReg101Pdf(existingPdfBytes, formData);
       } else if (formType === 'Reg256') {
         modifiedPdfBytes = await modifyReg256Pdf(existingPdfBytes, formData);
@@ -270,6 +297,1532 @@ if (isMultipleTransfer) {
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }
+
+async function modifyDMVREG262Pdf(
+  fileBytes: ArrayBuffer, 
+  formData: any, 
+  effectiveTransactionType?: string,
+  finalTransferData?: any
+): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
+  const form = pdfDoc.getForm();
+  const fieldNames = form.getFields().map(f => f.getName());
+  console.log('Available Reg262 PDF Fields:', JSON.stringify(fieldNames, null, 2));
+  const pages = pdfDoc.getPages();
+  const firstPage = pages[0];
+
+  // Check if this is a multiple transfer and get the appropriate owners data
+  let ownersData = formData.owners || [];
+  let sellerData = formData.sellerInfo?.sellers || [];
+  
+  // Handle multiple transfer scenarios
+  if (formData.transactionType && typeof formData.transactionType === 'string') {
+// Replace the current multiple transfer handling code (near line 365) with:
+
+// Handle multiple transfer scenarios
+let transactionType = effectiveTransactionType || 
+    (formData.transactionType && typeof formData.transactionType === 'string' ? formData.transactionType : '');
+
+if (transactionType && transactionType.includes('Multiple Transfer')) {
+  console.log('Multiple transfer detected:', transactionType);
+
+  // Extract transfer numbers (e.g., "Multiple Transfer 2 of 5" -> current: 2, total: 5)
+  const matches = transactionType.match(/Multiple Transfer (\d+) of (\d+)/i);
+  
+  if (matches && matches.length === 3) {
+    const currentTransfer = parseInt(matches[1], 10);
+    const totalTransfers = parseInt(matches[2], 10);
+    
+    console.log(`Transfer ${currentTransfer} of ${totalTransfers} detected`);
+    
+    // For multiple transfers, we use the last transfer's data for buyer fields
+    if (currentTransfer === totalTransfers) {
+      console.log('This is the final transfer in the sequence - using current owner data');
+      // Use the current owner data (already default)
+    } else {
+      console.log('This is not the final transfer - checking for final transfer data');
+      
+      // First priority: Use explicitly provided finalTransferData if available
+      if (finalTransferData && finalTransferData.owners) {
+        console.log('Using explicitly provided final transfer data for owners:', 
+                    JSON.stringify({owner: finalTransferData.owners[0]?.firstName + ' ' + 
+                                    finalTransferData.owners[0]?.lastName}));
+        ownersData = finalTransferData.owners;
+      } 
+      // Second priority: Look in formData.transfers if available
+      else if (formData.transfers && Array.isArray(formData.transfers) && 
+               formData.transfers.length >= totalTransfers) {
+        const lastTransferData = formData.transfers[totalTransfers - 1];
+        if (lastTransferData && lastTransferData.owners) {
+          console.log(`Using buyers data from transfer ${totalTransfers} in formData.transfers`);
+          ownersData = lastTransferData.owners;
+        }
+      } else {
+        console.warn(`Cannot find data for the final transfer (${totalTransfers})`);
+      }
+    }
+  }
+} else if (formData.transactionType && typeof formData.transactionType === 'string') {
+  transactionType = formData.transactionType;
+  console.log('Using formData.transactionType:', formData.transactionType);
+}
+
+if (transactionType.includes('Multiple Transfer')) {
+  console.log('Multiple transfer detected:', transactionType);
+  
+  // Extract transfer numbers (e.g., "Multiple Transfer 2 of 5" -> current: 2, total: 5)
+  const matches = transactionType.match(/Multiple Transfer (\d+) of (\d+)/i);
+  
+  if (matches && matches.length === 3) {
+    const currentTransfer = parseInt(matches[1], 10);
+    const totalTransfers = parseInt(matches[2], 10);
+    
+    console.log(`Transfer ${currentTransfer} of ${totalTransfers} detected`);
+    
+    // For multiple transfers, we use the last transfer's data for buyer fields
+    if (currentTransfer === totalTransfers) {
+      console.log('This is the final transfer in the sequence - using current owner data');
+      // Use the current owner data (already default)
+    } else {
+      console.log('This is not the final transfer - checking for final transfer data');
+      
+      // First priority: Use explicitly provided finalTransferData if available
+      if (finalTransferData && finalTransferData.owners) {
+        console.log('Using explicitly provided final transfer data');
+        ownersData = finalTransferData.owners;
+      }
+      // Second priority: Look in formData.transfers if available
+      else if (formData.transfers && Array.isArray(formData.transfers) && formData.transfers.length >= totalTransfers) {
+        const lastTransferData = formData.transfers[totalTransfers - 1];
+        if (lastTransferData && lastTransferData.owners) {
+          console.log(`Using buyers data from transfer ${totalTransfers} in formData.transfers`);
+          ownersData = lastTransferData.owners;
+        }
+      } else {
+        console.warn(`Cannot find data for the final transfer (${totalTransfers})`);
+      }
+    }
+  }
+}
+else if (formData.transactionType && typeof formData.transactionType === 'string') {
+  transactionType = formData.transactionType;
+  console.log('Using formData.transactionType:', formData.transactionType);
+}
+
+if (transactionType.includes('Multiple Transfer')) {
+  console.log('Multiple transfer detected:', transactionType);
+  
+  // Extract transfer numbers (e.g., "Multiple Transfer 2 of 5" -> current: 2, total: 5)
+  const matches = transactionType.match(/Multiple Transfer (\d+) of (\d+)/i);
+  
+  if (matches && matches.length === 3) {
+    const currentTransfer = parseInt(matches[1], 10);
+    const totalTransfers = parseInt(matches[2], 10);
+    
+    console.log(`Transfer ${currentTransfer} of ${totalTransfers} detected`);
+    
+    // For multiple transfers, we use the last transfer's data for buyer fields
+    if (currentTransfer === totalTransfers) {
+      console.log('This is the final transfer in the sequence - using current owner data');
+      // Use the current owner data (already default)
+    } else {
+      console.log('This is not the final transfer - need to find the final transfer data');
+      
+      // If transfers data is available, use the last one's buyer data as our owner
+      if (formData.transfers && Array.isArray(formData.transfers) && formData.transfers.length >= totalTransfers) {
+        const lastTransferData = formData.transfers[totalTransfers - 1];
+        if (lastTransferData && lastTransferData.owners) {
+          console.log(`Using buyers data from transfer ${totalTransfers}`);
+          ownersData = lastTransferData.owners;
+        }
+      } else {
+        console.warn(`Cannot find data for the final transfer (${totalTransfers})`);
+      }
+    }
+  }
+}
+  }
+  
+  console.log(`Using owners data:`, JSON.stringify(ownersData, null, 2));
+
+  try {
+    const purchaseField = form.getTextField('Text7');
+    if (purchaseField) {
+      const purchaseValue = ownersData?.purchaseValue || '';
+      purchaseField.setText(purchaseValue.toString());
+      console.log('Successfully set purchase value in Text7 field');
+    } else {
+      console.warn('Text7 field not found, falling back to drawing method');
+      
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      
+      firstPage.drawText(ownersData?.purchaseValue || '', {
+        x: 825, 
+        y: 595, 
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+  } catch (error) {
+    console.error('Error setting purchase value:', error);
+  }
+  
+  try {
+    const checkbox = form.getCheckBox('Group1');
+    if (checkbox) {
+      const shouldCheck = !!formData.vehicleInformation.exceedsMechanicalLimit;
+      console.log('Setting checkbox state for Group1:', shouldCheck);
+      
+      if (shouldCheck) {
+        checkbox.isChecked();
+      } else {
+        checkbox.uncheck();
+      }
+      
+      console.log('Successfully set checkbox state for Group1');
+    } else {
+      console.warn('Group1 field not found, falling back to drawing method');
+    }
+  } catch (error) {
+    console.error('Error setting checkbox:', error);
+  }
+  
+  console.log("Drawing text directly on the PDF...");
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  
+  // Use adjusted sellers data
+  let dateText = '';
+  
+  if (sellerData && sellerData.length > 0 && sellerData[0].saleDate) {
+    const purchaseDate = new Date(sellerData[0].saleDate);
+    
+    if (!isNaN(purchaseDate.getTime())) {
+      const month = String(purchaseDate.getMonth() + 1).padStart(2, '0'); 
+      const day = String(purchaseDate.getDate()).padStart(2, '0');
+      const year = String(purchaseDate.getFullYear());
+      
+      console.log(`Formatting date: ${month}/${day}/${year}`);
+      
+      // Month
+      firstPage.drawText(month[0], {
+        x: 310, 
+        y: 603, 
+        size: 12,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      firstPage.drawText(month[1], {
+        x: 315, 
+        y: 603, 
+        size: 12,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      // Day
+      firstPage.drawText(day[0], {
+        x: 330, 
+        y: 603, 
+        size: 12,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      firstPage.drawText(day[1], {
+        x: 336, 
+        y: 603, 
+        size: 12,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      // Year
+      for (let i = 0; i < year.length; i++) {
+        firstPage.drawText(year[i], {
+          x: 350 + (i * 12), 
+          y: 603, 
+          size: 12,
+          font: font,
+          color: rgb(0, 0, 0),
+        });
+      }
+      
+      dateText = `${month}/${day}/${year}`;
+    } else {
+      console.warn('Invalid purchase date format:', sellerData[0].saleDate);
+    }
+  } else {
+    console.warn('No purchase date found for owner');
+  }
+  
+  // Vehicle information
+  const vehicleInfo = formData.vehicleInformation || {};
+  const mileage = vehicleInfo.mileage || '';
+  
+  if (mileage) {
+    const mileageString = mileage.toString().padStart(6, '0');
+    
+    for (let i = 0; i < 6; i++) {
+      const xPositions = [160, 185, 210, 250, 275, 300]; 
+      const y = 486;
+      
+      if (i < mileageString.length) {
+        firstPage.drawText(mileageString[i], {
+          x: xPositions[i],
+          y: y,
+          size: 12,
+          font: font,
+          color: rgb(0, 0, 0),
+        });
+      }
+    }
+  }
+  
+  const textPositions = {
+    'IDENTIFICATION NUMBER': { x: 100, y: 665 },
+    'YEAR MODEL': { x: 245, y: 665 },
+    'MAKE': { x: 300, y: 665 },
+    'LICENSE PLATE/CF NO': { x: 350, y: 665 },
+    'MOTORCYCLE ENGINE NUMBER': { x: 475, y: 665 },
+    'I/We': { x: 85, y: 625 },
+    'to': { x: 85, y: 599 },
+    'SELLING PRICE': { x: 515, y: 600 },
+    'GIFT RELATIONSHIP': { x: 250, y: 565 }, 
+    'GIFT VALUE': { x: 520, y: 565 }, 
+    'BUYER 1': { x: 80, y: 345 },
+    'BUYER 2': { x: 80, y: 320 },
+    'BUYER 3': { x: 80, y: 300 },
+    'SELLER 1': { x: 80, y: 216 },
+    'SELLER 2': { x: 80, y: 192 },
+    'SELLER 3': { x: 80, y: 168 },
+    'BUYER 1 DOP': { x: 425, y: 345 },
+    'BUYER 2 DOP': { x: 425, y: 320 },
+    'BUYER 3 DOP': { x: 425, y: 300 },
+    'SELLER 1 DOP': { x: 425, y: 216 },
+    'SELLER 2 DOP': { x: 425, y: 192 },
+    'SELLER 3 DOP': { x: 425, y: 168 },
+    'BUYER 1 LICENSE': { x: 490, y: 345 },
+    'BUYER 2 LICENSE': { x: 490, y: 320 },
+    'BUYER 3 LICENSE': { x: 495, y: 300 },
+    'SELLER 1 LICENSE': { x: 490, y: 216 },
+    'SELLER 2 LICENSE': { x: 495, y: 192 },
+    'SELLER 3 LICENSE': { x: 495, y: 168 },
+    'BUYER 1 PHONE': { x: 495, y: 275 },
+    'SELLER 1 PHONE': { x: 495, y: 140 },
+    'NOT ACTUAL MILEAGE': { x: 60, y: 530 },
+    'EXCEEDS MECHANICAL LIMITS': { x: 490, y: 530 },
+    'APPOINTER' : { x: 75, y: 105 },
+    'APPOINTEE': { x: 435, y: 105 },
+    'POA DATE 1': { x: 435, y: 60 },
+    'POA DATE 2': { x: 435, y: 37 },
+  };
+
+  const powerOfAttorneyData = formData.powerOfAttorney || {};
+
+  const formatFullName = (person: any) => {
+    if (!person) return '';
+    return [person.firstName, person.middleName, person.lastName].filter(Boolean).join(' ');
+  };
+  
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateStr; 
+    }
+  };
+  
+  // Using adjusted owners data
+  
+  // Use seller's sale date for date of purchase
+  const seller1SaleDate = sellerData.length > 0 ? sellerData[0].saleDate : '';
+  
+  // Address handling
+  const buyerMailingAddressDifferent = formData.mailingAddressDifferent || false;
+  const buyerMailingAddress = buyerMailingAddressDifferent ? 
+                            (formData.mailingAddress || {}) : 
+                            (formData.residenceAddress || {}); 
+  
+  console.log("Buyer mailing address different?", buyerMailingAddressDifferent);
+  console.log("Buyer mailing address:", JSON.stringify(buyerMailingAddress));
+
+  const sellerMailingAddressDifferent = formData.sellerMailingAddressDifferent || false;
+  const sellerMailingAddress = sellerMailingAddressDifferent ? 
+                               (formData.sellerMailingAddress || {}) : 
+                               (formData.sellerResidenceAddress || {}); 
+                            
+  console.log("Seller mailing address different?", sellerMailingAddressDifferent);
+  console.log("Seller mailing address:", JSON.stringify(sellerMailingAddress));
+  
+  // Use the appropriate addresses
+  const sellerAddressToUse = sellerMailingAddress || {};
+  const buyerAddressToUse = buyerMailingAddress || {};
+
+  try {
+    const sellerStreetField = form.getTextField('text_60czib');
+    const sellerCityField = form.getTextField('text_61pxrx');
+    const sellerStateField = form.getTextField('text_62cqaf');
+    const sellerZipField = form.getTextField('text_63psgg');
+    
+    if (sellerStreetField) {
+      sellerStreetField.setText(sellerAddressToUse.street || '');
+      console.log(`Set seller street: ${sellerAddressToUse.street || ''}`);
+    }
+    
+    if (sellerCityField) {
+      sellerCityField.setText(sellerAddressToUse.city || '');
+      console.log(`Set seller city: ${sellerAddressToUse.city || ''}`);
+    }
+    
+    if (sellerStateField) {
+      sellerStateField.setText(sellerAddressToUse.state || '');
+      console.log(`Set seller state: ${sellerAddressToUse.state || ''}`);
+    }
+    
+    if (sellerZipField) {
+      sellerZipField.setText(sellerAddressToUse.zip || '');
+      console.log(`Set seller zip: ${sellerAddressToUse.zip || ''}`);
+    }
+  } catch (error) {
+    console.error('Error setting seller address fields:', error);
+    
+    // Fallback to drawing directly
+    if (sellerAddressToUse.street) {
+      firstPage.drawText(sellerAddressToUse.street, {
+        x: 45,
+        y: 140,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (sellerAddressToUse.city) {
+      firstPage.drawText(sellerAddressToUse.city, {
+        x: 45,
+        y: 128,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (sellerAddressToUse.state) {
+      firstPage.drawText(sellerAddressToUse.state, {
+        x: 190,
+        y: 128,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (sellerAddressToUse.zip) {
+      firstPage.drawText(sellerAddressToUse.zip, {
+        x: 230,
+        y: 128,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+  }
+  
+  try {
+    const ownerStreetField = form.getTextField('text_67vkky');
+    const ownerCityField = form.getTextField('text_66evl');
+    const ownerStateField = form.getTextField('text_65bzof');
+    const ownerZipField = form.getTextField('text_64xthv');
+    
+    if (ownerStreetField) {
+      ownerStreetField.setText(buyerAddressToUse.street || '');
+      console.log(`Set buyer street: ${buyerAddressToUse.street || ''}`);
+    }
+    
+    if (ownerCityField) {
+      ownerCityField.setText(buyerAddressToUse.city || '');
+      console.log(`Set buyer city: ${buyerAddressToUse.city || ''}`);
+    }
+    
+    if (ownerStateField) {
+      ownerStateField.setText(buyerAddressToUse.state || '');
+      console.log(`Set buyer state: ${buyerAddressToUse.state || ''}`);
+    }
+    
+    if (ownerZipField) {
+      ownerZipField.setText(buyerAddressToUse.zip || '');
+      console.log(`Set buyer zip: ${buyerAddressToUse.zip || ''}`);
+    }
+  } catch (error) {
+    console.error('Error setting buyer address fields:', error);
+    
+    // Fallback to drawing directly
+    if (buyerAddressToUse.street) {
+      firstPage.drawText(buyerAddressToUse.street, {
+        x: 45,
+        y: 274,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (buyerAddressToUse.city) {
+      firstPage.drawText(buyerAddressToUse.city, {
+        x: 45,
+        y: 262,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (buyerAddressToUse.state) {
+      firstPage.drawText(buyerAddressToUse.state, {
+        x: 190,
+        y: 262,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+    
+    if (buyerAddressToUse.zip) {
+      firstPage.drawText(buyerAddressToUse.zip, {
+        x: 230,
+        y: 262,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+  }
+  
+  for (const [label, position] of Object.entries(textPositions)) {
+    let value = '';
+    
+    if (label === 'IDENTIFICATION NUMBER') value = vehicleInfo.hullId || '';
+    else if (label === 'YEAR MODEL') value = vehicleInfo.year || '';
+    else if (label === 'MAKE') {
+      value = vehicleInfo.make || '';
+
+      if (value.length > 7) {
+        firstPage.drawText(value, {
+          x: position.x,
+          y: position.y,
+          size: Math.max(6, 10 - (value.length - 7)),
+          font: font,
+          color: rgb(0, 0, 0),
+        });
+        continue;
+      }
+    }
+    else if (label === 'LICENSE PLATE/CF NO') value = vehicleInfo.licensePlate || '';
+    else if (label === 'MOTORCYCLE ENGINE NUMBER') value = vehicleInfo.engineNumber || '';
+    else if (label === 'POA DATE 1') {
+      const currentDate = new Date();
+      value = formatDate(currentDate.toISOString());
+      console.log(`Using current date for POA DATE 1: ${value}`);
+    }
+    else if (label === 'POA DATE 2') {
+      if (Array.isArray(ownersData) && ownersData.length > 1) {
+        const currentDate = new Date();
+        value = formatDate(currentDate.toISOString());
+        console.log(`Using current date for POA DATE 2 (because there are ${ownersData.length} owners): ${value}`);
+      } else {
+        console.log('Less than 2 new registration owners, skipping POA DATE 2 field');
+        continue;
+      }
+    }
+    if (powerOfAttorneyData.dates && powerOfAttorneyData.dates.length > 2) {
+      console.warn(`Note: Power of Attorney has ${powerOfAttorneyData.dates.length} dates, but only the first 2 will be displayed on the form.`);
+    }  
+    else if (label === 'APPOINTER') {
+      value = powerOfAttorneyData.printNames || '';
+      console.log(`Found appointer value: ${value}`);
+    }
+    else if (label === 'APPOINTEE') {
+      value = powerOfAttorneyData.appointee || '';
+      console.log(`Found appointee value: ${value}`);
+    }
+    else if (label === 'I/We') {
+      if (Array.isArray(sellerData) && sellerData.length > 0) {
+        const sellerNames = sellerData.map(seller => formatFullName(seller)).filter(Boolean);
+        value = sellerNames.join(', ');
+        console.log(`Using all sellers for I/We field: ${value}`);
+      }
+    }
+    else if (label === 'to') {
+      if (Array.isArray(ownersData) && ownersData.length > 0) {
+        const ownerNames = ownersData.map(owner => formatFullName(owner)).filter(Boolean);
+        value = ownerNames.join(', ');
+        console.log(`Using all owners for 'to' field: ${value}`);
+      }
+    }
+    else if (label === 'SELLING PRICE') {
+      if (Array.isArray(ownersData) && ownersData.length > 0 && ownersData[0].purchaseValue) {
+        value = ownersData[0].purchaseValue.toString();
+      } else if (formData.purchaseValue) {
+        value = formData.purchaseValue.toString();
+      } else if (typeof ownersData.purchaseValue !== 'undefined') {
+        value = ownersData.purchaseValue.toString();
+      } else {
+        console.log("Owner data structure:", JSON.stringify(ownersData));
+        value = "";
+      }    
+    }
+    else if (label === 'GIFT RELATIONSHIP') {
+      if (Array.isArray(ownersData) && ownersData.length > 0) {
+        value = ownersData[0].relationshipWithGifter || '';
+        console.log(`Found gift relationship: ${value}`);
+      }
+    }
+    else if (label === 'GIFT VALUE') {
+      if (Array.isArray(ownersData) && ownersData.length > 0) {
+        value = ownersData[0].giftValue || '';
+        console.log(`Found gift value: ${value}`);
+      }
+    }
+    else if (label === 'BUYER 1') {
+      if (Array.isArray(ownersData) && ownersData.length > 0) {
+        value = formatFullName(ownersData[0]) || '';
+        console.log(`Found buyer 1 value: ${value}`);
+      }
+    }
+    else if (label === 'BUYER 2') {
+      if (Array.isArray(ownersData) && ownersData.length > 1) {
+        value = formatFullName(ownersData[1]) || '';
+        console.log(`Found buyer 2 value: ${value}`);
+      } else {
+        console.log('No buyer 2 found, skipping BUYER 2 field');
+        continue;
+      }
+    }
+    else if (label === 'BUYER 3') {
+      if (Array.isArray(ownersData) && ownersData.length > 2) {
+        value = formatFullName(ownersData[2]) || '';
+        console.log(`Found buyer 3 value: ${value}`);
+      } else {
+        console.log('No buyer 3 found, skipping BUYER 3 field');
+        continue;
+      }
+    }
+    else if (label === 'SELLER 1') {
+      if (Array.isArray(sellerData) && sellerData.length > 0) {
+        value = formatFullName(sellerData[0]) || '';
+        console.log(`Found seller 1 value: ${value}`);
+      }
+    }
+    else if (label === 'SELLER 2') {
+      if (Array.isArray(sellerData) && sellerData.length > 1) {
+        value = formatFullName(sellerData[1]) || '';
+        console.log(`Found seller 2 value: ${value}`);
+      } else {
+        console.log('No seller 2 found, skipping SELLER 2 field');
+        continue;
+      }
+    }
+    else if (label === 'SELLER 3') {
+      if (Array.isArray(sellerData) && sellerData.length > 2) {
+        value = formatFullName(sellerData[2]) || '';
+        console.log(`Found seller 3 value: ${value}`);
+      } else {
+        console.log('No seller 3 found, skipping SELLER 3 field');
+        continue;
+      }
+    }
+    else if (label === 'BUYER 1 DOP') {
+      if (Array.isArray(ownersData) && ownersData.length > 0) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for BUYER 1 DOP: ${value}`);
+      }
+    }
+    else if (label === 'BUYER 2 DOP') {
+      if (Array.isArray(ownersData) && ownersData.length > 1) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for BUYER 2 DOP: ${value}`);
+      } else {
+        console.log('No buyer 2 found, skipping BUYER 2 DOP field');
+        continue;
+      }
+    }
+    else if (label === 'BUYER 3 DOP') {
+      if (Array.isArray(ownersData) && ownersData.length > 2) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for BUYER 3 DOP: ${value}`);
+      } else {
+        console.log('No buyer 3 found, skipping BUYER 3 DOP field');
+        continue;
+      }
+    }
+    else if (label === 'SELLER 1 DOP') {
+      if (Array.isArray(sellerData) && sellerData.length > 0) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for SELLER 1 DOP: ${value}`);
+      }
+    }
+    else if (label === 'SELLER 2 DOP') {
+      if (Array.isArray(sellerData) && sellerData.length > 1) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for SELLER 2 DOP: ${value}`);
+      } else {
+        console.log('No seller 2 found, skipping SELLER 2 DOP field');
+        continue;
+      }
+    }
+    else if (label === 'SELLER 3 DOP') {
+      if (Array.isArray(sellerData) && sellerData.length > 2) {
+        value = formatDate(seller1SaleDate);
+        console.log(`Using seller1's sale date for SELLER 3 DOP: ${value}`);
+      } else {
+        console.log('No seller 3 found, skipping SELLER 3 DOP field');
+        continue;
+      }
+    }
+    else if (label === 'BUYER 1 LICENSE') {
+      if (Array.isArray(ownersData) && ownersData.length > 0) {
+        value = ownersData[0].licenseNumber || '';
+        console.log(`Found buyer 1 license: ${value}`);
+      }
+    }
+    else if (label === 'BUYER 2 LICENSE') {
+      if (Array.isArray(ownersData) && ownersData.length > 1) {
+        value = ownersData[1].licenseNumber || '';
+        console.log(`Found buyer 2 license: ${value}`);
+      } else {
+        console.log('No buyer 2 found, skipping BUYER 2 LICENSE field');
+        continue;
+      }
+    }
+    else if (label === 'BUYER 3 LICENSE') {
+      if (Array.isArray(ownersData) && ownersData.length > 2) {
+        value = ownersData[2].licenseNumber || '';
+        console.log(`Found buyer 3 license: ${value}`);
+      } else {
+        console.log('No buyer 3 found, skipping BUYER 3 LICENSE field');
+        continue;
+      }
+    }
+    else if (label === 'SELLER 1 LICENSE') {
+      if (Array.isArray(sellerData) && sellerData.length > 0) {
+        value = sellerData[0].licenseNumber || '';
+        console.log(`Found seller 1 license: ${value}`);
+      }
+    }
+    else if (label === 'SELLER 2 LICENSE') {
+      if (Array.isArray(sellerData) && sellerData.length > 1) {
+        value = sellerData[1].licenseNumber || '';
+        console.log(`Found seller 2 license: ${value}`);
+      } else {
+        console.log('No seller 2 found, skipping SELLER 2 LICENSE field');
+        continue;
+      }
+    }
+    else if (label === 'SELLER 3 LICENSE') {
+      if (Array.isArray(sellerData) && sellerData.length > 2) {
+        value = sellerData[2].licenseNumber || '';
+        console.log(`Found seller 3 license: ${value}`);
+      } else {
+        console.log('No seller 3 found, skipping SELLER 3 LICENSE field');
+        continue;
+      }
+    }
+    else if (label === 'BUYER 1 PHONE') {
+      if (Array.isArray(ownersData) && ownersData.length > 0) {
+        const phoneCode = ownersData[0].phoneCode || '';
+        const phoneNumber = ownersData[0].phoneNumber || '';
+        if (phoneCode && phoneNumber) {
+          value = `${phoneCode} ${phoneNumber}`;
+        } else {
+          value = phoneNumber;
+        }
+        console.log(`Found buyer 1 phone: ${value}`);
+      }
+    }
+    else if (label === 'SELLER 1 PHONE') {
+      if (Array.isArray(sellerData) && sellerData.length > 0) {
+        const phoneCode = sellerData[0].phoneCode || '';
+        const phoneNumber = sellerData[0].phoneNumber || sellerData[0].phone || '';
+        if (phoneCode && phoneNumber) {
+          value = `${phoneCode} ${phoneNumber}`;
+        } else {
+          value = phoneNumber;
+        }
+        console.log(`Found seller 1 phone: ${value}`);
+      }
+    }
+
+    if (value) {
+      console.log(`Drawing text for ${label} at (${position.x}, ${position.y}): "${value}"`);
+      
+
+      let fontSize = 10;
+      
+
+      if ((label === 'I/We' || label === 'to') && value.length > 30) {
+        fontSize = Math.max(6, 10 - ((value.length - 30) / 10));
+        console.log(`Reducing font size for ${label} to ${fontSize} (${value.length} characters)`);
+      }
+      
+      firstPage.drawText(value, {
+        x: position.x,
+        y: position.y,
+        size: fontSize,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+    }
+  }
+  
+ 
+  if (vehicleInfo.notActualMileage) {
+    firstPage.drawText('X', {
+      x: 38,
+      y: 442,
+      size: 12,
+      font: font,
+      color: rgb(0, 0, 0),
+    });
+  }
+  
+  if (vehicleInfo.exceedsMechanicalLimit) {
+    firstPage.drawText('X', {
+      x: 312,
+      y: 442,
+      size: 12,
+      font: font,
+      color: rgb(0, 0, 0),
+    });
+  }
+  
+  return await pdfDoc.save();
+}
+async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string, transactionType?: any): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
+  
+
+  let normalizedTransactionType = effectiveTransactionType;
+  
+
+  if (effectiveTransactionType && effectiveTransactionType.startsWith("Multiple Transfer")) {
+    normalizedTransactionType = "Multiple Transfer";
+  }
+
+  const isSimpleTransfer = normalizedTransactionType === "Simple Transfer";
+  const isMultipleTransfer = normalizedTransactionType === "Multiple Transfer";
+
+  console.log(`Transaction type is ${effectiveTransactionType}, normalized to ${normalizedTransactionType}, isMultipleTransfer = ${isMultipleTransfer}`);
+  
+  console.log(`Transaction type is ${effectiveTransactionType}, isSimpleTransfer = ${isSimpleTransfer}`);
+  
+  const form = pdfDoc.getForm();
+  const fieldNames = form.getFields().map(f => f.getName());
+  console.log('Available Reg227 PDF Fields:', JSON.stringify(fieldNames, null, 2));
+  
+  const fieldMapping = {
+    seller1Name: '1 True Full Name, Last',
+    seller2Name: '1 True Full Name, Last-2',
+    seller1License: [
+      '1 DL/ID Number-1.0',
+      '1 DL/ID Number-1.1',
+      '1 DL/ID Number-1.2',
+      '1 DL/ID Number-1.3',
+      '1 DL/ID Number-1.4',
+      '1 DL/ID Number-1.5',
+      '1 DL/ID Number-1.6',
+      '1 DL/ID Number-1.7',
+    ],
+    seller2License: [
+      '1 DL/ID Number-2.0',
+      '1 DL/ID Number-2.1',
+      '1 DL/ID Number-2.2',
+      '1 DL/ID Number-2.3',
+      '1 DL/ID Number-2.4',
+      '1 DL/ID Number-2.5',
+      '1 DL/ID Number-2.6',
+      '1 DL/ID Number-2.7.0',
+    ],
+    seller1State: 'state.1',
+    seller2State: 'state.0',
+    seller1NamePrint: '3 Print Name Legal Owner.1',
+    seller2NamePrint: '3 Print Name Legal Owner.2.0',
+    
+    seller1PhoneArea: 'area',
+    seller1PhoneMain: '4 Daytime Phone Number 1',
+    seller2PhoneArea: 'area23',
+    seller2PhoneMain: '4 Daytime Phone Number 2.0',
+    
+    newOwner1Name: 'true full name of new owner, last, first, middle, suffix, business name, or lessor',
+    newOwner2Name: '6 Name First-1',
+    newOwner3Name: '6 Name Last-2',
+    
+    legalOwnerName: 'Name of bank, finance company, or individual having a lien on this vehicle',
+    legalOwnerAddress: '2 Address',
+    legalOwnerApt: '2 Apt/Space Number',
+    legalOwnerCity: '2 City',
+    legalOwnerState: '2 States1',
+    legalOwnerZip: '2 Zip Code',
+    
+    newOwner1License: [
+      '6 DL/ID Card Numer-1.0.0',
+      "6 DL/ID Card Numer-1.1",
+      "6 DL/ID Card Numer-1.2",
+      "6 DL/ID Card Numer-1.3",
+      "6 DL/ID Card Numer-1.4",
+      "6 DL/ID Card Numer-1.5",
+      "6 DL/ID Card Numer-1.6",
+      "6 DL/ID Card Numer-1.7.0",
+    ],
+    newOwner2License: [
+      '6 DL/ID Card Numer-1.0.1.0',
+      '6 DL/ID Card Numer-1.0.1.1',
+      '6 DL/ID Card Numer-1.0.1.2',
+      '6 DL/ID Card Numer-1.0.1.3',
+      '6 DL/ID Card Numer-1.0.1.4',
+      '6 DL/ID Card Numer-1.0.1.5',
+      '6 DL/ID Card Numer-1.0.1.6',
+      "6 DL/ID Card Numer-1.0.1.7",
+    ],
+    newOwner3License: [
+      '6 DL/ID CArd Number-2.0',
+      '6 DL/ID CArd Number-2.1',
+      '6 DL/ID CArd Number-2.2',
+      '6 DL/ID CArd Number-2.3',
+      '6 DL/ID CArd Number-2.4',
+      '6 DL/ID CArd Number-2.5',
+      '6 DL/ID CArd Number-2.6',
+      '6 DL/ID CArd Number-2.7',
+    ],
+    
+    newOwner1State: '6 DL/ID Card Numer-1.7.1',
+    newOwner2State: '6 state',
+    newOwner3State: 'state-2.8',
+    
+    owner1PhoneArea: '6 area code 1',
+    owner1PhoneMain: 'daytime telephone number',
+    owner2PhoneArea: 'area code 2',
+    owner2PhoneMain: 'daytime number 2',
+    owner3PhoneArea: 'area code 3',
+    owner3PhoneMain: 'daytime number 3',
+    
+    owner1Date: 'date.0',
+    owner2Date: "4 Date-2",
+    
+    owner1DateField1: "date.123", 
+    owner2DateField: 'date 2',   
+    owner3DateField: 'date 3',  
+    
+    purchaseDateMonth: "6 Purchase Price/Market Value",  
+    purchaseDateDay: "Date Purchased",  
+    acquiredYearField: "Acquired Yr",  
+    
+    purchasePriceField: "Purchase price",
+    marketValueField: "market value", 
+    
+    seller1Address: '1 Residence or Business Address.0',
+    seller1Apt: '1 Apt/Space Number-1',
+    seller1City: '1 City-1',
+    seller1StateField: '1 States1',
+    seller1Zip: '1 Zip Code-1',
+    
+    sellerMailingAddress: '1 Mailing Address',
+    sellerMailingApt: '1 Apt/Space Number-2',
+    sellerMailingCity: '1 City-2',
+    sellerMailingState: '1 States2',
+    sellerMailingZip: '1 Zip Code-2.0',
+    
+    newAddress: 'physical residence or business address.0',
+    newAddressApt: '6 Apt/Space Number-1',
+    newAddressCity: '6 City-1',
+    newAddressState: '6 States1',
+    newAddressZip: '6 Zip Code-1',
+    
+    mailingAddress: '6 Mailing Address',
+    mailingAddressApt: '6 Apt/Space Number-2',
+    mailingAddressCity: '6 City-2',
+    mailingAddressState: '6 States 2.0',
+    mailingAddressZip: '6 Zip Code-2.0',
+    
+    lesseeAddressDescription: 'Lessee address, if different from address above',
+    trailerAddressDescription: 'Vessel or trailer coach principally kept at, address or location if different from physical/business address above',
+    
+    lienHolderName: '7 Name New Legal Owner',
+    lienHolderAddress: 'Physical residence or business address.0',
+    lienHolderApt: '7 Apt/Space Number.0',
+    lienHolderCity: '7 City.0',
+    lienHolderState: '7 State.0',
+    lienHolderZip: '7 Zip Code.0',
+    lienHolderElt: [
+      '7 ELT #.0',
+      '7 ELT #.1.0',
+      '7 ELT #.1.1',
+    ],
+
+    lienHolderMailingAddress: 'mailing address',
+    lienHolderMailingApt: '7 Apt/Space Number.1',
+    lienHolderMailingCity: '7 City.1',
+    lienHolderMailingState: '7 State.1',
+    lienHolderMailingZip: '7 Zip Code.1',
+    
+    vehicleLicensePlate2: 'License Plate/CF Number122',
+    vehicleHullId2: 'Vehicle/Vessel ID/Number211',
+    vehicleYear2: 'Year/Make2',
+    
+    vehicleLicensePlate1: 'License Plate/CF Number1',
+    vehicleHullId1: 'Vehicle/Vessel ID/Number1',
+    vehicleYear1: 'Year/Make',
+    appForCheckbox: "App for",
+    appFor2Checkbox: 'App for2',
+    
+    giftCheckbox: 'Gift Box',
+    tradeCheckbox: 'Gift Box1',
+    
+    countyField: 'county.0.0',
+    sellercountyField: 'county residence or county where vehicle or vessle is princi.0',
+    newregownercountyField :'County of residence',
+    
+    owner2AndCheckbox: 'And Box.0',
+    owner2OrCheckbox: 'And Box.1',
+    owner3AndCheckbox: 'And Box1.0',
+    owner3OrCheckbox: 'And Box1.1',
+
+    lostCheckbox: "Check Box1",
+    stolenCheckbox: "Check Box2",
+    mutilatedCheckbox: "Check Box6",
+    notReceivedFromOwnerCheckbox: "Check Box4",
+    notReceivedFromDmvCheckbox: "Check Box5",
+
+    sellerNamePrint: '3 Print Name Legal Owner.0',
+    sellerPhoneArea: 'area code.0',
+    sellerPhoneMain: '3 Daytime Phone Number',
+    sellerDate: '3 Date.0'
+  };
+  
+  const safeSetText = (fieldName: string, value: string) => {
+    try {
+      const field = form.getTextField(fieldName);
+      if (field) {
+        const maxLength = field.getMaxLength();
+        
+        const finalValue = maxLength !== undefined && maxLength > 0 && value.length > maxLength 
+          ? value.substring(0, maxLength) 
+          : value;
+        
+        field.setText(finalValue);
+        console.log(`Successfully filled field: ${fieldName}`);
+      } else {
+        console.warn(`Field not found: ${fieldName}`);
+      }
+    } catch (error) {
+      console.error(`Error filling field ${fieldName}:`, error);
+    }
+  };
+  
+  const safeSetCheckbox = (fieldName: string, value: boolean) => {
+    try {
+      const checkbox = form.getCheckBox(fieldName);
+      if (checkbox) {
+        value ? checkbox.check() : checkbox.uncheck();
+        console.log(`Successfully ${value ? 'checked' : 'unchecked'} checkbox: ${fieldName}`);
+      } else {
+        console.warn(`Checkbox not found: ${fieldName}`);
+      }
+    } catch (error) {
+      console.error(`Error setting checkbox ${fieldName}:`, error);
+    }
+  };
+  
+  const fillCharacterFields = (fieldNames: string[], value: string) => {
+    const chars = value.split('');
+    fieldNames.forEach((fieldName, index) => {
+      if (index < chars.length) {
+        safeSetText(fieldName, chars[index]);
+      } else {
+        safeSetText(fieldName, '');
+      }
+    });
+  };
+
+  
+  
+  const formatAddress = (address: any) => {
+    if (!address) return '';
+    
+    const parts = [
+      address.street,
+      address.apt ? `Apt/Space ${address.apt}` : '',
+      address.city,
+      address.state,
+      address.zip
+    ].filter(Boolean);
+    
+    return parts.join(', ');
+  };
+  
+  const formatPhone = (phoneNumber: string) => {
+    const cleaned = phoneNumber.replace(/\D/g, '');
+    
+    if (cleaned.length < 3) {
+      return { areaCode: '', mainNumber: '' };
+    }
+    
+    const areaCode = cleaned.substring(0, 3);
+    const mainNumber = cleaned.substring(3);
+    
+    return { areaCode, mainNumber };
+  };
+  
+  const sellerInfo = formData.sellerInfo || {};
+  const seller1 = sellerInfo.sellers?.[0] || {};
+  const seller2 = sellerInfo.sellers?.[1] || {};
+  
+  const owners = formData.owners || [];
+  const owner1 = owners[0] || {};
+  const owner2 = owners[1] || {};
+  const owner3 = owners[2] || {};
+  
+  const owner2Exists = Object.keys(owner2).length > 0 && 
+                     (owner2.firstName || owner2.lastName || owner2.licenseNumber);
+  const owner3Exists = Object.keys(owner3).length > 0 && 
+                     (owner3.firstName || owner3.lastName || owner3.licenseNumber);
+  
+  const addressData = formData.address || {};
+  const mailingAddressData = formData.mailingAddress || {};
+  const lesseeAddressData = formData.lesseeAddress || {};
+  const trailerLocationData = formData.trailerLocation || {};
+  const mailingAddressDifferent = formData.mailingAddressDifferent || false;
+  const lesseeAddressDifferent = formData.lesseeAddressDifferent || false;
+  const trailerLocationDifferent = formData.trailerLocationDifferent || false;
+  
+  const sellerAddress = formData.sellerAddress || seller1.address || {};
+  const sellerMailingAddress = formData.sellerMailingAddress || {};
+  const lienHolder = formData.lienHolder || {};
+  const lienHolderAddress = lienHolder.address || {};
+  
+  const legalOwnerInfo = formData.legalOwnerInformation || {};
+  const legalOwnerAddress = legalOwnerInfo.address || {};
+  
+  const vehicleInfo = formData.vehicleInformation || {};
+  
+  const county = formData.trailerLocation?.county || '';
+  const sellerCounty = sellerAddress.county || '';
+  const ownercounty = addressData.county || '';
+  
+  safeSetText(fieldMapping.newregownercountyField, sellerCounty);
+  const hasNewOwner = owners && owners.length > 0;
+  if (hasNewOwner) {
+    safeSetText(fieldMapping.sellercountyField, ownercounty);
+  }
+  const formatSellerName = (seller: any) => {
+    return [
+      seller.lastName?.trim() || '',
+      seller.middleName?.trim() || '',
+      seller.firstName?.trim() || ''
+    ].filter(Boolean).join(', ');
+  };
+  
+  const formatOwnerNamePrint = (owner: any) => {
+    return [
+     
+      owner.lastName?.trim() || '',
+      owner.firstName?.trim() || '',
+      owner.middleName?.trim() || '',
+    ].filter(Boolean).join(', ');
+  };
+  
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+      return dateString;
+    }
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+      
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${month}/${day}/${year}`;
+    } catch (e) {
+      return dateString;
+    }
+  };
+  
+  const extractDateComponents = (dateString: string) => {
+    if (!dateString) return { month: '', day: '', year: '' };
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return { month: '', day: '', year: '' };
+      }
+      
+      return {
+        month: String(date.getMonth() + 1).padStart(2, '0'),
+        day: String(date.getDate()).padStart(2, '0'),
+        year: date.getFullYear().toString()
+      };
+    } catch (e) {
+      return { month: '', day: '', year: '' };
+    }
+  };
+  
+  const formatOwnerName = (owner: any) => {
+    return [
+      owner.firstName?.trim() || '',
+      owner.middleName?.trim() || '',
+      owner.lastName?.trim() || '',
+    ].filter(Boolean).join(' ');
+  };
+  if (Object.keys(seller1).length > 0) {
+    safeSetText(fieldMapping.seller1Name, formatSellerName(seller1));
+    safeSetText(fieldMapping.seller1NamePrint, formatOwnerName(seller1));
+    safeSetText(fieldMapping.seller1State, seller1.state || '');
+
+
+    
+    if (!isSimpleTransfer && !isMultipleTransfer) {
+      safeSetText(fieldMapping.sellerNamePrint, formatOwnerName(seller1));
+      
+      if (seller1.phone) {
+        const { areaCode, mainNumber } = formatPhone(seller1.phone);
+        safeSetText(fieldMapping.sellerPhoneArea, areaCode);
+        safeSetText(fieldMapping.sellerPhoneMain, mainNumber);
+      }
+     
+        const getCurrentDate = () => {
+          const today = new Date();
+          const month = String(today.getMonth() + 1).padStart(2, '0');
+          const day = String(today.getDate()).padStart(2, '0');
+          const year = today.getFullYear();
+          
+          return `${month}/${day}/${year}`;
+        };
+        const currentDate = getCurrentDate();
+        safeSetText(fieldMapping.sellerDate, formatDate(currentDate));
+
+      
+    }
+    
+    if (seller1.licenseNumber) {
+      fillCharacterFields(fieldMapping.seller1License, seller1.licenseNumber);
+    }
+    
+    if (seller1.isGift) {
+      safeSetCheckbox(fieldMapping.giftCheckbox, true);
+    }
+    if (seller1.isTrade) {
+      safeSetCheckbox(fieldMapping.tradeCheckbox, true);
+    }
+    
+    if (seller1.phone) {
+      const { areaCode, mainNumber } = formatPhone(seller1.phone);
+      safeSetText(fieldMapping.seller1PhoneArea, areaCode);
+      safeSetText(fieldMapping.seller1PhoneMain, mainNumber);
+    }
+  }
+  
+  if (Object.keys(seller2).length > 0) {
+    safeSetText(fieldMapping.seller2Name, formatSellerName(seller2));
+    safeSetText(fieldMapping.seller2NamePrint, formatOwnerName(seller2));
+    safeSetText(fieldMapping.seller2State, seller2.state || '');
+    
+    if (seller2.licenseNumber) {
+      fillCharacterFields(fieldMapping.seller2License, seller2.licenseNumber);
+    }
+    
+    if (seller2.phone) {
+      const { areaCode, mainNumber } = formatPhone(seller2.phone);
+      safeSetText(fieldMapping.seller2PhoneArea, areaCode);
+      safeSetText(fieldMapping.seller2PhoneMain, mainNumber);
+    }
+  }
+  
+  if (Object.keys(owner1).length > 0) {
+    safeSetText(fieldMapping.newOwner1Name, formatSellerName(owner1));
+    
+    safeSetText(fieldMapping.newOwner1State, owner1.state || '');
+    
+    if (owner1.licenseNumber) {
+      fillCharacterFields(fieldMapping.newOwner1License, owner1.licenseNumber);
+    }
+    
+    if (owner1.phoneNumber) {
+      const { areaCode, mainNumber } = formatPhone(owner1.phoneNumber);
+      safeSetText(fieldMapping.owner1PhoneArea, areaCode);
+      safeSetText(fieldMapping.owner1PhoneMain, mainNumber);
+    }
+
+    const isGift = formData.vehicleTransactionDetails?.isGift === true;
+
+    
+    if (isGift) {
+      safeSetCheckbox(fieldMapping.giftCheckbox, true);
+    }
+    if (!seller1.isTrade && owner1.isTrade) {
+      safeSetCheckbox(fieldMapping.tradeCheckbox, true);
+    }
+  }
+  
+  if (owner2Exists) {
+    safeSetText(fieldMapping.newOwner2Name, formatSellerName(owner2));
+    safeSetText(fieldMapping.newOwner2State, owner2.state || '');
+    
+    if (owner2.licenseNumber) {
+      fillCharacterFields(fieldMapping.newOwner2License, owner2.licenseNumber);
+    }
+    
+    if (owner2.phoneNumber) {
+      const { areaCode, mainNumber } = formatPhone(owner2.phoneNumber);
+      safeSetText(fieldMapping.owner2PhoneArea, areaCode);
+      safeSetText(fieldMapping.owner2PhoneMain, mainNumber);
+    }
+    
+    if (owner2.relationshipType === 'AND') {
+      safeSetCheckbox(fieldMapping.owner2AndCheckbox, true);
+    } else if (owner2.relationshipType === 'OR') {
+      safeSetCheckbox(fieldMapping.owner3AndCheckbox, true);
+    }
+  }
+  
+  if (owner3Exists) {
+    safeSetText(fieldMapping.newOwner3Name, formatSellerName(owner3));
+    safeSetText(fieldMapping.newOwner3State, owner3.state || '');
+    
+    if (owner3.licenseNumber) {
+      fillCharacterFields(fieldMapping.newOwner3License, owner3.licenseNumber);
+    }
+    
+    if (owner3.phoneNumber) {
+      const { areaCode, mainNumber } = formatPhone(owner3.phoneNumber);
+      safeSetText(fieldMapping.owner3PhoneArea, areaCode);
+      safeSetText(fieldMapping.owner3PhoneMain, mainNumber);
+    }
+    
+    if (owner3.relationshipType === 'AND') {
+      safeSetCheckbox(fieldMapping.owner2OrCheckbox, true);
+    } else if (owner3.relationshipType === 'OR') {
+      safeSetCheckbox(fieldMapping.owner3OrCheckbox, true);
+    }
+  }
+
+  if (formData.missingTitleInfo && formData.missingTitleInfo.reason) {
+    const reason = formData.missingTitleInfo.reason;
+    
+    switch(reason) {
+      case 'Lost':
+        safeSetCheckbox(fieldMapping.lostCheckbox, true);
+        console.log("it is lostttt");
+        break;
+      case 'Stolen':
+        safeSetCheckbox(fieldMapping.stolenCheckbox, true);
+        break;
+      case 'Illegible/Mutilated (Attach old title)':
+        safeSetCheckbox(fieldMapping.mutilatedCheckbox, true);
+        break;
+      case 'Not Received From Prior Owner':
+        safeSetCheckbox(fieldMapping.notReceivedFromOwnerCheckbox, true);
+        break;
+      case 'Not Received From DMV (Allow 30 days from issue date)':
+        safeSetCheckbox(fieldMapping.notReceivedFromDmvCheckbox, true);
+        break;
+      case 'Other':
+        break;
+    }
+  }
+  
+  if (Object.keys(legalOwnerInfo).length > 0) {
+    safeSetText(fieldMapping.legalOwnerName, legalOwnerInfo.name || '');
+    safeSetText(fieldMapping.legalOwnerAddress, legalOwnerAddress.street || '');
+    safeSetText(fieldMapping.legalOwnerApt, legalOwnerAddress.apt || '');
+    safeSetText(fieldMapping.legalOwnerCity, legalOwnerAddress.city || '');
+    safeSetText(fieldMapping.legalOwnerState, legalOwnerAddress.state || '');
+    safeSetText(fieldMapping.legalOwnerZip, legalOwnerAddress.zip || '');
+  } 
+  else {
+    safeSetText(fieldMapping.legalOwnerName, 'NONE');
+  }
+  
+  safeSetText(fieldMapping.seller1Address, sellerAddress.street || '');
+  safeSetText(fieldMapping.seller1Apt, sellerAddress.apt || '');
+  safeSetText(fieldMapping.seller1City, sellerAddress.city || '');
+  safeSetText(fieldMapping.seller1StateField, sellerAddress.state || '');
+  safeSetText(fieldMapping.seller1Zip, sellerAddress.zip || '');
+  
+  if (Object.keys(sellerMailingAddress).length > 0) {
+    safeSetText(fieldMapping.sellerMailingAddress, sellerMailingAddress.street || '');
+    safeSetText(fieldMapping.sellerMailingApt, sellerMailingAddress.poBox || sellerMailingAddress.apt || '');
+    safeSetText(fieldMapping.sellerMailingCity, sellerMailingAddress.city || '');
+    safeSetText(fieldMapping.sellerMailingState, sellerMailingAddress.state || '');
+    safeSetText(fieldMapping.sellerMailingZip, sellerMailingAddress.zip || '');
+  }
+  
+  safeSetText(fieldMapping.newAddress, addressData.street || '');
+  safeSetText(fieldMapping.newAddressApt, addressData.apt || '');
+  safeSetText(fieldMapping.newAddressCity, addressData.city || '');
+  safeSetText(fieldMapping.newAddressState, addressData.state || '');
+  safeSetText(fieldMapping.newAddressZip, addressData.zip || '');
+  
+  safeSetText(fieldMapping.countyField, county);
+  
+  if (mailingAddressDifferent) {
+    safeSetText(fieldMapping.mailingAddress, mailingAddressData.street || '');
+    safeSetText(fieldMapping.mailingAddressApt, mailingAddressData.poBox || '');
+    safeSetText(fieldMapping.mailingAddressCity, mailingAddressData.city || '');
+    safeSetText(fieldMapping.mailingAddressState, mailingAddressData.state || '');
+    safeSetText(fieldMapping.mailingAddressZip, mailingAddressData.zip || '');
+  }
+  
+  if (lesseeAddressDifferent) {
+    const lesseeAddressFormatted = formatAddress(lesseeAddressData);
+    safeSetText(fieldMapping.lesseeAddressDescription, lesseeAddressFormatted);
+  }
+  
+  if (trailerLocationDifferent) {
+    let trailerLocationFormatted = formatAddress(trailerLocationData);
+    safeSetText(fieldMapping.trailerAddressDescription, trailerLocationFormatted);
+  }
+  
+ 
+  const purchaseDate = seller1.saleDate || '';
+  const formattedDate = formatDate(purchaseDate);
+  
+  const dateComponents = extractDateComponents(purchaseDate);
+  const getCurrentDate = () => {
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const year = today.getFullYear();
+    
+    return `${month}/${day}/${year}`;
+  };
+  const currentDate = getCurrentDate();
+      safeSetText(fieldMapping.owner1Date, currentDate);
+  if (purchaseDate) {
+   
+    if (hasNewOwner) {
+
+  safeSetText(fieldMapping.owner1DateField1, currentDate);
+  
+  if (owners.length >= 2) {
+    safeSetText(fieldMapping.owner2DateField, currentDate);
+  }
+  
+  if (owners.length >= 3) {
+    safeSetText(fieldMapping.owner3DateField, currentDate);
+  }
+}
+    if (formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 1) {
+      safeSetText(fieldMapping.owner2Date, currentDate);
+    }
+    
+    if (owners.length >= 3) {
+      safeSetText(fieldMapping.owner3DateField, formattedDate);
+    }
+if (hasNewOwner) {
+    safeSetText(fieldMapping.purchaseDateMonth, dateComponents.month); 
+    safeSetText(fieldMapping.purchaseDateDay, dateComponents.day);
+    safeSetText(fieldMapping.acquiredYearField, dateComponents.year);
+  }
+
+  }
+  
+  const purchaseValue = owner1.purchaseValue || '';
+  
+  const hasMarketValue = formData.marketValue || owner1.marketValue;
+  
+ 
+  
+ 
+ 
+ 
+ 
+  
+  if(hasMarketValue) {
+    safeSetText(fieldMapping.marketValueField, hasMarketValue);
+    safeSetText(fieldMapping.purchasePriceField, '');
+  } else {
+    safeSetText(fieldMapping.purchasePriceField, purchaseValue);
+    safeSetText(fieldMapping.marketValueField, '');
+  }
+  
+  if (Object.keys(lienHolder).length > 0 && lienHolder.name) {
+    safeSetText(fieldMapping.lienHolderName, lienHolder.name);
+    safeSetText(fieldMapping.lienHolderAddress, lienHolderAddress.street || '');
+    safeSetText(fieldMapping.lienHolderApt, lienHolderAddress.apt || '');
+    safeSetText(fieldMapping.lienHolderCity, lienHolderAddress.city || '');
+    safeSetText(fieldMapping.lienHolderState, lienHolderAddress.state || '');
+    safeSetText(fieldMapping.lienHolderZip, lienHolderAddress.zip || '');
+
+    if (lienHolder.eltNumber) {
+      const eltDigits = lienHolder.eltNumber.replace(/\D/g, '').slice(0, 3);
+      fillCharacterFields(fieldMapping.lienHolderElt, eltDigits);
+    }
+
+    if (lienHolder.mailingAddress) {
+      safeSetText(fieldMapping.lienHolderMailingAddress, lienHolder.mailingAddress.street || '');
+      safeSetText(fieldMapping.lienHolderMailingApt, lienHolder.mailingAddress.poBox || '');
+      safeSetText(fieldMapping.lienHolderMailingCity, lienHolder.mailingAddress.city || '');
+      safeSetText(fieldMapping.lienHolderMailingState, lienHolder.mailingAddress.state || '');
+      safeSetText(fieldMapping.lienHolderMailingZip, lienHolder.mailingAddress.zip || '');
+    }
+  }
+  else {
+    safeSetText(fieldMapping.lienHolderName, 'NONE');
+  } 
+  
+  let yearMakeValue = '';
+  if (vehicleInfo.year && vehicleInfo.make) {
+    yearMakeValue = `${vehicleInfo.year} ${vehicleInfo.make}`;
+  } else if (vehicleInfo.year) {
+    yearMakeValue = vehicleInfo.year;
+  } else if (vehicleInfo.make) {
+    yearMakeValue = vehicleInfo.make;
+  }
+  
+  safeSetText(fieldMapping.vehicleLicensePlate1, vehicleInfo.licensePlate || '');
+  safeSetText(fieldMapping.vehicleHullId1, vehicleInfo.hullId || '');
+  safeSetText(fieldMapping.vehicleYear1, yearMakeValue);
+  
+  safeSetText(fieldMapping.vehicleLicensePlate2, vehicleInfo.licensePlate || '');
+  safeSetText(fieldMapping.vehicleHullId2, vehicleInfo.hullId || '');
+  safeSetText(fieldMapping.vehicleYear2, yearMakeValue);
+
+  console.log('Transaction Type:', formData.transactionType);
+  
+  if (transactionType === "Lien Holder Removal" || 
+    transactionType === "Lien Holder Addition" || 
+    transactionType === "Duplicate Title Transfer") {
+  console.log('Setting checkbox for App for');
+  safeSetCheckbox(fieldMapping.appForCheckbox, true);
+} else {
+  console.log('Setting checkbox for App for2');
+  safeSetCheckbox(fieldMapping.appFor2Checkbox, true);
+}
+
+
+  form.updateFieldAppearances();
+  pdfDoc.catalog.set(PDFName.of('NeedAppearances'), PDFBool.True);
+  
+  return await pdfDoc.save();
+}
+
 
 
 async function modifyReg343Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string): Promise<Uint8Array> {
@@ -1379,7 +2932,9 @@ async function modifyReg4008Pdf(fileBytes: ArrayBuffer, formData: any, effective
       const apt = address.apt ? `Apt ${address.apt}` : '';
       const streetApt = [street, apt].filter(Boolean).join(' ');
       
-      safeSetText('Address.0.0', streetApt);
+      safeSetText('text_31jsfn', street);
+      safeSetText('text_32olri', apt);
+
       
       const isOutOfState = address.isOutOfState === true;
       safeSetCheckbox('Check Box1', isOutOfState);
@@ -1391,6 +2946,9 @@ async function modifyReg4008Pdf(fileBytes: ArrayBuffer, formData: any, effective
       if (address.city) {
         safeSetText('City.0', address.city);
       }
+      if (address.state) {
+        safeSetText('States1.0', address.state);
+      }
       
       if (address.zip) {
         safeSetText('Zip Code.0', address.zip);
@@ -1401,10 +2959,12 @@ async function modifyReg4008Pdf(fileBytes: ArrayBuffer, formData: any, effective
       const mailingAddress = formData.sellerMailingAddress;
       
       const street = mailingAddress.street || '';
-      const poBox = mailingAddress.poBox ? `PO Box ${mailingAddress.poBox}` : '';
+      const poBox = mailingAddress.poBox ? `${mailingAddress.poBox}` : '';
       const mailingStreetBox = [street, poBox].filter(Boolean).join(' ');
       
-      safeSetText('Address.1', mailingStreetBox);
+      safeSetText('text_30xebc', street);
+      safeSetText('text_33mpyh', poBox);
+
       
       if (mailingAddress.city) {
         safeSetText('City.1', mailingAddress.city);
@@ -1434,9 +2994,33 @@ async function modifyReg4008Pdf(fileBytes: ArrayBuffer, formData: any, effective
       if (vInfo.hullId) {
         safeSetText('VIN- 1.0', vInfo.hullId);
       }
-      
       if (vInfo.make) {
-        safeSetText('Make -1.0', vInfo.make);
+        try {
+          const field = form.getTextField('Make -1.0');
+          if (field) {
+            const makeText = vInfo.make;
+            const makeLength = makeText.length;
+            
+            // Set the text without wrapping
+            field.setText(makeText);
+            
+            // Adjust font size based on text length to ensure it fits
+            if (makeLength > 6) {
+              // More aggressive font size reduction for longer text
+              if (makeLength >= 11) {
+                field.setFontSize(5.5); // Smaller font for very long text
+              } else if (makeLength > 8) {
+                field.setFontSize(7); // Small font for medium-long text
+              } else {
+                field.setFontSize(8); // Slightly smaller font for moderately long text
+              }
+            }
+            
+            console.log(`Successfully filled field: Make -1.0 with: ${vInfo.make}`);
+          }
+        } catch (error) {
+          console.error(`Error filling Make field:`, error);
+        }
       }
     }
     
@@ -3095,1422 +4679,6 @@ try {
 
 
 
-async function modifyReg227Pdf(fileBytes: ArrayBuffer, formData: any, effectiveTransactionType?: string, transactionType?: any): Promise<Uint8Array> {
-  const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
-  
-
-  let normalizedTransactionType = effectiveTransactionType;
-  
-
-  if (effectiveTransactionType && effectiveTransactionType.startsWith("Multiple Transfer")) {
-    normalizedTransactionType = "Multiple Transfer";
-  }
-
-  const isSimpleTransfer = normalizedTransactionType === "Simple Transfer";
-  const isMultipleTransfer = normalizedTransactionType === "Multiple Transfer";
-
-  console.log(`Transaction type is ${effectiveTransactionType}, normalized to ${normalizedTransactionType}, isMultipleTransfer = ${isMultipleTransfer}`);
-  
-  console.log(`Transaction type is ${effectiveTransactionType}, isSimpleTransfer = ${isSimpleTransfer}`);
-  
-  const form = pdfDoc.getForm();
-  const fieldNames = form.getFields().map(f => f.getName());
-  console.log('Available Reg227 PDF Fields:', JSON.stringify(fieldNames, null, 2));
-  
-  const fieldMapping = {
-    seller1Name: '1 True Full Name, Last',
-    seller2Name: '1 True Full Name, Last-2',
-    seller1License: [
-      '1 DL/ID Number-1.0',
-      '1 DL/ID Number-1.1',
-      '1 DL/ID Number-1.2',
-      '1 DL/ID Number-1.3',
-      '1 DL/ID Number-1.4',
-      '1 DL/ID Number-1.5',
-      '1 DL/ID Number-1.6',
-      '1 DL/ID Number-1.7',
-    ],
-    seller2License: [
-      '1 DL/ID Number-2.0',
-      '1 DL/ID Number-2.1',
-      '1 DL/ID Number-2.2',
-      '1 DL/ID Number-2.3',
-      '1 DL/ID Number-2.4',
-      '1 DL/ID Number-2.5',
-      '1 DL/ID Number-2.6',
-      '1 DL/ID Number-2.7.0',
-    ],
-    seller1State: 'state.1',
-    seller2State: 'state.0',
-    seller1NamePrint: '3 Print Name Legal Owner.1',
-    seller2NamePrint: '3 Print Name Legal Owner.2.0',
-    
-    seller1PhoneArea: 'area',
-    seller1PhoneMain: '4 Daytime Phone Number 1',
-    seller2PhoneArea: 'area23',
-    seller2PhoneMain: '4 Daytime Phone Number 2.0',
-    
-    newOwner1Name: 'true full name of new owner, last, first, middle, suffix, business name, or lessor',
-    newOwner2Name: '6 Name First-1',
-    newOwner3Name: '6 Name Last-2',
-    
-    legalOwnerName: 'Name of bank, finance company, or individual having a lien on this vehicle',
-    legalOwnerAddress: '2 Address',
-    legalOwnerApt: '2 Apt/Space Number',
-    legalOwnerCity: '2 City',
-    legalOwnerState: '2 States1',
-    legalOwnerZip: '2 Zip Code',
-    
-    newOwner1License: [
-      '6 DL/ID Card Numer-1.0.0',
-      "6 DL/ID Card Numer-1.1",
-      "6 DL/ID Card Numer-1.2",
-      "6 DL/ID Card Numer-1.3",
-      "6 DL/ID Card Numer-1.4",
-      "6 DL/ID Card Numer-1.5",
-      "6 DL/ID Card Numer-1.6",
-      "6 DL/ID Card Numer-1.7.0",
-    ],
-    newOwner2License: [
-      '6 DL/ID Card Numer-1.0.1.0',
-      '6 DL/ID Card Numer-1.0.1.1',
-      '6 DL/ID Card Numer-1.0.1.2',
-      '6 DL/ID Card Numer-1.0.1.3',
-      '6 DL/ID Card Numer-1.0.1.4',
-      '6 DL/ID Card Numer-1.0.1.5',
-      '6 DL/ID Card Numer-1.0.1.6',
-      "6 DL/ID Card Numer-1.0.1.7",
-    ],
-    newOwner3License: [
-      '6 DL/ID CArd Number-2.0',
-      '6 DL/ID CArd Number-2.1',
-      '6 DL/ID CArd Number-2.2',
-      '6 DL/ID CArd Number-2.3',
-      '6 DL/ID CArd Number-2.4',
-      '6 DL/ID CArd Number-2.5',
-      '6 DL/ID CArd Number-2.6',
-      '6 DL/ID CArd Number-2.7',
-    ],
-    
-    newOwner1State: '6 DL/ID Card Numer-1.7.1',
-    newOwner2State: '6 state',
-    newOwner3State: 'state-2.8',
-    
-    owner1PhoneArea: '6 area code 1',
-    owner1PhoneMain: 'daytime telephone number',
-    owner2PhoneArea: 'area code 2',
-    owner2PhoneMain: 'daytime number 2',
-    owner3PhoneArea: 'area code 3',
-    owner3PhoneMain: 'daytime number 3',
-    
-    owner1Date: 'date.0',
-    owner2Date: "4 Date-2",
-    
-    owner1DateField1: "date.123", 
-    owner2DateField: 'date 2',   
-    owner3DateField: 'date 3',  
-    
-    purchaseDateMonth: "6 Purchase Price/Market Value",  
-    purchaseDateDay: "Date Purchased",  
-    acquiredYearField: "Acquired Yr",  
-    
-    purchasePriceField: "Purchase price",
-    marketValueField: "market value", 
-    
-    seller1Address: '1 Residence or Business Address.0',
-    seller1Apt: '1 Apt/Space Number-1',
-    seller1City: '1 City-1',
-    seller1StateField: '1 States1',
-    seller1Zip: '1 Zip Code-1',
-    
-    sellerMailingAddress: '1 Mailing Address',
-    sellerMailingApt: '1 Apt/Space Number-2',
-    sellerMailingCity: '1 City-2',
-    sellerMailingState: '1 States2',
-    sellerMailingZip: '1 Zip Code-2.0',
-    
-    newAddress: 'physical residence or business address.0',
-    newAddressApt: '6 Apt/Space Number-1',
-    newAddressCity: '6 City-1',
-    newAddressState: '6 States1',
-    newAddressZip: '6 Zip Code-1',
-    
-    mailingAddress: '6 Mailing Address',
-    mailingAddressApt: '6 Apt/Space Number-2',
-    mailingAddressCity: '6 City-2',
-    mailingAddressState: '6 States 2.0',
-    mailingAddressZip: '6 Zip Code-2.0',
-    
-    lesseeAddressDescription: 'Lessee address, if different from address above',
-    trailerAddressDescription: 'Vessel or trailer coach principally kept at, address or location if different from physical/business address above',
-    
-    lienHolderName: '7 Name New Legal Owner',
-    lienHolderAddress: 'Physical residence or business address.0',
-    lienHolderApt: '7 Apt/Space Number.0',
-    lienHolderCity: '7 City.0',
-    lienHolderState: '7 State.0',
-    lienHolderZip: '7 Zip Code.0',
-    lienHolderElt: [
-      '7 ELT #.0',
-      '7 ELT #.1.0',
-      '7 ELT #.1.1',
-    ],
-
-    lienHolderMailingAddress: 'mailing address',
-    lienHolderMailingApt: '7 Apt/Space Number.1',
-    lienHolderMailingCity: '7 City.1',
-    lienHolderMailingState: '7 State.1',
-    lienHolderMailingZip: '7 Zip Code.1',
-    
-    vehicleLicensePlate2: 'License Plate/CF Number122',
-    vehicleHullId2: 'Vehicle/Vessel ID/Number211',
-    vehicleYear2: 'Year/Make2',
-    
-    vehicleLicensePlate1: 'License Plate/CF Number1',
-    vehicleHullId1: 'Vehicle/Vessel ID/Number1',
-    vehicleYear1: 'Year/Make',
-    appForCheckbox: "App for",
-    appFor2Checkbox: 'App for2',
-    
-    giftCheckbox: 'Gift Box',
-    tradeCheckbox: 'Gift Box1',
-    
-    countyField: 'county.0.0',
-    sellercountyField: 'county residence or county where vehicle or vessle is princi.0',
-    newregownercountyField :'County of residence',
-    
-    owner2AndCheckbox: 'And Box.0',
-    owner2OrCheckbox: 'And Box.1',
-    owner3AndCheckbox: 'And Box1.0',
-    owner3OrCheckbox: 'And Box1.1',
-
-    lostCheckbox: "Check Box1",
-    stolenCheckbox: "Check Box2",
-    mutilatedCheckbox: "Check Box6",
-    notReceivedFromOwnerCheckbox: "Check Box4",
-    notReceivedFromDmvCheckbox: "Check Box5",
-
-    sellerNamePrint: '3 Print Name Legal Owner.0',
-    sellerPhoneArea: 'area code.0',
-    sellerPhoneMain: '3 Daytime Phone Number',
-    sellerDate: '3 Date.0'
-  };
-  
-  const safeSetText = (fieldName: string, value: string) => {
-    try {
-      const field = form.getTextField(fieldName);
-      if (field) {
-        const maxLength = field.getMaxLength();
-        
-        const finalValue = maxLength !== undefined && maxLength > 0 && value.length > maxLength 
-          ? value.substring(0, maxLength) 
-          : value;
-        
-        field.setText(finalValue);
-        console.log(`Successfully filled field: ${fieldName}`);
-      } else {
-        console.warn(`Field not found: ${fieldName}`);
-      }
-    } catch (error) {
-      console.error(`Error filling field ${fieldName}:`, error);
-    }
-  };
-  
-  const safeSetCheckbox = (fieldName: string, value: boolean) => {
-    try {
-      const checkbox = form.getCheckBox(fieldName);
-      if (checkbox) {
-        value ? checkbox.check() : checkbox.uncheck();
-        console.log(`Successfully ${value ? 'checked' : 'unchecked'} checkbox: ${fieldName}`);
-      } else {
-        console.warn(`Checkbox not found: ${fieldName}`);
-      }
-    } catch (error) {
-      console.error(`Error setting checkbox ${fieldName}:`, error);
-    }
-  };
-  
-  const fillCharacterFields = (fieldNames: string[], value: string) => {
-    const chars = value.split('');
-    fieldNames.forEach((fieldName, index) => {
-      if (index < chars.length) {
-        safeSetText(fieldName, chars[index]);
-      } else {
-        safeSetText(fieldName, '');
-      }
-    });
-  };
-
-  
-  
-  const formatAddress = (address: any) => {
-    if (!address) return '';
-    
-    const parts = [
-      address.street,
-      address.apt ? `Apt/Space ${address.apt}` : '',
-      address.city,
-      address.state,
-      address.zip
-    ].filter(Boolean);
-    
-    return parts.join(', ');
-  };
-  
-  const formatPhone = (phoneNumber: string) => {
-    const cleaned = phoneNumber.replace(/\D/g, '');
-    
-    if (cleaned.length < 3) {
-      return { areaCode: '', mainNumber: '' };
-    }
-    
-    const areaCode = cleaned.substring(0, 3);
-    const mainNumber = cleaned.substring(3);
-    
-    return { areaCode, mainNumber };
-  };
-  
-  const sellerInfo = formData.sellerInfo || {};
-  const seller1 = sellerInfo.sellers?.[0] || {};
-  const seller2 = sellerInfo.sellers?.[1] || {};
-  
-  const owners = formData.owners || [];
-  const owner1 = owners[0] || {};
-  const owner2 = owners[1] || {};
-  const owner3 = owners[2] || {};
-  
-  const owner2Exists = Object.keys(owner2).length > 0 && 
-                     (owner2.firstName || owner2.lastName || owner2.licenseNumber);
-  const owner3Exists = Object.keys(owner3).length > 0 && 
-                     (owner3.firstName || owner3.lastName || owner3.licenseNumber);
-  
-  const addressData = formData.address || {};
-  const mailingAddressData = formData.mailingAddress || {};
-  const lesseeAddressData = formData.lesseeAddress || {};
-  const trailerLocationData = formData.trailerLocation || {};
-  const mailingAddressDifferent = formData.mailingAddressDifferent || false;
-  const lesseeAddressDifferent = formData.lesseeAddressDifferent || false;
-  const trailerLocationDifferent = formData.trailerLocationDifferent || false;
-  
-  const sellerAddress = formData.sellerAddress || seller1.address || {};
-  const sellerMailingAddress = formData.sellerMailingAddress || {};
-  const lienHolder = formData.lienHolder || {};
-  const lienHolderAddress = lienHolder.address || {};
-  
-  const legalOwnerInfo = formData.legalOwnerInformation || {};
-  const legalOwnerAddress = legalOwnerInfo.address || {};
-  
-  const vehicleInfo = formData.vehicleInformation || {};
-  
-  const county = formData.trailerLocation?.county || '';
-  const sellerCounty = sellerAddress.county || '';
-  const ownercounty = addressData.county || '';
-  
-  safeSetText(fieldMapping.newregownercountyField, sellerCounty);
-  const hasNewOwner = owners && owners.length > 0;
-  if (hasNewOwner) {
-    safeSetText(fieldMapping.sellercountyField, ownercounty);
-  }
-  const formatSellerName = (seller: any) => {
-    return [
-      seller.lastName?.trim() || '',
-      seller.middleName?.trim() || '',
-      seller.firstName?.trim() || ''
-    ].filter(Boolean).join(', ');
-  };
-  
-  const formatOwnerNamePrint = (owner: any) => {
-    return [
-     
-      owner.lastName?.trim() || '',
-      owner.firstName?.trim() || '',
-      owner.middleName?.trim() || '',
-    ].filter(Boolean).join(', ');
-  };
-  
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '';
-    
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-      return dateString;
-    }
-    
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return dateString;
-      }
-      
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const year = date.getFullYear();
-      
-      return `${month}/${day}/${year}`;
-    } catch (e) {
-      return dateString;
-    }
-  };
-  
-  const extractDateComponents = (dateString: string) => {
-    if (!dateString) return { month: '', day: '', year: '' };
-    
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return { month: '', day: '', year: '' };
-      }
-      
-      return {
-        month: String(date.getMonth() + 1).padStart(2, '0'),
-        day: String(date.getDate()).padStart(2, '0'),
-        year: date.getFullYear().toString()
-      };
-    } catch (e) {
-      return { month: '', day: '', year: '' };
-    }
-  };
-  
-  const formatOwnerName = (owner: any) => {
-    return [
-      owner.firstName?.trim() || '',
-      owner.middleName?.trim() || '',
-      owner.lastName?.trim() || '',
-    ].filter(Boolean).join(' ');
-  };
-  if (Object.keys(seller1).length > 0) {
-    safeSetText(fieldMapping.seller1Name, formatSellerName(seller1));
-    safeSetText(fieldMapping.seller1NamePrint, formatOwnerName(seller1));
-    safeSetText(fieldMapping.seller1State, seller1.state || '');
-
-
-    
-    if (!isSimpleTransfer && !isMultipleTransfer) {
-      safeSetText(fieldMapping.sellerNamePrint, formatOwnerName(seller1));
-      
-      if (seller1.phone) {
-        const { areaCode, mainNumber } = formatPhone(seller1.phone);
-        safeSetText(fieldMapping.sellerPhoneArea, areaCode);
-        safeSetText(fieldMapping.sellerPhoneMain, mainNumber);
-      }
-     
-        const getCurrentDate = () => {
-          const today = new Date();
-          const month = String(today.getMonth() + 1).padStart(2, '0');
-          const day = String(today.getDate()).padStart(2, '0');
-          const year = today.getFullYear();
-          
-          return `${month}/${day}/${year}`;
-        };
-        const currentDate = getCurrentDate();
-        safeSetText(fieldMapping.sellerDate, formatDate(currentDate));
-
-      
-    }
-    
-    if (seller1.licenseNumber) {
-      fillCharacterFields(fieldMapping.seller1License, seller1.licenseNumber);
-    }
-    
-    if (seller1.isGift) {
-      safeSetCheckbox(fieldMapping.giftCheckbox, true);
-    }
-    if (seller1.isTrade) {
-      safeSetCheckbox(fieldMapping.tradeCheckbox, true);
-    }
-    
-    if (seller1.phone) {
-      const { areaCode, mainNumber } = formatPhone(seller1.phone);
-      safeSetText(fieldMapping.seller1PhoneArea, areaCode);
-      safeSetText(fieldMapping.seller1PhoneMain, mainNumber);
-    }
-  }
-  
-  if (Object.keys(seller2).length > 0) {
-    safeSetText(fieldMapping.seller2Name, formatSellerName(seller2));
-    safeSetText(fieldMapping.seller2NamePrint, formatOwnerName(seller2));
-    safeSetText(fieldMapping.seller2State, seller2.state || '');
-    
-    if (seller2.licenseNumber) {
-      fillCharacterFields(fieldMapping.seller2License, seller2.licenseNumber);
-    }
-    
-    if (seller2.phone) {
-      const { areaCode, mainNumber } = formatPhone(seller2.phone);
-      safeSetText(fieldMapping.seller2PhoneArea, areaCode);
-      safeSetText(fieldMapping.seller2PhoneMain, mainNumber);
-    }
-  }
-  
-  if (Object.keys(owner1).length > 0) {
-    safeSetText(fieldMapping.newOwner1Name, formatSellerName(owner1));
-    
-    safeSetText(fieldMapping.newOwner1State, owner1.state || '');
-    
-    if (owner1.licenseNumber) {
-      fillCharacterFields(fieldMapping.newOwner1License, owner1.licenseNumber);
-    }
-    
-    if (owner1.phoneNumber) {
-      const { areaCode, mainNumber } = formatPhone(owner1.phoneNumber);
-      safeSetText(fieldMapping.owner1PhoneArea, areaCode);
-      safeSetText(fieldMapping.owner1PhoneMain, mainNumber);
-    }
-
-    const isGift = formData.vehicleTransactionDetails?.isGift === true;
-
-    
-    if (isGift) {
-      safeSetCheckbox(fieldMapping.giftCheckbox, true);
-    }
-    if (!seller1.isTrade && owner1.isTrade) {
-      safeSetCheckbox(fieldMapping.tradeCheckbox, true);
-    }
-  }
-  
-  if (owner2Exists) {
-    safeSetText(fieldMapping.newOwner2Name, formatSellerName(owner2));
-    safeSetText(fieldMapping.newOwner2State, owner2.state || '');
-    
-    if (owner2.licenseNumber) {
-      fillCharacterFields(fieldMapping.newOwner2License, owner2.licenseNumber);
-    }
-    
-    if (owner2.phoneNumber) {
-      const { areaCode, mainNumber } = formatPhone(owner2.phoneNumber);
-      safeSetText(fieldMapping.owner2PhoneArea, areaCode);
-      safeSetText(fieldMapping.owner2PhoneMain, mainNumber);
-    }
-    
-    if (owner2.relationshipType === 'AND') {
-      safeSetCheckbox(fieldMapping.owner2AndCheckbox, true);
-    } else if (owner2.relationshipType === 'OR') {
-      safeSetCheckbox(fieldMapping.owner3AndCheckbox, true);
-    }
-  }
-  
-  if (owner3Exists) {
-    safeSetText(fieldMapping.newOwner3Name, formatSellerName(owner3));
-    safeSetText(fieldMapping.newOwner3State, owner3.state || '');
-    
-    if (owner3.licenseNumber) {
-      fillCharacterFields(fieldMapping.newOwner3License, owner3.licenseNumber);
-    }
-    
-    if (owner3.phoneNumber) {
-      const { areaCode, mainNumber } = formatPhone(owner3.phoneNumber);
-      safeSetText(fieldMapping.owner3PhoneArea, areaCode);
-      safeSetText(fieldMapping.owner3PhoneMain, mainNumber);
-    }
-    
-    if (owner3.relationshipType === 'AND') {
-      safeSetCheckbox(fieldMapping.owner2OrCheckbox, true);
-    } else if (owner3.relationshipType === 'OR') {
-      safeSetCheckbox(fieldMapping.owner3OrCheckbox, true);
-    }
-  }
-
-  if (formData.missingTitleInfo && formData.missingTitleInfo.reason) {
-    const reason = formData.missingTitleInfo.reason;
-    
-    switch(reason) {
-      case 'Lost':
-        safeSetCheckbox(fieldMapping.lostCheckbox, true);
-        console.log("it is lostttt");
-        break;
-      case 'Stolen':
-        safeSetCheckbox(fieldMapping.stolenCheckbox, true);
-        break;
-      case 'Illegible/Mutilated (Attach old title)':
-        safeSetCheckbox(fieldMapping.mutilatedCheckbox, true);
-        break;
-      case 'Not Received From Prior Owner':
-        safeSetCheckbox(fieldMapping.notReceivedFromOwnerCheckbox, true);
-        break;
-      case 'Not Received From DMV (Allow 30 days from issue date)':
-        safeSetCheckbox(fieldMapping.notReceivedFromDmvCheckbox, true);
-        break;
-      case 'Other':
-        break;
-    }
-  }
-  
-  if (Object.keys(legalOwnerInfo).length > 0) {
-    safeSetText(fieldMapping.legalOwnerName, legalOwnerInfo.name || '');
-    safeSetText(fieldMapping.legalOwnerAddress, legalOwnerAddress.street || '');
-    safeSetText(fieldMapping.legalOwnerApt, legalOwnerAddress.apt || '');
-    safeSetText(fieldMapping.legalOwnerCity, legalOwnerAddress.city || '');
-    safeSetText(fieldMapping.legalOwnerState, legalOwnerAddress.state || '');
-    safeSetText(fieldMapping.legalOwnerZip, legalOwnerAddress.zip || '');
-  } 
-  else {
-    safeSetText(fieldMapping.legalOwnerName, 'NONE');
-  }
-  
-  safeSetText(fieldMapping.seller1Address, sellerAddress.street || '');
-  safeSetText(fieldMapping.seller1Apt, sellerAddress.apt || '');
-  safeSetText(fieldMapping.seller1City, sellerAddress.city || '');
-  safeSetText(fieldMapping.seller1StateField, sellerAddress.state || '');
-  safeSetText(fieldMapping.seller1Zip, sellerAddress.zip || '');
-  
-  if (Object.keys(sellerMailingAddress).length > 0) {
-    safeSetText(fieldMapping.sellerMailingAddress, sellerMailingAddress.street || '');
-    safeSetText(fieldMapping.sellerMailingApt, sellerMailingAddress.poBox || sellerMailingAddress.apt || '');
-    safeSetText(fieldMapping.sellerMailingCity, sellerMailingAddress.city || '');
-    safeSetText(fieldMapping.sellerMailingState, sellerMailingAddress.state || '');
-    safeSetText(fieldMapping.sellerMailingZip, sellerMailingAddress.zip || '');
-  }
-  
-  safeSetText(fieldMapping.newAddress, addressData.street || '');
-  safeSetText(fieldMapping.newAddressApt, addressData.apt || '');
-  safeSetText(fieldMapping.newAddressCity, addressData.city || '');
-  safeSetText(fieldMapping.newAddressState, addressData.state || '');
-  safeSetText(fieldMapping.newAddressZip, addressData.zip || '');
-  
-  safeSetText(fieldMapping.countyField, county);
-  
-  if (mailingAddressDifferent) {
-    safeSetText(fieldMapping.mailingAddress, mailingAddressData.street || '');
-    safeSetText(fieldMapping.mailingAddressApt, mailingAddressData.poBox || '');
-    safeSetText(fieldMapping.mailingAddressCity, mailingAddressData.city || '');
-    safeSetText(fieldMapping.mailingAddressState, mailingAddressData.state || '');
-    safeSetText(fieldMapping.mailingAddressZip, mailingAddressData.zip || '');
-  }
-  
-  if (lesseeAddressDifferent) {
-    const lesseeAddressFormatted = formatAddress(lesseeAddressData);
-    safeSetText(fieldMapping.lesseeAddressDescription, lesseeAddressFormatted);
-  }
-  
-  if (trailerLocationDifferent) {
-    let trailerLocationFormatted = formatAddress(trailerLocationData);
-    safeSetText(fieldMapping.trailerAddressDescription, trailerLocationFormatted);
-  }
-  
- 
-  const purchaseDate = seller1.saleDate || '';
-  const formattedDate = formatDate(purchaseDate);
-  
-  const dateComponents = extractDateComponents(purchaseDate);
-  const getCurrentDate = () => {
-    const today = new Date();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const year = today.getFullYear();
-    
-    return `${month}/${day}/${year}`;
-  };
-  const currentDate = getCurrentDate();
-      safeSetText(fieldMapping.owner1Date, currentDate);
-  if (purchaseDate) {
-   
-    if (hasNewOwner) {
-
-  safeSetText(fieldMapping.owner1DateField1, currentDate);
-  
-  if (owners.length >= 2) {
-    safeSetText(fieldMapping.owner2DateField, currentDate);
-  }
-  
-  if (owners.length >= 3) {
-    safeSetText(fieldMapping.owner3DateField, currentDate);
-  }
-}
-    if (formData.sellerInfo?.sellers && formData.sellerInfo.sellers.length > 1) {
-      safeSetText(fieldMapping.owner2Date, currentDate);
-    }
-    
-    if (owners.length >= 3) {
-      safeSetText(fieldMapping.owner3DateField, formattedDate);
-    }
-if (hasNewOwner) {
-    safeSetText(fieldMapping.purchaseDateMonth, dateComponents.month); 
-    safeSetText(fieldMapping.purchaseDateDay, dateComponents.day);
-    safeSetText(fieldMapping.acquiredYearField, dateComponents.year);
-  }
-
-  }
-  
-  const purchaseValue = owner1.purchaseValue || '';
-  
-  const hasMarketValue = formData.marketValue || owner1.marketValue;
-  
- 
-  
- 
- 
- 
- 
-  
-  if(hasMarketValue) {
-    safeSetText(fieldMapping.marketValueField, hasMarketValue);
-    safeSetText(fieldMapping.purchasePriceField, '');
-  } else {
-    safeSetText(fieldMapping.purchasePriceField, purchaseValue);
-    safeSetText(fieldMapping.marketValueField, '');
-  }
-  
-  if (Object.keys(lienHolder).length > 0 && lienHolder.name) {
-    safeSetText(fieldMapping.lienHolderName, lienHolder.name);
-    safeSetText(fieldMapping.lienHolderAddress, lienHolderAddress.street || '');
-    safeSetText(fieldMapping.lienHolderApt, lienHolderAddress.apt || '');
-    safeSetText(fieldMapping.lienHolderCity, lienHolderAddress.city || '');
-    safeSetText(fieldMapping.lienHolderState, lienHolderAddress.state || '');
-    safeSetText(fieldMapping.lienHolderZip, lienHolderAddress.zip || '');
-
-    if (lienHolder.eltNumber) {
-      const eltDigits = lienHolder.eltNumber.replace(/\D/g, '').slice(0, 3);
-      fillCharacterFields(fieldMapping.lienHolderElt, eltDigits);
-    }
-
-    if (lienHolder.mailingAddress) {
-      safeSetText(fieldMapping.lienHolderMailingAddress, lienHolder.mailingAddress.street || '');
-      safeSetText(fieldMapping.lienHolderMailingApt, lienHolder.mailingAddress.poBox || '');
-      safeSetText(fieldMapping.lienHolderMailingCity, lienHolder.mailingAddress.city || '');
-      safeSetText(fieldMapping.lienHolderMailingState, lienHolder.mailingAddress.state || '');
-      safeSetText(fieldMapping.lienHolderMailingZip, lienHolder.mailingAddress.zip || '');
-    }
-  }
-  else {
-    safeSetText(fieldMapping.lienHolderName, 'NONE');
-  } 
-  
-  let yearMakeValue = '';
-  if (vehicleInfo.year && vehicleInfo.make) {
-    yearMakeValue = `${vehicleInfo.year} ${vehicleInfo.make}`;
-  } else if (vehicleInfo.year) {
-    yearMakeValue = vehicleInfo.year;
-  } else if (vehicleInfo.make) {
-    yearMakeValue = vehicleInfo.make;
-  }
-  
-  safeSetText(fieldMapping.vehicleLicensePlate1, vehicleInfo.licensePlate || '');
-  safeSetText(fieldMapping.vehicleHullId1, vehicleInfo.hullId || '');
-  safeSetText(fieldMapping.vehicleYear1, yearMakeValue);
-  
-  safeSetText(fieldMapping.vehicleLicensePlate2, vehicleInfo.licensePlate || '');
-  safeSetText(fieldMapping.vehicleHullId2, vehicleInfo.hullId || '');
-  safeSetText(fieldMapping.vehicleYear2, yearMakeValue);
-
-  console.log('Transaction Type:', formData.transactionType);
-  
-  if (transactionType === "Lien Holder Removal" || 
-    transactionType === "Lien Holder Addition" || 
-    transactionType === "Duplicate Title Transfer") {
-  console.log('Setting checkbox for App for');
-  safeSetCheckbox(fieldMapping.appForCheckbox, true);
-} else {
-  console.log('Setting checkbox for App for2');
-  safeSetCheckbox(fieldMapping.appFor2Checkbox, true);
-}
-
-
-  form.updateFieldAppearances();
-  pdfDoc.catalog.set(PDFName.of('NeedAppearances'), PDFBool.True);
-  
-  return await pdfDoc.save();
-}
-
-
-
-async function modifyDMVREG262Pdf(fileBytes: ArrayBuffer, formData: any): Promise<Uint8Array> {
-  const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
-  const form = pdfDoc.getForm();
-  const fieldNames = form.getFields().map(f => f.getName());
-  console.log('Available Reg262 PDF Fields:', JSON.stringify(fieldNames, null, 2));
-  const pages = pdfDoc.getPages();
-  const firstPage = pages[0];
-
-  try {
-    const purchaseField = form.getTextField('Text7');
-    if (purchaseField) {
-      const purchaseValue = formData.owners?.purchaseValue || '';
-      purchaseField.setText(purchaseValue.toString());
-      console.log('Successfully set purchase value in Text7 field');
-    } else {
-      console.warn('Text7 field not found, falling back to drawing method');
-      
-      const pages = pdfDoc.getPages();
-      const firstPage = pages[0];
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      
-      firstPage.drawText(formData.owners?.purchaseValue || '', {
-        x: 825, 
-        y: 595, 
-        size: 10,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-    }
-  } catch (error) {
-    console.error('Error setting purchase value:', error);
-  }
-  
-  try {
-    const checkbox = form.getCheckBox('Group1');
-    if (checkbox) {
-      const shouldCheck = !!formData.vehicleInformation.exceedsMechanicalLimit;
-      console.log('Setting checkbox state for Group1:', shouldCheck);
-      
-      if (shouldCheck) {
-        checkbox.isChecked();
-      } else {
-        checkbox.uncheck();
-      }
-      
-      console.log('Successfully set checkbox state for Group1');
-    } else {
-      console.warn('Group1 field not found, falling back to drawing method');
-    }
-  } catch (error) {
-    console.error('Error setting checkbox:', error);
-  }
-  
-  console.log("Drawing text directly on the PDF...");
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  
- 
-  const sellerInfo = formData.sellerInfo || {};
-  const sellers = sellerInfo.sellers || [];
-  let dateText = '';
-  
-  if (sellers && sellers.length > 0 && sellers[0].saleDate) {
-    const purchaseDate = new Date(sellers[0].saleDate);
-    
-    if (!isNaN(purchaseDate.getTime())) {
-      const month = String(purchaseDate.getMonth() + 1).padStart(2, '0'); 
-      const day = String(purchaseDate.getDate()).padStart(2, '0');
-      const year = String(purchaseDate.getFullYear());
-      
-      console.log(`Formatting date: ${month}/${day}/${year}`);
-      
- 
-      firstPage.drawText(month[0], {
-        x: 310, 
-        y: 603, 
-        size: 12,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-      
-      firstPage.drawText(month[1], {
-        x: 315, 
-        y: 603, 
-        size: 12,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-      
- 
-      firstPage.drawText(day[0], {
-        x: 330, 
-        y: 603, 
-        size: 12,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-      
-      firstPage.drawText(day[1], {
-        x: 336, 
-        y: 603, 
-        size: 12,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-      
- 
-      for (let i = 0; i < year.length; i++) {
-        firstPage.drawText(year[i], {
-          x: 350 + (i * 12), 
-          y: 603, 
-          size: 12,
-          font: font,
-          color: rgb(0, 0, 0),
-        });
-      }
-      
-      dateText = `${month}/${day}/${year}`;
-    } else {
-      console.warn('Invalid purchase date format:', sellers[0].saleDate);
-    }
-  } else {
-    console.warn('No purchase date found for owner');
-  }
-  
- 
-  const vehicleInfo = formData.vehicleInformation || {};
-  const mileage = vehicleInfo.mileage || '';
-  
-  if (mileage) {
-    const mileageString = mileage.toString().padStart(6, '0');
-    
-    for (let i = 0; i < 6; i++) {
-      const xPositions = [160, 185, 210, 250, 275, 300]; 
-      const y = 486;
-      
-      if (i < mileageString.length) {
-        firstPage.drawText(mileageString[i], {
-          x: xPositions[i],
-          y: y,
-          size: 12,
-          font: font,
-          color: rgb(0, 0, 0),
-        });
-      }
-    }
-  }
-  
-  const textPositions = {
-    'IDENTIFICATION NUMBER': { x: 100, y: 665 },
-    'YEAR MODEL': { x: 245, y: 665 },
-    'MAKE': { x: 300, y: 665 },
-    'LICENSE PLATE/CF NO': { x: 350, y: 665 },
-    'MOTORCYCLE ENGINE NUMBER': { x: 475, y: 665 },
-    'I/We': { x: 85, y: 625 },
-    'to': { x: 85, y: 599 },
-    'SELLING PRICE': { x: 515, y: 600 },
-    'GIFT RELATIONSHIP': { x: 250, y: 565 }, 
-    'GIFT VALUE': { x: 520, y: 565 }, 
-    'BUYER 1': { x: 80, y: 345 },
-    'BUYER 2': { x: 80, y: 320 },
-    'BUYER 3': { x: 80, y: 300 },
-    'SELLER 1': { x: 80, y: 216 },
-    'SELLER 2': { x: 80, y: 192 },
-    'SELLER 3': { x: 80, y: 168 },
-    'BUYER 1 DOP': { x: 425, y: 345 },
-    'BUYER 2 DOP': { x: 425, y: 320 },
-    'BUYER 3 DOP': { x: 425, y: 300 },
-    'SELLER 1 DOP': { x: 425, y: 216 },
-    'SELLER 2 DOP': { x: 425, y: 192 },
-    'SELLER 3 DOP': { x: 425, y: 168 },
-    'BUYER 1 LICENSE': { x: 490, y: 345 },
-    'BUYER 2 LICENSE': { x: 490, y: 320 },
-    'BUYER 3 LICENSE': { x: 495, y: 300 },
-    'SELLER 1 LICENSE': { x: 490, y: 216 },
-    'SELLER 2 LICENSE': { x: 495, y: 192 },
-    'SELLER 3 LICENSE': { x: 495, y: 168 },
-
-    'BUYER 1 PHONE': { x: 495, y: 275 },
-    'SELLER 1 PHONE': { x: 495, y: 140 },
-    'NOT ACTUAL MILEAGE': { x: 60, y: 530 },
-    'EXCEEDS MECHANICAL LIMITS': { x: 490, y: 530 },
-    'APPOINTER' : { x: 75, y: 105 },
-    'APPOINTEE': { x: 435, y: 105 },
-    'POA DATE 1': { x: 435, y: 60 },
-    'POA DATE 2': { x: 435, y: 37 },
-  };
-
-  const powerOfAttorneyData = formData.powerOfAttorney || {};
-
-  const formatFullName = (person: any) => {
-    if (!person) return '';
-    return [person.firstName, person.middleName, person.lastName].filter(Boolean).join(' ');
-  };
-  
-
-  
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '';
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('en-US', {
-        month: '2-digit',
-        day: '2-digit',
-        year: 'numeric'
-      });
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return dateStr; 
-    }
-  };
-  
-  const owners = formData.owners || [];
-  
- 
-  const seller1SaleDate = sellers.length > 0 ? sellers[0].saleDate : '';
-  
- 
-  const buyerMailingAddressDifferent = formData.mailingAddressDifferent || false;
-  const buyerMailingAddress = buyerMailingAddressDifferent ? 
-                            (formData.mailingAddress || {}) : 
-                            (formData.residenceAddress || {}); 
-  
-  console.log("Buyer mailing address different?", buyerMailingAddressDifferent);
-  console.log("Buyer mailing address:", JSON.stringify(buyerMailingAddress));
-
-  const sellerMailingAddressDifferent = formData.sellerMailingAddressDifferent || false;
-  const sellerMailingAddress = sellerMailingAddressDifferent ? 
-                               (formData.sellerMailingAddress || {}) : 
-                               (formData.sellerResidenceAddress || {}); 
-                            
-  console.log("Seller mailing address different?", sellerMailingAddressDifferent);
-  console.log("Seller mailing address:", JSON.stringify(sellerMailingAddress));
-  
-
- 
-  const sellerAddressToUse = sellerMailingAddress || {};
-  const buyerAddressToUse = buyerMailingAddress || {};
-
-  try {
-    const sellerStreetField = form.getTextField('text_60czib');
-    const sellerCityField = form.getTextField('text_61pxrx');
-    const sellerStateField = form.getTextField('text_62cqaf');
-    const sellerZipField = form.getTextField('text_63psgg');
-    
-    if (sellerStreetField) {
-      sellerStreetField.setText(sellerAddressToUse.street || '');
-      console.log(`Set seller street: ${sellerAddressToUse.street || ''}`);
-    }
-    
-    if (sellerCityField) {
-      sellerCityField.setText(sellerAddressToUse.city || '');
-      console.log(`Set seller city: ${sellerAddressToUse.city || ''}`);
-    }
-    
-    if (sellerStateField) {
-      sellerStateField.setText(sellerAddressToUse.state || '');
-      console.log(`Set seller state: ${sellerAddressToUse.state || ''}`);
-    }
-    
-    if (sellerZipField) {
-      sellerZipField.setText(sellerAddressToUse.zip || '');
-      console.log(`Set seller zip: ${sellerAddressToUse.zip || ''}`);
-    }
-  } catch (error) {
-    console.error('Error setting seller address fields:', error);
-    
- 
-    if (sellerAddressToUse.street) {
-      firstPage.drawText(sellerAddressToUse.street, {
-        x: 45,
-        y: 140,
-        size: 10,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-    }
-    
-    if (sellerAddressToUse.city) {
-      firstPage.drawText(sellerAddressToUse.city, {
-        x: 45,
-        y: 128,
-        size: 10,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-    }
-    
-    if (sellerAddressToUse.state) {
-      firstPage.drawText(sellerAddressToUse.state, {
-        x: 190,
-        y: 128,
-        size: 10,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-    }
-    
-    if (sellerAddressToUse.zip) {
-      firstPage.drawText(sellerAddressToUse.zip, {
-        x: 230,
-        y: 128,
-        size: 10,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-    }
-  }
-  
-
-  try {
-    const ownerStreetField = form.getTextField('text_67vkky');
-    const ownerCityField = form.getTextField('text_66evl');
-    const ownerStateField = form.getTextField('text_65bzof');
-    const ownerZipField = form.getTextField('text_64xthv');
-    
-    if (ownerStreetField) {
-      ownerStreetField.setText(buyerAddressToUse.street || '');
-      console.log(`Set buyer street: ${buyerAddressToUse.street || ''}`);
-    }
-    
-    if (ownerCityField) {
-      ownerCityField.setText(buyerAddressToUse.city || '');
-      console.log(`Set buyer city: ${buyerAddressToUse.city || ''}`);
-    }
-    
-    if (ownerStateField) {
-      ownerStateField.setText(buyerAddressToUse.state || '');
-      console.log(`Set buyer state: ${buyerAddressToUse.state || ''}`);
-    }
-    
-    if (ownerZipField) {
-      ownerZipField.setText(buyerAddressToUse.zip || '');
-      console.log(`Set buyer zip: ${buyerAddressToUse.zip || ''}`);
-    }
-  } catch (error) {
-    console.error('Error setting buyer address fields:', error);
-    
- 
-    if (buyerAddressToUse.street) {
-      firstPage.drawText(buyerAddressToUse.street, {
-        x: 45,
-        y: 274,
-        size: 10,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-    }
-    
-    if (buyerAddressToUse.city) {
-      firstPage.drawText(buyerAddressToUse.city, {
-        x: 45,
-        y: 262,
-        size: 10,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-    }
-    
-    if (buyerAddressToUse.state) {
-      firstPage.drawText(buyerAddressToUse.state, {
-        x: 190,
-        y: 262,
-        size: 10,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-    }
-    
-    if (buyerAddressToUse.zip) {
-      firstPage.drawText(buyerAddressToUse.zip, {
-        x: 230,
-        y: 262,
-        size: 10,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-    }
-  }
-  
-  for (const [label, position] of Object.entries(textPositions)) {
-    let value = '';
-    
-    if (label === 'IDENTIFICATION NUMBER') value = vehicleInfo.hullId || '';
-    else if (label === 'YEAR MODEL') value = vehicleInfo.year || '';
-    else if (label === 'MAKE') {
-      value = vehicleInfo.make || '';
-
-      if (value.length > 7) {
-
-        firstPage.drawText(value, {
-          x: position.x,
-          y: position.y,
-          size: Math.max(6, 10 - (value.length - 7)),
-          font: font,
-          color: rgb(0, 0, 0),
-        });
-
-        continue;
-      }
-    }    else if (label === 'LICENSE PLATE/CF NO') value = vehicleInfo.licensePlate || '';
-    else if (label === 'MOTORCYCLE ENGINE NUMBER') value = vehicleInfo.engineNumber || '';
- 
-    else if (label === 'POA DATE 1') {
-
-      const currentDate = new Date();
-      value = formatDate(currentDate.toISOString());
-      console.log(`Using current date for POA DATE 1: ${value}`);
-    }
-    else if (label === 'POA DATE 2') {
-
-      if (Array.isArray(owners) && owners.length > 1) {
-        const currentDate = new Date();
-        value = formatDate(currentDate.toISOString());
-        console.log(`Using current date for POA DATE 2 (because there are ${owners.length} owners): ${value}`);
-      } else {
-        console.log('Less than 2 new registration owners, skipping POA DATE 2 field');
-        continue;
-      }
-    }
-    if (powerOfAttorneyData.dates && powerOfAttorneyData.dates.length > 2) {
-      console.warn(`Note: Power of Attorney has ${powerOfAttorneyData.dates.length} dates, but only the first 2 will be displayed on the form.`);
-    }  
-    else if (label === 'APPOINTER') {
-      value = powerOfAttorneyData.printNames || '';
-      console.log(`Found appointer value: ${value}`);
-    }
-    
-    else if (label === 'APPOINTEE') {
-      value = powerOfAttorneyData.appointee || '';
-      console.log(`Found appointee value: ${value}`);
-    }
-    else if (label === 'I/We') {
-
-      if (Array.isArray(sellers) && sellers.length > 0) {
-        const sellerNames = sellers.map(seller => formatFullName(seller)).filter(Boolean);
-        value = sellerNames.join(', ');
-        console.log(`Using all sellers for I/We field: ${value}`);
-      }
-    }
-    else if (label === 'to') {
-
-      if (Array.isArray(owners) && owners.length > 0) {
-        const ownerNames = owners.map(owner => formatFullName(owner)).filter(Boolean);
-        value = ownerNames.join(', ');
-        console.log(`Using all owners for 'to' field: ${value}`);
-      }
-    }
-    else if (label === 'SELLING PRICE') {
-      if (Array.isArray(owners) && owners.length > 0 && owners[0].purchaseValue) {
-        value = owners[0].purchaseValue.toString();
-      } else if (formData.purchaseValue) {
-        value = formData.purchaseValue.toString();
-      } else if (typeof owners.purchaseValue !== 'undefined') {
-        value = owners.purchaseValue.toString();
-      } else {
-        console.log("Owner data structure:", JSON.stringify(owners));
-        value = "";
-      }    
-    }
-    else if (label === 'GIFT RELATIONSHIP') {
-      if (Array.isArray(owners) && owners.length > 0) {
-        value = owners[0].relationshipWithGifter || '';
-        console.log(`Found gift relationship: ${value}`);
-      }
-    }
-    else if (label === 'GIFT VALUE') {
-      if (Array.isArray(owners) && owners.length > 0) {
-        value = owners[0].giftValue || '';
-        console.log(`Found gift value: ${value}`);
-      }
-    }
-    else if (label === 'BUYER 1') {
-      if (Array.isArray(owners) && owners.length > 0) {
-        value = formatFullName(owners[0]) || '';
-        console.log(`Found buyer 1 value: ${value}`);
-      }
-    }
-
-    else if (label === 'BUYER 2') {
-      if (Array.isArray(owners) && owners.length > 1) {
-        value = formatFullName(owners[1]) || '';
-        console.log(`Found buyer 2 value: ${value}`);
-      } else {
-        console.log('No buyer 2 found, skipping BUYER 2 field');
-        continue;
-      }
-    }
-
-    else if (label === 'BUYER 3') {
-      if (Array.isArray(owners) && owners.length > 2) {
-        value = formatFullName(owners[2]) || '';
-        console.log(`Found buyer 3 value: ${value}`);
-      } else {
-        console.log('No buyer 3 found, skipping BUYER 3 field');
-        continue;
-      }
-    }
-   
-    else if (label === 'SELLER 1') {
-      if (Array.isArray(sellers) && sellers.length > 0) {
-        value = formatFullName(sellers[0]) || '';
-        console.log(`Found seller 1 value: ${value}`);
-      }
-    }
-
-    else if (label === 'SELLER 2') {
-      if (Array.isArray(sellers) && sellers.length > 1) {
-        value = formatFullName(sellers[1]) || '';
-        console.log(`Found seller 2 value: ${value}`);
-      } else {
-        console.log('No seller 2 found, skipping SELLER 2 field');
-        continue;
-      }
-    }
-
-    else if (label === 'SELLER 3') {
-      if (Array.isArray(sellers) && sellers.length > 2) {
-        value = formatFullName(sellers[2]) || '';
-        console.log(`Found seller 3 value: ${value}`);
-      } else {
-        console.log('No seller 3 found, skipping SELLER 3 field');
-        continue;
-      }
-    }
-    
-
-    else if (label === 'BUYER 1 DOP') {
-      if (Array.isArray(owners) && owners.length > 0) {
-        value = formatDate(seller1SaleDate);
-        console.log(`Using seller1's sale date for BUYER 1 DOP: ${value}`);
-      }
-    }
-    else if (label === 'BUYER 2 DOP') {
-      if (Array.isArray(owners) && owners.length > 1) {
-        value = formatDate(seller1SaleDate);
-        console.log(`Using seller1's sale date for BUYER 2 DOP: ${value}`);
-      } else {
-        console.log('No buyer 2 found, skipping BUYER 2 DOP field');
-        continue;
-      }
-    }
-    else if (label === 'BUYER 3 DOP') {
-      if (Array.isArray(owners) && owners.length > 2) {
-        value = formatDate(seller1SaleDate);
-        console.log(`Using seller1's sale date for BUYER 3 DOP: ${value}`);
-      } else {
-        console.log('No buyer 3 found, skipping BUYER 3 DOP field');
-        continue;
-      }
-    }
-    else if (label === 'SELLER 1 DOP') {
-      if (Array.isArray(sellers) && sellers.length > 0) {
-        value = formatDate(seller1SaleDate);
-        console.log(`Using seller1's sale date for SELLER 1 DOP: ${value}`);
-      }
-    }
-    else if (label === 'SELLER 2 DOP') {
-      if (Array.isArray(sellers) && sellers.length > 1) {
-        value = formatDate(seller1SaleDate);
-        console.log(`Using seller1's sale date for SELLER 2 DOP: ${value}`);
-      } else {
-        console.log('No seller 2 found, skipping SELLER 2 DOP field');
-        continue;
-      }
-    }
-    else if (label === 'SELLER 3 DOP') {
-      if (Array.isArray(sellers) && sellers.length > 2) {
-        value = formatDate(seller1SaleDate);
-        console.log(`Using seller1's sale date for SELLER 3 DOP: ${value}`);
-      } else {
-        console.log('No seller 3 found, skipping SELLER 3 DOP field');
-        continue;
-      }
-    }
-    
-
-    else if (label === 'BUYER 1 LICENSE') {
-      if (Array.isArray(owners) && owners.length > 0) {
-        value = owners[0].licenseNumber || '';
-        console.log(`Found buyer 1 license: ${value}`);
-      }
-    }
-    else if (label === 'BUYER 2 LICENSE') {
-      if (Array.isArray(owners) && owners.length > 1) {
-        value = owners[1].licenseNumber || '';
-        console.log(`Found buyer 2 license: ${value}`);
-      } else {
-        console.log('No buyer 2 found, skipping BUYER 2 LICENSE field');
-        continue;
-      }
-    }
-    else if (label === 'BUYER 3 LICENSE') {
-      if (Array.isArray(owners) && owners.length > 2) {
-        value = owners[2].licenseNumber || '';
-        console.log(`Found buyer 3 license: ${value}`);
-      } else {
-        console.log('No buyer 3 found, skipping BUYER 3 LICENSE field');
-        continue;
-      }
-    }
-    
-    else if (label === 'SELLER 1 LICENSE') {
-      if (Array.isArray(sellers) && sellers.length > 0) {
-        value = sellers[0].licenseNumber || '';
-        console.log(`Found seller 1 license: ${value}`);
-      }
-    }
-    else if (label === 'SELLER 2 LICENSE') {
-      if (Array.isArray(sellers) && sellers.length > 1) {
-        value = sellers[1].licenseNumber || '';
-        console.log(`Found seller 2 license: ${value}`);
-      } else {
-        console.log('No seller 2 found, skipping SELLER 2 LICENSE field');
-        continue;
-      }
-    }
-    else if (label === 'SELLER 3 LICENSE') {
-      if (Array.isArray(sellers) && sellers.length > 2) {
-        value = sellers[2].licenseNumber || '';
-        console.log(`Found seller 3 license: ${value}`);
-      } else {
-        console.log('No seller 3 found, skipping SELLER 3 LICENSE field');
-        continue;
-      }
-    }
-    
-
-    
-    else if (label === 'BUYER 1 PHONE') {
-      if (Array.isArray(owners) && owners.length > 0) {
-        const phoneCode = owners[0].phoneCode || '';
-        const phoneNumber = owners[0].phoneNumber || '';
-        if (phoneCode && phoneNumber) {
-          value = `${phoneCode} ${phoneNumber}`;
-        } else {
-          value = phoneNumber;
-        }
-        console.log(`Found buyer 1 phone: ${value}`);
-      }
-    }
-    
-    else if (label === 'SELLER 1 PHONE') {
-      if (Array.isArray(sellers) && sellers.length > 0) {
-        const phoneCode = sellers[0].phoneCode || '';
-        const phoneNumber = sellers[0].phoneNumber || sellers[0].phone || '';
-        if (phoneCode && phoneNumber) {
-          value = `${phoneCode} ${phoneNumber}`;
-        } else {
-          value = phoneNumber;
-        }
-        console.log(`Found seller 1 phone: ${value}`);
-      }
-    }
-
-    if (value) {
-      console.log(`Drawing text for ${label} at (${position.x}, ${position.y}): "${value}"`);
-      
-
-      let fontSize = 10;
-      
-
-      if ((label === 'I/We' || label === 'to') && value.length > 30) {
-        fontSize = Math.max(6, 10 - ((value.length - 30) / 10));
-        console.log(`Reducing font size for ${label} to ${fontSize} (${value.length} characters)`);
-      }
-      
-      firstPage.drawText(value, {
-        x: position.x,
-        y: position.y,
-        size: fontSize,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-    }
-  }
-  
- 
-  if (vehicleInfo.notActualMileage) {
-    firstPage.drawText('X', {
-      x: 38,
-      y: 442,
-      size: 12,
-      font: font,
-      color: rgb(0, 0, 0),
-    });
-  }
-  
-  if (vehicleInfo.exceedsMechanicalLimit) {
-    firstPage.drawText('X', {
-      x: 312,
-      y: 442,
-      size: 12,
-      font: font,
-      color: rgb(0, 0, 0),
-    });
-  }
-  
-  return await pdfDoc.save();
-}
 
 async function modifyReg256Pdf(fileBytes: ArrayBuffer, formData: any, transactionType?: string): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });

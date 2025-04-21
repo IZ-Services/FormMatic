@@ -4,14 +4,37 @@ import { useFormContext } from '../../app/api/formDataContext/formDataContextPro
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import './LegalOwnerOfRecord.css';
 
- 
+// Base storage key that will be prefixed with transfer index
 export const LEGAL_OWNER_STORAGE_KEY = 'formmatic_legal_owner';
 
- 
-export const clearLegalOwnerStorage = () => {
+// Get the storage key specific to a transfer index
+export const getLegalOwnerStorageKey = (transferIndex?: number) => {
+  if (transferIndex === undefined) {
+    return LEGAL_OWNER_STORAGE_KEY;
+  }
+  return `${LEGAL_OWNER_STORAGE_KEY}_transfer_${transferIndex}`;
+};
+
+// Clear storage for a specific transfer
+export const clearLegalOwnerStorage = (transferIndex?: number) => {
   if (typeof window !== 'undefined') {
+    const storageKey = getLegalOwnerStorageKey(transferIndex);
+    localStorage.removeItem(storageKey);
+    console.log(`Legal owner data cleared from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
+  }
+};
+
+// Clear all legal owner storage (useful for complete reset)
+export const clearAllLegalOwnerStorage = () => {
+  if (typeof window !== 'undefined') {
+    // Clear default
     localStorage.removeItem(LEGAL_OWNER_STORAGE_KEY);
-    console.log('Legal owner data cleared from localStorage');
+    
+    // Clear all numbered transfers (0-4 for max 5 transfers)
+    for (let i = 0; i < 5; i++) {
+      localStorage.removeItem(`${LEGAL_OWNER_STORAGE_KEY}_transfer_${i}`);
+    }
+    console.log('All Legal owner data cleared from localStorage');
   }
 };
 
@@ -87,6 +110,15 @@ interface LegalOwnerProps {
     };
   };
   onChange?: (data: LegalOwnerType) => void;
+  transferIndex?: number; // New prop to identify which transfer this belongs to
+}
+
+interface FormContextType {
+  formData: Record<string, any>;
+  updateField: (section: string, value: any) => void;
+  clearFormTriggered?: number | null;
+  validationErrors: Array<{ fieldPath: string; message: string }>;
+  showValidationErrors: boolean;
 }
 
 const initialAddress: Address = {
@@ -170,13 +202,28 @@ const states = [
   { name: 'Wyoming', abbreviation: 'WY' },
 ];
 
-const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData, onChange }) => {
-  const { formData: contextFormData, updateField, clearFormTriggered } = useFormContext();
+const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ 
+  formData: propFormData, 
+  onChange,
+  transferIndex 
+}) => {
+  const { 
+    formData: contextFormData, 
+    updateField, 
+    clearFormTriggered 
+  } = useFormContext() as FormContextType;
+  
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Get the storage key for this specific transfer
+  const storageKey = getLegalOwnerStorageKey(transferIndex);
   
   const [legalOwnerData, setLegalOwnerData] = useState<LegalOwnerType>(initialLegalOwner);
   const [eltError, setEltError] = useState<string>('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  
+  // To prevent infinite loops with data updates
+  const [lastUpdatedData, setLastUpdatedData] = useState<string>('');
   
   const stateDropdownRef = useRef<HTMLDivElement>(null);
   const mailingStateDropdownRef = useRef<HTMLDivElement>(null);
@@ -185,36 +232,40 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
   const isOutOfStateTitle = formData?.vehicleTransactionDetails?.isOutOfStateTitle === true;
   const isCommercial = formData?.commercialVehicle?.isCommercial === true || formData?.commercialVehicle?.hasLienHolder === true;
   
- 
+  // Determine whether to show mailing address option
   const showMailingOption = isOutOfStateTitle || isCommercial;
 
- 
+  // Handle clear form triggered
   useEffect(() => {
     if (clearFormTriggered) {
-      console.log('Clear form triggered in LegalOwnerOfRecord component');
-      clearLegalOwnerStorage();
+      console.log(`Clear form triggered in LegalOwnerOfRecord component for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
+      clearLegalOwnerStorage(transferIndex);
       setLegalOwnerData(initialLegalOwner);
       
- 
-      updateField('legalOwnerInformation', initialLegalOwner);
+      // Use the appropriate field name based on transfer index
+      const fieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_legalOwnerInformation` 
+        : 'legalOwnerInformation';
+        
+      updateField(fieldName, initialLegalOwner);
       
       if (onChange) {
         onChange(initialLegalOwner);
       }
     }
-  }, [clearFormTriggered]);
+  }, [clearFormTriggered, transferIndex, updateField, onChange]);
   
- 
+  // Load data from localStorage on component mount
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
-        const savedData = localStorage.getItem(LEGAL_OWNER_STORAGE_KEY);
+        const savedData = localStorage.getItem(storageKey);
         
         if (savedData) {
-          console.log("Loading legal owner data from localStorage");
+          console.log(`Loading legal owner data from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
           const parsedData = JSON.parse(savedData);
           
- 
+          // Merge with initialData and prop data
           const mergedData = {
             ...initialLegalOwner,
             ...parsedData,
@@ -223,18 +274,25 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
           
           setLegalOwnerData(mergedData);
           
- 
-          updateField('legalOwnerInformation', mergedData);
+          // Use the appropriate field name based on transfer index
+          const fieldName = transferIndex !== undefined 
+            ? `transfer${transferIndex}_legalOwnerInformation` 
+            : 'legalOwnerInformation';
+            
+          updateField(fieldName, mergedData);
           
           if (onChange) {
             onChange(mergedData);
           }
         } else if (propFormData?.legalOwnerInformation) {
- 
           setLegalOwnerData(propFormData.legalOwnerInformation);
         } else {
- 
-          updateField('legalOwnerInformation', initialLegalOwner);
+          // Use the appropriate field name based on transfer index
+          const fieldName = transferIndex !== undefined 
+            ? `transfer${transferIndex}_legalOwnerInformation` 
+            : 'legalOwnerInformation';
+            
+          updateField(fieldName, initialLegalOwner);
           if (onChange) {
             onChange(initialLegalOwner);
           }
@@ -242,22 +300,30 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
         
         setIsInitialized(true);
       } catch (error) {
-        console.error('Error loading saved legal owner data:', error);
+        console.error(`Error loading saved legal owner data for transfer ${transferIndex !== undefined ? transferIndex : 'default'}:`, error);
         setIsInitialized(true);
         
- 
+        // Fall back to prop data if available
         if (propFormData?.legalOwnerInformation) {
           setLegalOwnerData(propFormData.legalOwnerInformation);
         } else {
-          updateField('legalOwnerInformation', initialLegalOwner);
+          // Use the appropriate field name based on transfer index
+          const fieldName = transferIndex !== undefined 
+            ? `transfer${transferIndex}_legalOwnerInformation` 
+            : 'legalOwnerInformation';
+            
+          updateField(fieldName, initialLegalOwner);
           if (onChange) {
             onChange(initialLegalOwner);
           }
         }
       }
     }
+  // Execute only once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Reset mailing address if showMailingOption becomes false
   useEffect(() => {
     if (!showMailingOption && legalOwnerData.mailingAddressDifferent) {
       const newData = { 
@@ -272,19 +338,32 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
         }
       };
       setLegalOwnerData(newData);
-      updateField('legalOwnerInformation', newData);
       
- 
+      // Use the appropriate field name based on transfer index
+      const fieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_legalOwnerInformation` 
+        : 'legalOwnerInformation';
+        
+      // Only update if data has changed
+      const currentDataStr = JSON.stringify(newData);
+      if (currentDataStr !== lastUpdatedData) {
+        updateField(fieldName, newData);
+        setLastUpdatedData(currentDataStr);
+      }
+      
+      // Save to localStorage
       if (typeof window !== 'undefined') {
-        localStorage.setItem(LEGAL_OWNER_STORAGE_KEY, JSON.stringify(newData));
+        localStorage.setItem(storageKey, JSON.stringify(newData));
       }
       
       if (onChange) {
         onChange(newData);
       }
     }
-  }, [showMailingOption]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showMailingOption, legalOwnerData.mailingAddressDifferent]);
 
+  // Reset all fields if currentLienholder becomes false
   useEffect(() => {
     const hasCurrentLienholder = propFormData?.vehicleTransactionDetails?.currentLienholder === true ||
                                 propFormData?.commercialVehicle?.hasLienHolder === true;
@@ -305,33 +384,58 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
          legalOwnerData.authorizedAgentTitle)) {
       const resetData = { ...initialLegalOwner };
       setLegalOwnerData(resetData);
-      updateField('legalOwnerInformation', resetData);
       
- 
+      // Use the appropriate field name based on transfer index
+      const fieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_legalOwnerInformation` 
+        : 'legalOwnerInformation';
+        
+      // Only update if data has changed
+      const currentDataStr = JSON.stringify(resetData);
+      if (currentDataStr !== lastUpdatedData) {  
+        updateField(fieldName, resetData);
+        setLastUpdatedData(currentDataStr);
+      }
+      
+      // Save to localStorage
       if (typeof window !== 'undefined') {
-        localStorage.setItem(LEGAL_OWNER_STORAGE_KEY, JSON.stringify(resetData));
+        localStorage.setItem(storageKey, JSON.stringify(resetData));
       }
       
       if (onChange) {
         onChange(resetData);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propFormData?.vehicleTransactionDetails?.currentLienholder, propFormData?.commercialVehicle?.hasLienHolder]); 
 
+  // Update from props if they change
   useEffect(() => {
-    if (isInitialized && propFormData?.legalOwnerInformation) {
+    if (isInitialized && propFormData?.legalOwnerInformation && 
+        JSON.stringify(propFormData.legalOwnerInformation) !== JSON.stringify(legalOwnerData)) {
       setLegalOwnerData(propFormData.legalOwnerInformation);
     }
-  }, [propFormData, isInitialized]);
+  }, [propFormData, isInitialized, legalOwnerData]);
 
   const handleInfoChange = (field: keyof LegalOwnerType, value: any) => {
     const newData = { ...legalOwnerData, [field]: value };
     setLegalOwnerData(newData);
-    updateField('legalOwnerInformation', newData);
     
- 
+    // Use the appropriate field name based on transfer index
+    const fieldName = transferIndex !== undefined 
+      ? `transfer${transferIndex}_legalOwnerInformation` 
+      : 'legalOwnerInformation';
+      
+    // Only update if data has changed
+    const currentDataStr = JSON.stringify(newData);
+    if (currentDataStr !== lastUpdatedData) {
+      updateField(fieldName, newData);
+      setLastUpdatedData(currentDataStr);
+    }
+    
+    // Save to localStorage
     if (typeof window !== 'undefined') {
-      localStorage.setItem(LEGAL_OWNER_STORAGE_KEY, JSON.stringify(newData));
+      localStorage.setItem(storageKey, JSON.stringify(newData));
     }
     
     if (onChange) {
@@ -354,11 +458,22 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
     }
     
     setLegalOwnerData(newData);
-    updateField('legalOwnerInformation', newData);
     
- 
+    // Use the appropriate field name based on transfer index
+    const fieldName = transferIndex !== undefined 
+      ? `transfer${transferIndex}_legalOwnerInformation` 
+      : 'legalOwnerInformation';
+      
+    // Only update if data has changed
+    const currentDataStr = JSON.stringify(newData);
+    if (currentDataStr !== lastUpdatedData) {
+      updateField(fieldName, newData);
+      setLastUpdatedData(currentDataStr);
+    }
+    
+    // Save to localStorage
     if (typeof window !== 'undefined') {
-      localStorage.setItem(LEGAL_OWNER_STORAGE_KEY, JSON.stringify(newData));
+      localStorage.setItem(storageKey, JSON.stringify(newData));
     }
     
     if (onChange) {
@@ -388,11 +503,22 @@ const LegalOwnerOfRecord: React.FC<LegalOwnerProps> = ({ formData: propFormData,
       [field]: value
     };
     setLegalOwnerData(newData);
-    updateField('legalOwnerInformation', newData);
     
- 
+    // Use the appropriate field name based on transfer index
+    const fieldName = transferIndex !== undefined 
+      ? `transfer${transferIndex}_legalOwnerInformation` 
+      : 'legalOwnerInformation';
+      
+    // Only update if data has changed
+    const currentDataStr = JSON.stringify(newData);
+    if (currentDataStr !== lastUpdatedData) {
+      updateField(fieldName, newData);
+      setLastUpdatedData(currentDataStr);
+    }
+    
+    // Save to localStorage
     if (typeof window !== 'undefined') {
-      localStorage.setItem(LEGAL_OWNER_STORAGE_KEY, JSON.stringify(newData));
+      localStorage.setItem(storageKey, JSON.stringify(newData));
     }
     
     if (onChange) {

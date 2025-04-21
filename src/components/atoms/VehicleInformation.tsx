@@ -39,7 +39,42 @@ interface VehicleInformationProps {
   };
   onChange?: (data: VehicleInformationType) => void;
   isDuplicateRegistrationMode?: boolean;
+  transferIndex?: number; // New prop to identify which transfer this belongs to
 }
+
+// Base storage key that will be prefixed with transfer index
+export const VEHICLE_INFORMATION_STORAGE_KEY = 'formmatic_vehicle_information';
+
+// Get the storage key specific to a transfer index
+export const getVehicleInformationStorageKey = (transferIndex?: number) => {
+  if (transferIndex === undefined) {
+    return VEHICLE_INFORMATION_STORAGE_KEY;
+  }
+  return `${VEHICLE_INFORMATION_STORAGE_KEY}_transfer_${transferIndex}`;
+};
+
+// Clear storage for a specific transfer
+export const clearVehicleInformationStorage = (transferIndex?: number) => {
+  if (typeof window !== 'undefined') {
+    const storageKey = getVehicleInformationStorageKey(transferIndex);
+    localStorage.removeItem(storageKey);
+    console.log(`Vehicle Information data cleared from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
+  }
+};
+
+// Clear all Vehicle Information storage (useful for complete reset)
+export const clearAllVehicleInformationStorage = () => {
+  if (typeof window !== 'undefined') {
+    // Clear default
+    localStorage.removeItem(VEHICLE_INFORMATION_STORAGE_KEY);
+    
+    // Clear all numbered transfers (0-4 for max 5 transfers)
+    for (let i = 0; i < 5; i++) {
+      localStorage.removeItem(`${VEHICLE_INFORMATION_STORAGE_KEY}_transfer_${i}`);
+    }
+    console.log('All Vehicle Information data cleared from localStorage');
+  }
+};
 
 // Form context type with validation properties
 interface FormContextType {
@@ -47,6 +82,7 @@ interface FormContextType {
   updateField: (field: string, value: any) => void;
   validationErrors: Array<{ fieldPath: string; message: string }>;
   showValidationErrors: boolean;
+  clearFormTriggered: number | null;
 }
 
 const initialVehicleInformation: VehicleInformationType = {
@@ -72,33 +108,114 @@ const initialVehicleInformation: VehicleInformationType = {
 const VehicleInformation: React.FC<VehicleInformationProps> = ({ 
   formData: propFormData, 
   onChange,
-  isDuplicateRegistrationMode = false
+  isDuplicateRegistrationMode = false,
+  transferIndex
 }) => {
   const { 
     formData: contextFormData, 
     updateField,
     validationErrors,
-    showValidationErrors 
+    showValidationErrors,
+    clearFormTriggered
   } = useFormContext() as FormContextType;
   
   const { activeScenarios } = useScenarioContext();
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [vehicleInformationData, setVehicleInformationData] = useState<VehicleInformationType>(initialVehicleInformation);
 
   const formData = {
     ...contextFormData,
     ...propFormData
   };
 
+  // Get the storage key for this specific transfer
+  const storageKey = getVehicleInformationStorageKey(transferIndex);
+
+  // Handle form clearing
+  useEffect(() => {
+    if (clearFormTriggered !== null && clearFormTriggered > 0) {
+      console.log(`Clear form triggered in VehicleInformation component for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
+      clearVehicleInformationStorage(transferIndex);
+      setVehicleInformationData(initialVehicleInformation);
+      
+      // Using the appropriate field name based on transfer index
+      const fieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_vehicleInformation` 
+        : 'vehicleInformation';
+        
+      updateField(fieldName, initialVehicleInformation);
+    }
+  }, [clearFormTriggered, transferIndex, updateField]);
+
+  // Initialize data from localStorage or props
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isInitialized) {
+      try {
+        const savedData = localStorage.getItem(storageKey);
+        
+        if (savedData) {
+          console.log(`Loading vehicle information data from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
+          const parsedData = JSON.parse(savedData);
+          
+          const mergedData = {
+            ...initialVehicleInformation,
+            ...parsedData
+          };
+          
+          setVehicleInformationData(mergedData);
+          
+          // Use the appropriate field name based on transfer index
+          const fieldName = transferIndex !== undefined 
+            ? `transfer${transferIndex}_vehicleInformation` 
+            : 'vehicleInformation';
+            
+          updateField(fieldName, mergedData);
+          
+          if (onChange) {
+            onChange(mergedData);
+          }
+        } else if (formData.vehicleInformation) {
+          setVehicleInformationData(formData.vehicleInformation);
+        }
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error(`Error loading saved vehicle information data for transfer ${transferIndex !== undefined ? transferIndex : 'default'}:`, error);
+        setIsInitialized(true);
+      }
+    }
+  }, [formData, storageKey, transferIndex, onChange, updateField, isInitialized]);
+
+  // Update from props when they change
+  useEffect(() => {
+    if (isInitialized && formData.vehicleInformation && JSON.stringify(formData.vehicleInformation) !== JSON.stringify(vehicleInformationData)) {
+      setVehicleInformationData(formData.vehicleInformation);
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(storageKey, JSON.stringify(formData.vehicleInformation));
+      }
+    }
+  }, [formData.vehicleInformation, isInitialized, storageKey, vehicleInformationData]);
+
   // Helper functions for validation
   const shouldShowValidationError = (field: string) => {
     if (!showValidationErrors) return false;
     
-    return validationErrors.some(error => 
-      error.fieldPath === `vehicleInformation.${field}`
-    );
+    // Adjust the validation path based on transferIndex
+    const fieldPath = transferIndex !== undefined
+      ? `transfer${transferIndex}_vehicleInformation.${field}`
+      : `vehicleInformation.${field}`;
+    
+    return validationErrors.some(error => error.fieldPath === fieldPath);
   };
   
   const getValidationErrorMessage = (field: string): string => {
-    const error = validationErrors.find(e => e.fieldPath === `vehicleInformation.${field}`);
+    // Adjust the validation path based on transferIndex
+    const fieldPath = transferIndex !== undefined
+      ? `transfer${transferIndex}_vehicleInformation.${field}`
+      : `vehicleInformation.${field}`;
+    
+    const error = validationErrors.find(e => e.fieldPath === fieldPath);
     return error ? error.message : '';
   };
 
@@ -126,51 +243,83 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
   const isOutOfStateTitle = formData.vehicleTransactionDetails?.isOutOfStateTitle === true;
 
   useEffect(() => {
-    if (!formData.vehicleInformation) {
+    if (!formData.vehicleInformation && isInitialized) {
       const newData = initialVehicleInformation;
-      updateField('vehicleInformation', newData);
+      
+      // Use the appropriate field name based on transfer index
+      const fieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_vehicleInformation` 
+        : 'vehicleInformation';
+      
+      updateField(fieldName, newData);
       if (onChange) {
         onChange(newData);
       }
     }
-  }, []);
+  }, [formData.vehicleInformation, isInitialized]);
 
   useEffect(() => {
-    const currentInfo = (formData.vehicleInformation || {}) as VehicleInformationType;
-    
-    if (!isOutOfStateTitle && currentInfo.isKilometers) {
-      const newInfo = {
-        ...currentInfo,
-        isKilometers: false
-      };
-      updateField('vehicleInformation', newInfo);
-      if (onChange) {
-        onChange(newInfo);
+    if (isInitialized) {
+      const currentInfo = vehicleInformationData;
+      
+      if (!isOutOfStateTitle && currentInfo.isKilometers) {
+        const newInfo = {
+          ...currentInfo,
+          isKilometers: false
+        };
+        
+        setVehicleInformationData(newInfo);
+        
+        // Use the appropriate field name based on transfer index
+        const fieldName = transferIndex !== undefined 
+          ? `transfer${transferIndex}_vehicleInformation` 
+          : 'vehicleInformation';
+        
+        updateField(fieldName, newInfo);
+        
+        if (onChange) {
+          onChange(newInfo);
+        }
+        
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(storageKey, JSON.stringify(newInfo));
+        }
       }
     }
-  }, [isOutOfStateTitle]);
+  }, [isOutOfStateTitle, isInitialized]);
 
   const handleVehicleInfoChange = (field: keyof VehicleInformationType, value: string | boolean) => {
-    const currentInfo = (formData.vehicleInformation || {}) as VehicleInformationType;
     let newInfo: VehicleInformationType;
     
     if (field === 'notActualMileage' && value === true) {
       newInfo = { 
-        ...currentInfo, 
+        ...vehicleInformationData, 
         [field]: value, 
         exceedsMechanicalLimit: false 
       };
     } else if (field === 'exceedsMechanicalLimit' && value === true) {
       newInfo = { 
-        ...currentInfo, 
+        ...vehicleInformationData, 
         [field]: value, 
         notActualMileage: false 
       };
     } else {
-      newInfo = { ...currentInfo, [field]: value };
+      newInfo = { ...vehicleInformationData, [field]: value };
     }
     
-    updateField('vehicleInformation', newInfo);
+    setVehicleInformationData(newInfo);
+    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(storageKey, JSON.stringify(newInfo));
+    }
+    
+    // Use the appropriate field name based on transfer index
+    const fieldName = transferIndex !== undefined 
+      ? `transfer${transferIndex}_vehicleInformation` 
+      : 'vehicleInformation';
+    
+    updateField(fieldName, newInfo);
+    
     if (onChange) {
       onChange(newInfo);
     }
@@ -189,7 +338,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
               className={`yearInput ${shouldShowValidationError('engineNumber') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Motorcycle Engine Number"
-              value={((formData.vehicleInformation as VehicleInformationType)?.engineNumber || '').toUpperCase()}
+              value={(vehicleInformationData?.engineNumber || '').toUpperCase()}
               onChange={(e) => handleVehicleInfoChange('engineNumber', e.target.value.toUpperCase())}
             />
             {shouldShowValidationError('engineNumber') && (
@@ -203,7 +352,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             className={`makeInput ${shouldShowValidationError('hullId') ? 'validation-error' : ''}`}
             type="text"
             placeholder="Vehicle/ Hull Identification Number"
-            value={((formData.vehicleInformation as VehicleInformationType)?.hullId || '').toUpperCase()}
+            value={(vehicleInformationData?.hullId || '').toUpperCase()}
             onChange={(e) => handleVehicleInfoChange('hullId', e.target.value.toUpperCase())}
           />
           {shouldShowValidationError('hullId') && (
@@ -216,7 +365,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             className={`odometerInput ${shouldShowValidationError('licensePlate') ? 'validation-error' : ''}`}
             type="text"
             placeholder="Vehicle License Plate or Vessel CF Number"
-            value={((formData.vehicleInformation as VehicleInformationType)?.licensePlate || '').toUpperCase()}
+            value={(vehicleInformationData?.licensePlate || '').toUpperCase()}
             onChange={(e) => handleVehicleInfoChange('licensePlate', e.target.value.toUpperCase())}
           />
           {shouldShowValidationError('licensePlate') && (
@@ -232,7 +381,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             className={`yearInput ${shouldShowValidationError('year') ? 'validation-error' : ''}`}
             type="text"
             placeholder="Year of Vehicle"
-            value={(formData.vehicleInformation as VehicleInformationType)?.year || ''}
+            value={vehicleInformationData?.year || ''}
             onChange={(e) => {
               const value = e.target.value.replace(/[^\d]/g, '').slice(0, 4);
               handleVehicleInfoChange('year', value);
@@ -249,7 +398,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             className={`makeInput ${shouldShowValidationError('make') ? 'validation-error' : ''}`}
             type="text"
             placeholder="Make of Vehicle OR Vessel Builder"
-            value={(formData.vehicleInformation as VehicleInformationType)?.make || ''}
+            value={vehicleInformationData?.make || ''}
             onChange={(e) => {
               const value = e.target.value;
               if (value.length > 0) {
@@ -283,7 +432,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
               className={`yearInput ${shouldShowValidationError('length') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Length in inches"
-              value={(formData.vehicleInformation as VehicleInformationType)?.length || ''}
+              value={vehicleInformationData?.length || ''}
               onChange={(e) => {
                 const value = e.target.value;
                 const numericValue = value.replace(/[^0-9]/g, '');
@@ -300,7 +449,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
               className={`makeInput ${shouldShowValidationError('width') ? 'validation-error' : ''}`}
               type="text"
               placeholder="Width in inches"
-              value={(formData.vehicleInformation as VehicleInformationType)?.width || ''}
+              value={vehicleInformationData?.width || ''}
               onChange={(e) => {
                 const value = e.target.value;
                 const numericValue = value.replace(/[^0-9]/g, '');
@@ -324,7 +473,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
                 className={`yearInput ${shouldShowValidationError('mileage') ? 'validation-error' : ''}`}
                 type="text"
                 placeholder="Vehicle Mileage"
-                value={(formData.vehicleInformation as VehicleInformationType)?.mileage || ''}
+                value={vehicleInformationData?.mileage || ''}
                 onChange={(e) => {
                   const value = e.target.value;
                   const numericValue = value.replace(/[^0-9]/g, '');
@@ -344,10 +493,10 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             <label className="checkboxLabel">
               <input
                 type="checkbox"
-                checked={(formData.vehicleInformation as VehicleInformationType)?.notActualMileage || false}
+                checked={vehicleInformationData?.notActualMileage || false}
                 onChange={(e) => handleVehicleInfoChange('notActualMileage', e.target.checked)}
                 className="checkboxInput"
-                disabled={(formData.vehicleInformation as VehicleInformationType)?.exceedsMechanicalLimit || false}
+                disabled={vehicleInformationData?.exceedsMechanicalLimit || false}
               />
               NOT Actual Mileage
             </label>
@@ -355,10 +504,10 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
             <label className="checkboxLabel">
               <input
                 type="checkbox"
-                checked={(formData.vehicleInformation as VehicleInformationType)?.exceedsMechanicalLimit || false}
+                checked={vehicleInformationData?.exceedsMechanicalLimit || false}
                 onChange={(e) => handleVehicleInfoChange('exceedsMechanicalLimit', e.target.checked)}
                 className="checkboxInput"
-                disabled={(formData.vehicleInformation as VehicleInformationType)?.notActualMileage || false}
+                disabled={vehicleInformationData?.notActualMileage || false}
               />
               Mileage Exceeds Mechanical Limit
             </label>
@@ -369,7 +518,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
                 <label className="checkboxLabel">
                   <input
                     type="checkbox"
-                    checked={(formData.vehicleInformation as VehicleInformationType)?.isKilometers || false}
+                    checked={vehicleInformationData?.isKilometers || false}
                     onChange={(e) => handleVehicleInfoChange('isKilometers', e.target.checked)}
                     className="checkboxInput"
                     style={{ marginRight: '5px' }}

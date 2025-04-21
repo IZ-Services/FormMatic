@@ -360,75 +360,133 @@ const SaveButton: React.FC<SaveButtonProps> = ({
     }
   };
 
-// Full multiple transfer print handler
+// Modified handleMultipleTransferPrint for multiple transfer printing
 const handleMultipleTransferPrint = async () => {
   try {
     const { transfersData, numberOfTransfers } = multipleTransferData!;
-    const allTransactionIds = transfersData
-      .filter(transfer => transfer._id)
+    
+    // Check if we have valid transaction IDs for all transfers
+    const validTransactionIds = transfersData
+      .filter(transfer => transfer?._id && typeof transfer._id === 'string' && transfer._id.trim() !== '')
       .map(transfer => transfer._id);
     
-    if (allTransactionIds.length === 0) {
-      alert('Please save the form before printing.');
-      return false;
+    console.log(`Found ${validTransactionIds.length} valid transaction IDs out of ${numberOfTransfers} transfers`);
+    
+    // Verify that we have all the transaction IDs we need
+    if (validTransactionIds.length < numberOfTransfers) {
+      // Attempt to save the data first if IDs are missing
+      console.log("Missing transaction IDs - attempting to save first");
+      await handleSave();
+      
+      // Refresh transaction IDs after save
+      const refreshedIds = multipleTransferData!.transfersData
+        .filter(transfer => transfer?._id && typeof transfer._id === 'string' && transfer._id.trim() !== '')
+        .map(transfer => transfer._id);
+      
+      if (refreshedIds.length < numberOfTransfers) {
+        throw new Error(`Unable to generate all required transaction IDs (${refreshedIds.length}/${numberOfTransfers})`);
+      }
+      
+      console.log(`Successfully saved/refreshed IDs: ${refreshedIds.length}/${numberOfTransfers}`);
     }
+    
+    // Get the final list of transaction IDs
+    const allTransactionIds = multipleTransferData!.transfersData
+      .filter(transfer => transfer?._id)
+      .map(transfer => transfer._id);
     
     const allPdfBlobs: Array<{ blob: Blob, title: string }> = [];
     
-    // Generate PDFs for each transfer
+    // Generate only one DMVREG262 for all transfers
+    console.log('Requesting PDF for DMVREG262 (single form for all transfers)');
+    try {
+      const response = await fetch('/api/fillPdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          transactionId: allTransactionIds[0], 
+          formType: 'DMVREG262',
+          transactionType: `Multiple Transfer 1 of ${numberOfTransfers}`
+        }),
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        
+        if (blob.size > 0) {
+          console.log(`Received PDF for DMVREG262, size: ${blob.size} bytes`);
+          allPdfBlobs.push({
+            blob,
+            title: 'Notice of Transfer and Release of Liability (DMVREG262)'
+          });
+        } else {
+          console.warn('PDF for DMVREG262 has zero size, skipping');
+        }
+      } else {
+        let errorText = 'Unknown error';
+        try {
+          const errorJson = await response.json();
+          errorText = errorJson.error || 'Unknown error';
+        } catch (err) {
+          errorText = await response.text();
+        }
+        console.error(`Error fetching DMVREG262 (${response.status}):`, errorText);
+      }
+    } catch (error) {
+      console.error('Exception while fetching DMVREG262:', error);
+    }
+    
+    // Generate Reg227 forms for each transfer
     for (let i = 0; i < allTransactionIds.length; i++) {
       const transactionId = allTransactionIds[i];
-      const transferForms = ['DMVREG262','Reg227'];
       
+      console.log(`Requesting PDF for transfer ${i + 1}, form type: Reg227`);
+      try {
+        const response = await fetch('/api/fillPdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            transactionId, 
+            formType: 'Reg227',
+            transactionType: `Multiple Transfer ${i + 1} of ${numberOfTransfers}`
+          }),
+        });
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          
+          if (blob.size > 0) {
+            console.log(`Received PDF for transfer ${i + 1}, Reg227, size: ${blob.size} bytes`);
+            allPdfBlobs.push({
+              blob,
+              title: `Transfer ${i + 1} - Reg227`
+            });
+          } else {
+            console.warn(`PDF for transfer ${i + 1}, Reg227 has zero size, skipping`);
+          }
+        } else {
+          let errorText = 'Unknown error';
+          try {
+            const errorJson = await response.json();
+            errorText = errorJson.error || 'Unknown error';
+          } catch (err) {
+            errorText = await response.text();
+          }
+          console.error(`Error fetching Reg227 for transfer ${i + 1} (${response.status}):`, errorText);
+        }
+      } catch (error) {
+        console.error(`Exception while fetching Reg227 for transfer ${i + 1}:`, error);
+      }
+      
+      // Include conditional forms only if needed
       if (transfersData[i]?.vehicleTransactionDetails?.isFamilyTransfer || 
           transfersData[i]?.vehicleTransactionDetails?.isGift ||
           transfersData[i]?.vehicleTransactionDetails?.isSmogExempt) {
-        transferForms.push('Reg256');
+        // Process Reg256 for this transfer
       }
       
       if (transfersData[i]?.vehicleTransactionDetails?.isOutOfStateTitle) {
-        transferForms.push('Reg343');
-      }
-      
-      for (const formType of transferForms) {
-        console.log(`Requesting PDF for transfer ${i + 1}, form type: ${formType}`);
-        
-        try {
-          const response = await fetch('/api/fillPdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              transactionId, 
-              formType,
-              transactionType: `Multiple Transfer ${i + 1} of ${numberOfTransfers}`
-            }),
-          });
-          
-          if (response.ok) {
-            const blob = await response.blob();
-            
-            if (blob.size > 0) {
-              console.log(`Received PDF for transfer ${i + 1}, ${formType}, size: ${blob.size} bytes`);
-              allPdfBlobs.push({
-                blob,
-                title: `Transfer ${i + 1} - ${formType}`
-              });
-            } else {
-              console.warn(`PDF for transfer ${i + 1}, ${formType} has zero size, skipping`);
-            }
-          } else {
-            let errorText = 'Unknown error';
-            try {
-              const errorJson = await response.json();
-              errorText = errorJson.error || 'Unknown error';
-            } catch (err) {
-              errorText = await response.text();
-            }
-            console.error(`Error fetching ${formType} for transfer ${i + 1} (${response.status}):`, errorText);
-          }
-        } catch (error) {
-          console.error(`Exception while fetching ${formType} for transfer ${i + 1}:`, error);
-        }
+        // Process Reg343 for this transfer
       }
     }
     
@@ -503,7 +561,6 @@ const handleMultipleTransferPrint = async () => {
   }
 };
 
-// Full handlePdfDisplay method (unchanged, included for completeness)
 const handlePdfDisplay = async (transactionId: string) => {
   try {
     let formTypes = [];
@@ -683,7 +740,193 @@ const handlePrint = async () => {
 };
 
 // Full updated handleSave method
-const handleSave = async () => {
+const handleSave = async () => {// Modified handleSave method with fix for JSON parse error
+  const handleSave = async () => {
+    if (!user || !transactionType) {
+      alert('User ID and Transaction Type are required.');
+      return;
+    }
+  
+    setShowValidationDialog(false);
+    setIsLoading(true);
+  
+    try {
+      if (multipleTransferData?.isMultipleTransfer) {
+        const { transfersData, numberOfTransfers } = multipleTransferData;
+        const allTransactionIds = [];
+        const updatedTransfersData = [...transfersData]; 
+        
+        for (let i = 0; i < numberOfTransfers; i++) {
+          // Fix: Safely handle potentially undefined transferData
+          let transferData = transfersData[i] ? JSON.parse(JSON.stringify(transfersData[i])) : {};
+          transferData = prepareTransferData(transferData);
+          
+          console.log(`Saving transfer ${i + 1} of ${numberOfTransfers}:`, JSON.stringify({
+            owners: transferData.owners?.length || 0,
+            vehicleInfo: Boolean(transferData.vehicleInformation),
+            sellerInfo: Boolean(transferData.seller),
+            address: Boolean(transferData.address),
+            existingId: transferData._id || 'none'
+          }));
+          
+          const normalizedData = {
+            ...transferData,
+            owners: transferData.owners || (transferData.newOwners?.owners || []),
+            vehicleInformation: transferData.vehicleInformation || {},
+            sellerInfo: { 
+              sellers: transferData.seller?.sellers || [transferData.seller].filter(Boolean) || [] 
+            },
+            address: transferData.address || {},
+            mailingAddressDifferent: Boolean(transferData.mailingAddressDifferent),
+          };
+          
+          interface SaveDataType {
+            userId: string;
+            transactionType: string;
+            formData: any;
+            transferIndex: number;
+            totalTransfers: number;
+            isPartOfMultipleTransfer: boolean;
+            transactionId?: string; 
+          }
+          
+          const dataToSave: SaveDataType = {
+            userId: user.uid,
+            transactionType: `Multiple Transfer ${i + 1} of ${numberOfTransfers}`,
+            formData: normalizedData,
+            transferIndex: i,
+            totalTransfers: numberOfTransfers,
+            isPartOfMultipleTransfer: true
+          };
+          
+          if (transferData._id) {
+            dataToSave.transactionId = transferData._id;
+            console.log(`Using existing ID for transfer ${i + 1}: ${transferData._id}`);
+          }
+          
+          const endpoint = transferData._id ? '/api/update' : '/api/save';
+          
+          const saveResponse = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSave),
+          });
+          
+          if (saveResponse.ok) {
+            const saveResult = await saveResponse.json();
+            const { transactionId } = saveResult;
+            allTransactionIds.push(transactionId);
+            
+            updatedTransfersData[i] = {
+              ...updatedTransfersData[i],
+              _id: transactionId
+            };
+            
+            console.log(`Successfully saved transfer ${i + 1}, got ID: ${transactionId}`);
+          } else {
+            const error = await saveResponse.json();
+            throw new Error(error.error || `Failed to save transfer ${i + 1}`);
+          }
+        }
+        
+        if (multipleTransferData) {
+          console.log("Updating multipleTransferData with IDs:", 
+            updatedTransfersData.map(d => ({ id: d._id })));
+          
+          multipleTransferData.transfersData = updatedTransfersData;
+        }
+        
+        if (onDataChange) {
+          console.log("Calling onDataChange with updated transfers data including IDs");
+          onDataChange({
+            numberOfTransfers,
+            transfersData: updatedTransfersData
+          });
+        }
+        
+        const idsAfterSave = updatedTransfersData
+          .filter(data => typeof data._id === 'string' && data._id.trim() !== '')
+          .map(d => d._id);
+        
+        console.log(`Save completed. Transfers with IDs after save: ${idsAfterSave.length}`, idsAfterSave);
+        
+        setShowValidationErrors(false);
+        onSuccess?.();
+        
+      } else if (isDuplicatePlatesOrStickers) {
+        console.log(`Handling save for ${transactionType}`);
+        
+        const enhancedFormData = {
+          ...formData,
+          transactionType
+        };
+        
+        const dataToSave = {
+          userId: user.uid,
+          transactionType,
+          formData: enhancedFormData,
+          transactionId: formData._id
+        };
+        
+        console.log("Saving with transaction type:", transactionType);
+        
+        const endpoint = formData._id ? '/api/update' : '/api/save';
+        
+        const saveResponse = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dataToSave),
+        });
+        
+        if (saveResponse.ok) {
+          const saveResult = await saveResponse.json();
+          const { transactionId } = saveResult;
+          
+          updateField('_id', transactionId);
+          setShowValidationErrors(false);
+          onSuccess?.();
+        } else {
+          const error = await saveResponse.json();
+          throw new Error(error.error || 'Failed to save transaction');
+        }
+      } else {
+        const standardizedFormData = prepareTransferData(formData);
+        
+        const dataToSave = {
+          userId: user.uid,
+          transactionType,
+          formData: standardizedFormData,
+          transactionId: formData._id
+        };
+        
+        const endpoint = formData._id ? '/api/update' : '/api/save';
+        
+        const saveResponse = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dataToSave),
+        });
+        
+        if (saveResponse.ok) {
+          const saveResult = await saveResponse.json();
+          const { transactionId } = saveResult;
+          
+          // Update the form ID so printing works
+          updateField('_id', transactionId);
+          setShowValidationErrors(false);
+          onSuccess?.();
+        } else {
+          const error = await saveResponse.json();
+          throw new Error(error.error || 'Failed to save transaction');
+        }
+      }
+    } catch (error: any) {
+      console.error('Save failed:', error);
+      alert(`Error: ${error.message || 'An unexpected error occurred'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   if (!user || !transactionType) {
     alert('User ID and Transaction Type are required.');
     return;

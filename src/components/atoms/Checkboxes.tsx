@@ -59,29 +59,63 @@ interface FormDataType {
   vehicleInformation?: VehicleInformationType;
   vehicleType?: VehicleTypeData;
   owners?: OwnerData[];
+  // Add index signature to allow dynamic property access
+  [key: string]: any;
 }
 
 interface VehicleTransactionDetailsProps {
   formData?: FormDataType;
   onChange?: (data: VehicleTransactionDetailsData) => void;
+  transferIndex?: number; // New prop to identify which transfer this belongs to
 }
 
+// Base storage key that will be prefixed with transfer index
 export const VEHICLE_TRANSACTION_STORAGE_KEY = 'formmatic_transaction_details';
 
- 
-export const clearVehicleTransactionDetailsStorage = () => {
+// Get the storage key specific to a transfer index
+export const getVehicleTransactionStorageKey = (transferIndex?: number) => {
+  if (transferIndex === undefined) {
+    return VEHICLE_TRANSACTION_STORAGE_KEY;
+  }
+  return `${VEHICLE_TRANSACTION_STORAGE_KEY}_transfer_${transferIndex}`;
+};
+
+// Clear storage for a specific transfer
+export const clearVehicleTransactionDetailsStorage = (transferIndex?: number) => {
   if (typeof window !== 'undefined') {
+    const storageKey = getVehicleTransactionStorageKey(transferIndex);
+    localStorage.removeItem(storageKey);
+    console.log(`Vehicle transaction details cleared from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
+  }
+};
+
+// Clear all transaction storage (useful for complete reset)
+export const clearAllVehicleTransactionDetailsStorage = () => {
+  if (typeof window !== 'undefined') {
+    // Clear default
     localStorage.removeItem(VEHICLE_TRANSACTION_STORAGE_KEY);
-    console.log('Vehicle transaction details cleared from localStorage');
+    
+    // Clear all numbered transfers (0-4 for max 5 transfers)
+    for (let i = 0; i < 5; i++) {
+      localStorage.removeItem(`${VEHICLE_TRANSACTION_STORAGE_KEY}_transfer_${i}`);
+    }
+    console.log('All Vehicle transaction details cleared from localStorage');
   }
 };
 
 const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({ 
   formData: propFormData,
-  onChange 
+  onChange,
+  transferIndex
 }) => {
   const { formData: contextFormData, updateField, clearFormTriggered } = useFormContext();
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Get the storage key for this specific transfer
+  const storageKey = getVehicleTransactionStorageKey(transferIndex);
+  
+  // To prevent infinite loops with data updates
+  const [lastUpdatedData, setLastUpdatedData] = useState<string>('');
   
   const combinedFormData: FormDataType = {
     ...contextFormData,
@@ -100,63 +134,92 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
 
   const [transactionData, setTransactionData] = useState<VehicleTransactionDetailsData>(defaultTransactionData);
 
- 
   useEffect(() => {
     if (clearFormTriggered) {
-      console.log('Clear form triggered in VehicleTransactionDetails component');
+      console.log(`Clear form triggered in VehicleTransactionDetails component for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
       clearPersistedTransactionDetails();
     }
   }, [clearFormTriggered]);
 
- 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
-        const savedData = localStorage.getItem(VEHICLE_TRANSACTION_STORAGE_KEY);
+        const savedData = localStorage.getItem(storageKey);
         
         if (savedData) {
+          console.log(`Loading transaction details from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
           const parsedData = JSON.parse(savedData);
           
- 
+          // Get the appropriate data from the context based on transfer index
+          const contextVehicleTransactionDetails = transferIndex !== undefined 
+            ? combinedFormData[`transfer${transferIndex}_vehicleTransactionDetails`] 
+            : combinedFormData.vehicleTransactionDetails;
+          
+          // Merge with prop data
           const mergedData = {
             ...defaultTransactionData,
             ...parsedData,
-            ...combinedFormData?.vehicleTransactionDetails
+            ...(contextVehicleTransactionDetails || {}),
+            ...(combinedFormData?.vehicleTransactionDetails || {})
           };
           
           setTransactionData(mergedData);
           
- 
-          updateField('vehicleTransactionDetails', mergedData);
+          // Use the appropriate field name based on transfer index
+          const fieldName = transferIndex !== undefined 
+            ? `transfer${transferIndex}_vehicleTransactionDetails` 
+            : 'vehicleTransactionDetails';
+            
+          updateField(fieldName, mergedData);
           
           if (onChange) {
             onChange(mergedData);
           }
         } else {
- 
+          // Get the appropriate data from the context based on transfer index
+          const contextVehicleTransactionDetails = transferIndex !== undefined 
+            ? combinedFormData[`transfer${transferIndex}_vehicleTransactionDetails`] 
+            : combinedFormData.vehicleTransactionDetails;
+            
+          // Merge with prop data
           const mergedData = {
             ...defaultTransactionData,
-            ...combinedFormData?.vehicleTransactionDetails
+            ...(contextVehicleTransactionDetails || {}),
+            ...(combinedFormData?.vehicleTransactionDetails || {})
           };
+          
           setTransactionData(mergedData);
+          
+          // Initialize with default data
+          const fieldName = transferIndex !== undefined 
+            ? `transfer${transferIndex}_vehicleTransactionDetails` 
+            : 'vehicleTransactionDetails';
+            
+          updateField(fieldName, mergedData);
         }
         
         setIsInitialized(true);
       } catch (error) {
-        console.error('Error loading saved transaction details:', error);
+        console.error(`Error loading saved transaction details for transfer ${transferIndex !== undefined ? transferIndex : 'default'}:`, error);
         setIsInitialized(true);
         
- 
+        // Get the appropriate data from the context based on transfer index
+        const contextVehicleTransactionDetails = transferIndex !== undefined 
+          ? combinedFormData[`transfer${transferIndex}_vehicleTransactionDetails`] 
+          : combinedFormData.vehicleTransactionDetails;
+          
+        // Merge with prop data
         const mergedData = {
           ...defaultTransactionData,
-          ...combinedFormData?.vehicleTransactionDetails
+          ...(contextVehicleTransactionDetails || {}),
+          ...(combinedFormData?.vehicleTransactionDetails || {})
         };
+        
         setTransactionData(mergedData);
       }
     }
   }, []);
 
- 
   useEffect(() => {
     if (isInitialized && combinedFormData?.vehicleTransactionDetails) {
       const mergedData: VehicleTransactionDetailsData = {
@@ -167,7 +230,6 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     }
   }, [isInitialized, combinedFormData?.vehicleTransactionDetails]);
 
- 
   useEffect(() => {
     if (isInitialized && combinedFormData?.vehicleType?.isMotorcycle !== undefined) {
       if (combinedFormData.vehicleType.isMotorcycle !== transactionData.isMotorcycle) {
@@ -179,11 +241,22 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
         };
         
         setTransactionData(newData);
-        updateField('vehicleTransactionDetails', newData);
         
- 
+        // Use the appropriate field name based on transfer index
+        const fieldName = transferIndex !== undefined 
+          ? `transfer${transferIndex}_vehicleTransactionDetails` 
+          : 'vehicleTransactionDetails';
+          
+        // Only update if data has changed
+        const currentDataStr = JSON.stringify(newData);
+        if (currentDataStr !== lastUpdatedData) {
+          updateField(fieldName, newData);
+          setLastUpdatedData(currentDataStr);
+        }
+        
+        // Save to localStorage
         if (typeof window !== 'undefined') {
-          localStorage.setItem(VEHICLE_TRANSACTION_STORAGE_KEY, JSON.stringify(newData));
+          localStorage.setItem(storageKey, JSON.stringify(newData));
         }
         
         if (onChange) {
@@ -210,7 +283,12 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     }     
     
     if (field === 'currentLienholder' && !newValue) {
-      updateField('legalOwnerInformation', {
+      // Use the appropriate field name based on transfer index
+      const legalOwnerFieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_legalOwnerInformation` 
+        : 'legalOwnerInformation';
+        
+      updateField(legalOwnerFieldName, {
         name: 'NONE',
         address: {
           street: '',
@@ -227,9 +305,19 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     }     
     
     if (field === 'isMotorcycle' && !newValue) {
-      const currentVehicleInfo = combinedFormData.vehicleInformation || {};
-      if (currentVehicleInfo.engineNumber) {
-        updateField('vehicleInformation', {
+      // Get the appropriate field name based on transfer index
+      const vehicleInfoFieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_vehicleInformation` 
+        : 'vehicleInformation';
+        
+      // Get the current vehicle info from the combined form data
+      const currentVehicleInfo = transferIndex !== undefined
+        ? combinedFormData[vehicleInfoFieldName] || {}
+        : combinedFormData.vehicleInformation || {};
+        
+      if (currentVehicleInfo && 
+         (currentVehicleInfo as VehicleInformationType).engineNumber) {
+        updateField(vehicleInfoFieldName, {
           ...currentVehicleInfo,
           engineNumber: ''
         });
@@ -237,25 +325,45 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     }     
     
     if (field === 'isGift' && !newValue) {
-      const currentOwners = combinedFormData.owners || [];
-      if (currentOwners.length > 0) {
+      // Get the appropriate field name based on transfer index
+      const ownersFieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_owners` 
+        : 'owners';
+        
+      // Get the current owners from the combined form data
+      const currentOwners = transferIndex !== undefined
+        ? combinedFormData[ownersFieldName] || []
+        : combinedFormData.owners || [];
+        
+      if (currentOwners && Array.isArray(currentOwners) && currentOwners.length > 0) {
         const updatedOwners = currentOwners.map((owner: OwnerData) => ({
           ...owner,
           relationshipWithGifter: '',
           giftValue: ''
         }));
-        updateField('owners', updatedOwners);
+        updateField(ownersFieldName, updatedOwners);
       }
     }
     
     if (field === 'isMotorcycle') {
-      const currentVehicleType = combinedFormData.vehicleType || {};
+      // Get the appropriate field name based on transfer index
+      const vehicleTypeFieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_vehicleType` 
+        : 'vehicleType';
+        
+      // Get the current vehicle type from the combined form data
+      const currentVehicleType = transferIndex !== undefined
+        ? combinedFormData[vehicleTypeFieldName] || {}
+        : combinedFormData.vehicleType || {};
       
-      if (currentVehicleType.isMotorcycle !== newValue) {
+      // Type guard to ensure we're working with the correct type
+      const typedVehicleType = currentVehicleType as VehicleTypeData;
+      
+      if (typedVehicleType && typedVehicleType.isMotorcycle !== newValue) {
         console.log(`Syncing motorcycle state to vehicle type: ${newValue}`);
         
         const newVehicleType = {
-          ...currentVehicleType,
+          ...typedVehicleType,
           isMotorcycle: newValue
         };
         
@@ -265,7 +373,7 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
           newVehicleType.isTrailerCoach = false;
         }
         
-        updateField('vehicleType', newVehicleType);
+        updateField(vehicleTypeFieldName, newVehicleType);
       }
     }
     
@@ -273,11 +381,22 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     console.log("New transaction data:", newData);
 
     setTransactionData(newData);
-    updateField('vehicleTransactionDetails', newData);
     
- 
+    // Use the appropriate field name based on transfer index
+    const fieldName = transferIndex !== undefined 
+      ? `transfer${transferIndex}_vehicleTransactionDetails` 
+      : 'vehicleTransactionDetails';
+      
+    // Only update if data has changed
+    const currentDataStr = JSON.stringify(newData);
+    if (currentDataStr !== lastUpdatedData) {
+      updateField(fieldName, newData);
+      setLastUpdatedData(currentDataStr);
+    }
+    
+    // Save to localStorage
     if (typeof window !== 'undefined') {
-      localStorage.setItem(VEHICLE_TRANSACTION_STORAGE_KEY, JSON.stringify(newData));
+      localStorage.setItem(storageKey, JSON.stringify(newData));
     }
     
     if (onChange) {
@@ -285,11 +404,16 @@ const VehicleTransactionDetails: React.FC<VehicleTransactionDetailsProps> = ({
     }
   };
 
- 
   const clearPersistedTransactionDetails = () => {
-    clearVehicleTransactionDetailsStorage();
+    clearVehicleTransactionDetailsStorage(transferIndex);
     setTransactionData(defaultTransactionData);
-    updateField('vehicleTransactionDetails', defaultTransactionData);
+    
+    // Use the appropriate field name based on transfer index
+    const fieldName = transferIndex !== undefined 
+      ? `transfer${transferIndex}_vehicleTransactionDetails` 
+      : 'vehicleTransactionDetails';
+      
+    updateField(fieldName, defaultTransactionData);
     
     if (onChange) {
       onChange(defaultTransactionData);

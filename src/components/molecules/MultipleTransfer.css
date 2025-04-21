@@ -129,3 +129,88 @@
     padding: 10px;
   }
 }
+
+/* Add these styles to your MultipleTransfer.css file */
+
+.transfer-form-container.has-validation-errors {
+  border: 1px solid #ff0000;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+.transfer-validation-error-summary {
+  background-color: #fff0f0;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.global-validation-errors {
+  background-color: #fff0f0;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ff0000;
+  border-radius: 4px;
+}
+
+.transfer-tab.has-errors {
+  border-color: #ff0000;
+  position: relative;
+}
+
+.error-indicator {
+  color: #ff0000;
+  margin-left: 5px;
+  font-weight: bold;
+}
+
+.field-error {
+  color: #ff0000;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+input.has-error, 
+select.has-error {
+  border: 1px solid #ff0000;
+}
+
+
+@media (max-width: 600px) {
+  .newRegSecondGroup {
+    flex-direction: column;
+  }
+}
+
+
+
+@media (max-width: 1200px) {
+  .checkboxSection p {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .checkboxSection p {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkboxSection p {
+    font-size: 0.6rem;
+  }
+  .addressCheckboxWrapper {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+@media (max-width: 600px) {
+ 
+  .addressCheckboxWrapper {
+    flex-direction: column;
+    gap: 0;
+  }
+}

@@ -26,14 +26,15 @@ interface SellerAddressProps {
   isMultipleTransfer?: boolean;
   hideMailingOption?: boolean;
   hideOutOfState?: boolean;
-  showMailingCounty?: boolean; 
+  showMailingCounty?: boolean;
+  transferIndex?: number; // New prop to identify which transfer this belongs to
 }
 
 // Form context type with validation properties
 interface FormContextType {
   formData: Record<string, any>;
   updateField: (section: string, value: any) => void;
-  clearFormTriggered?: number;
+  clearFormTriggered?: number | null; // Updated to match SellerSection
   validationErrors: Array<{ fieldPath: string; message: string }>;
   showValidationErrors: boolean;
 }
@@ -49,7 +50,39 @@ const initialAddress: Address = {
   isOutOfState: false
 };
 
+// Base storage key that will be prefixed with transfer index
 export const SELLER_ADDRESS_STORAGE_KEY = 'formmatic_seller_address';
+
+// Get the storage key specific to a transfer index
+export const getSellerAddressStorageKey = (transferIndex?: number) => {
+  if (transferIndex === undefined) {
+    return SELLER_ADDRESS_STORAGE_KEY;
+  }
+  return `${SELLER_ADDRESS_STORAGE_KEY}_transfer_${transferIndex}`;
+};
+
+// Clear storage for a specific transfer
+export const clearSellerAddressStorage = (transferIndex?: number) => {
+  if (typeof window !== 'undefined') {
+    const storageKey = getSellerAddressStorageKey(transferIndex);
+    localStorage.removeItem(storageKey);
+    console.log(`Seller address data cleared from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
+  }
+};
+
+// Clear all seller address storage (useful for complete reset)
+export const clearAllSellerAddressStorage = () => {
+  if (typeof window !== 'undefined') {
+    // Clear default
+    localStorage.removeItem(SELLER_ADDRESS_STORAGE_KEY);
+    
+    // Clear all numbered transfers (0-4 for max 5 transfers)
+    for (let i = 0; i < 5; i++) {
+      localStorage.removeItem(`${SELLER_ADDRESS_STORAGE_KEY}_transfer_${i}`);
+    }
+    console.log('All Seller address data cleared from localStorage');
+  }
+};
 
 const cleanFormData = (data: any): any => {
   if (!data || typeof data !== 'object') return data;
@@ -77,22 +110,14 @@ const capitalizeWords = (value: string): string => {
   return value.replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-export const clearSellerAddressStorage = () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem(SELLER_ADDRESS_STORAGE_KEY);
-    console.log('Seller address data cleared from localStorage');
-  }
-};
-
-
-
 const SellerAddress: React.FC<SellerAddressProps> = ({ 
   formData: propFormData, 
   onChange, 
   isMultipleTransfer = false,
   hideMailingOption = false,
   hideOutOfState = false,
-  showMailingCounty = false 
+  showMailingCounty = false,
+  transferIndex
 }) => {
   const cleanedFormData = cleanFormData(propFormData);
   const { activeScenarios } = useScenarioContext();
@@ -106,17 +131,30 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     showValidationErrors 
   } = useFormContext() as FormContextType;
 
+  // Get the storage key for this specific transfer
+  const storageKey = getSellerAddressStorageKey(transferIndex);
+
   // Helper functions for validation
   const shouldShowValidationError = (addressType: string, field: string) => {
     if (!showValidationErrors) return false;
     
+    // Update the validation path to include transfer index when needed
+    const fieldPath = transferIndex !== undefined
+      ? `transfer${transferIndex}_${addressType}.${field}`
+      : `${addressType}.${field}`;
+    
     return validationErrors.some(error => 
-      error.fieldPath === `${addressType}.${field}`
+      error.fieldPath === fieldPath
     );
   };
   
   const getValidationErrorMessage = (addressType: string, field: string): string => {
-    const error = validationErrors.find(e => e.fieldPath === `${addressType}.${field}`);
+    // Update the validation path to include transfer index when needed
+    const fieldPath = transferIndex !== undefined
+      ? `transfer${transferIndex}_${addressType}.${field}`
+      : `${addressType}.${field}`;
+    
+    const error = validationErrors.find(e => e.fieldPath === fieldPath);
     return error ? error.message : '';
   };
 
@@ -156,23 +194,37 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
 
   useEffect(() => {
     if (clearFormTriggered) {
-      console.log('Clear form triggered in SellerAddress component');
-      clearSellerAddressStorage();
+      console.log(`Clear form triggered in SellerAddress component for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
+      clearSellerAddressStorage(transferIndex);
       setAddressData(defaultAddressData);
       
-      updateField('sellerAddress', { ...initialAddress });
-      updateField('sellerMailingAddressDifferent', false);
-      updateField('sellerMailingAddress', { ...initialAddress });
+      // Use the appropriate field name based on transfer index
+      const addressFieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_sellerAddress` 
+        : 'sellerAddress';
+        
+      const mailingDiffFieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_sellerMailingAddressDifferent` 
+        : 'sellerMailingAddressDifferent';
+        
+      const mailingAddressFieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_sellerMailingAddress` 
+        : 'sellerMailingAddress';
+      
+      updateField(addressFieldName, { ...initialAddress });
+      updateField(mailingDiffFieldName, false);
+      updateField(mailingAddressFieldName, { ...initialAddress });
     }
-  }, [clearFormTriggered]);
+  }, [clearFormTriggered, transferIndex, updateField]);
 
+  // This effect should only run once when the component mounts
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
-        const savedData = localStorage.getItem(SELLER_ADDRESS_STORAGE_KEY);
+        const savedData = localStorage.getItem(storageKey);
         
         if (savedData) {
-          console.log("Loading seller address data from localStorage");
+          console.log(`Loading seller address data from localStorage for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
           const parsedData = JSON.parse(savedData);
           
           const mergedData = {
@@ -187,11 +239,25 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
           
           setAddressData(mergedData);
           
-          updateField('sellerAddress', mergedData.sellerAddress);
-          updateField('sellerMailingAddressDifferent', mergedData.sellerMailingAddressDifferent);
+          // Use the appropriate field name based on transfer index
+          const addressFieldName = transferIndex !== undefined 
+            ? `transfer${transferIndex}_sellerAddress` 
+            : 'sellerAddress';
+            
+          const mailingDiffFieldName = transferIndex !== undefined 
+            ? `transfer${transferIndex}_sellerMailingAddressDifferent` 
+            : 'sellerMailingAddressDifferent';
+            
+          const mailingAddressFieldName = transferIndex !== undefined 
+            ? `transfer${transferIndex}_sellerMailingAddress` 
+            : 'sellerMailingAddress';
+          
+          // First-time initialization from localStorage
+          updateField(addressFieldName, mergedData.sellerAddress);
+          updateField(mailingDiffFieldName, mergedData.sellerMailingAddressDifferent);
           
           if (mergedData.sellerMailingAddressDifferent && !hideMailingAddress) {
-            updateField('sellerMailingAddress', mergedData.sellerMailingAddress);
+            updateField(mailingAddressFieldName, mergedData.sellerMailingAddress);
           }
           
           if (onChange) {
@@ -207,7 +273,7 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
         
         setIsInitialized(true);
       } catch (error) {
-        console.error('Error loading saved seller address:', error);
+        console.error(`Error loading saved seller address for transfer ${transferIndex !== undefined ? transferIndex : 'default'}:`, error);
         setIsInitialized(true);
         
         const mergedData = {
@@ -217,6 +283,8 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
         setAddressData(mergedData);
       }
     }
+  // Empty dependency array - this should only run once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -225,10 +293,20 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     console.log("Should show mailing county field:", showMailingCounty);
     console.log("Active scenarios:", activeScenarios);
     console.log("Direct hideMailingOption prop:", hideMailingOption);
-  }, [hideMailingAddress, showOutOfStateCheckbox, showMailingCounty, activeScenarios, hideMailingOption]);
+    console.log("Transfer index:", transferIndex);
+  }, [hideMailingAddress, showOutOfStateCheckbox, showMailingCounty, activeScenarios, hideMailingOption, transferIndex]);
 
+  // Track previous props to avoid unnecessary updates
+  const prevPropFormDataRef = useRef<FormData | undefined>(undefined);
+  
   useEffect(() => {
     if (isInitialized && propFormData) {
+      // Skip if props haven't changed
+      if (prevPropFormDataRef.current === propFormData) {
+        return;
+      }
+      
+      prevPropFormDataRef.current = propFormData;
       const cleanedProps = cleanFormData(propFormData);
       
       const newData = { ...addressData };
@@ -257,50 +335,107 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
         setAddressData(newData);
         
         if (typeof window !== 'undefined') {
-          localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+          localStorage.setItem(storageKey, JSON.stringify(newData));
         }
       }
     }
-  }, [propFormData, hideMailingAddress, isInitialized]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [propFormData, hideMailingAddress, isInitialized, storageKey]);
 
+  // This useEffect was causing infinite updates
+  // We need to make sure it only runs when really needed
+  const [lastUpdatedData, setLastUpdatedData] = useState<string>('');
+  
   useEffect(() => {
-    if (isInitialized) {
-      if (!onChange) {
+    if (isInitialized && !onChange) {
+      // Convert addressData to string to easily compare against previous state
+      const currentAddressDataStr = JSON.stringify({
+        sellerAddress: addressData.sellerAddress,
+        sellerMailingAddressDifferent: addressData.sellerMailingAddressDifferent,
+        sellerMailingAddress: addressData.sellerMailingAddressDifferent ? addressData.sellerMailingAddress : null
+      });
+      
+      // Only update if data actually changed
+      if (currentAddressDataStr !== lastUpdatedData) {
+        // Use the appropriate field name based on transfer index
+        const addressFieldName = transferIndex !== undefined 
+          ? `transfer${transferIndex}_sellerAddress` 
+          : 'sellerAddress';
+          
+        const mailingDiffFieldName = transferIndex !== undefined 
+          ? `transfer${transferIndex}_sellerMailingAddressDifferent` 
+          : 'sellerMailingAddressDifferent';
+          
+        const mailingAddressFieldName = transferIndex !== undefined 
+          ? `transfer${transferIndex}_sellerMailingAddress` 
+          : 'sellerMailingAddress';
+        
         if (addressData.sellerAddress && typeof addressData.sellerAddress === 'object') {
-          updateField('sellerAddress', addressData.sellerAddress);
+          updateField(addressFieldName, addressData.sellerAddress);
         }
         
         if (!hideMailingAddress) {
-          updateField('sellerMailingAddressDifferent', !!addressData.sellerMailingAddressDifferent);
+          updateField(mailingDiffFieldName, !!addressData.sellerMailingAddressDifferent);
           
           if (addressData.sellerMailingAddressDifferent && addressData.sellerMailingAddress && 
               typeof addressData.sellerMailingAddress === 'object') {
-            updateField('sellerMailingAddress', addressData.sellerMailingAddress);
+            updateField(mailingAddressFieldName, addressData.sellerMailingAddress);
           }
         } else {
-          updateField('sellerMailingAddressDifferent', false);
+          updateField(mailingDiffFieldName, false);
         }
+        
+        // Save current data to avoid infinite updates
+        setLastUpdatedData(currentAddressDataStr);
       }
     }
-  }, [hideMailingAddress, addressData, isInitialized]);
+  }, [hideMailingAddress, addressData, isInitialized, transferIndex, updateField, onChange, lastUpdatedData]);
 
+  // Track the last multiple transfer update to prevent infinite loops
+  const [lastMultiTransferUpdate, setLastMultiTransferUpdate] = useState<string>('');
+  
   useEffect(() => {
-    if (isInitialized && isMultipleTransfer) {
-      console.log("SellerAddress: Multiple transfer mode detected");
-      console.log("Initial addressData:", addressData);
+    if (isInitialized && isMultipleTransfer && !onChange) {
+      console.log(`SellerAddress: Multiple transfer mode detected for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
       
-      if (!onChange) {
-        updateField('sellerAddress', addressData.sellerAddress);
+      // Create a string representation of current data to compare
+      const currentDataStr = JSON.stringify({
+        sellerAddress: addressData.sellerAddress,
+        sellerMailingAddressDifferent: addressData.sellerMailingAddressDifferent,
+        sellerMailingAddress: addressData.sellerMailingAddress
+      });
+      
+      // Only update if the data has changed from last update
+      if (currentDataStr !== lastMultiTransferUpdate) {
+        console.log("Updating multiple transfer data");
+        
+        // Use the appropriate field name based on transfer index
+        const addressFieldName = transferIndex !== undefined 
+          ? `transfer${transferIndex}_sellerAddress` 
+          : 'sellerAddress';
+          
+        const mailingDiffFieldName = transferIndex !== undefined 
+          ? `transfer${transferIndex}_sellerMailingAddressDifferent` 
+          : 'sellerMailingAddressDifferent';
+          
+        const mailingAddressFieldName = transferIndex !== undefined 
+          ? `transfer${transferIndex}_sellerMailingAddress` 
+          : 'sellerMailingAddress';
+        
+        updateField(addressFieldName, addressData.sellerAddress);
         
         if (!hideMailingAddress) {
-          updateField('sellerMailingAddressDifferent', !!addressData.sellerMailingAddressDifferent);
-          updateField('sellerMailingAddress', addressData.sellerMailingAddress || { ...initialAddress });
+          updateField(mailingDiffFieldName, !!addressData.sellerMailingAddressDifferent);
+          updateField(mailingAddressFieldName, addressData.sellerMailingAddress || { ...initialAddress });
         } else {
-          updateField('sellerMailingAddressDifferent', false);
+          updateField(mailingDiffFieldName, false);
         }
+        
+        // Update the last state we processed
+        setLastMultiTransferUpdate(currentDataStr);
       }
     }
-  }, [isMultipleTransfer, hideMailingAddress, isInitialized]);
+  }, [isMultipleTransfer, hideMailingAddress, isInitialized, addressData, transferIndex, updateField, onChange, lastMultiTransferUpdate]);
 
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
@@ -394,13 +529,18 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     console.log(`Updated ${section} data:`, updatedSection);
     
     if (typeof window !== 'undefined') {
-      localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+      localStorage.setItem(storageKey, JSON.stringify(newData));
     }
     
     if (onChange) {
       onChange(newData);
     } else {
-      updateField(String(section), updatedSection);
+      // Use the appropriate field name based on transfer index
+      const fieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_${String(section)}` 
+        : String(section);
+        
+      updateField(fieldName, updatedSection);
       
       if (isMultipleTransfer) {
         console.log(`Multiple transfer update for ${section}.${field}:`, processedValue);
@@ -431,16 +571,26 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     setAddressData(newData);
     
     if (typeof window !== 'undefined') {
-      localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+      localStorage.setItem(storageKey, JSON.stringify(newData));
     }
     
     if (onChange) {
       onChange(newData);
     } else {
-      updateField(String(field), checked);
+      // Use the appropriate field name based on transfer index
+      const fieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_${String(field)}` 
+        : String(field);
+        
+      updateField(fieldName, checked);
       
       if (field === 'sellerMailingAddressDifferent') {
-        updateField('sellerMailingAddress', newData.sellerMailingAddress);
+        // Use the appropriate field name for mailing address based on transfer index
+        const mailingAddressFieldName = transferIndex !== undefined 
+          ? `transfer${transferIndex}_sellerMailingAddress` 
+          : 'sellerMailingAddress';
+          
+        updateField(mailingAddressFieldName, newData.sellerMailingAddress);
       }
     }
   };
@@ -456,26 +606,18 @@ const SellerAddress: React.FC<SellerAddressProps> = ({
     setAddressData(newData);
     
     if (typeof window !== 'undefined') {
-      localStorage.setItem(SELLER_ADDRESS_STORAGE_KEY, JSON.stringify(newData));
+      localStorage.setItem(storageKey, JSON.stringify(newData));
     }
     
     if (onChange) {
       onChange(newData);
     } else {
-      updateField('sellerAddress', newData.sellerAddress);
-    }
-  };
-
-  const clearPersistedAddressData = () => {
-    clearSellerAddressStorage();
-    setAddressData(defaultAddressData);
-    
-    if (onChange) {
-      onChange(defaultAddressData);
-    } else {
-      updateField('sellerAddress', defaultAddressData.sellerAddress);
-      updateField('sellerMailingAddressDifferent', defaultAddressData.sellerMailingAddressDifferent);
-      updateField('sellerMailingAddress', defaultAddressData.sellerMailingAddress);
+      // Use the appropriate field name based on transfer index
+      const fieldName = transferIndex !== undefined 
+        ? `transfer${transferIndex}_sellerAddress` 
+        : 'sellerAddress';
+        
+      updateField(fieldName, newData.sellerAddress);
     }
   };
 

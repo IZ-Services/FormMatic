@@ -60,61 +60,66 @@ export default function CommercialVehicleTransfer({ formData, onDataChange }: Co
     setFormValues(formData);
   }, [formData]);
 
-  const FormContent = () => {
-    const { formData: contextFormData, updateField, setTransactionType, showValidationErrors } = useFormContext();
+// In CommercialVehicleTransfer.tsx
+// Modify the FormContent component
 
- 
-    useEffect(() => {
-      setTransactionType("Commercial Vehicle Transfer");
-    }, [setTransactionType]);
+const FormContent = () => {
+  const { formData: contextFormData, updateField, setTransactionType, showValidationErrors } = useFormContext();
 
-    useEffect(() => {
-      if (formValues) {
-        Object.entries(formValues).forEach(([key, value]) => {
-          updateField(key, value);
-        });
-      }
-    }, [formValues, updateField]);
+  useEffect(() => {
+    setTransactionType("Commercial Vehicle Transfer");
+  }, [setTransactionType]);
 
- 
-    const commercialVehicle = (contextFormData?.commercialVehicle || {}) as CommercialVehicleData;
-    const hasLienHolder = commercialVehicle.hasLienHolder === true;
+  useEffect(() => {
+    if (formValues) {
+      Object.entries(formValues).forEach(([key, value]) => {
+        updateField(key, value);
+      });
+    }
+  }, [formValues, updateField]);
 
-    return (
-      <div className='wholeForm'>
-        <TypeContainer />
-        <CommercialCheckboxes formData={formValues}/>
-        <CommercialVehicleInfo formData={formValues}  showValidationErrors={showValidationErrors} />
-        <TypeOfVehicle formData={formValues} />
-        <CommercialVehicleQuestions formData={formValues} />
-        <Seller 
-          formData={{
-            hideDateOfSale: true,
-            hideDateOfBirth: true,
-          }}
-        />
-        <SellerAddress 
-          hideOutOfState={true}
-        />
-        <VehicalInformation formData={formValues} />
-        <VehicleWeightInfo formData={formValues}  showValidationErrors={showValidationErrors}  />
-        <NewRegisteredOwners formData={formValues} />
-        <Address formData={formValues} />
-        <DateInformation formData={formValues}  showValidationErrors={showValidationErrors}  />
-        <VehicleStatus formData={formValues}  showValidationErrors={showValidationErrors}  />
-        <VehicleAcquisition formData={formValues} showValidationErrors={showValidationErrors}  />
-        
-        {/* Show LegalOwnerOfRecord only if hasLienHolder is true */}
-        {hasLienHolder && <LegalOwnerOfRecord formData={formValues} />}
-        <VehicleBodyChange formData={formValues} showValidationErrors={showValidationErrors} />
-        <StatementOfFacts formData={formValues} showValidationErrors={showValidationErrors} />
-        <SaveButton 
-          transactionType="Commercial Vehicle Transfer"
-          onSuccess={() => console.log('Save completed successfully')}
-        />
-      </div>
-    );
-  };
+  // Extract the commercial vehicle data
+  const commercialVehicle = (contextFormData?.commercialVehicle || {}) as CommercialVehicleData;
+  const isCommercial = commercialVehicle.isCommercial === true;
+  const hasLienHolder = commercialVehicle.hasLienHolder === true;
+
+  return (
+    <div className='wholeForm'>
+      <TypeContainer />
+      <CommercialCheckboxes formData={formValues}/>
+      <CommercialVehicleInfo formData={formValues} showValidationErrors={showValidationErrors} />
+      
+      {isCommercial && <TypeOfVehicle formData={formValues} />}
+      
+     <CommercialVehicleQuestions formData={formValues} />
+      <Seller 
+        formData={{
+          hideDateOfSale: true,
+          hideDateOfBirth: true,
+        }}
+      />
+      <SellerAddress 
+        hideOutOfState={true}
+      />
+      <VehicalInformation formData={formValues} />
+      <VehicleWeightInfo formData={formValues} showValidationErrors={showValidationErrors} />
+      <NewRegisteredOwners formData={formValues} />
+      <Address formData={formValues} />
+      <DateInformation formData={formValues} showValidationErrors={showValidationErrors} />
+      <VehicleStatus formData={formValues} showValidationErrors={showValidationErrors} />
+      <VehicleAcquisition formData={formValues} showValidationErrors={showValidationErrors} />
+      
+      {/* Show LegalOwnerOfRecord only if hasLienHolder is true */}
+      {hasLienHolder && <LegalOwnerOfRecord formData={formValues} />}
+      <VehicleBodyChange formData={formValues} showValidationErrors={showValidationErrors} />
+      <StatementOfFacts formData={formValues} showValidationErrors={showValidationErrors} />
+      <SaveButton 
+        transactionType="Commercial Vehicle Transfer"
+        onSuccess={() => console.log('Save completed successfully')}
+      />
+    </div>
+  );
+};
 
   return (
     <FormDataProvider>
