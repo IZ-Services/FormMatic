@@ -555,8 +555,10 @@ const handlePdfDisplay = async (transactionId: string) => {
       formTypes = ['Reg227', 'DMVReg166'];
     } else if (transactionType === "Duplicate Title Transfer") {
       formTypes = ['Reg227'];
-    } else if (transactionType === "Duplicate Registration Transfer") {
-      formTypes = ['Reg156'];
+    } else if (transactionType === "Duplicate Registration Transfer" ||
+      transactionType === "Duplicate Plates & Stickers" ||
+      transactionType === "Duplicate Stickers") {
+formTypes = ['Reg156'];
     } else if (transactionType === "Name Change/Correction Transfer") {
       formTypes = ['Reg256'];
     } else if (transactionType === "Change Of Address Transfer") {
