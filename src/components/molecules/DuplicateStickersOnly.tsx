@@ -174,11 +174,11 @@ export default function DuplicateStickersTransfer({ formData, onDataChange }: Du
 
         <SellerAddress formData={formValues} />
 
-        {/* <ItemRequested 
+        <ItemRequested 
   formData={formValues}
   isDuplicateRegistrationMode={true}
   showValidationErrors={showValidationErrors} 
-/> */}
+/>
         {/* <LicensePlate formData={formValues} /> */}
         
         <SaveButton 
