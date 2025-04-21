@@ -490,38 +490,7 @@ const handleMultipleTransferPrint = async () => {
       }
     }
     
-    // Add Reg101 form if there are any valid transactions
-    if (allTransactionIds.length > 0) {
-      try {
-        const response = await fetch('/api/fillPdf', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            transactionId: allTransactionIds[0], 
-            formType: 'Reg101',
-            transactionType: `Multiple Transfer 1 of ${numberOfTransfers}`
-          }),
-        });
-        
-        if (response.ok) {
-          const blob = await response.blob();
-          
-          if (blob.size > 0) {
-            console.log(`Received PDF for Reg101, size: ${blob.size} bytes`);
-            allPdfBlobs.push({
-              blob,
-              title: 'Vehicle Registration Application (Reg101)'
-            });
-          } else {
-            console.warn('PDF for Reg101 has zero size, skipping');
-          }
-        } else {
-          console.error('Failed to generate Reg101 form');
-        }
-      } catch (error) {
-        console.error('Exception while fetching Reg101:', error);
-      }
-    }
+
     
     if (allPdfBlobs.length === 0) {
       throw new Error('No PDFs were generated successfully');
