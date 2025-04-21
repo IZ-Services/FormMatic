@@ -138,20 +138,20 @@ const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
-  // Combined form data from both context and props
+
   const formData = {
     ...contextFormData,
     ...propFormData
   };
 
-  // Initialize form data if not present in context
+
   useEffect(() => {
     if (!contextFormData?.previousResidence) {
       updateField('previousResidence', initialAddress);
     }
   }, []);
 
-  // Sync component state with context/props form data
+
   useEffect(() => {
     const currentData = formData?.previousResidence;
     if (currentData) {
@@ -159,7 +159,7 @@ const SectionTwo: React.FC<SectionTwoProps> = ({ formData: propFormData }) => {
     }
   }, [formData?.previousResidence]);
   
-  // Log for debugging purposes (optional)
+
   useEffect(() => {
     console.log('Current SectionTwo form data:', formData?.previousResidence);
   }, [formData?.previousResidence]);

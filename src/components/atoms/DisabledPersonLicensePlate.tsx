@@ -42,11 +42,11 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
   const { formData: contextFormData, updateField } = useFormContext();
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
-  // Use refs to track previous validation state to prevent infinite loops
+
   const prevValidationState = useRef<boolean | undefined>(undefined);
   const isInitialMount = useRef(true);
   
-  // Get form data once without recalculating on every render
+
   const currentFormData = {
     ...contextFormData,
     ...propFormData
@@ -54,12 +54,12 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
   
   const currentLicensePlates = currentFormData.disabledPersonLicensePlates || initialDisabledPersonLicensePlates;
   
-  // Validation function
+
   const validateDisabledPersonLicensePlates = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     const info = currentLicensePlates;
     
-    // Validate license plate number
+
     if (!info.licensePlateNumber) {
       errors.push({
         field: 'licensePlateNumber',
@@ -72,7 +72,7 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
       });
     }
     
-    // Validate vehicle identification number
+
     if (!info.vehicleIdentificationNumber) {
       errors.push({
         field: 'vehicleIdentificationNumber',
@@ -85,7 +85,7 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
       });
     }
     
-    // Validate vehicle make
+
     if (!info.vehicleMake) {
       errors.push({
         field: 'vehicleMake',
@@ -98,7 +98,7 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
       });
     }
     
-    // Validate vehicle year
+
     if (!info.vehicleYear) {
       errors.push({
         field: 'vehicleYear',
@@ -121,7 +121,7 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
       }
     }
     
-    // Validate weight fee exemption
+
     if (info.weightFeeExemption === undefined) {
       errors.push({
         field: 'weightFeeExemption',
@@ -132,13 +132,13 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
     return errors;
   };
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;
   };
 
-  // Initialize form data only once on mount
+
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -152,7 +152,7 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
     }
   }, []);
 
-  // Run validation when showValidationErrors prop changes
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validateDisabledPersonLicensePlates();
@@ -162,17 +162,17 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
     }
   }, [showValidationErrors]);
 
-  // Update parent validation state when errors change
+
   useEffect(() => {
     if (!showValidationErrors) return;
     
     const hasErrors = validationErrors.length > 0;
     
-    // Only update if different from previous state
+
     if (prevValidationState.current !== hasErrors) {
       prevValidationState.current = hasErrors;
       
-      // Use a callback to avoid dependency on prev state
+
       updateField('_validationErrors', (prev: any = {}) => {
         if (prev?.disabledPersonLicensePlates !== hasErrors) {
           return {
@@ -185,7 +185,7 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
     }
   }, [validationErrors, showValidationErrors]);
 
-  // Run validation when field values change and showValidationErrors is true
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validateDisabledPersonLicensePlates();
@@ -203,20 +203,20 @@ const DisabledPersonLicensePlates: React.FC<DisabledPersonLicensePlatesProps> = 
   const handleDisabledPersonLicensePlatesChange = (field: keyof DisabledPersonLicensePlatesType, value: string | boolean) => {
     const currentInfo = { ...currentLicensePlates };
     
-    // Handle special formatting for fields
+
     let formattedValue = value;
     
     if (field === 'licensePlateNumber' && typeof value === 'string') {
-      // Format license plate: uppercase and limit to 7 characters
+
       formattedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
     } else if (field === 'vehicleIdentificationNumber' && typeof value === 'string') {
-      // Format VIN: uppercase and limit to 17 characters
+
       formattedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 17);
     } else if (field === 'vehicleMake' && typeof value === 'string') {
-      // Format make: uppercase
+
       formattedValue = value.toUpperCase();
     } else if (field === 'vehicleYear' && typeof value === 'string') {
-      // Format year: numeric only, limit to 4 digits
+
       formattedValue = value.replace(/[^0-9]/g, '').slice(0, 4);
     }
 

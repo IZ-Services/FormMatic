@@ -23,16 +23,16 @@ export async function POST(request: Request) {
     }
 
     const effectiveTransactionType = transactionType || transaction.transactionType;
-// After fetching the current transaction
+
 let finalTransferData;
 if (transaction.isPartOfMultipleTransfer && 
     transaction.transferIndex && 
     transaction.transferIndex < transaction.totalTransfers) {
   
-  // Find the final transfer in the sequence
+
   try {
     const finalTransfer = await TransactionModel.findOne({
-      // This assumes you have a way to group related transfers
+
       transferGroupId: transaction.transferGroupId,
       transferIndex: transaction.totalTransfers,
       isPartOfMultipleTransfer: true
@@ -311,22 +311,22 @@ async function modifyDMVREG262Pdf(
   const pages = pdfDoc.getPages();
   const firstPage = pages[0];
 
-  // Check if this is a multiple transfer and get the appropriate owners data
+
   let ownersData = formData.owners || [];
   let sellerData = formData.sellerInfo?.sellers || [];
   
-  // Handle multiple transfer scenarios
-  if (formData.transactionType && typeof formData.transactionType === 'string') {
-// Replace the current multiple transfer handling code (near line 365) with:
 
-// Handle multiple transfer scenarios
+  if (formData.transactionType && typeof formData.transactionType === 'string') {
+
+
+
 let transactionType = effectiveTransactionType || 
     (formData.transactionType && typeof formData.transactionType === 'string' ? formData.transactionType : '');
 
 if (transactionType && transactionType.includes('Multiple Transfer')) {
   console.log('Multiple transfer detected:', transactionType);
 
-  // Extract transfer numbers (e.g., "Multiple Transfer 2 of 5" -> current: 2, total: 5)
+
   const matches = transactionType.match(/Multiple Transfer (\d+) of (\d+)/i);
   
   if (matches && matches.length === 3) {
@@ -335,21 +335,21 @@ if (transactionType && transactionType.includes('Multiple Transfer')) {
     
     console.log(`Transfer ${currentTransfer} of ${totalTransfers} detected`);
     
-    // For multiple transfers, we use the last transfer's data for buyer fields
+
     if (currentTransfer === totalTransfers) {
       console.log('This is the final transfer in the sequence - using current owner data');
-      // Use the current owner data (already default)
+
     } else {
       console.log('This is not the final transfer - checking for final transfer data');
       
-      // First priority: Use explicitly provided finalTransferData if available
+
       if (finalTransferData && finalTransferData.owners) {
         console.log('Using explicitly provided final transfer data for owners:', 
                     JSON.stringify({owner: finalTransferData.owners[0]?.firstName + ' ' + 
                                     finalTransferData.owners[0]?.lastName}));
         ownersData = finalTransferData.owners;
       } 
-      // Second priority: Look in formData.transfers if available
+
       else if (formData.transfers && Array.isArray(formData.transfers) && 
                formData.transfers.length >= totalTransfers) {
         const lastTransferData = formData.transfers[totalTransfers - 1];
@@ -370,7 +370,7 @@ if (transactionType && transactionType.includes('Multiple Transfer')) {
 if (transactionType.includes('Multiple Transfer')) {
   console.log('Multiple transfer detected:', transactionType);
   
-  // Extract transfer numbers (e.g., "Multiple Transfer 2 of 5" -> current: 2, total: 5)
+
   const matches = transactionType.match(/Multiple Transfer (\d+) of (\d+)/i);
   
   if (matches && matches.length === 3) {
@@ -379,19 +379,19 @@ if (transactionType.includes('Multiple Transfer')) {
     
     console.log(`Transfer ${currentTransfer} of ${totalTransfers} detected`);
     
-    // For multiple transfers, we use the last transfer's data for buyer fields
+
     if (currentTransfer === totalTransfers) {
       console.log('This is the final transfer in the sequence - using current owner data');
-      // Use the current owner data (already default)
+
     } else {
       console.log('This is not the final transfer - checking for final transfer data');
       
-      // First priority: Use explicitly provided finalTransferData if available
+
       if (finalTransferData && finalTransferData.owners) {
         console.log('Using explicitly provided final transfer data');
         ownersData = finalTransferData.owners;
       }
-      // Second priority: Look in formData.transfers if available
+
       else if (formData.transfers && Array.isArray(formData.transfers) && formData.transfers.length >= totalTransfers) {
         const lastTransferData = formData.transfers[totalTransfers - 1];
         if (lastTransferData && lastTransferData.owners) {
@@ -412,7 +412,7 @@ else if (formData.transactionType && typeof formData.transactionType === 'string
 if (transactionType.includes('Multiple Transfer')) {
   console.log('Multiple transfer detected:', transactionType);
   
-  // Extract transfer numbers (e.g., "Multiple Transfer 2 of 5" -> current: 2, total: 5)
+
   const matches = transactionType.match(/Multiple Transfer (\d+) of (\d+)/i);
   
   if (matches && matches.length === 3) {
@@ -421,14 +421,14 @@ if (transactionType.includes('Multiple Transfer')) {
     
     console.log(`Transfer ${currentTransfer} of ${totalTransfers} detected`);
     
-    // For multiple transfers, we use the last transfer's data for buyer fields
+
     if (currentTransfer === totalTransfers) {
       console.log('This is the final transfer in the sequence - using current owner data');
-      // Use the current owner data (already default)
+
     } else {
       console.log('This is not the final transfer - need to find the final transfer data');
       
-      // If transfers data is available, use the last one's buyer data as our owner
+
       if (formData.transfers && Array.isArray(formData.transfers) && formData.transfers.length >= totalTransfers) {
         const lastTransferData = formData.transfers[totalTransfers - 1];
         if (lastTransferData && lastTransferData.owners) {
@@ -493,7 +493,7 @@ if (transactionType.includes('Multiple Transfer')) {
   console.log("Drawing text directly on the PDF...");
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   
-  // Use adjusted sellers data
+
   let dateText = '';
   
   if (sellerData && sellerData.length > 0 && sellerData[0].saleDate) {
@@ -506,7 +506,7 @@ if (transactionType.includes('Multiple Transfer')) {
       
       console.log(`Formatting date: ${month}/${day}/${year}`);
       
-      // Month
+
       firstPage.drawText(month[0], {
         x: 310, 
         y: 603, 
@@ -523,7 +523,7 @@ if (transactionType.includes('Multiple Transfer')) {
         color: rgb(0, 0, 0),
       });
       
-      // Day
+
       firstPage.drawText(day[0], {
         x: 330, 
         y: 603, 
@@ -540,7 +540,7 @@ if (transactionType.includes('Multiple Transfer')) {
         color: rgb(0, 0, 0),
       });
       
-      // Year
+
       for (let i = 0; i < year.length; i++) {
         firstPage.drawText(year[i], {
           x: 350 + (i * 12), 
@@ -559,7 +559,7 @@ if (transactionType.includes('Multiple Transfer')) {
     console.warn('No purchase date found for owner');
   }
   
-  // Vehicle information
+
   const vehicleInfo = formData.vehicleInformation || {};
   const mileage = vehicleInfo.mileage || '';
   
@@ -643,12 +643,12 @@ if (transactionType.includes('Multiple Transfer')) {
     }
   };
   
-  // Using adjusted owners data
+
   
-  // Use seller's sale date for date of purchase
+
   const seller1SaleDate = sellerData.length > 0 ? sellerData[0].saleDate : '';
   
-  // Address handling
+
   const buyerMailingAddressDifferent = formData.mailingAddressDifferent || false;
   const buyerMailingAddress = buyerMailingAddressDifferent ? 
                             (formData.mailingAddress || {}) : 
@@ -665,7 +665,7 @@ if (transactionType.includes('Multiple Transfer')) {
   console.log("Seller mailing address different?", sellerMailingAddressDifferent);
   console.log("Seller mailing address:", JSON.stringify(sellerMailingAddress));
   
-  // Use the appropriate addresses
+
   const sellerAddressToUse = sellerMailingAddress || {};
   const buyerAddressToUse = buyerMailingAddress || {};
 
@@ -697,7 +697,7 @@ if (transactionType.includes('Multiple Transfer')) {
   } catch (error) {
     console.error('Error setting seller address fields:', error);
     
-    // Fallback to drawing directly
+
     if (sellerAddressToUse.street) {
       firstPage.drawText(sellerAddressToUse.street, {
         x: 45,
@@ -767,7 +767,7 @@ if (transactionType.includes('Multiple Transfer')) {
   } catch (error) {
     console.error('Error setting buyer address fields:', error);
     
-    // Fallback to drawing directly
+
     if (buyerAddressToUse.street) {
       firstPage.drawText(buyerAddressToUse.street, {
         x: 45,
@@ -3001,18 +3001,18 @@ async function modifyReg4008Pdf(fileBytes: ArrayBuffer, formData: any, effective
             const makeText = vInfo.make;
             const makeLength = makeText.length;
             
-            // Set the text without wrapping
+
             field.setText(makeText);
             
-            // Adjust font size based on text length to ensure it fits
+
             if (makeLength > 6) {
-              // More aggressive font size reduction for longer text
+
               if (makeLength >= 11) {
-                field.setFontSize(5.5); // Smaller font for very long text
+                field.setFontSize(5.5);
               } else if (makeLength > 8) {
-                field.setFontSize(7); // Small font for medium-long text
+                field.setFontSize(7);
               } else {
-                field.setFontSize(8); // Slightly smaller font for moderately long text
+                field.setFontSize(8);
               }
             }
             

@@ -74,14 +74,14 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({
   const gvwDropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
   const cgwDropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
   
-  // Use either prop-based or context-based validation flag
+
   const shouldShowValidationErrors = showValidationErrors || formData?._showValidationErrors === true;
 
-  // Validation function
+
   const validateVehicleDeclaration = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // Check if we have a valid howMany value
+
     if (!formData?.vehicleDeclaration?.howMany) {
       errors.push({
         fieldPath: 'vehicleDeclaration.howMany',
@@ -89,16 +89,16 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({
       });
     }
     
-    // Check if vehicles array exists and has entries
+
     if (!vehicles || vehicles.length === 0) {
       errors.push({
         fieldPath: 'vehicleDeclaration.vehicles',
         message: 'At least one vehicle entry is required'
       });
     } else {
-      // Validate each vehicle entry
+
       vehicles.forEach((vehicle, index) => {
-        // License number validation
+
         if (!vehicle.licenseNumber || vehicle.licenseNumber.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].licenseNumber`,
@@ -111,7 +111,7 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({
           });
         }
         
-        // VIN validation
+
         if (!vehicle.vin || vehicle.vin.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].vin`,
@@ -124,7 +124,7 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({
           });
         }
         
-        // Make validation
+
         if (!vehicle.make || vehicle.make.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].make`,
@@ -137,7 +137,7 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({
           });
         }
         
-        // GVW weight validation
+
         if (!vehicle.gvwWeight || vehicle.gvwWeight.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].gvwWeight`,
@@ -145,7 +145,7 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({
           });
         }
         
-        // CGW weight validation
+
         if (!vehicle.cgwWeight || vehicle.cgwWeight.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].cgwWeight`,
@@ -153,14 +153,14 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({
           });
         }
         
-        // Date operated validation
+
         if (!vehicle.dateOperated || vehicle.dateOperated.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].dateOperated`,
             message: 'Date operated is required'
           });
         } else {
-          // Check if date is valid
+
           const date = new Date(vehicle.dateOperated);
           const today = new Date();
           if (isNaN(date.getTime())) {
@@ -178,7 +178,7 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({
       });
     }
     
-    // Validate howMany field against vehicle count
+
     if (formData?.vehicleDeclaration?.howMany) {
       const count = parseInt(formData.vehicleDeclaration.howMany, 10);
       if (count > 0 && vehicles && vehicles.length !== count) {
@@ -192,13 +192,13 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({
     return errors;
   };
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (fieldPath: string): string | null => {
     const error = validationErrors.find(err => err.fieldPath === fieldPath);
     return error ? error.message : null;
   };
 
-  // Check if a specific field should show validation error
+
   const shouldShowValidationError = (index: number, field: keyof VehicleData): boolean => {
     if (!shouldShowValidationErrors) return false;
     return validationErrors.some(err => 
@@ -206,13 +206,13 @@ const VehicleDeclaration: React.FC<VehicleDeclarationProps> = ({
     );
   };
 
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (shouldShowValidationErrors) {
       const errors = validateVehicleDeclaration();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
         contextFormData._validationErrors !== null
         ? contextFormData._validationErrors

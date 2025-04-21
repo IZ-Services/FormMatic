@@ -36,12 +36,12 @@ const initialNameStatement: NameStatementType = {
 const NameCorrection: React.FC = () => {
   const { formData, updateField } = useFormContext();
   
-  // Initialize form data if needed
+
   useEffect(() => {
     if (!formData.nameStatement) {
       updateField('nameStatement', initialNameStatement);
     } else if (!(formData.nameStatement as NameStatementType).isNameMisspelled) {
-      // Make sure the correct checkbox is checked when component mounts
+
       updateField('nameStatement', {
         ...formData.nameStatement,
         isNameMisspelled: true,
@@ -67,7 +67,7 @@ const NameCorrection: React.FC = () => {
     updateField('nameStatement', { ...currentInfo, misspelledNameCorrection: capitalizedValue });
   };
   
-  // Handle the TypeScript error by properly typing nameStatement
+
   const nameStatement = (formData.nameStatement as NameStatementType) || initialNameStatement;
   const isNameMisspelled = nameStatement.isNameMisspelled;
   const misspelledNameCorrection = nameStatement.misspelledNameCorrection || '';

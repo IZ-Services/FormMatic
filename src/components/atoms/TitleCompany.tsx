@@ -33,7 +33,7 @@ const TitleField: React.FC<TitleFieldProps> = ({ formData: propFormData, onChang
     showValidationErrors = false
   } = useFormContext();
   
-  // Check if validation should show errors
+
   const isEmpty = !titleData.title || titleData.title.trim() === '';
   const showError = showValidationErrors && isEmpty;
   

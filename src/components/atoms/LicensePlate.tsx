@@ -42,11 +42,11 @@ const LicensePlate: React.FC<LicensePlateProps> = ({
     twoMissingPlates: false
   };
 
-  // Validation function
+
   const validateLicensePlate = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // Verify at least one option is selected
+
     if (!licensePlateData.oneMissingPlate && !licensePlateData.twoMissingPlates) {
       errors.push({
         field: 'general',
@@ -57,14 +57,14 @@ const LicensePlate: React.FC<LicensePlateProps> = ({
     return errors;
   };
 
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validateLicensePlate();
       setValidationErrors(errors);
       
-      // Update global form validation state
-      // Fix for TypeScript error - check if _validationErrors exists and is an object
+
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && contextFormData._validationErrors !== null
         ? contextFormData._validationErrors
         : {};
@@ -139,13 +139,13 @@ const LicensePlate: React.FC<LicensePlateProps> = ({
       localStorage.setItem(LICENSE_PLATE_STORAGE_KEY, JSON.stringify(newData));
     }
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateLicensePlate();
       setValidationErrors(errors);
       
-      // Update global form validation state
-      // Fix for TypeScript error - check if _validationErrors exists and is an object
+
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && contextFormData._validationErrors !== null
         ? contextFormData._validationErrors
         : {};
@@ -157,7 +157,7 @@ const LicensePlate: React.FC<LicensePlateProps> = ({
     }
   };
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;

@@ -39,13 +39,13 @@ interface VehicleInformationProps {
   };
   onChange?: (data: VehicleInformationType) => void;
   isDuplicateRegistrationMode?: boolean;
-  transferIndex?: number; // New prop to identify which transfer this belongs to
+  transferIndex?: number;
 }
 
-// Base storage key that will be prefixed with transfer index
+
 export const VEHICLE_INFORMATION_STORAGE_KEY = 'formmatic_vehicle_information';
 
-// Get the storage key specific to a transfer index
+
 export const getVehicleInformationStorageKey = (transferIndex?: number) => {
   if (transferIndex === undefined) {
     return VEHICLE_INFORMATION_STORAGE_KEY;
@@ -53,7 +53,7 @@ export const getVehicleInformationStorageKey = (transferIndex?: number) => {
   return `${VEHICLE_INFORMATION_STORAGE_KEY}_transfer_${transferIndex}`;
 };
 
-// Clear storage for a specific transfer
+
 export const clearVehicleInformationStorage = (transferIndex?: number) => {
   if (typeof window !== 'undefined') {
     const storageKey = getVehicleInformationStorageKey(transferIndex);
@@ -62,13 +62,13 @@ export const clearVehicleInformationStorage = (transferIndex?: number) => {
   }
 };
 
-// Clear all Vehicle Information storage (useful for complete reset)
+
 export const clearAllVehicleInformationStorage = () => {
   if (typeof window !== 'undefined') {
-    // Clear default
+
     localStorage.removeItem(VEHICLE_INFORMATION_STORAGE_KEY);
     
-    // Clear all numbered transfers (0-4 for max 5 transfers)
+
     for (let i = 0; i < 5; i++) {
       localStorage.removeItem(`${VEHICLE_INFORMATION_STORAGE_KEY}_transfer_${i}`);
     }
@@ -76,7 +76,7 @@ export const clearAllVehicleInformationStorage = () => {
   }
 };
 
-// Form context type with validation properties
+
 interface FormContextType {
   formData: Record<string, any>;
   updateField: (field: string, value: any) => void;
@@ -128,17 +128,17 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
     ...propFormData
   };
 
-  // Get the storage key for this specific transfer
+
   const storageKey = getVehicleInformationStorageKey(transferIndex);
 
-  // Handle form clearing
+
   useEffect(() => {
     if (clearFormTriggered !== null && clearFormTriggered > 0) {
       console.log(`Clear form triggered in VehicleInformation component for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
       clearVehicleInformationStorage(transferIndex);
       setVehicleInformationData(initialVehicleInformation);
       
-      // Using the appropriate field name based on transfer index
+
       const fieldName = transferIndex !== undefined 
         ? `transfer${transferIndex}_vehicleInformation` 
         : 'vehicleInformation';
@@ -147,7 +147,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
     }
   }, [clearFormTriggered, transferIndex, updateField]);
 
-  // Initialize data from localStorage or props
+
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
@@ -164,7 +164,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
           
           setVehicleInformationData(mergedData);
           
-          // Use the appropriate field name based on transfer index
+
           const fieldName = transferIndex !== undefined 
             ? `transfer${transferIndex}_vehicleInformation` 
             : 'vehicleInformation';
@@ -186,7 +186,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
     }
   }, [formData, storageKey, transferIndex, onChange, updateField, isInitialized]);
 
-  // Update from props when they change
+
   useEffect(() => {
     if (isInitialized && formData.vehicleInformation && JSON.stringify(formData.vehicleInformation) !== JSON.stringify(vehicleInformationData)) {
       setVehicleInformationData(formData.vehicleInformation);
@@ -197,11 +197,11 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
     }
   }, [formData.vehicleInformation, isInitialized, storageKey, vehicleInformationData]);
 
-  // Helper functions for validation
+
   const shouldShowValidationError = (field: string) => {
     if (!showValidationErrors) return false;
     
-    // Adjust the validation path based on transferIndex
+
     const fieldPath = transferIndex !== undefined
       ? `transfer${transferIndex}_vehicleInformation.${field}`
       : `vehicleInformation.${field}`;
@@ -210,7 +210,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
   };
   
   const getValidationErrorMessage = (field: string): string => {
-    // Adjust the validation path based on transferIndex
+
     const fieldPath = transferIndex !== undefined
       ? `transfer${transferIndex}_vehicleInformation.${field}`
       : `vehicleInformation.${field}`;
@@ -246,7 +246,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
     if (!formData.vehicleInformation && isInitialized) {
       const newData = initialVehicleInformation;
       
-      // Use the appropriate field name based on transfer index
+
       const fieldName = transferIndex !== undefined 
         ? `transfer${transferIndex}_vehicleInformation` 
         : 'vehicleInformation';
@@ -270,7 +270,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
         
         setVehicleInformationData(newInfo);
         
-        // Use the appropriate field name based on transfer index
+
         const fieldName = transferIndex !== undefined 
           ? `transfer${transferIndex}_vehicleInformation` 
           : 'vehicleInformation';
@@ -313,7 +313,7 @@ const VehicleInformation: React.FC<VehicleInformationProps> = ({
       localStorage.setItem(storageKey, JSON.stringify(newInfo));
     }
     
-    // Use the appropriate field name based on transfer index
+
     const fieldName = transferIndex !== undefined 
       ? `transfer${transferIndex}_vehicleInformation` 
       : 'vehicleInformation';

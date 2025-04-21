@@ -39,7 +39,7 @@ const MissingTitle: React.FC<MissingTitleProps> = ({ formData: propFormData }) =
     'Illegible/Mutilated (Attach old title)',
   ];
 
-  // Check if the field is empty and we're showing validation errors
+
   const isEmpty = !titleData.reason || titleData.reason.trim() === '';
   const showError = showValidationErrors && isEmpty;
 

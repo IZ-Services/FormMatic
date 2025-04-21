@@ -160,7 +160,7 @@ export default function Transactions() {
     console.log('Transaction type:', clientToEdit.transactionType);
     console.log('Available components:', Object.keys(transactionComponents));
     
-    // Normalize the transaction type for multiple transfers
+
     let normalizedTransactionType = clientToEdit.transactionType;
     if (normalizedTransactionType.startsWith('Multiple Transfer')) {
       normalizedTransactionType = 'Multiple Transfer';
@@ -174,7 +174,7 @@ export default function Transactions() {
     setFormData(formDataWithId);
     setSelectedTransaction({
       ...clientToEdit,
-      // Use the normalized transaction type for component lookup
+
       transactionType: normalizedTransactionType,
       formData: formDataWithId
     });

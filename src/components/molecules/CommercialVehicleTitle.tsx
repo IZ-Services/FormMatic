@@ -60,8 +60,8 @@ export default function CommercialVehicleTransfer({ formData, onDataChange }: Co
     setFormValues(formData);
   }, [formData]);
 
-// In CommercialVehicleTransfer.tsx
-// Modify the FormContent component
+
+
 
 const FormContent = () => {
   const { formData: contextFormData, updateField, setTransactionType, showValidationErrors } = useFormContext();
@@ -78,7 +78,7 @@ const FormContent = () => {
     }
   }, [formValues, updateField]);
 
-  // Extract the commercial vehicle data
+
   const commercialVehicle = (contextFormData?.commercialVehicle || {}) as CommercialVehicleData;
   const isCommercial = commercialVehicle.isCommercial === true;
   const hasLienHolder = commercialVehicle.hasLienHolder === true;

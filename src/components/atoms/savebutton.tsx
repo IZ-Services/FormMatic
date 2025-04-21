@@ -360,25 +360,25 @@ const SaveButton: React.FC<SaveButtonProps> = ({
     }
   };
 
-// Modified handleMultipleTransferPrint for multiple transfer printing
+
 const handleMultipleTransferPrint = async () => {
   try {
     const { transfersData, numberOfTransfers } = multipleTransferData!;
     
-    // Check if we have valid transaction IDs for all transfers
+
     const validTransactionIds = transfersData
       .filter(transfer => transfer?._id && typeof transfer._id === 'string' && transfer._id.trim() !== '')
       .map(transfer => transfer._id);
     
     console.log(`Found ${validTransactionIds.length} valid transaction IDs out of ${numberOfTransfers} transfers`);
     
-    // Verify that we have all the transaction IDs we need
+
     if (validTransactionIds.length < numberOfTransfers) {
-      // Attempt to save the data first if IDs are missing
+
       console.log("Missing transaction IDs - attempting to save first");
       await handleSave();
       
-      // Refresh transaction IDs after save
+
       const refreshedIds = multipleTransferData!.transfersData
         .filter(transfer => transfer?._id && typeof transfer._id === 'string' && transfer._id.trim() !== '')
         .map(transfer => transfer._id);
@@ -390,14 +390,14 @@ const handleMultipleTransferPrint = async () => {
       console.log(`Successfully saved/refreshed IDs: ${refreshedIds.length}/${numberOfTransfers}`);
     }
     
-    // Get the final list of transaction IDs
+
     const allTransactionIds = multipleTransferData!.transfersData
       .filter(transfer => transfer?._id)
       .map(transfer => transfer._id);
     
     const allPdfBlobs: Array<{ blob: Blob, title: string }> = [];
     
-    // Generate only one DMVREG262 for all transfers
+
     console.log('Requesting PDF for DMVREG262 (single form for all transfers)');
     try {
       const response = await fetch('/api/fillPdf', {
@@ -436,7 +436,7 @@ const handleMultipleTransferPrint = async () => {
       console.error('Exception while fetching DMVREG262:', error);
     }
     
-    // Generate Reg227 forms for each transfer
+
     for (let i = 0; i < allTransactionIds.length; i++) {
       const transactionId = allTransactionIds[i];
       
@@ -478,15 +478,15 @@ const handleMultipleTransferPrint = async () => {
         console.error(`Exception while fetching Reg227 for transfer ${i + 1}:`, error);
       }
       
-      // Include conditional forms only if needed
+
       if (transfersData[i]?.vehicleTransactionDetails?.isFamilyTransfer || 
           transfersData[i]?.vehicleTransactionDetails?.isGift ||
           transfersData[i]?.vehicleTransactionDetails?.isSmogExempt) {
-        // Process Reg256 for this transfer
+
       }
       
       if (transfersData[i]?.vehicleTransactionDetails?.isOutOfStateTitle) {
-        // Process Reg343 for this transfer
+
       }
     }
     
@@ -496,7 +496,7 @@ const handleMultipleTransferPrint = async () => {
       throw new Error('No PDFs were generated successfully');
     }
     
-    // Merge and display PDFs
+
     const mergedPdfBlob = await mergePDFs(allPdfBlobs);
     const pdfUrl = URL.createObjectURL(mergedPdfBlob);
     window.open(pdfUrl, '_blank');
@@ -683,7 +683,7 @@ formTypes = ['Reg156'];
   }
 };
 
-// Full updated handlePrint method
+
 const handlePrint = async () => {
   if (!user || !transactionType) {
     alert('User ID and Transaction Type are required.');
@@ -694,10 +694,10 @@ const handlePrint = async () => {
   
   try {
     if (multipleTransferData?.isMultipleTransfer) {
-      // Handle multiple transfer printing
+
       await handleMultipleTransferPrint();
     } else if (formData._id) {
-      // Handle single transfer printing
+
       await handlePdfDisplay(formData._id);
     } else {
       alert('Please save the form before printing.');
@@ -710,8 +710,8 @@ const handlePrint = async () => {
   }
 };
 
-// Full updated handleSave method
-const handleSave = async () => {// Modified handleSave method with fix for JSON parse error
+
+const handleSave = async () => {
   const handleSave = async () => {
     if (!user || !transactionType) {
       alert('User ID and Transaction Type are required.');
@@ -728,7 +728,7 @@ const handleSave = async () => {// Modified handleSave method with fix for JSON 
         const updatedTransfersData = [...transfersData]; 
         
         for (let i = 0; i < numberOfTransfers; i++) {
-          // Fix: Safely handle potentially undefined transferData
+
           let transferData = transfersData[i] ? JSON.parse(JSON.stringify(transfersData[i])) : {};
           transferData = prepareTransferData(transferData);
           
@@ -882,7 +882,7 @@ const handleSave = async () => {// Modified handleSave method with fix for JSON 
           const saveResult = await saveResponse.json();
           const { transactionId } = saveResult;
           
-          // Update the form ID so printing works
+
           updateField('_id', transactionId);
           setShowValidationErrors(false);
           onSuccess?.();
@@ -1065,7 +1065,7 @@ const handleSave = async () => {// Modified handleSave method with fix for JSON 
         const saveResult = await saveResponse.json();
         const { transactionId } = saveResult;
         
-        // Update the form ID so printing works
+
         updateField('_id', transactionId);
         setShowValidationErrors(false);
         onSuccess?.();

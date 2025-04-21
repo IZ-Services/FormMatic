@@ -68,7 +68,7 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
   
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
-  // Use either prop-based or context-based validation flag
+
   const shouldShowValidationErrors = showValidationErrors || formData?._showValidationErrors === true;
 
   useEffect(() => {
@@ -80,11 +80,11 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
     }
   }, [formData?.vehicleBodyChange]);
 
-  // Validation function
+
   const validateVehicleBodyChange = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // Market value is required
+
     if (!bodyChangeData.marketValue || bodyChangeData.marketValue.trim() === '') {
       errors.push({
         fieldPath: 'vehicleBodyChange.marketValue',
@@ -97,7 +97,7 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
       });
     }
     
-    // Change cost is required
+
     if (!bodyChangeData.changeCost || bodyChangeData.changeCost.trim() === '') {
       errors.push({
         fieldPath: 'vehicleBodyChange.changeCost',
@@ -110,14 +110,14 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
       });
     }
     
-    // Change date is required
+
     if (!bodyChangeData.changeDate || bodyChangeData.changeDate.trim() === '') {
       errors.push({
         fieldPath: 'vehicleBodyChange.changeDate',
         message: 'Change date is required'
       });
     } else {
-      // Check if date is valid (MM/DD/YYYY format)
+
       const datePattern = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
       if (!datePattern.test(bodyChangeData.changeDate)) {
         errors.push({
@@ -125,7 +125,7 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
           message: 'Date must be in MM/DD/YYYY format'
         });
       } else {
-        // Check if date is valid (not future date)
+
         const [month, day, year] = bodyChangeData.changeDate.split('/').map(Number);
         const inputDate = new Date(year, month - 1, day);
         const today = new Date();
@@ -139,7 +139,7 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
       }
     }
     
-    // At least one change type must be selected
+
     if (!bodyChangeData.unladenWeightChanged && 
         !bodyChangeData.motiveChanged && 
         !bodyChangeData.bodyTypeChanged && 
@@ -150,7 +150,7 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
       });
     }
     
-    // If unladen weight changed, reason is required
+
     if (bodyChangeData.unladenWeightChanged && 
         (!bodyChangeData.unladenWeightReason || bodyChangeData.unladenWeightReason.trim() === '')) {
       errors.push({
@@ -159,7 +159,7 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
       });
     }
     
-    // If motive power changed, from and to are required
+
     if (bodyChangeData.motiveChanged) {
       if (!bodyChangeData.motiveFrom || bodyChangeData.motiveFrom.trim() === '') {
         errors.push({
@@ -176,7 +176,7 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
       }
     }
     
-    // If body type changed, from and to are required
+
     if (bodyChangeData.bodyTypeChanged) {
       if (!bodyChangeData.bodyTypeFrom || bodyChangeData.bodyTypeFrom.trim() === '') {
         errors.push({
@@ -193,7 +193,7 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
       }
     }
     
-    // If axles changed, from and to are required
+
     if (bodyChangeData.axlesChanged) {
       if (!bodyChangeData.axlesFrom || bodyChangeData.axlesFrom.trim() === '') {
         errors.push({
@@ -223,25 +223,25 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
     return errors;
   };
   
-  // Helper to get error message for a field
+
   const getErrorMessage = (fieldPath: string): string | null => {
     const error = validationErrors.find(err => err.fieldPath === fieldPath);
     return error ? error.message : null;
   };
   
-  // Check if a specific field should show validation error
+
   const shouldShowValidationError = (field: string): boolean => {
     if (!shouldShowValidationErrors) return false;
     return validationErrors.some(err => err.fieldPath === `vehicleBodyChange.${field}`);
   };
   
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (shouldShowValidationErrors) {
       const errors = validateVehicleBodyChange();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
         contextFormData._validationErrors !== null
         ? contextFormData._validationErrors
@@ -281,12 +281,12 @@ const VehicleBodyChange: React.FC<VehicleBodyChangeProps> = ({
     handleInputChange(field, formattedValue);
   };
   
-  // Format date input
+
   const handleDateChange = (value: string) => {
-    // Allow only digits and slashes
+
     let cleaned = value.replace(/[^\d/]/g, '');
     
-    // Auto-insert slashes
+
     if (cleaned.length === 2 && !cleaned.includes('/') && !bodyChangeData.changeDate.includes('/')) {
       cleaned = cleaned + '/';
     } else if (cleaned.length === 5 && cleaned.indexOf('/') === 2 && cleaned.lastIndexOf('/') === 2) {

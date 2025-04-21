@@ -65,7 +65,7 @@ const FormContent = ({ formValues }: { formValues: any }) => {
   const isLegalSelected = activeSubOptions['Name Change-Legal Name Change'] === true;
   const isDiscrepancySelected = activeSubOptions['Name Change-Name Discrepancy'] === true;
 
-  // Check if any suboption is selected
+
   const isAnySubOptionSelected = isCorrectionSelected || isLegalSelected || isDiscrepancySelected;
 
   const getCurrentActiveOption = (): string | null => {
@@ -82,11 +82,11 @@ const FormContent = ({ formValues }: { formValues: any }) => {
     setTransactionType(transactionType);
   }, [isCorrectionSelected, isLegalSelected, isDiscrepancySelected, setTransactionType]);
 
-  // Define field groups that will be preserved or cleared based on selections
+
   const commonFields = [
     'vehicleInformation', 
     'seller'
-    // Add other common fields here
+
   ];
   
   const correctionFields = [
@@ -96,7 +96,7 @@ const FormContent = ({ formValues }: { formValues: any }) => {
     'nameOnTitle',
     'correctName',
     'correctionProof'
-    // Add other correction-specific fields here
+
   ];
   
   const legalFields = [
@@ -105,7 +105,7 @@ const FormContent = ({ formValues }: { formValues: any }) => {
     'previousName',
     'newName',
     'legalProof'
-    // Add other legal name change-specific fields here
+
   ];
   
   const discrepancyFields = [
@@ -115,7 +115,7 @@ const FormContent = ({ formValues }: { formValues: any }) => {
     'nameOnDocument1',
     'nameOnDocument2',
     'discrepancyProof'
-    // Add other discrepancy-specific fields here
+
   ];
 
   const clearFieldGroup = (fields: string[]) => {

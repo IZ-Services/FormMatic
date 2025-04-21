@@ -41,12 +41,12 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({
     ...propFormData
   };
 
-  // Validation function
+
   const validatePlateSelection = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     const plateSelection = formData.plateSelection as PlateSelectionType | undefined;
     
-    // Validate plate type
+
     if (!plateSelection || !plateSelection.plateType) {
       errors.push({
         field: 'plateType',
@@ -54,7 +54,7 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({
       });
     }
     
-    // Validate organizational code for Veterans' Organization
+
     if (plateSelection?.plateType === 'Veterans\' Organization' && !plateSelection.organizationalCode) {
       errors.push({
         field: 'organizationalCode',
@@ -62,7 +62,7 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({
       });
     }
     
-    // Validate duplicate decal number
+
     if (plateSelection?.plateType === 'Duplicate Decal' && !plateSelection.duplicateDecalNumber) {
       errors.push({
         field: 'duplicateDecalNumber',
@@ -73,7 +73,7 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({
     return errors;
   };
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;
@@ -96,7 +96,7 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({
     }
   }, []);
 
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validatePlateSelection();
@@ -104,7 +104,7 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({
     }
   }, [showValidationErrors, formData.plateSelection]);
 
-  // Update parent component about validation status
+
   useEffect(() => {
     if (showValidationErrors) {
       updateField('_validationErrors', (prev: any) => ({
@@ -147,7 +147,7 @@ const PlateSelection: React.FC<PlateSelectionProps> = ({
 
     updateField('plateSelection', newData);
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validatePlateSelection();
       setValidationErrors(errors);

@@ -183,11 +183,11 @@ const ReleaseOfOwnership: React.FC<ReleaseInformationProps> = ({
   const regStateDropdownRef = useRef<HTMLDivElement>(null);
   const mailingStateDropdownRef = useRef<HTMLDivElement>(null);
 
-// Validation function
+
 const validateReleaseInfo = (): ValidationError[] => {
   const errors: ValidationError[] = [];
   
-  // Validate required fields
+
   if (!releaseData.name) {
     errors.push({
       field: 'name',
@@ -195,7 +195,7 @@ const validateReleaseInfo = (): ValidationError[] => {
     });
   }
   
-  // Validate address fields
+
   if (!releaseData.address?.street) {
     errors.push({
       field: 'address.street',
@@ -224,7 +224,7 @@ const validateReleaseInfo = (): ValidationError[] => {
     });
   }
   
-  // Validate date and phone fields
+
   if (!releaseData.date) {
     errors.push({
       field: 'date',
@@ -244,7 +244,7 @@ const validateReleaseInfo = (): ValidationError[] => {
     });
   }
   
-  // Validate authorized agent fields
+
   if (!releaseData.authorizedAgentName) {
     errors.push({
       field: 'authorizedAgentName',
@@ -259,7 +259,7 @@ const validateReleaseInfo = (): ValidationError[] => {
     });
   }
   
-  // Validate mailing address if different
+
   if (releaseData.mailingAddressDifferent) {
     if (!releaseData.mailingAddress?.street) {
       errors.push({
@@ -293,7 +293,7 @@ const validateReleaseInfo = (): ValidationError[] => {
   return errors;
 };
 
-  // First useEffect: Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validateReleaseInfo();
@@ -385,7 +385,7 @@ const validateReleaseInfo = (): ValidationError[] => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;
@@ -443,7 +443,7 @@ const validateReleaseInfo = (): ValidationError[] => {
       localStorage.setItem(RELEASE_OWNERSHIP_STORAGE_KEY, JSON.stringify(newData));
     }
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateReleaseInfo();
       setValidationErrors(errors);
@@ -472,7 +472,7 @@ const validateReleaseInfo = (): ValidationError[] => {
       localStorage.setItem(RELEASE_OWNERSHIP_STORAGE_KEY, JSON.stringify(newData));
     }
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateReleaseInfo();
       setValidationErrors(errors);
@@ -494,7 +494,7 @@ const validateReleaseInfo = (): ValidationError[] => {
       localStorage.setItem(RELEASE_OWNERSHIP_STORAGE_KEY, JSON.stringify(newData));
     }
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateReleaseInfo();
       setValidationErrors(errors);

@@ -109,7 +109,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
   };
 
   const clearAllFormData = () => {
-    // Clear validation state
+
     setValidationErrors([]);
     setShowValidationErrors(false);
     
@@ -118,7 +118,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
         localStorage.removeItem(`formmatic_form_data_${transactionType}`);
       }
       
-      // Also clear the multipleTransferState in localStorage
+
       localStorage.removeItem('multipleTransferState');
       
       clearSellerAddressStorage();
@@ -142,7 +142,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
   const validateCommercialVehicleInfo = (data: CommercialVehicleData): ValidationError[] => {
     const errors: ValidationError[] = [];
   
-    // Number of axles validation
+
     if (!data.numberOfAxles) {
       errors.push({
         fieldPath: 'commercialVehicleInfo.numberOfAxles',
@@ -158,7 +158,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
       }
     }
   
-    // Unladen weight validation
+
     if (!data.unladenWeight) {
       errors.push({
         fieldPath: 'commercialVehicleInfo.unladenWeight',
@@ -174,7 +174,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
       }
     }
   
-    // Estimated weight validation
+
     if (data.isEstimatedWeight === null) {
       errors.push({
         fieldPath: 'commercialVehicleInfo.isEstimatedWeight',
@@ -182,7 +182,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
       });
     }
   
-    // Body model type validation
+
     if (data.bodyModelType && data.bodyModelType.length > 50) {
       errors.push({
         fieldPath: 'commercialVehicleInfo.bodyModelType',
@@ -196,20 +196,20 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
   const validateForm = () => {
     const errors: ValidationError[] = [];
 
-  // Validate Vehicle Declaration entries
+
   if (formData.vehicleDeclaration) {
     const vehicleDeclaration = formData.vehicleDeclaration as any;
     
-    // Check if vehicles array exists and has entries
+
     if (!vehicleDeclaration.vehicles || !Array.isArray(vehicleDeclaration.vehicles) || vehicleDeclaration.vehicles.length === 0) {
       errors.push({
         fieldPath: 'vehicleDeclaration.vehicles',
         message: 'At least one vehicle entry is required'
       });
     } else {
-      // Validate each vehicle entry
+
       vehicleDeclaration.vehicles.forEach((vehicle: any, index: number) => {
-        // License number validation
+
         if (!vehicle.licenseNumber || vehicle.licenseNumber.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].licenseNumber`,
@@ -222,7 +222,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
           });
         }
         
-        // VIN validation
+
         if (!vehicle.vin || vehicle.vin.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].vin`,
@@ -235,7 +235,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
           });
         }
         
-        // Make validation
+
         if (!vehicle.make || vehicle.make.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].make`,
@@ -248,7 +248,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
           });
         }
         
-        // GVW weight validation
+
         if (!vehicle.gvwWeight || vehicle.gvwWeight.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].gvwWeight`,
@@ -256,7 +256,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
           });
         }
         
-        // CGW weight validation
+
         if (!vehicle.cgwWeight || vehicle.cgwWeight.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].cgwWeight`,
@@ -264,14 +264,14 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
           });
         }
         
-        // Date operated validation
+
         if (!vehicle.dateOperated || vehicle.dateOperated.trim() === '') {
           errors.push({
             fieldPath: `vehicleDeclaration.vehicles[${index}].dateOperated`,
             message: 'Date operated is required'
           });
         } else {
-          // Check if date is valid
+
           const date = new Date(vehicle.dateOperated);
           const today = new Date();
           if (isNaN(date.getTime())) {
@@ -289,7 +289,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
       });
     }
     
-    // Validate howMany field if needed
+
     if (!vehicleDeclaration.howMany) {
       errors.push({
         fieldPath: 'vehicleDeclaration.howMany',
@@ -309,7 +309,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
     const validateCommercialVehicleInfo = (data: CommercialVehicleData): ValidationError[] => {
       const errors: ValidationError[] = [];
     
-      // Number of axles validation
+
       if (!data.numberOfAxles) {
         errors.push({
           fieldPath: 'commercialVehicleInfo.numberOfAxles',
@@ -325,7 +325,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
         }
       }
     
-      // Unladen weight validation
+
       if (!data.unladenWeight) {
         errors.push({
           fieldPath: 'commercialVehicleInfo.unladenWeight',
@@ -341,7 +341,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
         }
       }
     
-      // Estimated weight validation
+
       if (data.isEstimatedWeight === null) {
         errors.push({
           fieldPath: 'commercialVehicleInfo.isEstimatedWeight',
@@ -349,7 +349,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
         });
       }
     
-      // Body model type validation
+
       if (data.bodyModelType && data.bodyModelType.length > 50) {
         errors.push({
           fieldPath: 'commercialVehicleInfo.bodyModelType',
@@ -363,7 +363,7 @@ export const FormDataProvider: React.FC<FormDataProviderProps> = ({
 if (formData.reassignmentSection) {
   const reassignmentSection = formData.reassignmentSection as any;
   
-  // Validate license plate number
+
   if (!reassignmentSection.specialInterestLicensePlate) {
     errors.push({
       fieldPath: 'reassignmentSection.specialInterestLicensePlate',
@@ -376,7 +376,7 @@ if (formData.reassignmentSection) {
     });
   }
   
-  // Validate removed from VIN
+
   if (!reassignmentSection.removedFrom) {
     errors.push({
       fieldPath: 'reassignmentSection.removedFrom',
@@ -389,7 +389,7 @@ if (formData.reassignmentSection) {
     });
   }
   
-  // Validate placed on license plate if provided
+
   if (reassignmentSection.placedOnLicensePlate && !/^[A-Z0-9]{1,7}$/.test(reassignmentSection.placedOnLicensePlate)) {
     errors.push({
       fieldPath: 'reassignmentSection.placedOnLicensePlate',
@@ -397,7 +397,7 @@ if (formData.reassignmentSection) {
     });
   }
   
-  // Validate placed on VIN if provided
+
   if (reassignmentSection.placedOnVehicle && !/^[A-Z0-9]{17}$/.test(reassignmentSection.placedOnVehicle)) {
     errors.push({
       fieldPath: 'reassignmentSection.placedOnVehicle',
@@ -405,7 +405,7 @@ if (formData.reassignmentSection) {
     });
   }
   
-  // Must select at least one option: retain interest, release to DMV, or release to new owner
+
   if (!reassignmentSection.retainInterest && !reassignmentSection.releaseInterestDMV && !reassignmentSection.releaseInterestNewOwner) {
     errors.push({
       fieldPath: 'reassignmentSection.interestOptions',
@@ -413,9 +413,9 @@ if (formData.reassignmentSection) {
     });
   }
   
-  // If retaining interest, need to validate additional fields
+
   if (reassignmentSection.retainInterest) {
-    // Fee enclosed required when retaining interest
+
     if (!reassignmentSection.feeEnclosed) {
       errors.push({
         fieldPath: 'reassignmentSection.feeEnclosed',
@@ -431,7 +431,7 @@ if (formData.reassignmentSection) {
     }
   }
   
-  // If releasing interest to new owner, need to validate placed on fields
+
   if (reassignmentSection.releaseInterestNewOwner) {
     if (!reassignmentSection.placedOnLicensePlate && !reassignmentSection.placedOnVehicle) {
       errors.push({
@@ -441,11 +441,11 @@ if (formData.reassignmentSection) {
     }
   }
 }
-    // Validate SelectConfiguration component
+
     if (formData.selectConfiguration) {
       const config = formData.selectConfiguration as any;
       
-      // Validate vehicle type
+
       if (!config.vehicleType) {
         errors.push({
           fieldPath: 'selectConfiguration.vehicleType',
@@ -453,7 +453,7 @@ if (formData.reassignmentSection) {
         });
       }
       
-      // Validate plate type
+
       if (!config.plateType) {
         errors.push({
           fieldPath: 'selectConfiguration.plateType',
@@ -461,7 +461,7 @@ if (formData.reassignmentSection) {
         });
       }
       
-      // Validate sequential plate fields
+
       if (config.plateType === 'Sequential') {
         if (!config.currentLicensePlate) {
           errors.push({
@@ -488,9 +488,9 @@ if (formData.reassignmentSection) {
         }
       }
       
-      // Validate personalized plate fields
+
       if (config.plateType === 'Personalized') {
-        // At least first choice is required
+
         if (!config.personalized?.firstChoice) {
           errors.push({
             fieldPath: 'selectConfiguration.personalized.firstChoice',
@@ -505,7 +505,7 @@ if (formData.reassignmentSection) {
           });
         }
         
-        // If second choice is provided, meaning is required
+
         if (config.personalized?.secondChoice && !config.personalized?.secondChoiceMeaning) {
           errors.push({
             fieldPath: 'selectConfiguration.personalized.secondChoiceMeaning',
@@ -513,7 +513,7 @@ if (formData.reassignmentSection) {
           });
         }
         
-        // If third choice is provided, meaning is required
+
         if (config.personalized?.thirdChoice && !config.personalized?.thirdChoiceMeaning) {
           errors.push({
             fieldPath: 'selectConfiguration.personalized.thirdChoiceMeaning',
@@ -522,7 +522,7 @@ if (formData.reassignmentSection) {
         }
       }
       
-      // Validate pickup location
+
       if (config.plateType && !config.pickupLocation) {
         errors.push({
           fieldPath: 'selectConfiguration.pickupLocation',
@@ -530,7 +530,7 @@ if (formData.reassignmentSection) {
         });
       }
       
-      // Validate location city
+
       if (config.pickupLocation && !config.locationCity) {
         errors.push({
           fieldPath: 'selectConfiguration.locationCity',
@@ -541,13 +541,13 @@ if (formData.reassignmentSection) {
 
     
     
-    // Validate PlannedNonOperation component
+
     if (formData.plannedNonOperation) {
       const pno = formData.plannedNonOperation as any;
       
       if (pno.entries && Array.isArray(pno.entries)) {
         pno.entries.forEach((entry: any, index: number) => {
-          // Validate license plate
+
           if (!entry.vehicleLicensePlate) {
             errors.push({
               fieldPath: `plannedNonOperation.entries[${index}].vehicleLicensePlate`,
@@ -555,7 +555,7 @@ if (formData.reassignmentSection) {
             });
           }
   
-          // Validate VIN
+
           if (!entry.vehicleIdNumber) {
             errors.push({
               fieldPath: `plannedNonOperation.entries[${index}].vehicleIdNumber`,
@@ -568,7 +568,7 @@ if (formData.reassignmentSection) {
             });
           }
   
-          // Validate make
+
           if (!entry.vehicleMake) {
             errors.push({
               fieldPath: `plannedNonOperation.entries[${index}].vehicleMake`,
@@ -579,11 +579,11 @@ if (formData.reassignmentSection) {
       }
     }
     
-    // Validate VehicleStorageLocation component
+
     if (formData.storageLocation) {
       const storage = formData.storageLocation as any;
       
-      // Validate from date
+
       if (!storage.fromDate) {
         errors.push({
           fieldPath: 'storageLocation.fromDate',
@@ -596,7 +596,7 @@ if (formData.reassignmentSection) {
         });
       }
       
-      // Validate to date
+
       if (!storage.toDate) {
         errors.push({
           fieldPath: 'storageLocation.toDate',
@@ -609,7 +609,7 @@ if (formData.reassignmentSection) {
         });
       }
       
-      // Validate address
+
       if (!storage.address) {
         errors.push({
           fieldPath: 'storageLocation.address',
@@ -617,7 +617,7 @@ if (formData.reassignmentSection) {
         });
       }
       
-      // Validate city
+
       if (!storage.city) {
         errors.push({
           fieldPath: 'storageLocation.city',
@@ -625,7 +625,7 @@ if (formData.reassignmentSection) {
         });
       }
       
-      // Validate state
+
       if (!storage.state) {
         errors.push({
           fieldPath: 'storageLocation.state',
@@ -633,7 +633,7 @@ if (formData.reassignmentSection) {
         });
       }
       
-      // Validate zip code
+
       if (!storage.zipCode) {
         errors.push({
           fieldPath: 'storageLocation.zipCode',
@@ -647,7 +647,7 @@ if (formData.reassignmentSection) {
       }
     }
     
-// Validate platePurchaserOwner fields for personalized plates transactions
+
 if (transactionType?.startsWith("Personalized Plates")) {
   const platePurchaserOwner = formData.platePurchaserOwner as any | undefined;
   
@@ -657,7 +657,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
       message: 'Plate purchaser information is required'
     });
   } else {
-    // Validate purchaser fields
+
     if (!platePurchaserOwner.purchaser?.fullName) {
       errors.push({
         fieldPath: 'platePurchaserOwner.purchaser.fullName',
@@ -703,14 +703,14 @@ if (transactionType?.startsWith("Personalized Plates")) {
         fieldPath: 'platePurchaserOwner.purchaser.phoneNumber',
         message: 'Phone number is required'
       });
-    } else if (platePurchaserOwner.purchaser.phoneNumber.length < 14) { // (XXX) XXX-XXXX format is 14 chars
+    } else if (platePurchaserOwner.purchaser.phoneNumber.length < 14) {
       errors.push({
         fieldPath: 'platePurchaserOwner.purchaser.phoneNumber',
         message: 'Please enter a complete phone number'
       });
     }
     
-    // Validate owner fields if not same as purchaser
+
     if (!platePurchaserOwner.sameAsOwner) {
       if (!platePurchaserOwner.owner?.fullName) {
         errors.push({
@@ -776,7 +776,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
       message: 'Replacement information is required'
     });
   } else {
-    // Validate license plate number
+
     if (!replacementSection.specialInterestLicensePlate) {
       errors.push({
         fieldPath: 'replacementSection.specialInterestLicensePlate',
@@ -789,7 +789,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
       });
     }
     
-    // Validate plate quantity selection
+
     if (!replacementSection.ineed) {
       errors.push({
         fieldPath: 'replacementSection.ineed',
@@ -797,7 +797,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
       });
     }
     
-    // Validate plate status
+
     if (!replacementSection.plateStatus) {
       errors.push({
         fieldPath: 'replacementSection.plateStatus',
@@ -815,7 +815,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           message: 'Release of ownership information is required'
         });
       } else {
-        // Validate name
+
         if (!releaseInformation.name) {
           errors.push({
             fieldPath: 'releaseInformation.name',
@@ -823,7 +823,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           });
         }
         
-        // Validate address fields
+
         if (!releaseInformation.address?.street) {
           errors.push({
             fieldPath: 'releaseInformation.address.street',
@@ -852,7 +852,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           });
         }
         
-        // Validate authorized agent fields
+
         if (!releaseInformation.authorizedAgentName) {
           errors.push({
             fieldPath: 'releaseInformation.authorizedAgentName',
@@ -867,7 +867,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           });
         }
         
-        // Validate date and phone fields
+
         if (!releaseInformation.date) {
           errors.push({
             fieldPath: 'releaseInformation.date',
@@ -887,7 +887,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           });
         }
         
-        // Validate mailing address if different
+
         if (releaseInformation.mailingAddressDifferent) {
           if (!releaseInformation.mailingAddress?.street) {
             errors.push({
@@ -929,7 +929,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           message: 'Lien holder information is required'
         });
       } else {
-        // Validate lien holder name
+
         if (!lienHolder.name) {
           errors.push({
             fieldPath: 'lienHolder.name',
@@ -937,7 +937,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           });
         }
         
-        // Validate ELT if provided
+
         if (lienHolder.eltNumber && lienHolder.eltNumber.length !== 3) {
           errors.push({
             fieldPath: 'lienHolder.eltNumber',
@@ -945,7 +945,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           });
         }
         
-        // Validate address
+
         if (!lienHolder.address?.street) {
           errors.push({
             fieldPath: 'lienHolder.address.street',
@@ -974,7 +974,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           });
         }
         
-        // Validate mailing address if different
+
         if (lienHolder.mailingAddressDifferent) {
           if (!lienHolder.mailingAddress?.street) {
             errors.push({
@@ -1007,7 +1007,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
       }
     }
     
-    // Validate platePurchaserOwner fields for personalized plates transactions
+
     if (transactionType?.startsWith("Personalized Plates")) {
       const platePurchaser = formData.platePurchaserOwner as any | undefined;
       
@@ -1017,7 +1017,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           message: 'Plate purchaser information is required'
         });
       } else {
-        // Validate purchaser name fields
+
         if (!platePurchaser.firstName) {
           errors.push({
             fieldPath: 'platePurchaserOwner.firstName',
@@ -1032,7 +1032,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           });
         }
         
-        // Validate address fields
+
         if (!platePurchaser.address?.street) {
           errors.push({
             fieldPath: 'platePurchaserOwner.address.street',
@@ -1061,7 +1061,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           });
         }
         
-        // Validate license and contact info
+
         if (!platePurchaser.driverLicense) {
           errors.push({
             fieldPath: 'platePurchaserOwner.driverLicense',
@@ -1083,7 +1083,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
           });
         }
         
-        // Validate mailing address if different
+
         if (platePurchaser.mailingAddressDifferent) {
           if (!platePurchaser.mailingAddress?.street) {
             errors.push({
@@ -1116,7 +1116,7 @@ if (transactionType?.startsWith("Personalized Plates")) {
       }
     }
     
-    // Validate plateSelection fields for personalized plates
+
     if (transactionType?.startsWith("Personalized Plates")) {
       const plateSelection = formData.plateSelection as any | undefined;
       
@@ -1136,7 +1136,7 @@ if (transactionType === "Lien Holder Removal") {
       message: 'Release of ownership information is required'
     });
   } else {
-    // Validate name
+
     if (!releaseInformation.name) {
       errors.push({
         fieldPath: 'releaseInformation.name',
@@ -1144,7 +1144,7 @@ if (transactionType === "Lien Holder Removal") {
       });
     }
     
-    // Validate address fields
+
     if (!releaseInformation.address?.street) {
       errors.push({
         fieldPath: 'releaseInformation.address.street',
@@ -1173,7 +1173,7 @@ if (transactionType === "Lien Holder Removal") {
       });
     }
     
-    // Validate date and phone fields
+
     if (!releaseInformation.date) {
       errors.push({
         fieldPath: 'releaseInformation.date',
@@ -1193,7 +1193,7 @@ if (transactionType === "Lien Holder Removal") {
       });
     }
     
-    // Validate mailing address if different
+
     if (releaseInformation.mailingAddressDifferent) {
       if (!releaseInformation.mailingAddress?.street) {
         errors.push({
@@ -1233,7 +1233,7 @@ if (transactionType === "Lien Holder Removal") {
       message: 'Lien holder information is required'
     });
   } else {
-    // Validate lien holder name
+
     if (!lienHolder.name) {
       errors.push({
         fieldPath: 'lienHolder.name',
@@ -1241,7 +1241,7 @@ if (transactionType === "Lien Holder Removal") {
       });
     }
     
-    // Validate ELT if provided
+
     if (lienHolder.eltNumber && lienHolder.eltNumber.length !== 3) {
       errors.push({
         fieldPath: 'lienHolder.eltNumber',
@@ -1249,7 +1249,7 @@ if (transactionType === "Lien Holder Removal") {
       });
     }
     
-    // Validate address
+
     if (!lienHolder.address?.street) {
       errors.push({
         fieldPath: 'lienHolder.address.street',
@@ -1278,7 +1278,7 @@ if (transactionType === "Lien Holder Removal") {
       });
     }
     
-    // Validate mailing address if different
+
     if (lienHolder.mailingAddressDifferent) {
       if (!lienHolder.mailingAddress?.street) {
         errors.push({
@@ -1312,7 +1312,7 @@ if (transactionType === "Lien Holder Removal") {
 }
   const itemRequested = formData.itemRequested as any | undefined;
   if (itemRequested) {
-    // Check if at least one option is selected for non-duplicate registration mode
+
     const isDuplicateRegistrationMode = formData.isDuplicateRegistrationMode === true;
     
     if (!isDuplicateRegistrationMode) {
@@ -1336,7 +1336,7 @@ if (transactionType === "Lien Holder Removal") {
       }
     }
     
-    // Validate "Other" explanation
+
     if (itemRequested.other && !itemRequested.otherExplanation) {
       errors.push({
         fieldPath: 'itemRequested.otherExplanation',
@@ -1344,7 +1344,7 @@ if (transactionType === "Lien Holder Removal") {
       });
     }
     
-    // Validate "Surrendered" plates number
+
     if (itemRequested.surrendered && !isDuplicateRegistrationMode && !itemRequested.numberOfPlatesSurrendered) {
       errors.push({
         fieldPath: 'itemRequested.numberOfPlatesSurrendered',
@@ -1353,14 +1353,14 @@ if (transactionType === "Lien Holder Removal") {
     }
   } else if (formData.transactionType === "Duplicate Plates & Stickers" || 
             formData.transactionType === "Duplicate Stickers") {
-    // ItemRequested is required for duplicate transactions
+
     errors.push({
       fieldPath: 'itemRequested',
       message: 'Item requested information is required'
     });
   }
   
-  // Validate LicensePlate
+
   const licensePlate = formData.licensePlate as any | undefined;
   const isLicensePlateRequired = formData.transactionType === "Duplicate Plates & Stickers";
   

@@ -36,12 +36,12 @@ const initialNameStatement: NameStatementType = {
 const LegalNameChange: React.FC = () => {
   const { formData, updateField } = useFormContext();
   
-  // Initialize form data if needed
+
   useEffect(() => {
     if (!formData.nameStatement) {
       updateField('nameStatement', initialNameStatement);
     } else if (!(formData.nameStatement as NameStatementType).isChangingName) {
-      // Make sure the correct checkbox is checked when component mounts
+
       updateField('nameStatement', {
         ...formData.nameStatement,
         isChangingName: true,
@@ -75,7 +75,7 @@ const LegalNameChange: React.FC = () => {
     });
   };
   
-  // Handle the TypeScript error by properly typing nameStatement
+
   const nameStatement = (formData.nameStatement as NameStatementType) || initialNameStatement;
   const isChangingName = nameStatement.isChangingName;
   const fromName = nameStatement.nameChange?.fromName || '';

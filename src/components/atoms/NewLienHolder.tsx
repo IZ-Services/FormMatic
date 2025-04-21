@@ -97,11 +97,11 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({
   const regRef = useRef<HTMLUListElement>(null);
   const mailingRef = useRef<HTMLUListElement>(null);
 
-  // Validation function
+
   const validateLienHolder = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // Validate required fields
+
     if (!lienHolderData.name) {
       errors.push({
         field: 'name',
@@ -116,7 +116,7 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({
       });
     }
     
-    // Validate address fields
+
     if (!lienHolderData.address?.street) {
       errors.push({
         field: 'address.street',
@@ -145,7 +145,7 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({
       });
     }
     
-    // Validate mailing address if different
+
     if (lienHolderData.mailingAddressDifferent) {
       if (!lienHolderData.mailingAddress?.street) {
         errors.push({
@@ -179,7 +179,7 @@ const NewLienHolder: React.FC<NewLienHolderProps> = ({
     return errors;
   };
 
-// Run validation when showing validation errors or when data changes
+
 useEffect(() => {
   if (showValidationErrors) {
     const errors = validateLienHolder();
@@ -187,10 +187,10 @@ useEffect(() => {
   }
 }, [showValidationErrors, lienHolderData]);
 
-// Update global validation state when our validation errors change
+
 useEffect(() => {
   if (showValidationErrors && validationErrors.length >= 0) {
-    // Get current validation errors object without using contextFormData
+
     updateField('_validationErrors', {
       lienHolder: validationErrors.length > 0
     });
@@ -279,7 +279,7 @@ useEffect(() => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown]);
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;
@@ -298,12 +298,12 @@ useEffect(() => {
       onChange(newLienHolder);
     }
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateLienHolder();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && contextFormData._validationErrors !== null
         ? contextFormData._validationErrors
         : {};
@@ -340,12 +340,12 @@ useEffect(() => {
       onChange(newLienHolder);
     }
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateLienHolder();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && contextFormData._validationErrors !== null
         ? contextFormData._validationErrors
         : {};
@@ -388,12 +388,12 @@ useEffect(() => {
       onChange(newLienHolder);
     }
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateLienHolder();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && contextFormData._validationErrors !== null
         ? contextFormData._validationErrors
         : {};

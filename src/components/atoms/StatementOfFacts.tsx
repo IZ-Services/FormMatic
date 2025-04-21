@@ -43,7 +43,7 @@ const StatementOfFacts: React.FC<StatementOfFactsProps> = ({
   
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
-  // Use either prop-based or context-based validation flag
+
   const shouldShowValidationErrors = showValidationErrors || formData?._showValidationErrors === true;
 
   useEffect(() => {
@@ -54,11 +54,11 @@ const StatementOfFacts: React.FC<StatementOfFactsProps> = ({
     }
   }, [formData.statementOfFacts]);
   
-  // Validation function
+
   const validateStatementOfFacts = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // Statement is required
+
     if (!statementData.statement || statementData.statement.trim() === '') {
       errors.push({
         fieldPath: 'statementOfFacts.statement',
@@ -79,25 +79,25 @@ const StatementOfFacts: React.FC<StatementOfFactsProps> = ({
     return errors;
   };
   
-  // Helper to get error message for a field
+
   const getErrorMessage = (fieldPath: string): string | null => {
     const error = validationErrors.find(err => err.fieldPath === fieldPath);
     return error ? error.message : null;
   };
   
-  // Check if a specific field should show validation error
+
   const shouldShowValidationError = (field: string): boolean => {
     if (!shouldShowValidationErrors) return false;
     return validationErrors.some(err => err.fieldPath === `statementOfFacts.${field}`);
   };
   
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (shouldShowValidationErrors) {
       const errors = validateStatementOfFacts();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
         contextFormData._validationErrors !== null
         ? contextFormData._validationErrors

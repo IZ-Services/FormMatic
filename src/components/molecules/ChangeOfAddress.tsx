@@ -71,7 +71,7 @@ export default function ChangeOfAddressTransfer({ formData, onDataChange }: Chan
     const isCurrentLienholder = vehicleTransactionDetails.currentLienholder === true;
     const isSmogExempt = vehicleTransactionDetails.isSmogExempt === true;
 
-    // Function to update leasing company name
+
     const handleLeasingCompanyNameChange = (value: string) => {
       const updatedCheckboxOptions = {
         ...checkboxOptions,

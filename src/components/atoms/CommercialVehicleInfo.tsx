@@ -46,11 +46,11 @@ const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({
     bodyModelType: formData?.commercialVehicleInfo?.bodyModelType || '' 
   });
   
-  // Validation function
+
   const validateCommercialVehicleInfo = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // Validate number of axles
+
     if (!vehicleData.numberOfAxles) {
       errors.push({
         field: 'numberOfAxles',
@@ -66,7 +66,7 @@ const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({
       }
     }
     
-    // Validate unladen weight
+
     if (!vehicleData.unladenWeight) {
       errors.push({
         field: 'unladenWeight',
@@ -82,7 +82,7 @@ const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({
       }
     }
     
-    // Validate estimated weight checkbox
+
     if (vehicleData.isEstimatedWeight === null) {
       errors.push({
         field: 'isEstimatedWeight',
@@ -90,7 +90,7 @@ const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({
       });
     }
     
-    // Validate body model type (optional, but add some basic validation if needed)
+
     if (vehicleData.bodyModelType && vehicleData.bodyModelType.length > 50) {
       errors.push({
         field: 'bodyModelType',
@@ -101,13 +101,13 @@ const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({
     return errors;
   };
   
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;
   };
   
-  // Sync with props when they change
+
   useEffect(() => {
     if (propFormData?.commercialVehicleInfo) {
       setVehicleData(prev => ({
@@ -117,7 +117,7 @@ const CommercialVehicleInfo: React.FC<CommercialVehicleInfoProps> = ({
     }
   }, [propFormData]);
   
-// Run validation when showing validation errors or when data changes
+
 useEffect(() => {
   if (showValidationErrors) {
     const errors = validateCommercialVehicleInfo();
@@ -125,7 +125,7 @@ useEffect(() => {
   }
 }, [showValidationErrors, vehicleData]);
 
-// Update parent component about validation status
+
 useEffect(() => {
   if (showValidationErrors) {
     updateField('_validationErrors', (prev: any) => ({
@@ -145,7 +145,7 @@ useEffect(() => {
       updateField('commercialVehicleInfo', newData);
     }
     
-    // Run validation if showing validation errors
+
     if (showValidationErrors) {
       const errors = validateCommercialVehicleInfo();
       setValidationErrors(errors);

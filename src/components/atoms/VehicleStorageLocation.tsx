@@ -72,16 +72,16 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
   const { formData: contextFormData, updateField } = useFormContext() as FormContextType;
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
-  // Clean the incoming props data
+
   const cleanedPropData = cleanFormData(propFormData);
   
-  // Combined form data from both context and props
+
   const combinedFormData = {
     ...contextFormData,
     ...cleanedPropData
   };
   
-  // Initialize state with data from props, context, or default values
+
   const [storageData, setStorageData] = useState<StorageLocationData>(
     cleanedPropData?.storageLocation || 
     (contextFormData?.storageLocation as StorageLocationData) || 
@@ -144,11 +144,11 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     { name: 'Wyoming', abbreviation: 'WY' },
   ];
 
-  // Validation function
+
   const validateStorageLocation = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // Validate from date
+
     if (!storageData.fromDate) {
       errors.push({
         field: 'fromDate',
@@ -161,7 +161,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
       });
     }
     
-    // Validate to date
+
     if (!storageData.toDate) {
       errors.push({
         field: 'toDate',
@@ -174,7 +174,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
       });
     }
     
-    // Validate address
+
     if (!storageData.address) {
       errors.push({
         field: 'address',
@@ -182,7 +182,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
       });
     }
     
-    // Validate city
+
     if (!storageData.city) {
       errors.push({
         field: 'city',
@@ -190,7 +190,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
       });
     }
     
-    // Validate state
+
     if (!storageData.state) {
       errors.push({
         field: 'state',
@@ -198,7 +198,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
       });
     }
     
-    // Validate zip code
+
     if (!storageData.zipCode) {
       errors.push({
         field: 'zipCode',
@@ -214,20 +214,20 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     return errors;
   };
   
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;
   };
 
-  // Initialize form data if not present in context
+
   useEffect(() => {
     if (!contextFormData?.storageLocation) {
       updateField('storageLocation', initialStorageData);
     }
   }, []);
 
-  // Sync with props when they change
+
   useEffect(() => {
     if (propFormData) {
       const cleanedProps = cleanFormData(propFormData);
@@ -241,7 +241,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     }
   }, [propFormData]);
 
-  // Sync with context when it changes
+
   useEffect(() => {
     const currentData = combinedFormData?.storageLocation;
     if (currentData) {
@@ -249,7 +249,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     }
   }, [combinedFormData?.storageLocation]);
 
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validateStorageLocation();
@@ -257,7 +257,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     }
   }, [showValidationErrors, storageData]);
 
-  // Update parent component about validation status
+
   useEffect(() => {
     if (showValidationErrors) {
       updateField('_validationErrors', (prev: any) => ({
@@ -267,7 +267,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
     }
   }, [validationErrors, showValidationErrors]);
 
-  // Special handling for multiple transfer mode
+
   useEffect(() => {
     if (isMultipleTransfer) {
       console.log("VehicleStorageLocation: Multiple transfer mode detected");
@@ -316,7 +316,7 @@ const VehicleStorageLocation: React.FC<VehicleStorageLocationProps> = ({
       }
     }
     
-    // Run validation if showing validation errors
+
     if (showValidationErrors) {
       const errors = validateStorageLocation();
       setValidationErrors(errors);

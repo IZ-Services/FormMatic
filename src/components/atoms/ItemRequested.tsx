@@ -111,13 +111,13 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
     }
   }, [isDuplicateRegistrationMode]);
 
-  // Validation function
+
   const validateItemRequested = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // Only validate if not in duplicate registration mode
+
     if (!isDuplicateRegistrationMode) {
-      // Check if at least one option is selected
+
       const hasSelection = 
         itemData.lost || 
         itemData.stolen || 
@@ -137,7 +137,7 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
         });
       }
       
-      // Validate "Other" explanation
+
       if (itemData.other && !itemData.otherExplanation) {
         errors.push({
           field: 'otherExplanation',
@@ -145,7 +145,7 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
         });
       }
       
-      // Validate "Surrendered" plates number
+
       if (itemData.surrendered && !itemData.numberOfPlatesSurrendered) {
         errors.push({
           field: 'numberOfPlatesSurrendered',
@@ -157,13 +157,13 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
     return errors;
   };
 
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validateItemRequested();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       updateField('_validationErrors', {
         ...contextFormData._validationErrors,
         itemRequested: errors.length > 0
@@ -203,12 +203,12 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
       updateField('itemRequested', newData);
     }
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateItemRequested();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       updateField('_validationErrors', {
         ...contextFormData._validationErrors,
         itemRequested: errors.length > 0
@@ -234,12 +234,12 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
       updateField('itemRequested', newData);
     }
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateItemRequested();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       updateField('_validationErrors', {
         ...contextFormData._validationErrors,
         itemRequested: errors.length > 0
@@ -263,12 +263,12 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
       updateField('itemRequested', newData);
     }
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateItemRequested();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       updateField('_validationErrors', {
         ...contextFormData._validationErrors,
         itemRequested: errors.length > 0
@@ -276,7 +276,7 @@ const ItemRequested: React.FC<ItemRequestedProps> = ({
     }
   };
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;

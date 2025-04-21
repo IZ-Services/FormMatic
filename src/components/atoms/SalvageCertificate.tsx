@@ -55,7 +55,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
 }) => {
   const { formData: contextFormData, updateField } = useFormContext();
   
-  // Combined form data from both context and props
+
   const formData = {
     ...contextFormData,
     ...propFormData
@@ -69,17 +69,17 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
 
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
-  // Use either prop-based or context-based validation flag
+
   const shouldShowValidationErrors = showValidationErrors || formData?._showValidationErrors === true;
 
-  // Initialize form data if not present in context
+
   useEffect(() => {
     if (!contextFormData?.salvageCertificate) {
       updateField('salvageCertificate', initialSalvageData);
     }
   }, []);
 
-  // Sync component state with context/props form data
+
   useEffect(() => {
     const currentData = formData?.salvageCertificate;
     if (currentData) {
@@ -87,11 +87,11 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
     }
   }, [formData?.salvageCertificate]);
 
-  // Validation function
+
   const validateSalvageCertificate = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // Certificate type validation
+
     if (!salvageData.isOriginal && !salvageData.isDuplicate) {
       errors.push({
         fieldPath: 'salvageCertificate.certificateType',
@@ -99,7 +99,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
       });
     }
     
-    // State of last registration validation
+
     if (!salvageData.stateOfLastRegistration || salvageData.stateOfLastRegistration.trim() === '') {
       errors.push({
         fieldPath: 'salvageCertificate.stateOfLastRegistration',
@@ -107,14 +107,14 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
       });
     }
     
-    // Date registration expires validation
+
     if (!salvageData.dateRegistrationExpires || salvageData.dateRegistrationExpires.trim() === '') {
       errors.push({
         fieldPath: 'salvageCertificate.dateRegistrationExpires',
         message: 'Date registration expires is required'
       });
     } else {
-      // Check if date is valid (MM/DD/YYYY format)
+
       const datePattern = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
       if (!datePattern.test(salvageData.dateRegistrationExpires)) {
         errors.push({
@@ -124,7 +124,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
       }
     }
     
-    // Cost/value validation
+
     if (!salvageData.costOrValue || salvageData.costOrValue.trim() === '') {
       errors.push({
         fieldPath: 'salvageCertificate.costOrValue',
@@ -137,7 +137,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
       });
     }
     
-    // Claim number validation
+
     if (!salvageData.claimNumber || salvageData.claimNumber.trim() === '') {
       errors.push({
         fieldPath: 'salvageCertificate.claimNumber',
@@ -145,14 +145,14 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
       });
     }
     
-    // Date wrecked validation
+
     if (!salvageData.dateWreckedOrDestroyed || salvageData.dateWreckedOrDestroyed.trim() === '') {
       errors.push({
         fieldPath: 'salvageCertificate.dateWreckedOrDestroyed',
         message: 'Date wrecked is required'
       });
     } else {
-      // Check if date is valid (MM/DD/YYYY format)
+
       const datePattern = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
       if (!datePattern.test(salvageData.dateWreckedOrDestroyed)) {
         errors.push({
@@ -160,7 +160,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
           message: 'Date must be in MM/DD/YYYY format'
         });
       } else {
-        // Check if date is not in the future
+
         const [month, day, year] = salvageData.dateWreckedOrDestroyed.split('/').map(Number);
         const inputDate = new Date(year, month - 1, day);
         const today = new Date();
@@ -174,7 +174,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
       }
     }
     
-    // If date stolen is provided, validate format
+
     if (salvageData.dateStolen && salvageData.dateStolen.trim() !== '') {
       const datePattern = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
       if (!datePattern.test(salvageData.dateStolen)) {
@@ -183,7 +183,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
           message: 'Date must be in MM/DD/YYYY format'
         });
       } else {
-        // Check if date is not in the future
+
         const [month, day, year] = salvageData.dateStolen.split('/').map(Number);
         const inputDate = new Date(year, month - 1, day);
         const today = new Date();
@@ -197,7 +197,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
       }
     }
     
-    // If date recovered is provided, validate format
+
     if (salvageData.dateRecovered && salvageData.dateRecovered.trim() !== '') {
       const datePattern = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
       if (!datePattern.test(salvageData.dateRecovered)) {
@@ -206,7 +206,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
           message: 'Date must be in MM/DD/YYYY format'
         });
       } else {
-        // Check if date is not in the future
+
         const [month, day, year] = salvageData.dateRecovered.split('/').map(Number);
         const inputDate = new Date(year, month - 1, day);
         const today = new Date();
@@ -218,7 +218,7 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
           });
         }
         
-        // If date stolen is provided, make sure date recovered is not before date stolen
+
         if (salvageData.dateStolen && salvageData.dateStolen.trim() !== '') {
           const [stolenMonth, stolenDay, stolenYear] = salvageData.dateStolen.split('/').map(Number);
           const stolenDate = new Date(stolenYear, stolenMonth - 1, stolenDay);
@@ -236,25 +236,25 @@ const SalvageCertificate: React.FC<SalvageCertificateProps> = ({
     return errors;
   };
   
-  // Helper to get error message for a field
+
   const getErrorMessage = (fieldPath: string): string | null => {
     const error = validationErrors.find(err => err.fieldPath === fieldPath);
     return error ? error.message : null;
   };
   
-  // Check if a specific field should show validation error
+
   const shouldShowValidationError = (field: string): boolean => {
     if (!shouldShowValidationErrors) return false;
     return validationErrors.some(err => err.fieldPath === `salvageCertificate.${field}`);
   };
   
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (shouldShowValidationErrors) {
       const errors = validateSalvageCertificate();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
         contextFormData._validationErrors !== null
         ? contextFormData._validationErrors

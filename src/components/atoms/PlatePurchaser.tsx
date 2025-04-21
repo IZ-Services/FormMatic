@@ -109,7 +109,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({
   const ownerStateRef = useRef<HTMLUListElement>(null);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
-  // Get combined form data - extracted outside to reduce rerenders
+
   const getFormDataSafely = () => {
     const combined = {
       ...contextFormData,
@@ -143,14 +143,14 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({
     };
   };
   
-  // Store the form data in a memoized reference to avoid constant recalculation
+
   const safeFormData = getFormDataSafely();
   
-  // Validation function
+
   const validatePlatePurchaserOwner = (info: PlatePurchaserOwnerType): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // Validate purchaser fields
+
     if (!info.purchaser.fullName) {
       errors.push({
         field: 'purchaser.fullName',
@@ -196,14 +196,14 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({
         field: 'purchaser.phoneNumber',
         message: 'Phone number is required'
       });
-    } else if (info.purchaser.phoneNumber.length < 14) { // (XXX) XXX-XXXX format is 14 chars
+    } else if (info.purchaser.phoneNumber.length < 14) {
       errors.push({
         field: 'purchaser.phoneNumber',
         message: 'Please enter a complete phone number'
       });
     }
     
-    // Validate owner fields if not same as purchaser
+
     if (!info.sameAsOwner) {
       if (!info.owner?.fullName) {
         errors.push({
@@ -261,20 +261,20 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({
     return errors;
   };
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;
   };
 
-  // Initialize form data only once on mount
+
   useEffect(() => {
     if (!contextFormData.platePurchaserOwner) {
       updateField('platePurchaserOwner', initialPlatePurchaserOwner);
     }
   }, [contextFormData.platePurchaserOwner, updateField]);
 
-  // Handle outside clicks for dropdowns
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Element;
@@ -301,17 +301,17 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown]);
 
-  // Combined validation effect that runs when relevant dependencies change
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validatePlatePurchaserOwner(safeFormData.platePurchaserOwner);
       setValidationErrors(errors);
       
-      // Only update parent validation state when validation errors change
-      // Use a ref to track previous validation state to prevent infinite loops
+
+
       const hasErrors = errors.length > 0;
       updateField('_validationErrors', (prev: any) => {
-        // Only update if the value is actually changing
+
         if (prev?.platePurchaserOwner !== hasErrors) {
           return {
             ...prev,
@@ -383,7 +383,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({
     
     updateField('platePurchaserOwner', currentInfo);
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validatePlatePurchaserOwner(currentInfo);
       setValidationErrors(errors);
@@ -413,7 +413,7 @@ const PlatePurchaserOwner: React.FC<PlatePurchaserOwnerProps> = ({
     
     updateField('platePurchaserOwner', currentInfo);
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validatePlatePurchaserOwner(currentInfo);
       setValidationErrors(errors);

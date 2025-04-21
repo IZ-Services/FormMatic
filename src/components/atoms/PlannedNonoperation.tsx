@@ -51,13 +51,13 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({
     ...propFormData
   };
 
-  // Validation function
+
   const validateEntries = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     const entries = formData.plannedNonOperation?.entries || [];
 
     entries.forEach((entry, index) => {
-      // Validate license plate
+
       if (!entry.vehicleLicensePlate) {
         errors.push({
           field: 'vehicleLicensePlate',
@@ -66,7 +66,7 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({
         });
       }
 
-      // Validate VIN
+
       if (!entry.vehicleIdNumber) {
         errors.push({
           field: 'vehicleIdNumber',
@@ -81,7 +81,7 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({
         });
       }
 
-      // Validate make
+
       if (!entry.vehicleMake) {
         errors.push({
           field: 'vehicleMake',
@@ -94,7 +94,7 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({
     return errors;
   };
 
-  // Helper to get error message
+
   const getErrorMessage = (field: string, index: number): string | null => {
     const error = validationErrors.find(err => err.field === field && err.index === index);
     return error ? error.message : null;
@@ -106,7 +106,7 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({
     }
   }, []);
 
-  // Run validation when data changes or validation flag is turned on
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validateEntries();
@@ -114,7 +114,7 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({
     }
   }, [showValidationErrors, formData.plannedNonOperation]);
 
-  // Update parent component about validation status
+
   useEffect(() => {
     if (showValidationErrors) {
       updateField('_validationErrors', (prev: any) => ({
@@ -142,7 +142,7 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({
       entries: updatedEntries
     });
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateEntries();
       setValidationErrors(errors);
@@ -178,7 +178,7 @@ const PlannedNonOperation: React.FC<PlannedNonOperationProps> = ({
       entries: updatedEntries
     });
     
-    // Run validation after deletion if we're showing validation errors
+
     if (showValidationErrors) {
       setTimeout(() => {
         const errors = validateEntries();

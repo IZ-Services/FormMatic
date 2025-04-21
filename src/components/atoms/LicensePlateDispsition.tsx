@@ -41,7 +41,7 @@ const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({
 }) => {
   const { formData: contextFormData, updateField } = useFormContext();
   
-  // Combined form data from both context and props
+
   const formData = {
     ...contextFormData,
     ...propFormData
@@ -55,17 +55,17 @@ const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({
   
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
-  // Use either prop-based or context-based validation flag
+
   const shouldShowValidationErrors = showValidationErrors || formData?._showValidationErrors === true;
 
-  // Initialize form data if not present in context
+
   useEffect(() => {
     if (!contextFormData?.licensePlateDisposition) {
       updateField('licensePlateDisposition', initialDispositionData);
     }
   }, []);
 
-  // Sync component state with context/props form data
+
   useEffect(() => {
     const currentData = formData?.licensePlateDisposition;
     if (currentData) {
@@ -79,11 +79,11 @@ const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({
     }
   }, [formData?.licensePlateDisposition]);
   
-  // Validation function
+
   const validateLicensePlateDisposition = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // At least one disposition option must be selected
+
     if (!dispositionData.beingSurrendered && 
         !dispositionData.haveLost && 
         !dispositionData.haveDestroyed && 
@@ -94,7 +94,7 @@ const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({
       });
     }
     
-    // If "being surrendered" is selected, platesSurrendered is required
+
     if (dispositionData.beingSurrendered && !dispositionData.platesSurrendered) {
       errors.push({
         fieldPath: 'licensePlateDisposition.platesSurrendered',
@@ -102,7 +102,7 @@ const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({
       });
     }
     
-    // If "have been destroyed" is selected, occupational license number is required
+
     if (dispositionData.haveDestroyed && 
         (!dispositionData.occupationalLicenseNumber || 
          dispositionData.occupationalLicenseNumber.trim() === '')) {
@@ -115,25 +115,25 @@ const LicensePlateDisposition: React.FC<LicensePlateDispositionProps> = ({
     return errors;
   };
   
-  // Helper to get error message for a field
+
   const getErrorMessage = (fieldPath: string): string | null => {
     const error = validationErrors.find(err => err.fieldPath === fieldPath);
     return error ? error.message : null;
   };
   
-  // Check if a specific field should show validation error
+
   const shouldShowValidationError = (field: string): boolean => {
     if (!shouldShowValidationErrors) return false;
     return validationErrors.some(err => err.fieldPath === `licensePlateDisposition.${field}`);
   };
   
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (shouldShowValidationErrors) {
       const errors = validateLicensePlateDisposition();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
         contextFormData._validationErrors !== null
         ? contextFormData._validationErrors

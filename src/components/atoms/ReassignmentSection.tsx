@@ -44,7 +44,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({
   const { formData: contextFormData, updateField } = useFormContext();
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
-  // Get the combined form data
+
   const getFormDataSafely = () => {
     const combined = {
       ...contextFormData,
@@ -63,12 +63,12 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({
 
   const safeFormData = getFormDataSafely();
 
-  // Validation function
+
   const validateReassignmentSection = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     const info = safeFormData.reassignmentSection || initialReassignmentSection;
     
-    // Validate license plate number
+
     if (!info.specialInterestLicensePlate) {
       errors.push({
         field: 'specialInterestLicensePlate',
@@ -81,7 +81,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({
       });
     }
     
-    // Validate removed from VIN
+
     if (!info.removedFrom) {
       errors.push({
         field: 'removedFrom',
@@ -94,7 +94,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({
       });
     }
     
-    // Must select at least one option: retain interest, release to DMV, or release to new owner
+
     if (!info.retainInterest && !info.releaseInterestDMV && !info.releaseInterestNewOwner) {
       errors.push({
         field: 'interestOptions',
@@ -102,9 +102,9 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({
       });
     }
     
-    // If retaining interest or releasing to new owner
+
     if (info.retainInterest || info.releaseInterestNewOwner) {
-      // Check if both fields are empty when required
+
       if (!info.placedOnLicensePlate && !info.placedOnVehicle) {
         errors.push({
           field: 'placedOn',
@@ -113,7 +113,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({
       }
     }
     
-    // Validate placed on license plate format
+
     if (info.placedOnLicensePlate) {
       if (!/^[A-Z0-9]{1,7}$/.test(info.placedOnLicensePlate)) {
         errors.push({
@@ -123,7 +123,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({
       }
     }
     
-    // Validate placed on VIN format
+
     if (info.placedOnVehicle) {
       if (info.placedOnVehicle.length < 17) {
         errors.push({
@@ -138,7 +138,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({
       }
     }
     
-    // If retaining interest, fee is required
+
     if (info.retainInterest && !info.feeEnclosed) {
       errors.push({
         field: 'feeEnclosed',
@@ -149,29 +149,29 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({
     return errors;
   };
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;
   };
 
-  // Initialize form data only once on mount
+
   useEffect(() => {
     if (!contextFormData.reassignmentSection) {
       updateField('reassignmentSection', initialReassignmentSection);
     }
   }, [contextFormData.reassignmentSection, updateField]);
 
-  // Combined validation effect
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validateReassignmentSection();
       setValidationErrors(errors);
       
-      // Only update parent validation state when validation errors change
+
       const hasErrors = errors.length > 0;
       updateField('_validationErrors', (prev: any) => {
-        // Only update if the value is actually changing
+
         if (prev?.reassignmentSection !== hasErrors) {
           return {
             ...prev,
@@ -197,7 +197,7 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({
     const currentInfo = (safeFormData.reassignmentSection || {}) as ReassignmentSectionType;
     const newData = { ...currentInfo, [field]: value };
     
-    // Handle mutual exclusivity between options
+
     if (field === 'releaseInterestDMV' && value === true) {
       newData.releaseInterestNewOwner = false;
     } else if (field === 'releaseInterestNewOwner' && value === true) {
@@ -215,20 +215,20 @@ const ReassignmentSection: React.FC<ReassignmentSectionProps> = ({
       }
     }
     
-    // Format input for license plate and VIN
+
     if (field === 'placedOnLicensePlate' || field === 'specialInterestLicensePlate') {
-      // Ensure uppercase and only allow letters and numbers
+
       const formattedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
       newData[field] = formattedValue;
     } else if (field === 'placedOnVehicle' || field === 'removedFrom') {
-      // Ensure uppercase and only allow letters and numbers for VIN
+
       const formattedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 17);
       newData[field] = formattedValue;
     }
     
     updateField('reassignmentSection', newData);
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       setTimeout(() => {
         const errors = validateReassignmentSection();

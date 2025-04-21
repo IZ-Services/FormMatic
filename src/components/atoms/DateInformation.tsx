@@ -63,7 +63,7 @@ const DateInformation: React.FC<DateInformationProps> = ({
   
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
-  // Use either prop-based or context-based validation flag
+
   const shouldShowValidationErrors = showValidationErrors || combinedFormData?._showValidationErrors === true;
 
   useEffect(() => {
@@ -77,19 +77,19 @@ const DateInformation: React.FC<DateInformationProps> = ({
     setDateData(mergedData);
   }, [combinedFormData?.dateInformation]);
 
-  // Validation function
+
   const validateDateInformation = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     const today = new Date();
     
-    // Helper function to validate a date
+
     const validateDate = (
       section: keyof DateInformationData, 
       required: boolean = true
     ) => {
       const dateSection = dateData[section];
       
-      // Check if date is required but missing
+
       if (required && (!dateSection?.month || !dateSection?.day || !dateSection?.year)) {
         errors.push({
           fieldPath: `dateInformation.${section}`,
@@ -98,7 +98,7 @@ const DateInformation: React.FC<DateInformationProps> = ({
         return;
       }
       
-      // If any part is filled, all parts must be filled
+
       if (
         (dateSection?.month || dateSection?.day || dateSection?.year) && 
         (!dateSection?.month || !dateSection?.day || !dateSection?.year)
@@ -110,12 +110,12 @@ const DateInformation: React.FC<DateInformationProps> = ({
         return;
       }
       
-      // Skip further validation if date is incomplete
+
       if (!dateSection?.month || !dateSection?.day || !dateSection?.year) {
         return;
       }
       
-      // Validate month (1-12)
+
       const month = parseInt(dateSection.month, 10);
       if (isNaN(month) || month < 1 || month > 12) {
         errors.push({
@@ -124,10 +124,10 @@ const DateInformation: React.FC<DateInformationProps> = ({
         });
       }
       
-      // Validate day (1-31, depending on month)
+
       const day = parseInt(dateSection.day, 10);
       
-      // Get days in month
+
       const getDaysInMonth = (month: number, year: number) => {
         return new Date(year, month, 0).getDate();
       };
@@ -149,7 +149,7 @@ const DateInformation: React.FC<DateInformationProps> = ({
         });
       }
       
-      // Validate year (reasonable range)
+
       if (isNaN(year) || year < 1900 || year > today.getFullYear()) {
         errors.push({
           fieldPath: `dateInformation.${section}.year`,
@@ -158,7 +158,7 @@ const DateInformation: React.FC<DateInformationProps> = ({
         return;
       }
       
-      // Check if date is in the future
+
       if (!isNaN(month) && !isNaN(day) && !isNaN(year)) {
         const inputDate = new Date(year, month - 1, day);
         if (inputDate > today) {
@@ -170,13 +170,13 @@ const DateInformation: React.FC<DateInformationProps> = ({
       }
     };
     
-    // Validate each date section
+
     validateDate('enteredCalifornia');
     validateDate('firstOperated');
     validateDate('becameResident');
     validateDate('purchased');
     
-    // Check that date first operated is not before date entered California
+
     if (dateData.enteredCalifornia?.month && dateData.enteredCalifornia?.day && 
         dateData.enteredCalifornia?.year && dateData.firstOperated?.month && 
         dateData.firstOperated?.day && dateData.firstOperated?.year) {
@@ -205,13 +205,13 @@ const DateInformation: React.FC<DateInformationProps> = ({
     return errors;
   };
   
-  // Helper to get error message for a field
+
   const getErrorMessage = (fieldPath: string): string | null => {
     const error = validationErrors.find(err => err.fieldPath === fieldPath);
     return error ? error.message : null;
   };
   
-  // Check if a specific field should show validation error
+
   const shouldShowValidationError = (
     section: keyof DateInformationData, 
     field?: 'month' | 'day' | 'year'
@@ -231,13 +231,13 @@ const DateInformation: React.FC<DateInformationProps> = ({
     );
   };
   
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (shouldShowValidationErrors) {
       const errors = validateDateInformation();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
         contextFormData._validationErrors !== null
         ? contextFormData._validationErrors
@@ -255,7 +255,7 @@ const DateInformation: React.FC<DateInformationProps> = ({
     field: 'month' | 'day' | 'year',
     value: string
   ) => {
-    // Only allow numeric input
+
     const numericValue = value.replace(/[^0-9]/g, '');
     
     const newData = {

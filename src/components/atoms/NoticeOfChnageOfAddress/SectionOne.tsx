@@ -31,27 +31,27 @@ const SectionOne: React.FC<SectionOneProps> = ({ formData: propFormData }) => {
   );
   const [errors, setErrors] = useState<Record<string, boolean>>({});
 
-  // Combined form data from both context and props
+
   const formData = {
     ...contextFormData,
     ...propFormData
   };
 
-  // Initialize form data if not present in context
+
   useEffect(() => {
     if (!formData.personalBusinessInfo) {
       updateField('personalBusinessInfo', initialSectionOneData);
     }
   }, []);
 
-  // Sync component state with context/props form data
+
   useEffect(() => {
     if (formData.personalBusinessInfo) {
       setFormState(formData.personalBusinessInfo);
     }
   }, [formData.personalBusinessInfo]);
 
-  // Log for debugging purposes (optional)
+
   useEffect(() => {
     console.log('Current SectionOne form data:', formData.personalBusinessInfo);
   }, [formData.personalBusinessInfo]);

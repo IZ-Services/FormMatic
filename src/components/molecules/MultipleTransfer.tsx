@@ -122,11 +122,11 @@ const loadStateFromStorage = (): {
   return null;
 };
 
-// Custom validation for multiple transfers
+
 const validateTransfer = (formData: any, index: number): {isValid: boolean, errors: any[]} => {
   const errors: any[] = [];
   
-  // Check required vehicle information fields
+
   if (!formData.vehicleInformation?.hullId) {
     errors.push({
       fieldPath: `transfer${index}_vehicleInformation.hullId`,
@@ -148,7 +148,7 @@ const validateTransfer = (formData: any, index: number): {isValid: boolean, erro
     });
   }
   
-  // Check for seller information
+
   if (!formData.seller || !formData.seller.sellers || formData.seller.sellers.length === 0) {
     errors.push({
       fieldPath: `transfer${index}_seller.sellers`,
@@ -172,7 +172,7 @@ const validateTransfer = (formData: any, index: number): {isValid: boolean, erro
     });
   }
   
-  // Check seller address
+
   if (!formData.sellerAddress) {
     errors.push({
       fieldPath: `transfer${index}_sellerAddress`,
@@ -208,7 +208,7 @@ const validateTransfer = (formData: any, index: number): {isValid: boolean, erro
     }
   }
   
-  // Check new owner information
+
   if (!formData.newOwners || !formData.newOwners.owners || formData.newOwners.owners.length === 0) {
     errors.push({
       fieldPath: `transfer${index}_newOwners.owners`,
@@ -232,7 +232,7 @@ const validateTransfer = (formData: any, index: number): {isValid: boolean, erro
     });
   }
   
-  // Check new owner address
+
   if (!formData.address) {
     errors.push({
       fieldPath: `transfer${index}_address`,
@@ -268,7 +268,7 @@ const validateTransfer = (formData: any, index: number): {isValid: boolean, erro
     }
   }
   
-  // Add more validations for other fields as needed
+
   
   return { isValid: errors.length === 0, errors };
 };
@@ -294,17 +294,17 @@ const MultiSaveButton: React.FC<MultiSaveButtonProps> = ({
   
   const handleSaveSuccess = () => {
     console.log('Multiple transfer save completed successfully');
-    // Clear validation state on successful save
+
     setValidationErrors([]);
     setShowValidationErrors(false);
   };
   
   const handleSaveClick = (e: React.MouseEvent) => {
-    // Prevent default button behavior
+
     e.preventDefault();
     e.stopPropagation();
     
-    // Validate all transfers before allowing save
+
     const isValid = validateAllTransfers();
     
     if (!isValid) {
@@ -313,9 +313,9 @@ const MultiSaveButton: React.FC<MultiSaveButtonProps> = ({
       return;
     }
     
-    // If validation passes, continue with save
+
     console.log('Validation passed. Proceeding with save.');
-    // Allow the SaveButton click to proceed
+
   };
   
   return (
@@ -468,7 +468,7 @@ const TransferForm: React.FC<TransferFormProps> = ({
     }
   }, [handleFieldChange, updateField, onDataChange, index, localFormValues]);
   
-  // Get validation errors specific to this transfer
+
   const getTransferErrors = useCallback(() => {
     if (!validationErrors || !Array.isArray(validationErrors)) return [];
     
@@ -478,7 +478,7 @@ const TransferForm: React.FC<TransferFormProps> = ({
     );
   }, [validationErrors, index]);
   
-  // Helper function to get error for a specific field
+
   const getFieldError = useCallback((fieldPath: string) => {
     if (!validationErrors || !Array.isArray(validationErrors) || !showValidationErrors) return null;
     
@@ -542,7 +542,7 @@ const TransferForm: React.FC<TransferFormProps> = ({
       <VehicalInformation 
         formData={componentFormData}
         onChange={handleVehicleInfoChange}
-        // transferIndex={index}
+
       />
       
       <Seller 
@@ -647,7 +647,7 @@ const MultipleTransferWithContext: React.FC<MultipleTransferProps> = (props) => 
 
 
 const MultipleTransferInner: React.FC<MultipleTransferProps> = ({ formData, onDataChange }) => {
-  // Initialize states with default values
+
   const [numberOfTransfers, setNumberOfTransfers] = useState<number>(1);
   const [transfersData, setTransfersData] = useState<TransferData[]>(Array(5).fill({}));
   const [activeTransferIndex, setActiveTransferIndex] = useState<number>(0);
@@ -676,7 +676,7 @@ const MultipleTransferInner: React.FC<MultipleTransferProps> = ({ formData, onDa
 
   
 
-  // Load saved state from localStorage on component mount
+
   useEffect(() => {
     try {
       const savedState = loadStateFromStorage();
@@ -684,7 +684,7 @@ const MultipleTransferInner: React.FC<MultipleTransferProps> = ({ formData, onDa
       if (savedState) {
         console.log('Restoring state from localStorage:', savedState);
         
-        // Ensure transfersData is properly initialized as an array
+
         const safeTransfersData = Array.isArray(savedState.transfersData) 
           ? savedState.transfersData 
           : Array(5).fill({});
@@ -696,13 +696,13 @@ const MultipleTransferInner: React.FC<MultipleTransferProps> = ({ formData, onDa
       }
     } catch (error) {
       console.error('Error loading state:', error);
-      // In case of error, continue with default state
+
     } finally {
       setIsInitialized(true);
     }
   }, []);
   
-  // Handle incoming formData prop (higher priority than localStorage)
+
   useEffect(() => {
     if (formData && isInitialized) {
       if (formData.transfersData) {
@@ -725,15 +725,15 @@ const MultipleTransferInner: React.FC<MultipleTransferProps> = ({ formData, onDa
     }
   }, [formData, isInitialized]);
   
-  // Save state to localStorage whenever it changes
+
   useEffect(() => {
     if (isInitialized) {
       try {
-        // Make sure transfersData is an array before saving
+
         const safeTransfersData = Array.isArray(transfersData) ? 
           transfersData : Array(Math.max(5, numberOfTransfers)).fill({});
         
-        // Ensure we're saving valid data
+
         const stateToSave = {
           numberOfTransfers: Math.max(1, numberOfTransfers),
           transfersData: safeTransfersData,
@@ -751,17 +751,17 @@ const MultipleTransferInner: React.FC<MultipleTransferProps> = ({ formData, onDa
   
   const handleTransferDataChange = useCallback((data: any, index: number) => {
     setTransfersData(prev => {
-      // Ensure prev is an array
+
       const prevArray = Array.isArray(prev) ? prev : Array(5).fill({});
       const newTransfersData = [...prevArray];
       
-      // Make sure index is within bounds
+
       if (index < 0 || index >= newTransfersData.length) {
         console.error(`Invalid index: ${index}. Using index 0 instead.`);
         index = 0;
       }
       
-      // Initialize the index if it's undefined
+
       if (!newTransfersData[index]) {
         newTransfersData[index] = {};
       }
@@ -854,7 +854,7 @@ const MultipleTransferInner: React.FC<MultipleTransferProps> = ({ formData, onDa
     const allErrors: any[] = [];
     let isValid = true;
     
-    // Validate each transfer
+
     for (let i = 0; i < numberOfTransfers; i++) {
       const transferData = transfersData[i] || {};
       const { isValid: transferValid, errors } = validateTransfer(transferData, i);
@@ -865,11 +865,11 @@ const MultipleTransferInner: React.FC<MultipleTransferProps> = ({ formData, onDa
       }
     }
     
-    // Set validation errors in context
+
     console.log('Setting validation errors:', allErrors);
     setValidationErrors(allErrors);
     
-    // Always show validation errors when validation is performed
+
     setShowValidationErrors(true);
     
     return isValid;
@@ -882,7 +882,7 @@ const MultipleTransferInner: React.FC<MultipleTransferProps> = ({ formData, onDa
     return <div>Loading...</div>;
   }
 
-// Replace your existing getTransfersWithErrors function with this complete version:
+
 
 const getTransfersWithErrors = () => {
   if (!showValidationErrors || !validationErrors || validationErrors.length === 0) {
@@ -917,7 +917,7 @@ const getTransfersWithErrors = () => {
   }));
 };
 
-// Then, update the transfersWithErrors constant and its type:
+
 const transfersWithErrors: Array<{
   index: number;
   errorCount: number;

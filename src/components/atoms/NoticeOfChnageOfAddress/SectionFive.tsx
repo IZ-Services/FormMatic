@@ -28,7 +28,7 @@ const MAX_VEHICLES = 3;
 const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => {
   const { formData: contextFormData, updateField } = useFormContext();
   
-  // Combined form data from both context and props
+
   const formData = {
     ...contextFormData,
     ...propFormData
@@ -40,21 +40,21 @@ const SectionFive: React.FC<SectionFiveProps> = ({ formData: propFormData }) => 
       : [{ ...initialVehicleEntry }]
   );
 
-  // Initialize form data if not present in context
+
   useEffect(() => {
     if (!contextFormData?.vehiclesOwned) {
       updateField('vehiclesOwned', [{ ...initialVehicleEntry }]);
     }
   }, []);
 
-  // Sync component state with context/props form data
+
   useEffect(() => {
     if (formData?.vehiclesOwned) {
       setVehicleEntries(formData.vehiclesOwned);
     }
   }, [formData?.vehiclesOwned]);
   
-  // Log for debugging purposes (optional)
+
   useEffect(() => {
     console.log('Current SectionFive form data:', formData?.vehiclesOwned);
   }, [formData?.vehiclesOwned]);

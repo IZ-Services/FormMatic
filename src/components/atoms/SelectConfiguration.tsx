@@ -68,12 +68,12 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
     ...propFormData
   };
 
-  // Validation function
+
   const validateSelectConfiguration = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     const config = formData.selectConfiguration as SelectConfigurationType;
     
-    // Validate vehicle type
+
     if (!config?.vehicleType) {
       errors.push({
         field: 'vehicleType',
@@ -81,7 +81,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
       });
     }
     
-    // Validate plate type
+
     if (!config?.plateType) {
       errors.push({
         field: 'plateType',
@@ -89,7 +89,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
       });
     }
     
-    // Validate sequential plate fields
+
     if (config?.plateType === 'Sequential') {
       if (!config.currentLicensePlate) {
         errors.push({
@@ -116,9 +116,9 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
       }
     }
     
-    // Validate personalized plate fields
+
     if (config?.plateType === 'Personalized') {
-      // At least first choice is required
+
       if (!config.personalized?.firstChoice) {
         errors.push({
           field: 'firstChoice',
@@ -133,7 +133,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
         });
       }
       
-      // If second choice is provided, meaning is required
+
       if (config.personalized?.secondChoice && !config.personalized?.secondChoiceMeaning) {
         errors.push({
           field: 'secondChoiceMeaning',
@@ -141,7 +141,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
         });
       }
       
-      // If third choice is provided, meaning is required
+
       if (config.personalized?.thirdChoice && !config.personalized?.thirdChoiceMeaning) {
         errors.push({
           field: 'thirdChoiceMeaning',
@@ -150,7 +150,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
       }
     }
     
-    // Validate pickup location
+
     if (config?.plateType && !config.pickupLocation) {
       errors.push({
         field: 'pickupLocation',
@@ -158,7 +158,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
       });
     }
     
-    // Validate location city
+
     if (config?.pickupLocation && !config.locationCity) {
       errors.push({
         field: 'locationCity',
@@ -169,7 +169,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
     return errors;
   };
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;
@@ -181,7 +181,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
     }
   }, []);
 
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validateSelectConfiguration();
@@ -189,7 +189,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
     }
   }, [showValidationErrors, formData.selectConfiguration]);
 
-  // Update parent component about validation status
+
   useEffect(() => {
     if (showValidationErrors) {
       updateField('_validationErrors', (prev: any) => ({
@@ -216,7 +216,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
       updateField('selectConfiguration', newData);
     }
     
-    // Run validation if showing validation errors
+
     if (showValidationErrors) {
       setTimeout(() => {
         const errors = validateSelectConfiguration();
@@ -246,7 +246,7 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
       updateField('selectConfiguration', newData);
     }
     
-    // Run validation if showing validation errors
+
     if (showValidationErrors) {
       setTimeout(() => {
         const errors = validateSelectConfiguration();
@@ -274,16 +274,16 @@ const SelectConfiguration: React.FC<SelectConfigurationProps> = ({
     }
   };
 
-  // Style constants for plate inputs
+
   const plateInputStyle = {
-    width: '220px', // Fixed width instead of 100%
+    width: '220px',
     padding: '8px',
     textAlign: 'center' as const,
     fontWeight: 'bold' as const,
     fontSize: '16px',
     letterSpacing: '2px',
     textTransform: 'uppercase' as const,
-    display: 'block', // Ensure it's a block element for margin auto to work
+    display: 'block',
     border: '2px solid #ccc',
     borderRadius: '4px',
     boxSizing: 'border-box' as const,

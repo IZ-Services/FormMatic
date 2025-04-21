@@ -68,7 +68,7 @@ const FormContent = ({ formValues }: { formValues: any }) => {
   const isReplaceSelected = activeSubOptions['Personalized Plates-Replace'] === true;
   const isReassignSelected = activeSubOptions['Personalized Plates-Reassign/Retain'] === true;
 
-  // Check if any suboption is selected
+
   const isAnySubOptionSelected = isOrderSelected || isExchangeSelected || isReplaceSelected || isReassignSelected;
 
   const getCurrentActiveOption = (): string | null => {

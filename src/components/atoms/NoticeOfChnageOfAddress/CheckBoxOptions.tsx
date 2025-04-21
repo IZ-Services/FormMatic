@@ -29,14 +29,14 @@ const CheckboxOptions: React.FC<CheckboxOptionsProps> = ({ formData: propFormDat
     propFormData?.checkboxOptions || (contextFormData?.checkboxOptions as CheckboxState) || initialCheckboxState
   );
   
-  // Initialize form data if not present in context
+
   useEffect(() => {
     if (!contextFormData?.checkboxOptions) {
       updateField('checkboxOptions', initialCheckboxState);
     }
   }, []);
   
-  // Sync component state with context/props form data
+
   useEffect(() => {
     const currentData = propFormData?.checkboxOptions || contextFormData?.checkboxOptions;
     if (currentData) {

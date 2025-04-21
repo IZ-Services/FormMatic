@@ -33,7 +33,7 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({
   const { formData: contextFormData, updateField } = useFormContext();
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
-  // Get the combined form data safely
+
   const getFormDataSafely = () => {
     const combined = {
       ...contextFormData,
@@ -64,12 +64,12 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({
     'Disabled Person License Plates Reassignment, see Section 3'
   ];
 
-  // Validation function
+
   const validateDisabledPersonParking = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     const info = safeFormData.disabledPersonParkingInfo || initialDisabledPersonParkingData;
     
-    // Validate parking placard type selection
+
     if (!info.parkingPlacardType) {
       errors.push({
         field: 'parkingPlacardType',
@@ -77,7 +77,7 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({
       });
     }
     
-    // Validate previous issuance selection
+
     if (!info.previousIssuance) {
       errors.push({
         field: 'previousIssuance',
@@ -85,7 +85,7 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({
       });
     }
     
-    // Validate license plate number if "Yes" is selected for previous issuance
+
     if (info.previousIssuance === 'yes') {
       if (!info.licensePlateNumber) {
         errors.push({
@@ -103,20 +103,20 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({
     return errors;
   };
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;
   };
 
-  // Initialize form data if not present in context
+
   useEffect(() => {
     if (!contextFormData?.disabledPersonParkingInfo) {
       updateField('disabledPersonParkingInfo', initialDisabledPersonParkingData);
     }
   }, [contextFormData?.disabledPersonParkingInfo, updateField]);
 
-  // Sync component state with context/props form data
+
   useEffect(() => {
     const currentData = safeFormData?.disabledPersonParkingInfo;
     if (currentData) {
@@ -124,16 +124,16 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({
     }
   }, [safeFormData?.disabledPersonParkingInfo]);
 
-  // Combined validation effect
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validateDisabledPersonParking();
       setValidationErrors(errors);
       
-      // Only update parent validation state when validation errors change
+
       const hasErrors = errors.length > 0;
       updateField('_validationErrors', (prev: any) => {
-        // Only update if the value is actually changing
+
         if (prev?.disabledPersonParkingInfo !== hasErrors) {
           return {
             ...prev,
@@ -158,7 +158,7 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({
     setFormState(newData);
     updateField('disabledPersonParkingInfo', newData);
     
-    // Run validation if showing validation errors
+
     if (showValidationErrors) {
       setTimeout(() => {
         const errors = validateDisabledPersonParking();
@@ -176,7 +176,7 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({
     setFormState(newData);
     updateField('disabledPersonParkingInfo', newData);
     
-    // Run validation if showing validation errors
+
     if (showValidationErrors) {
       setTimeout(() => {
         const errors = validateDisabledPersonParking();
@@ -186,7 +186,7 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({
   };
 
   const handleLicensePlateNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Format license plate number (uppercase, alphanumeric only)
+
     const formattedValue = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
     
     const newData = { 
@@ -196,7 +196,7 @@ const DisabledPersonParkingForm: React.FC<DisabledPersonParkingProps> = ({
     setFormState(newData);
     updateField('disabledPersonParkingInfo', newData);
     
-    // Run validation if showing validation errors
+
     if (showValidationErrors) {
       setTimeout(() => {
         const errors = validateDisabledPersonParking();

@@ -6,10 +6,10 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useScenarioContext } from '../../context/ScenarioContext';
 import './NewRegisteredOwner.css';
 
-// Base storage key that will be prefixed with transfer index
+
 export const REGISTERED_OWNERS_STORAGE_KEY = 'formmatic_registered_owners';
 
-// Get the storage key specific to a transfer index
+
 export const getRegisteredOwnersStorageKey = (transferIndex?: number) => {
   if (transferIndex === undefined) {
     return REGISTERED_OWNERS_STORAGE_KEY;
@@ -17,7 +17,7 @@ export const getRegisteredOwnersStorageKey = (transferIndex?: number) => {
   return `${REGISTERED_OWNERS_STORAGE_KEY}_transfer_${transferIndex}`;
 };
 
-// Clear storage for a specific transfer
+
 export const clearRegisteredOwnersStorage = (transferIndex?: number) => {
   if (typeof window !== 'undefined') {
     const storageKey = getRegisteredOwnersStorageKey(transferIndex);
@@ -26,13 +26,13 @@ export const clearRegisteredOwnersStorage = (transferIndex?: number) => {
   }
 };
 
-// Clear all registered owners storage (useful for complete reset)
+
 export const clearAllRegisteredOwnersStorage = () => {
   if (typeof window !== 'undefined') {
-    // Clear default
+
     localStorage.removeItem(REGISTERED_OWNERS_STORAGE_KEY);
     
-    // Clear all numbered transfers (0-4 for max 5 transfers)
+
     for (let i = 0; i < 5; i++) {
       localStorage.removeItem(`${REGISTERED_OWNERS_STORAGE_KEY}_transfer_${i}`);
     }
@@ -78,7 +78,7 @@ interface NewRegisteredOwnersProps {
     [key: string]: any;   
   };
   onChange?: (data: { owners: OwnerData[], howMany: string }) => void;
-  transferIndex?: number; // New prop to identify which transfer this belongs to
+  transferIndex?: number;
 }
 
 const states = [
@@ -156,10 +156,10 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
 
   const [isInitialized, setIsInitialized] = useState(false);
   
-  // Get the storage key for this specific transfer
+
   const storageKey = getRegisteredOwnersStorageKey(transferIndex);
   
-  // To prevent infinite loops with data updates
+
   const [lastUpdatedData, setLastUpdatedData] = useState<string>('');
   
   const [owners, setOwners] = useState<OwnerData[]>([]);
@@ -176,7 +176,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
   const hideStateField = !!formData?.hideStateField;
   const hidePurchaseValueField = !!formData?.hidePurchaseValueField;
 
-  // Helper functions for validation
+
   const shouldShowValidationError = (index: number, field: keyof OwnerData) => {
     if ((field === 'licenseNumber' && hideLicenseField) ||
     (field === 'state' && hideStateField) ||
@@ -188,7 +188,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       return false;
     }
     
-    // Check if this specific field has an error
+
     return showValidationErrors && 
       validationErrors.some(error => 
         error.fieldPath === `owners[${index}].${field}`
@@ -226,7 +226,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
   const howManyOptions = forceSingleOwner ? ['1'] : ['1', '2', '3'];  
   const howManyRef = useRef<HTMLUListElement | null>(null);
 
-  // Handle clear form triggered
+
   useEffect(() => {
     if (clearFormTriggered) {
       console.log(`Clear form triggered in NewRegisteredOwners component for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
@@ -253,7 +253,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       
       setOwners(initialOwners);
       
-      // Use the appropriate field names based on transfer index
+
       const ownersFieldName = transferIndex !== undefined 
         ? `transfer${transferIndex}_owners` 
         : 'owners';
@@ -273,7 +273,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     }
   }, [clearFormTriggered, transferIndex, updateField, onChange, hideLicenseField, hideStateField]);
 
-  // Load data from localStorage on component mount
+
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
@@ -285,7 +285,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
           
           setOwners(parsedData.owners || []);
           
-          // Use the appropriate field names based on transfer index
+
           const ownersFieldName = transferIndex !== undefined 
             ? `transfer${transferIndex}_owners` 
             : 'owners';
@@ -320,7 +320,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
   }, []);
 
   const initializeDefaultOwners = () => {
-    // Initialize with default values or values from props
+
     const initialOwner = {
       firstName: '',
       middleName: '',
@@ -339,7 +339,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       relationshipType: undefined
     };
     
-    // If prop data is available, use it instead
+
     const initialOwners = propFormData?.owners && propFormData.owners.length > 0 
       ? propFormData.owners 
       : [initialOwner];
@@ -348,7 +348,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     
     setOwners(initialOwners);
     
-    // Use the appropriate field names based on transfer index
+
     const ownersFieldName = transferIndex !== undefined 
       ? `transfer${transferIndex}_owners` 
       : 'owners';
@@ -366,7 +366,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       });
     }
     
-    // Save to localStorage
+
     if (typeof window !== 'undefined') {
       localStorage.setItem(storageKey, JSON.stringify({
         owners: initialOwners,
@@ -405,12 +405,12 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       if (shouldUpdate) {
         setOwners(newOwners);
         
-        // Use the appropriate field name based on transfer index
+
         const fieldName = transferIndex !== undefined 
           ? `transfer${transferIndex}_owners` 
           : 'owners';
           
-        // Only update if data has changed
+
         const currentDataStr = JSON.stringify({
           owners: newOwners,
           howMany: formData?.howMany || '1'
@@ -421,7 +421,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
           setLastUpdatedData(currentDataStr);
         }
         
-        // Save to localStorage
+
         if (typeof window !== 'undefined') {
           localStorage.setItem(storageKey, JSON.stringify({
             owners: newOwners,
@@ -443,7 +443,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     if (forceSingleOwner && formData?.howMany !== '1') {
       const newHowMany = '1';
       
-      // Use the appropriate field name based on transfer index
+
       const fieldName = transferIndex !== undefined 
         ? `transfer${transferIndex}_howMany` 
         : 'howMany';
@@ -454,14 +454,14 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
         const newOwners = [owners[0]];
         setOwners(newOwners);
         
-        // Use the appropriate field name based on transfer index
+
         const ownersFieldName = transferIndex !== undefined 
           ? `transfer${transferIndex}_owners` 
           : 'owners';
           
         updateField(ownersFieldName, newOwners);
         
-        // Save to localStorage
+
         if (typeof window !== 'undefined') {
           localStorage.setItem(storageKey, JSON.stringify({
             owners: newOwners,
@@ -491,12 +491,12 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       
       setOwners(newOwners);
       
-      // Use the appropriate field name based on transfer index
+
       const fieldName = transferIndex !== undefined 
         ? `transfer${transferIndex}_owners` 
         : 'owners';
         
-      // Only update if data has changed
+
       const currentDataStr = JSON.stringify({
         owners: newOwners,
         howMany: formData?.howMany || '1'
@@ -507,7 +507,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
         setLastUpdatedData(currentDataStr);
       }
       
-      // Save to localStorage
+
       if (typeof window !== 'undefined') {
         localStorage.setItem(storageKey, JSON.stringify({
           owners: newOwners,
@@ -561,7 +561,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
 
     setOwners(newOwners);
     
-    // Use the appropriate field names based on transfer index
+
     const ownersFieldName = transferIndex !== undefined 
       ? `transfer${transferIndex}_owners` 
       : 'owners';
@@ -569,7 +569,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       ? `transfer${transferIndex}_howMany` 
       : 'howMany';
       
-    // Only update if data has changed
+
     const currentDataStr = JSON.stringify({
       owners: newOwners,
       howMany: count
@@ -581,7 +581,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       setLastUpdatedData(currentDataStr);
     }
     
-    // Save to localStorage
+
     if (typeof window !== 'undefined') {
       localStorage.setItem(storageKey, JSON.stringify({
         owners: newOwners,
@@ -615,12 +615,12 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
     
     setOwners(newOwners);
     
-    // Use the appropriate field name based on transfer index
+
     const fieldName = transferIndex !== undefined 
       ? `transfer${transferIndex}_owners` 
       : 'owners';
       
-    // Only update if data has changed
+
     const currentDataStr = JSON.stringify({
       owners: newOwners,
       howMany: formData?.howMany || '1'
@@ -631,7 +631,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       setLastUpdatedData(currentDataStr);
     }
     
-    // Save to localStorage
+
     if (typeof window !== 'undefined') {
       localStorage.setItem(storageKey, JSON.stringify({
         owners: newOwners,
@@ -654,12 +654,12 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       newOwners[index] = { ...newOwners[index], relationshipType: type };
       setOwners(newOwners);
       
-      // Use the appropriate field name based on transfer index
+
       const fieldName = transferIndex !== undefined 
         ? `transfer${transferIndex}_owners` 
         : 'owners';
         
-      // Only update if data has changed
+
       const currentDataStr = JSON.stringify({
         owners: newOwners,
         howMany: formData?.howMany || '1'
@@ -670,7 +670,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
         setLastUpdatedData(currentDataStr);
       }
       
-      // Save to localStorage
+
       if (typeof window !== 'undefined') {
         localStorage.setItem(storageKey, JSON.stringify({
           owners: newOwners,
@@ -735,12 +735,12 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       
       setOwners(newOwners);
       
-      // Use the appropriate field name based on transfer index
+
       const fieldName = transferIndex !== undefined 
         ? `transfer${transferIndex}_owners` 
         : 'owners';
         
-      // Only update if data has changed
+
       const currentDataStr = JSON.stringify({
         owners: newOwners,
         howMany: formData?.howMany || '1'
@@ -751,7 +751,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
         setLastUpdatedData(currentDataStr);
       }
       
-      // Save to localStorage
+
       if (typeof window !== 'undefined') {
         localStorage.setItem(storageKey, JSON.stringify({
           owners: newOwners,
@@ -778,12 +778,12 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
       
       setOwners(newOwners);
       
-      // Use the appropriate field name based on transfer index
+
       const fieldName = transferIndex !== undefined 
         ? `transfer${transferIndex}_owners` 
         : 'owners';
         
-      // Only update if data has changed
+
       const currentDataStr = JSON.stringify({
         owners: newOwners,
         howMany: formData?.howMany || '1'
@@ -794,7 +794,7 @@ const NewRegisteredOwners: React.FC<NewRegisteredOwnersProps> = ({
         setLastUpdatedData(currentDataStr);
       }
       
-      // Save to localStorage
+
       if (typeof window !== 'undefined') {
         localStorage.setItem(storageKey, JSON.stringify({
           owners: newOwners,

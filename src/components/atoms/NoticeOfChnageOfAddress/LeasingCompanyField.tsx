@@ -14,14 +14,14 @@ const LeasingCompanyField: React.FC<LeasingCompanyFieldProps> = ({
   const [companyName, setCompanyName] = useState<string>(leasingCompanyName || '');
   const { formData: contextFormData } = useFormContext();
 
-  // Sync the local state with the prop value when it changes
+
   useEffect(() => {
     if (leasingCompanyName !== undefined) {
       setCompanyName(leasingCompanyName);
     }
   }, [leasingCompanyName]);
 
-  // Log for debugging purposes (optional)
+
   useEffect(() => {
     console.log('Current LeasingCompanyField value:', companyName);
   }, [companyName]);

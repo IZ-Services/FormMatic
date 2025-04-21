@@ -42,12 +42,12 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({
     ...propFormData
   };
 
-  // Validation function
+
   const validateReplacementSection = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     const replacementSection = formData.replacementSection as ReplacementSectionType | undefined;
     
-    // Validate license plate number
+
     if (!replacementSection?.specialInterestLicensePlate) {
       errors.push({
         field: 'specialInterestLicensePlate',
@@ -60,7 +60,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({
       });
     }
     
-    // Validate plate quantity selection
+
     if (!replacementSection?.ineed) {
       errors.push({
         field: 'ineed',
@@ -68,7 +68,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({
       });
     }
     
-    // Validate plate status
+
     if (!replacementSection?.plateStatus) {
       errors.push({
         field: 'plateStatus',
@@ -79,7 +79,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({
     return errors;
   };
 
-  // Helper to get error message for a field
+
   const getErrorMessage = (field: string): string | null => {
     const error = validationErrors.find(err => err.field === field);
     return error ? error.message : null;
@@ -91,7 +91,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({
     }
   }, []);
 
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (showValidationErrors) {
       const errors = validateReplacementSection();
@@ -99,7 +99,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({
     }
   }, [showValidationErrors, formData.replacementSection]);
 
-  // Update parent component about validation status
+
   useEffect(() => {
     if (showValidationErrors) {
       updateField('_validationErrors', (prev: any) => ({
@@ -126,7 +126,7 @@ const ReplacementSection: React.FC<ReplacementSectionProps> = ({
     updateField('replacementSection', newData);
     setOpenDropdown(null);
     
-    // Run validation if we're showing validation errors
+
     if (showValidationErrors) {
       const errors = validateReplacementSection();
       setValidationErrors(errors);

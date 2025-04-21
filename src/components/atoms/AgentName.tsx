@@ -16,32 +16,32 @@ const AgentNameField: React.FC<AgentNameFieldProps> = ({ formData: propFormData,
     updateField: (section: string, value: any) => void;
   };
   
-  // Combined form data from both context and props
+
   const combinedFormData = {
     ...contextFormData,
     ...propFormData
   };
   
-  // Initialize state with data from props, context, or default values
+
   const [agentNameData, setAgentNameData] = useState<{ agentName: string }>({
     agentName: propFormData?.agentName || contextFormData?.agentName || '',
   });
   
-  // Initialize form data if not present in context
+
   useEffect(() => {
     if (!contextFormData?.agentName && !onChange) {
       updateField('agentName', agentNameData.agentName);
     }
   }, []);
   
-  // Sync with props when they change
+
   useEffect(() => {
     if (propFormData?.agentName !== undefined && propFormData.agentName !== agentNameData.agentName) {
       setAgentNameData({ agentName: propFormData.agentName });
     }
   }, [propFormData]);
   
-  // Sync with context when it changes (if not using onChange)
+
   useEffect(() => {
     if (!onChange && contextFormData?.agentName !== undefined && 
         contextFormData.agentName !== agentNameData.agentName) {
@@ -49,7 +49,7 @@ const AgentNameField: React.FC<AgentNameFieldProps> = ({ formData: propFormData,
     }
   }, [contextFormData?.agentName]);
   
-  // Log for debugging purposes (optional)
+
   useEffect(() => {
     console.log('Current AgentName form data:', combinedFormData?.agentName);
   }, [combinedFormData?.agentName]);

@@ -105,7 +105,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
   );
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
-  // Combined form data from both context and props
+
   const formData = {
     ...contextFormData,
     ...propFormData
@@ -117,14 +117,14 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
     trailerVessel: useRef<HTMLDivElement>(null)
   };
 
-  // Initialize form data if not present in context
+
   useEffect(() => {
     if (!contextFormData?.newOrCorrectResidence) {
       updateField('newOrCorrectResidence', initialSectionThreeData);
     }
   }, []);
 
-  // Sync component state with context/props form data
+
   useEffect(() => {
     const currentData = formData?.newOrCorrectResidence;
     if (currentData) {
@@ -132,7 +132,7 @@ const SectionThree: React.FC<SectionThreeProps> = ({ formData: propFormData }) =
     }
   }, [formData?.newOrCorrectResidence]);
   
-  // Log for debugging purposes (optional)
+
   useEffect(() => {
     console.log('Current SectionThree form data:', formData?.newOrCorrectResidence);
   }, [formData?.newOrCorrectResidence]);

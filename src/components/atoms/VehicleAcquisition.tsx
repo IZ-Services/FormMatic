@@ -45,7 +45,7 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
   
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   
-  // Use either prop-based or context-based validation flag
+
   const shouldShowValidationErrors = showValidationErrors || combinedFormData?._showValidationErrors === true;
 
   useEffect(() => {
@@ -58,11 +58,11 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
     setAcquisitionData(mergedData);
   }, [combinedFormData?.vehicleAcquisition]);
 
-  // Validation function
+
   const validateVehicleAcquisition = (): ValidationError[] => {
     const errors: ValidationError[] = [];
     
-    // Acquired from is required
+
     if (!acquisitionData.acquiredFrom) {
       errors.push({
         fieldPath: 'vehicleAcquisition.acquiredFrom',
@@ -70,7 +70,7 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
       });
     }
     
-    // If acquired from family member, relationship is required
+
     if (acquisitionData.acquiredFrom === 'familyMember' && 
         (!acquisitionData.familyRelationship || acquisitionData.familyRelationship.trim() === '')) {
       errors.push({
@@ -79,7 +79,7 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
       });
     }
     
-    // Modification selection is required
+
     if (acquisitionData.hasModifications === undefined) {
       errors.push({
         fieldPath: 'vehicleAcquisition.hasModifications',
@@ -90,25 +90,25 @@ const VehicleAcquisition: React.FC<VehicleAcquisitionProps> = ({
     return errors;
   };
   
-  // Helper to get error message for a field
+
   const getErrorMessage = (fieldPath: string): string | null => {
     const error = validationErrors.find(err => err.fieldPath === fieldPath);
     return error ? error.message : null;
   };
   
-  // Check if a specific field should show validation error
+
   const shouldShowValidationError = (field: string): boolean => {
     if (!shouldShowValidationErrors) return false;
     return validationErrors.some(err => err.fieldPath === `vehicleAcquisition.${field}`);
   };
   
-  // Run validation when showing validation errors or when data changes
+
   useEffect(() => {
     if (shouldShowValidationErrors) {
       const errors = validateVehicleAcquisition();
       setValidationErrors(errors);
       
-      // Update global form validation state
+
       const currentValidationErrors = typeof contextFormData._validationErrors === 'object' && 
         contextFormData._validationErrors !== null
         ? contextFormData._validationErrors

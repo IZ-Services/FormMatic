@@ -32,19 +32,19 @@ interface FormData {
   [key: string]: any;
 }
 
-// Update this interface to match the actual type from the context
+
 interface FormContext {
   formData: FormData;
   updateField: (field: string, value: any) => void;
   validationErrors: Array<{ fieldPath: string; message: string }>;
   showValidationErrors: boolean;
-  clearFormTriggered: number | null; // Changed from boolean to number | null
+  clearFormTriggered: number | null;
 }
 
 interface SellerSectionProps {
   formData?: FormData;   
   onChange?: (sellerInfo: SellerInfo) => void;
-  transferIndex?: number; // New prop to identify which transfer this belongs to
+  transferIndex?: number;
 }
 
 const initialSeller: Seller = {
@@ -65,10 +65,10 @@ const initialSellerInfo: SellerInfo = {
   sellers: [{ ...initialSeller }]
 };
 
-// Base storage key that will be prefixed with transfer index
+
 export const SELLER_INFO_STORAGE_KEY = 'formmatic_seller_info';
 
-// Get the storage key specific to a transfer index
+
 export const getSellerInfoStorageKey = (transferIndex?: number) => {
   if (transferIndex === undefined) {
     return SELLER_INFO_STORAGE_KEY;
@@ -76,7 +76,7 @@ export const getSellerInfoStorageKey = (transferIndex?: number) => {
   return `${SELLER_INFO_STORAGE_KEY}_transfer_${transferIndex}`;
 };
 
-// Clear storage for a specific transfer
+
 export const clearSellerInfoStorage = (transferIndex?: number) => {
   if (typeof window !== 'undefined') {
     const storageKey = getSellerInfoStorageKey(transferIndex);
@@ -85,13 +85,13 @@ export const clearSellerInfoStorage = (transferIndex?: number) => {
   }
 };
 
-// Clear all Seller info storage (useful for complete reset)
+
 export const clearAllSellerInfoStorage = () => {
   if (typeof window !== 'undefined') {
-    // Clear default
+
     localStorage.removeItem(SELLER_INFO_STORAGE_KEY);
     
-    // Clear all numbered transfers (0-4 for max 5 transfers)
+
     for (let i = 0; i < 5; i++) {
       localStorage.removeItem(`${SELLER_INFO_STORAGE_KEY}_transfer_${i}`);
     }
@@ -128,14 +128,14 @@ const SellerSection: React.FC<SellerSectionProps> = ({
     ...propFormData
   };
 
-  // Get the storage key for this specific transfer
+
   const storageKey = getSellerInfoStorageKey(transferIndex);
 
-  // Helper functions for validation
+
   const shouldShowValidationError = (index: number, field: string) => {
     if (!showValidationErrors) return false;
     
-    // Update the validation path to include transfer index when needed
+
     const fieldPath = transferIndex !== undefined
       ? `transfer${transferIndex}_sellerInfo.sellers[${index}].${field}`
       : `sellerInfo.sellers[${index}].${field}`;
@@ -144,7 +144,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
   };
   
   const getValidationErrorMessage = (index: number, field: string): string => {
-    // Update the validation path to include transfer index when needed
+
     const fieldPath = transferIndex !== undefined
       ? `transfer${transferIndex}_sellerInfo.sellers[${index}].${field}`
       : `sellerInfo.sellers[${index}].${field}`;
@@ -180,13 +180,13 @@ const SellerSection: React.FC<SellerSectionProps> = ({
     console.log("Transfer index:", transferIndex);
   }, [forceSingleOwner, hideDateOfSale, hideDateOfBirth, limitOwnerCount, activeScenarios, transferIndex]);
 
-  // Handle clear form triggered
+
   useEffect(() => {
     if (clearFormTriggered) {
       console.log(`Clear form triggered in SellerSection component for transfer ${transferIndex !== undefined ? transferIndex : 'default'}`);
       clearSellerInfoStorage(transferIndex);
       
-      // Use the appropriate field name based on transfer index
+
       const fieldName = transferIndex !== undefined 
         ? `transfer${transferIndex}_sellerInfo` 
         : 'sellerInfo';
@@ -252,7 +252,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
     return ['1', '2', '3'];
   };
 
-  // Load data from localStorage on component mount
+
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       try {
@@ -267,7 +267,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
             ...parsedData
           };
           
-          // Use the appropriate field name based on transfer index
+
           const fieldName = transferIndex !== undefined 
             ? `transfer${transferIndex}_sellerInfo` 
             : 'sellerInfo';
@@ -278,7 +278,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
             onChange(mergedData);
           }
         } else if (propFormData?.sellerInfo) {
-          // Use the appropriate field name based on transfer index
+
           const fieldName = transferIndex !== undefined 
             ? `transfer${transferIndex}_sellerInfo` 
             : 'sellerInfo';
@@ -307,7 +307,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           sellers: newSellers
         };
         
-        // Use the appropriate field name based on transfer index
+
         const fieldName = transferIndex !== undefined 
           ? `transfer${transferIndex}_sellerInfo` 
           : 'sellerInfo';
@@ -318,7 +318,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           onChange(newSellerInfo);
         }
         
-        // Save to localStorage
+
         if (typeof window !== 'undefined' && isInitialized) {
           localStorage.setItem(storageKey, JSON.stringify(newSellerInfo));
         }
@@ -328,7 +328,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           sellerCount: newSellerCount
         };
         
-        // Use the appropriate field name based on transfer index
+
         const fieldName = transferIndex !== undefined 
           ? `transfer${transferIndex}_sellerInfo` 
           : 'sellerInfo';
@@ -339,7 +339,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           onChange(updatedInfo);
         }
         
-        // Save to localStorage
+
         if (typeof window !== 'undefined' && isInitialized) {
           localStorage.setItem(storageKey, JSON.stringify(updatedInfo));
         }
@@ -360,7 +360,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           sellers: newSellers
         };
         
-        // Use the appropriate field name based on transfer index
+
         const fieldName = transferIndex !== undefined 
           ? `transfer${transferIndex}_sellerInfo` 
           : 'sellerInfo';
@@ -371,7 +371,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           onChange(newSellerInfo);
         }
         
-        // Save to localStorage
+
         if (typeof window !== 'undefined' && isInitialized) {
           localStorage.setItem(storageKey, JSON.stringify(newSellerInfo));
         }
@@ -381,7 +381,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           sellerCount: newSellerCount
         };
         
-        // Use the appropriate field name based on transfer index
+
         const fieldName = transferIndex !== undefined 
           ? `transfer${transferIndex}_sellerInfo` 
           : 'sellerInfo';
@@ -392,7 +392,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           onChange(updatedInfo);
         }
         
-        // Save to localStorage
+
         if (typeof window !== 'undefined' && isInitialized) {
           localStorage.setItem(storageKey, JSON.stringify(updatedInfo));
         }
@@ -404,7 +404,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
     if (!formData.sellerInfo && isInitialized) {
       const newSellerInfo = initialSellerInfo;
       
-      // Use the appropriate field name based on transfer index
+
       const fieldName = transferIndex !== undefined 
         ? `transfer${transferIndex}_sellerInfo` 
         : 'sellerInfo';
@@ -415,7 +415,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
         onChange(newSellerInfo);
       }
       
-      // Save to localStorage
+
       if (typeof window !== 'undefined') {
         localStorage.setItem(storageKey, JSON.stringify(newSellerInfo));
       }
@@ -431,7 +431,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
         sellers: newSellers
       };
       
-      // Use the appropriate field name based on transfer index
+
       const fieldName = transferIndex !== undefined 
         ? `transfer${transferIndex}_sellerInfo` 
         : 'sellerInfo';
@@ -442,7 +442,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
         onChange(newSellerInfo);
       }
       
-      // Save to localStorage
+
       if (typeof window !== 'undefined' && isInitialized) {
         localStorage.setItem(storageKey, JSON.stringify(newSellerInfo));
       }
@@ -464,7 +464,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           sellers: newSellers
         };
         
-        // Use the appropriate field name based on transfer index
+
         const fieldName = transferIndex !== undefined 
           ? `transfer${transferIndex}_sellerInfo` 
           : 'sellerInfo';
@@ -475,7 +475,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           onChange(newSellerInfo);
         }
         
-        // Save to localStorage
+
         if (typeof window !== 'undefined' && isInitialized) {
           localStorage.setItem(storageKey, JSON.stringify(newSellerInfo));
         }
@@ -505,7 +505,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           sellers: newSellers
         };
         
-        // Use the appropriate field name based on transfer index
+
         const fieldName = transferIndex !== undefined 
           ? `transfer${transferIndex}_sellerInfo` 
           : 'sellerInfo';
@@ -516,7 +516,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           onChange(newSellerInfo);
         }
         
-        // Save to localStorage
+
         if (typeof window !== 'undefined' && isInitialized) {
           localStorage.setItem(storageKey, JSON.stringify(newSellerInfo));
         }
@@ -596,7 +596,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
       sellers 
     };
     
-    // Use the appropriate field name based on transfer index
+
     const fieldName = transferIndex !== undefined 
       ? `transfer${transferIndex}_sellerInfo` 
       : 'sellerInfo';
@@ -607,7 +607,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
       onChange(newSellerInfo);
     }
     
-    // Save to localStorage
+
     if (typeof window !== 'undefined' && isInitialized) {
       localStorage.setItem(storageKey, JSON.stringify(newSellerInfo));
     }
@@ -633,7 +633,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           sellers 
         };
         
-        // Use the appropriate field name based on transfer index
+
         const fieldName = transferIndex !== undefined 
           ? `transfer${transferIndex}_sellerInfo` 
           : 'sellerInfo';
@@ -644,7 +644,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
           onChange(newSellerInfo);
         }
         
-        // Save to localStorage
+
         if (typeof window !== 'undefined' && isInitialized) {
           localStorage.setItem(storageKey, JSON.stringify(newSellerInfo));
         }
@@ -686,7 +686,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
       sellers: newSellers
     };
     
-    // Use the appropriate field name based on transfer index
+
     const fieldName = transferIndex !== undefined 
       ? `transfer${transferIndex}_sellerInfo` 
       : 'sellerInfo';
@@ -697,7 +697,7 @@ const SellerSection: React.FC<SellerSectionProps> = ({
       onChange(newSellerInfo);
     }
     
-    // Save to localStorage
+
     if (typeof window !== 'undefined' && isInitialized) {
       localStorage.setItem(storageKey, JSON.stringify(newSellerInfo));
     }
