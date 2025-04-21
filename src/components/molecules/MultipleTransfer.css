@@ -4,6 +4,13 @@
   margin: 0 auto;
 }
 
+@media (min-width: 1511px) {
+  .multiple-transfer-wrapper {
+    margin: 0;
+    margin-right: 240px;
+  }
+}
+
 .header-section {
   margin-bottom: 20px;
   padding-right:30%;

@@ -157,9 +157,14 @@ export default function Transactions() {
       return;
     }
     
-
     console.log('Transaction type:', clientToEdit.transactionType);
     console.log('Available components:', Object.keys(transactionComponents));
+    
+    // Normalize the transaction type for multiple transfers
+    let normalizedTransactionType = clientToEdit.transactionType;
+    if (normalizedTransactionType.startsWith('Multiple Transfer')) {
+      normalizedTransactionType = 'Multiple Transfer';
+    }
     
     const formDataWithId = {
       ...clientToEdit.formData,
@@ -169,6 +174,8 @@ export default function Transactions() {
     setFormData(formDataWithId);
     setSelectedTransaction({
       ...clientToEdit,
+      // Use the normalized transaction type for component lookup
+      transactionType: normalizedTransactionType,
       formData: formDataWithId
     });
   };
@@ -206,14 +213,25 @@ export default function Transactions() {
 
     return (
       <div className="transaction-container">
-        <div className="transaction-header">
+        <div className="transaction-header" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button 
-            className="back-button" 
+            className="back-buttonn" 
             onClick={handleBackToTransactions}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '5px'
+            }}
           >
-            Back to Transactions
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5"></path>
+              <path d="M12 19l-7-7 7-7"></path>
+            </svg>
           </button>
-          <h2 className="transaction-heading">Edit Transaction</h2>
+          <h2 className="transaction-heading" style={{ margin: 0 }}>Edit Transaction</h2>
         </div>
         {Component ? (
           <Component formData={selectedTransaction.formData} />
@@ -253,26 +271,30 @@ export default function Transactions() {
               </tr>
             </thead>
             <tbody>
-              {transactions.map((transaction: ITransaction) => (
-                <tr key={transaction._id}>
-                  <td>{new Date(transaction.createdAt).toLocaleString()}</td>
-                  <td>{transaction.transactionType}</td>
-                  <td>
-                    <button
-                      className="editanddelete-button"
-                      onClick={() => handleEdit(transaction._id, user?.uid)}
-                    >
-                      <PencilSquareIcon className="editIcon" />
-                    </button>
-                    <button
-                      className="editanddelete-button"
-                      onClick={() => handleDelete(transaction._id, user?.uid)}
-                    >
-                      <TrashIcon className="trashIcon" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+            {transactions.map((transaction: ITransaction) => (
+  <tr key={transaction._id}>
+    <td>{new Date(transaction.createdAt).toLocaleString()}</td>
+    <td>
+      {transaction.transactionType.startsWith('Multiple Transfer') 
+        ? 'Multiple Transfer'
+        : transaction.transactionType}
+    </td>
+    <td>
+      <button
+        className="editanddelete-button"
+        onClick={() => handleEdit(transaction._id, user?.uid)}
+      >
+        <PencilSquareIcon className="editIcon" />
+      </button>
+      <button
+        className="editanddelete-button"
+        onClick={() => handleDelete(transaction._id, user?.uid)}
+      >
+        <TrashIcon className="trashIcon" />
+      </button>
+    </td>
+  </tr>
+))}
             </tbody>
           </table>
         )}
