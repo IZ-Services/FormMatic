@@ -26,6 +26,7 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   isSubscribed: boolean;
   loading: boolean;
+  isLoggingIn: boolean; 
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -65,25 +66,25 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   const emailSignIn = async (email: string, password: string) => {
     if (isLoggingIn) return;
     
+    setIsLoggingIn(true);
     setLoading(true);
     try {
-      setIsLoggingIn(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const token = await userCredential.user.getIdToken(true);
-
+  
       const response = await axios.post('/api/login', { token }, {
         withCredentials: true,
       });
-
+  
       if (response.data.success) {
         setUser(userCredential.user);
         router.push('/home');
       }
     } catch (error) {
       console.error('Error signing in:', error);
+      setIsLoggingIn(false); // Reset only on error
       throw error;
     } finally {
-      setIsLoggingIn(false);
       setLoading(false);
     }
   };
@@ -192,7 +193,7 @@ export const AuthContextProvider = ({ children }: Readonly<{ children: React.Rea
   }
 
   return (
-    <AuthContext.Provider value={{ user, emailSignIn, isSubscribed, logout, loading }}>
+    <AuthContext.Provider value={{ user, emailSignIn, isSubscribed, logout, loading, isLoggingIn }}>
       {children}
     </AuthContext.Provider>
   );
